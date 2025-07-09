@@ -23,7 +23,7 @@ AthenaArray<double> make_array(int size) {
 int main(int argc, char* argv[]) {
     std::string mode = "perf";
     int size = 20;
-    int repeat = 50;
+    int repeat = 500000;
     int threads = std::min(4, omp_get_max_threads());
 
     for (int i = 1; i < argc; ++i) {

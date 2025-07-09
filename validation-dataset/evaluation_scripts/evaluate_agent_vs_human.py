@@ -2,31 +2,33 @@
 import os
 import sys
 import subprocess
-from validate import compile_and_run, run_executable, mean, std, compare_outputs
+import json
+from pathlib import Path
+from validate import compile_and_run, run_executable, mean, std
+
+MODEL_NAME = "gpt-4o"  # Change if you're using a different model
 
 def compile_extra(bench_dir, cpp_name, exe_name):
     """Compile a given C++ file in the benchmark directory."""
     exe_path = os.path.join(bench_dir, exe_name)
-    diag_path = os.path.join(bench_dir, f"compiler_{exe_name}.log")
-
-    cmd = ["g++", "harness.cpp", cpp_name, "-o", exe_name,
-           f"-fopt-info-all=compiler_{exe_name}.log", "-std=c++17", "-O3", "-fopenmp"]
+    cmd = [
+        "g++", "harness.cpp", cpp_name, "-o", exe_name,
+        f"-fopt-info-all=compiler_{exe_name}.log", "-std=c++17", "-O3", "-fopenmp"
+    ]
     subprocess.check_call(cmd, cwd=bench_dir)
-
     return exe_path
 
-def measure_and_print(name, exe_path):
-    """Run correctness and performance tests on an executable."""
-    print(f"\n-- {name}: Correctness Check --")
+def measure(name, exe_path):
+    """Measure correctness and performance of a given executable."""
     correct_output = run_executable([exe_path, "--mode=correct"])
-    print(f"{name} correctness output: {correct_output}")
-
-    print(f"-- {name}: Performance --")
     perf_vals = run_executable([exe_path, "--mode=perf"] * 10)
     avg = mean(perf_vals)
     sd = std(perf_vals)
-    print(f"{name} mean = {avg:.2f} ms, std = {sd:.2f} ms")
-    return avg
+    return {
+        "correctness_output": correct_output,
+        "mean_ms": round(avg, 2),
+        "std_ms": round(sd, 2)
+    }
 
 def main():
     if len(sys.argv) != 2:
@@ -35,27 +37,41 @@ def main():
 
     bench_dir = sys.argv[1]
 
-    if not os.path.exists(os.path.join(bench_dir, "agent_optimized.cpp")):
+    agent_cpp_path = os.path.join(bench_dir, "agent_optimized.cpp")
+    if not os.path.exists(agent_cpp_path):
         print(f"❌ Missing agent_optimized.cpp in {bench_dir}")
         sys.exit(1)
 
     print(f"\n⚙️ Evaluating benchmark: {bench_dir}\n")
 
-    # Compile original and human optimized versions
+    # Compile original and human-optimized versions
     executables, _ = compile_and_run(bench_dir)
 
     # Compile agent-optimized version
     agent_exe = compile_extra(bench_dir, "agent_optimized.cpp", "bench_agent")
 
-    # Run evaluations
-    original_avg = measure_and_print("Original", executables["original"])
-    human_avg = measure_and_print("Human Optimized", executables["optimized"])
-    agent_avg = measure_and_print("Agent Optimized", agent_exe)
+    # Measure all 3
+    results = {
+        "benchmark": bench_dir,
+        "original": measure("Original", executables["original"]),
+        "human_optimized": measure("Human Optimized", executables["optimized"]),
+        "agent_optimized": measure("Agent Optimized", agent_exe)
+    }
 
+    # Print summary
     print("\n📊 Performance Summary:")
-    print(f"Original        : {original_avg:.2f} ms")
-    print(f"Human Optimized : {human_avg:.2f} ms")
-    print(f"Agent Optimized : {agent_avg:.2f} ms")
+    print(f"Original        : {results['original']['mean_ms']} ms")
+    print(f"Human Optimized : {results['human_optimized']['mean_ms']} ms")
+    print(f"Agent Optimized : {results['agent_optimized']['mean_ms']} ms")
+
+    # Save to standardized location
+    bench_id = os.path.basename(bench_dir)
+    out_path = Path(f"agent_outputs/{MODEL_NAME}/{bench_id}/evaluation.json")
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with out_path.open("w") as f:
+        json.dump(results, f, indent=2)
+
+    print(f"\n✅ Saved evaluation results to: {out_path}")
 
 if __name__ == "__main__":
     main()
