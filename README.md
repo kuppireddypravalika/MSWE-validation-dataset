@@ -1,6 +1,6 @@
 # MSWE-validation-dataset
 
-This repository combines the [MSWE-agent](https://github.com/multi-swe-bench/MSWE-agent) with a custom benchmark suite (`validation-dataset`) to evaluate the performance of LLM-optimized C++ code compared to human-optimized implementations.
+This repository combines the **MSWE-agent** with a custom benchmark suite (**validation-dataset**) to evaluate the performance of LLM-optimized C++ code compared to human-optimized implementations.
 
 ---
 
@@ -17,21 +17,21 @@ cd validation-dataset
 sudo docker build -f Dockerfile.agent -t benchmark_674 .
 ```
 
-You can test the container with:
+#### 🧪 Test the container:
 
 ```bash
 sudo docker run --rm -it benchmark_674:latest bash
 ```
 
-#### 🔁 Tagging the same image for other benchmarks:
+#### 🔁 Reuse the image for other benchmarks:
 
-The MSWE-agent expects a separate Docker image per benchmark. You can reuse the same image by tagging it:
+The MSWE-agent expects a separate Docker image per benchmark. You can reuse an image by tagging it:
 
 ```bash
-sudo docker tag benchmark_001:latest benchmark_674:latest
+sudo docker tag benchmark_674:latest benchmark_001:latest
 ```
 
-#### ✅ Verify the image is available:
+#### ✅ Verify the image:
 
 ```bash
 sudo docker images
@@ -47,7 +47,7 @@ Ensure the MSWE-agent repo includes a `validation_dataset.jsonl` file under:
 MSWE-agent/data/cpp/validation_dataset.jsonl
 ```
 
-Each benchmark instance should follow this structure:
+Each benchmark entry should follow this structure:
 
 ```json
 {
@@ -75,13 +75,13 @@ Each benchmark instance should follow this structure:
 }
 ```
 
-> ⚠️ The exact `jsonl` structure may vary slightly between benchmarks — ensure correct formatting to guide the agent correctly.
+⚠️ *Ensure correct formatting per benchmark.*
 
 ---
 
 ## 🚀 Running the MSWE-agent
 
-Follow the MSWE-agent README to set up the environment. Once inside the conda environment, use the following command to run the agent:
+After setting up the Conda environment and dependencies, use:
 
 ```bash
 python run.py \
@@ -99,39 +99,41 @@ python run.py \
 
 ---
 
-## 📂 Output Location
+## 📂 Output Locations
 
-Agent-generated outputs are saved under:
-
-- `trajectories/` — contains `.traj` JSON files with full reasoning and edit trace.
-- `benchmarks/benchmark_xxx/agent_optimized.cpp` — generated optimized code.
+- `trajectories/` — contains `.traj` files with full reasoning and edit history  
+- `benchmarks/benchmark_xxx/agent_optimized.cpp` — generated optimized C++ code  
+- `agent_outputs/gpt-4o/benchmark_xxx/` — unified folder for `.traj`, `agent_optimized.cpp`, and `evaluation.json`
 
 ---
 
 ## 🧪 Evaluation
 
-To compare agent-optimized code vs human-optimized code:
+Compare original vs human vs agent-optimized implementations:
 
 ```bash
 cd validation-dataset
+
+# Optional: Run full evaluation
 sudo docker run --rm -v "$PWD:/workspace" -w /workspace \
   --entrypoint python3 perf-bench evaluation_scripts/evaluate_agent_vs_human.py benchmarks/benchmark_674
 ```
 
-This runs:
+Or use the unified helper script:
 
-- `original.cpp` vs `optimized.cpp` (human baseline)
-- `original.cpp` vs `agent_optimized.cpp` (LLM-generated)
+```bash
+bash save_agent_outputs.sh benchmark_674
+```
 
-You will see a performance breakdown printed directly to terminal.
+✅ This script will:
+- Copy `agent_optimized.cpp` and `.traj` to `agent_outputs/gpt-4o/benchmark_674/`
+- Evaluate all three implementations
+- Save results in `evaluation.json` format
 
 ---
 
 ## 📌 Notes
 
-- ✅ Ensure Docker images exist for each benchmark before invoking the agent.
-- ⚠️ Update `.jsonl` input structure as needed for each benchmark scenario.
-- ❌ Do **not** modify `original.cpp` or `harness.cpp` — agent should only write to `agent_optimized.cpp`.
-
----
-
+- ✅ Ensure Docker image exists for each benchmark before running the agent
+- ⚠️ Carefully structure `.jsonl` entries for agent compatibility
+- ❌ Do **not** modify `original.cpp` or `harness.cpp` — agent writes only `agent_optimized.cpp`
