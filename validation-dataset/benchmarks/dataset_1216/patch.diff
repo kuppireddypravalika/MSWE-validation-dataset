@@ -1,0 +1,32 @@
+From e11df09bbc49f72019e4162a697a09f7bb067045 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@spatialys.com>
+Date: Thu, 5 Sep 2024 23:14:11 +0200
+Subject: [PATCH] OGRGeometryCollection::operator=(): slightly more efficient
+ approach
+
+---
+ ogr/ogrgeometrycollection.cpp | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/ogr/ogrgeometrycollection.cpp b/ogr/ogrgeometrycollection.cpp
+index 5cc636667cfb..26a8d4a1bd6f 100644
+--- a/ogr/ogrgeometrycollection.cpp
++++ b/ogr/ogrgeometrycollection.cpp
+@@ -99,9 +99,15 @@ OGRGeometryCollection::operator=(const OGRGeometryCollection &other)
+ 
+         OGRGeometry::operator=(other);
+ 
+-        for (const auto &poSubGeom : other)
++        papoGeoms = static_cast<OGRGeometry **>(
++            VSI_CALLOC_VERBOSE(sizeof(OGRGeometry *), other.nGeomCount));
++        if (papoGeoms)
+         {
+-            addGeometry(poSubGeom);
++            nGeomCount = other.nGeomCount;
++            for (int i = 0; i < other.nGeomCount; i++)
++            {
++                papoGeoms[i] = other.papoGeoms[i]->clone();
++            }
+         }
+     }
+     return *this;

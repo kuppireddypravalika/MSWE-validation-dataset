@@ -1,0 +1,43 @@
+From 70857ec87c3bce4604399f6c5acd08e09f4f89c5 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Tue, 12 Jan 2010 11:18:22 +0000
+Subject: [PATCH] The heap-allocated trampoline functions were cut off on some
+ platforms because the fSize evaluation was underestimating the function's
+ length. Increasing the estimate solves that. Use R__B64 instead of INT_MAX <
+ LONG_MAX which is problematic for MacOS.
+
+git-svn-id: http://root.cern.ch/svn/root/trunk@31989 27541ba8-7e3a-0410-8455-c3a389f83636
+---
+ cint/cintex/src/CINTFunctional.cxx | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/cint/cintex/src/CINTFunctional.cxx b/cint/cintex/src/CINTFunctional.cxx
+index 8439b9b156dec..031abce6c360b 100644
+--- a/cint/cintex/src/CINTFunctional.cxx
++++ b/cint/cintex/src/CINTFunctional.cxx
+@@ -14,6 +14,7 @@
+ #include "CINTdefs.h"
+ #include "Api.h"
+ #include "CINTFunctional.h"
++#include "RConfig.h"
+ 
+ #ifdef __linux
+ #include <sys/mman.h>
+@@ -397,7 +398,7 @@ namespace ROOT { namespace Cintex {
+    }
+ 
+    //------ Function models-------------------------------------------------------------------
+-#if INT_MAX < LONG_MAX
++#ifdef R__B64
+ #define FUNCPATTERN 0xFAFAFAFAFAFAFAFAL
+ #define DATAPATTERN 0xDADADADADADADADAL
+ #else
+@@ -428,7 +429,7 @@ namespace ROOT { namespace Cintex {
+             if ( *(size_t*)b == DATAPATTERN ) fa_offset = o;
+             if ( *(size_t*)b == FUNCPATTERN ) f_offset = o;
+             if ( f_offset && fa_offset ) {
+-               fSize = (o + 32) & ~0xF;
++               fSize = (o + 256) & ~0xF;
+                break;
+             }
+          }

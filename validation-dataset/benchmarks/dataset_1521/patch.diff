@@ -1,0 +1,23 @@
+From ab1d7739ce3f6f3c580ce29ffc77941bcf79b3be Mon Sep 17 00:00:00 2001
+From: Mikko Partio <mikko.partio@fmi.fi>
+Date: Fri, 20 Nov 2015 10:54:03 +0000
+Subject: [PATCH] Release base grid memory after it is used. This has a large
+ effect in memory usage of Himan since currently base grid memory is copied
+ hundreds of times in an average himan run for no particular reason
+
+---
+ himan-lib/source/info.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/himan-lib/source/info.cpp b/himan-lib/source/info.cpp
+index ae28a86e7..f07034f1e 100644
+--- a/himan-lib/source/info.cpp
++++ b/himan-lib/source/info.cpp
+@@ -145,6 +145,7 @@ void info::Create()
+ 		}
+ 	}
+ 	
++	itsBaseGrid.release();
+ 	First();
+ }
+ 

@@ -1,0 +1,29 @@
+From 557659248cd9343e1870a8fd862dd79add6c9b72 Mon Sep 17 00:00:00 2001
+From: Travis Abbott <tabbott@genome.wustl.edu>
+Date: Wed, 6 Aug 2014 14:48:54 -0500
+Subject: [PATCH] make vcf-compare-gt use less memory
+
+the stop coordinate of the region being tracked by the vcf
+GenotypeComparator was never getting reset, leading to excessive memory
+usage.
+
+specifically, for each chromosomes after the first one, all variants on
+that sequence were being loaded and hashed (which kept the large
+Vcf::Entry objects in memory) instead of clearing out the hash table
+whenever we cross a gap between two ordered variants.
+---
+ src/lib/fileformats/vcf/GenotypeComparator.hpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/lib/fileformats/vcf/GenotypeComparator.hpp b/src/lib/fileformats/vcf/GenotypeComparator.hpp
+index 9d9ed305..53267a7b 100644
+--- a/src/lib/fileformats/vcf/GenotypeComparator.hpp
++++ b/src/lib/fileformats/vcf/GenotypeComparator.hpp
+@@ -74,6 +74,7 @@ class GenotypeComparator {
+         else if (!want(e)) {
+             process();
+             region_.begin = e->start();
++            region_.end = e->stop();
+             if (sequence_ != e->chrom()) {
+                 sequence_ = e->chrom();
+             }

@@ -1,0 +1,25 @@
+From 5d96e010b49c4adbeab67877605e2617601e462f Mon Sep 17 00:00:00 2001
+From: Christopher Jones <cdj@fnal.gov>
+Date: Sat, 1 Feb 2014 18:21:36 +0100
+Subject: [PATCH] Only set TStreamerInfo to unoptimized if it is optimized
+
+When running with multiple threads, we need to avoid unnecessary changes
+to TStreamerInfos. Therefore we check to see if the TStreamerInfo is optimized
+before setting it as unoptimized and rebuild it.
+---
+ tree/tree/src/TBranchElement.cxx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tree/tree/src/TBranchElement.cxx b/tree/tree/src/TBranchElement.cxx
+index bbdfd12c7532b..c5c51c58a0933 100644
+--- a/tree/tree/src/TBranchElement.cxx
++++ b/tree/tree/src/TBranchElement.cxx
+@@ -5490,7 +5490,7 @@ Int_t TBranchElement::Unroll(const char* name, TClass* clParent, TClass* cl, cha
+    //  independently in the tree.
+    //
+    TStreamerInfo* sinfo = fTree->BuildStreamerInfo(cl);
+-   if (sinfo && splitlevel > 0) {
++   if (sinfo && splitlevel > 0 && (!sinfo->IsCompiled() || sinfo->IsOptimized()) ) {
+       sinfo->SetBit(TVirtualStreamerInfo::kCannotOptimize);
+       sinfo->Compile();
+    }

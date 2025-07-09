@@ -1,0 +1,24 @@
+From e5c8c07d1f3e484dec5fcbde37bf4c6b51f21ec6 Mon Sep 17 00:00:00 2001
+From: Magne Sjaastad <magne.sjaastad@ceetronsolutions.com>
+Date: Tue, 7 Aug 2018 09:24:05 +0200
+Subject: [PATCH] Performance : Move object allocation outside loop
+
+---
+ ApplicationCode/ReservoirDataModel/RigMainGrid.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ApplicationCode/ReservoirDataModel/RigMainGrid.cpp b/ApplicationCode/ReservoirDataModel/RigMainGrid.cpp
+index eca9eeb9172..8a3c6ef0021 100644
+--- a/ApplicationCode/ReservoirDataModel/RigMainGrid.cpp
++++ b/ApplicationCode/ReservoirDataModel/RigMainGrid.cpp
+@@ -104,9 +104,9 @@ size_t RigMainGrid::findReservoirCellIndexFromPoint(const cvf::Vec3d& point) con
+     std::vector<size_t> cellIndices;
+     m_mainGrid->findIntersectingCells(pointBBox, &cellIndices);
+ 
++    cvf::Vec3d hexCorners[8];
+     for (size_t cellIndex : cellIndices)
+     {
+-        cvf::Vec3d hexCorners[8];
+         m_mainGrid->cellCornerVertices(cellIndex, hexCorners);
+ 
+         if (RigHexIntersectionTools::isPointInCell(point, hexCorners))

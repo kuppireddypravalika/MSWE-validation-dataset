@@ -1,0 +1,33 @@
+From eddc23933f219302bb2c0f82228150ee3023d833 Mon Sep 17 00:00:00 2001
+From: Mateusz Loskot <mateusz@loskot.net>
+Date: Sun, 4 Mar 2007 07:59:35 +0000
+Subject: [PATCH] Increased value of CURSOR_PAGE from 1 to 500 (Bug 1474).
+ Further performance tests and tuning recommended.
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@10871 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/ogr/ogrsf_frmts/pg/ogrpglayer.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/gdal/ogr/ogrsf_frmts/pg/ogrpglayer.cpp b/gdal/ogr/ogrsf_frmts/pg/ogrpglayer.cpp
+index 015ec1585c5a..5db4c5f95786 100644
+--- a/gdal/ogr/ogrsf_frmts/pg/ogrpglayer.cpp
++++ b/gdal/ogr/ogrsf_frmts/pg/ogrpglayer.cpp
+@@ -35,7 +35,7 @@
+ 
+ CPL_CVSID("$Id$");
+ 
+-#define CURSOR_PAGE     1
++#define CURSOR_PAGE     500
+ 
+ // These originally are defined in libpq-fs.h.
+ 
+@@ -551,7 +551,7 @@ OGRFeature *OGRPGLayer::GetNextRawFeature()
+         && bCursorActive )
+     {
+         PQclear( hCursorResult );
+-
++        
+         osCommand.Printf( "FETCH %d in %s", CURSOR_PAGE, pszCursorName );
+         hCursorResult = PQexec(hPGConn, osCommand );
+ 

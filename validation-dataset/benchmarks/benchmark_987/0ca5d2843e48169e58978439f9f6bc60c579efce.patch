@@ -1,0 +1,23 @@
+From 0ca5d2843e48169e58978439f9f6bc60c579efce Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Mika=C3=ABl=20Capelle?= <capelle.mikael@gmail.com>
+Date: Sun, 25 Oct 2020 19:29:08 +0100
+Subject: [PATCH] Use static_cast instead of dynamic_cast.
+
+---
+ src/modlist.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/modlist.cpp b/src/modlist.cpp
+index 98ee3f3a2..f4c034dcb 100644
+--- a/src/modlist.cpp
++++ b/src/modlist.cpp
+@@ -934,8 +934,7 @@ QStringList ModList::allMods() const
+ QStringList ModList::allModsByProfilePriority(MOBase::IProfile* profile) const
+ {
+   Profile* mo2Profile = profile == nullptr ?
+-    m_Organizer->currentProfile()
+-    : dynamic_cast<Profile*>(profile);
++    m_Organizer->currentProfile() : static_cast<Profile*>(profile);
+   return m_Organizer->modsSortedByProfilePriority(mo2Profile);
+ }
+ 

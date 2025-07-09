@@ -1,0 +1,10 @@
+No valid JSON object with 'optimized_code' found: line 1 column 1 (char 0)
+
+```json
+{
+  "optimized_code": "#include <chrono>\n#include <condition_variable>\n#include <mutex>\n#include <thread>\n#include <vector>\n#include <atomic>\n\nconstexpr int GCINTERVAL = 10; // ms\n\nstatic std::mutex wake_mutex;\nstatic std::condition_variable wake_cv;\nstatic std::atomic<bool> stop_flag(false);\nstatic std::vector<int> maybe_free;\n\n// Garbage collector thread: sleeps for one second between passes\nstatic void distref_thread() {\n    while (!stop_flag.load(std::memory_order_acquire)) {\n        std::this_thread::sleep_for(std::chrono::seconds(1));\n        maybe_free.clear();\n    }\n}\n\nlong long distref_simulate(int iterations) {\n    stop_flag.store(false, std::memory_order_release);\n    std::thread t(distref_thread);\n    long long result = 0;\n\n    // Reserve memory for maybe_free for better performance\n    maybe_free.reserve(iterations);\n\n    for (int i = 0; i < iterations; ++i) {\n        {\n            std::lock_guard<std::mutex> lk(wake_mutex);\n            maybe_free.push_back(i);\n            /*\n            Using a simpler aggregation instead of volatile,\n            as we don't need to persist this variable.\n            This avoids unnecessary reads and should improve performance.\n            */\n            int dummy = 0;\n            for (const auto& v : maybe_free)\n                dummy |= v;\n        }\n        result += i;\n    }\n    stop_flag.store(true, std::memory_order_release);\n    wake_cv.notify_all();\n    t.join();\n    return result;\n}",
+  "template_instantiations": [
+    // original code did not contain explicit template instantiation, so keep it empty
+  ]
+}
+```

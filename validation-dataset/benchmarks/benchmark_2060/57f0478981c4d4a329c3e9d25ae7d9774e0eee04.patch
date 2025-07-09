@@ -1,0 +1,24 @@
+From 57f0478981c4d4a329c3e9d25ae7d9774e0eee04 Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@intel.com>
+Date: Mon, 12 Mar 2018 18:40:59 +0000
+Subject: [PATCH] [CallSiteSplitting] Use !Instruction::use_empty instead of
+ checking for a non-zero return from getNumUses
+
+getNumUses is a linear operation. It walks a linked list to get a count. So in this case its better to just ask if there are any users rather than how many.
+---
+ llvm/lib/Transforms/Scalar/CallSiteSplitting.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/llvm/lib/Transforms/Scalar/CallSiteSplitting.cpp b/llvm/lib/Transforms/Scalar/CallSiteSplitting.cpp
+index ddebaf67f66a..341abde92b95 100644
+--- a/llvm/lib/Transforms/Scalar/CallSiteSplitting.cpp
++++ b/llvm/lib/Transforms/Scalar/CallSiteSplitting.cpp
+@@ -302,7 +302,7 @@ static void splitCallSite(
+   // `musttail` calls must be followed by optional `bitcast`, and `ret`. The
+   // split blocks will be terminated right after that so there're no users for
+   // this phi in a `TailBB`.
+-  if (!IsMustTailCall && Instr->getNumUses())
++  if (!IsMustTailCall && !Instr->use_empty())
+     CallPN = PHINode::Create(Instr->getType(), Preds.size(), "phi.call");
+ 
+   DEBUG(dbgs() << "split call-site : " << *Instr << " into \n");

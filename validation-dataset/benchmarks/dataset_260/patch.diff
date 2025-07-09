@@ -1,0 +1,23 @@
+From 5965ab003fd9c4f03671bc60985b9be92616bc0d Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Thomas=20Vo=C3=9F?= <thomas.voss@canonical.com>
+Date: Mon, 20 Aug 2012 16:55:58 +0200
+Subject: [PATCH] Replaced std::this_thread::sleep_for(...) with
+ std::this_thread::yield() in signal handler.
+
+---
+ tests/acceptance-tests/testing_process_manager.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tests/acceptance-tests/testing_process_manager.cpp b/tests/acceptance-tests/testing_process_manager.cpp
+index e98d02e6cc9..cabfce1dab4 100644
+--- a/tests/acceptance-tests/testing_process_manager.cpp
++++ b/tests/acceptance-tests/testing_process_manager.cpp
+@@ -77,7 +77,7 @@ void (*signal_prev_fn)(int);
+ void signal_terminate (int )
+ {
+     while (!signal_display_server)
+-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
++        std::this_thread::yield();
+  
+     signal_display_server->stop();
+ }

@@ -1,0 +1,49 @@
+From ee5f10f94488338dbdae67d126362291c7f86f94 Mon Sep 17 00:00:00 2001
+From: Nicholas Coughlin <cnic@ca.ibm.com>
+Date: Tue, 19 Sep 2017 09:55:58 -0400
+Subject: [PATCH] Ignore OSR shared slot info under voluntary OSR
+
+In voluntary OSR, OSR shared slot information will
+be generated for all OSR points initially, but only
+a limited set of these eventually have to be
+commited to the OSR instruction table. This change
+adds a condition to eliminate a majority of these,
+cutting footprint and compile time overhead.
+
+Signed-off-by: Nicholas Coughlin <cnic@ca.ibm.com>
+---
+ compiler/compile/OSRData.cpp | 18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
+
+diff --git a/compiler/compile/OSRData.cpp b/compiler/compile/OSRData.cpp
+index da647ae6a3..80d5ebd507 100644
+--- a/compiler/compile/OSRData.cpp
++++ b/compiler/compile/OSRData.cpp
+@@ -82,12 +82,24 @@ TR_OSRCompilationData::ensureSlotSharingInfoAt(const TR_ByteCodeInfo& bcinfo)
+    }
+ 
+ /**
+-  This is the top-level method that is called by the codegen to populate
+-  the maps that are eventually written to meta data.
+-*/
++ * This is the top-level method that is called by the codegen to populate
++ * the maps that are eventually written to meta data.
++ *
++ * In voluntary OSR, only induce OSR calls must be added to the
++ * OSR table, as these are the only points that will transition.
++ * However, under involuntary OSR, all points must support
++ * transitions.
++ */
+ void
+ TR_OSRCompilationData::addInstruction(TR::Instruction* instr)
+    {
++   TR::Node *node = instr->getNode();
++   if (comp->getOSRMode() == TR::voluntaryOSR
++       && !(node
++         && node->getOpCode().hasSymbolReference()
++         && node->getSymbolReference()->getReferenceNumber() == TR_induceOSRAtCurrentPC))
++      return;
++
+    int32_t instructionPC = instr->getBinaryEncoding() - instr->cg()->getCodeStart();
+    TR_ByteCodeInfo& bcInfo = instr->getNode()->getByteCodeInfo();
+    addInstruction(instructionPC, bcInfo);

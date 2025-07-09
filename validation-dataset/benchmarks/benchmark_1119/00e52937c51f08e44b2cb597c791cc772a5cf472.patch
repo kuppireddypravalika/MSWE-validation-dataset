@@ -1,0 +1,39 @@
+From 00e52937c51f08e44b2cb597c791cc772a5cf472 Mon Sep 17 00:00:00 2001
+From: Ori Cohen <Ori.Cohen@epicgames.com>
+Date: Wed, 4 Jan 2017 14:42:09 -0500
+Subject: [PATCH] Fix for sweeps taking too long time (OR-32839).
+
+- Exhaustive investigation uncovered apparent numerical problems in this code (when compiling with clang 3.9.x with -ffast-math).
+- Current solution can result in overshoot for certain trace extents, but they are not expected to be a practical problem in Unreal.
+- NVidia is aware and will investigate a better solution.
+
+#rb Arciel.Reckman
+#tests Compiled Linux server with the changed PhysX and continuously ran bot matches for about a day.
+#JIRA UE-40156
+
+[CL 3246606 by Ori Cohen in 4.15 branch]
+---
+ .../PhysX/PhysX_3.4/Source/GeomUtils/src/gjk/GuGJKRaycast.h    | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/Engine/Source/ThirdParty/PhysX/PhysX_3.4/Source/GeomUtils/src/gjk/GuGJKRaycast.h b/Engine/Source/ThirdParty/PhysX/PhysX_3.4/Source/GeomUtils/src/gjk/GuGJKRaycast.h
+index 32b12790730..fb82c7b1a6b 100644
+--- a/Engine/Source/ThirdParty/PhysX/PhysX_3.4/Source/GeomUtils/src/gjk/GuGJKRaycast.h
++++ b/Engine/Source/ThirdParty/PhysX/PhysX_3.4/Source/GeomUtils/src/gjk/GuGJKRaycast.h
+@@ -96,6 +96,7 @@ namespace Gu
+ 		const FloatV eps1 = FMul(minMargin, FLoad(0.1f));
+ 		const FloatV inflationPlusEps(FAdd(eps1, inflation));
+ 		const FloatV eps2 = FMul(eps1, eps1);
++		const FloatV maxLambdaDecrement = FLoad(-1e-4f);
+ 
+ 		const FloatV inflation2 = FMul(inflationPlusEps, inflationPlusEps);
+ 
+@@ -139,7 +140,7 @@ namespace Gu
+ 				else
+ 				{
+ 					const FloatV _oldLambda = _lambda;
+-					_lambda = FSub(_lambda, FDiv(vw, vr));
++					_lambda = FSub(_lambda, FMin(FDiv(vw, vr), maxLambdaDecrement));
+ 					if(FAllGrtr(_lambda, _oldLambda))
+ 					{
+ 						if(FAllGrtr(_lambda, one))

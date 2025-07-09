@@ -1,0 +1,31 @@
+From 5a1bd4045dba16c83d5c8f3cebe01b7b1a61ca2d Mon Sep 17 00:00:00 2001
+From: Devang Patel <dpatel@apple.com>
+Date: Tue, 27 Mar 2007 20:50:46 +0000
+Subject: [PATCH] Use SmallPtrSet.
+
+llvm-svn: 35388
+---
+ llvm/lib/VMCore/Dominators.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/llvm/lib/VMCore/Dominators.cpp b/llvm/lib/VMCore/Dominators.cpp
+index 2d222adc56a..1421cf14e7d 100644
+--- a/llvm/lib/VMCore/Dominators.cpp
++++ b/llvm/lib/VMCore/Dominators.cpp
+@@ -19,6 +19,7 @@
+ #include "llvm/Assembly/Writer.h"
+ #include "llvm/ADT/DepthFirstIterator.h"
+ #include "llvm/ADT/SetOperations.h"
++#include "llvm/ADT/SmallPtrSet.h"
+ #include "llvm/Instructions.h"
+ #include <algorithm>
+ using namespace llvm;
+@@ -462,7 +463,7 @@ DominanceFrontier::calculate(const DominatorTree &DT,
+   DomSetType *Result = NULL;
+ 
+   std::vector<DFCalculateWorkObject> workList;
+-  std::set<BasicBlock *> visited;
++  SmallPtrSet<BasicBlock *, 32> visited;
+ 
+   workList.push_back(DFCalculateWorkObject(BB, NULL, Node, NULL));
+   do {

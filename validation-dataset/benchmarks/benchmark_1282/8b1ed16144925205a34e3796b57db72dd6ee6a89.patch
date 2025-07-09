@@ -1,0 +1,32 @@
+From 8b1ed16144925205a34e3796b57db72dd6ee6a89 Mon Sep 17 00:00:00 2001
+From: npm <npm@chromium.org>
+Date: Wed, 14 Sep 2016 09:00:50 -0700
+Subject: [PATCH] Map glyph bitmap in LookUpGlyphBitmap even when unsuccessful
+
+CFX_FaceCache::LookUpGlyphBitMap should remember its unsuccessful glyph
+bitmap calculations. This is especially important if there are a lot of
+repeated requests for the same glyph with large bitmaps (which means
+long calculations in freetype). With this CL, the pdf in the bug below
+will be rendered quickly.
+
+BUG=chromium:638856
+
+Review-Url: https://codereview.chromium.org/2338883004
+---
+ core/fxge/ge/cfx_facecache.cpp | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/core/fxge/ge/cfx_facecache.cpp b/core/fxge/ge/cfx_facecache.cpp
+index 6c5bba201..2b8405941 100644
+--- a/core/fxge/ge/cfx_facecache.cpp
++++ b/core/fxge/ge/cfx_facecache.cpp
+@@ -386,9 +386,6 @@ CFX_GlyphBitmap* CFX_FaceCache::LookUpGlyphBitmap(
+ 
+   CFX_GlyphBitmap* pGlyphBitmap = RenderGlyph(pFont, glyph_index, bFontStyle,
+                                               pMatrix, dest_width, anti_alias);
+-  if (!pGlyphBitmap)
+-    return nullptr;
+-
+   pSizeCache->m_GlyphMap[glyph_index] = pGlyphBitmap;
+   return pGlyphBitmap;
+ }

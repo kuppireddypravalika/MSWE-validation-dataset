@@ -1,0 +1,41 @@
+From 6cdc033c61eeca5303fd271d28003f8617f9f830 Mon Sep 17 00:00:00 2001
+From: Thiago Macieira <thiago.macieira@intel.com>
+Date: Wed, 9 Oct 2013 11:38:44 -0700
+Subject: [PATCH] Use the fast operator+ (in the form of operator%)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+QStringBuilder will precalculate the size of the string for us, which
+avoids extra realloc() and moving data around.
+
+Change-Id: I4e31964bb9bfffbe2083b3cb8c120e602160dfd8
+Reviewed-by: David Faure <david.faure@kdab.com>
+Reviewed-by: Jędrzej Nowacki <jedrzej.nowacki@digia.com>
+Reviewed-by: Kevin Ottens <kevin.ottens@kdab.com>
+---
+ src/corelib/io/qlockfile_unix.cpp | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
+
+diff --git a/src/corelib/io/qlockfile_unix.cpp b/src/corelib/io/qlockfile_unix.cpp
+index de21ee217af..dc8817706ce 100644
+--- a/src/corelib/io/qlockfile_unix.cpp
++++ b/src/corelib/io/qlockfile_unix.cpp
+@@ -142,13 +142,10 @@ QLockFile::LockError QLockFilePrivate::tryLock_sys()
+ {
+     // Assemble data, to write in a single call to write
+     // (otherwise we'd have to check every write call)
+-    QByteArray fileData;
+-    fileData += QByteArray::number(QCoreApplication::applicationPid());
+-    fileData += '\n';
+-    fileData += qAppName().toUtf8();
+-    fileData += '\n';
+-    fileData += localHostName().toUtf8();
+-    fileData += '\n';
++    // Use operator% from the fast builder to avoid multiple memory allocations.
++    QByteArray fileData = QByteArray::number(QCoreApplication::applicationPid()) % '\n'
++                          % qAppName().toUtf8() % '\n'
++                          % localHostName().toUtf8() % '\n';
+ 
+     const QByteArray lockFileName = QFile::encodeName(fileName);
+     const int fd = qt_safe_open(lockFileName.constData(), O_WRONLY | O_CREAT | O_EXCL, 0644);

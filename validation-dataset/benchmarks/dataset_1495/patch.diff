@@ -1,0 +1,24 @@
+From e0eb986652faf3e2e93bfe990ba4fcc8a4af2bd6 Mon Sep 17 00:00:00 2001
+From: "bernard.parisse" <bernard.parisse@23ce0884-8a58-47d3-bc5c-ddf1cd5b9f9e>
+Date: Mon, 1 Oct 2018 07:54:40 +0000
+Subject: [PATCH] [giac] attempt to improve regroup( integrate(surd(2*x^3,5),x)
+  )
+
+git-svn-id: https://dev.geogebra.org/svn/trunk/geogebra/giac@64648 23ce0884-8a58-47d3-bc5c-ddf1cd5b9f9e
+---
+ src/giac/cpp/gen.cc | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/giac/cpp/gen.cc b/src/giac/cpp/gen.cc
+index 1a22649d..2c382007 100644
+--- a/src/giac/cpp/gen.cc
++++ b/src/giac/cpp/gen.cc
+@@ -9617,6 +9617,8 @@ namespace giac {
+   }
+ 
+   static bool modified_islesscomplexthanf(const gen& a,const gen& b){
++    if (a.type!=b.type && (a.type<=_CPLX || b.type<=_CPLX))
++      return a.type<b.type;
+     if (a.is_symb_of_sommet(at_neg))
+       return modified_islesscomplexthanf(a._SYMBptr->feuille,b);
+     if (b.is_symb_of_sommet(at_neg))

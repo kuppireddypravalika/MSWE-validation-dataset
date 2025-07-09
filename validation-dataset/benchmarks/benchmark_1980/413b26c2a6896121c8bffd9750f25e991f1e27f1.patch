@@ -1,0 +1,32 @@
+From 413b26c2a6896121c8bffd9750f25e991f1e27f1 Mon Sep 17 00:00:00 2001
+From: Hadi Jooybar <hjooybar@ca.ibm.com>
+Date: Mon, 1 May 2017 13:03:49 -0400
+Subject: [PATCH] Add an option to disallow using vector multiply sum
+
+VMSL instruction is used to improve ECC performance on Z-system.
+Setting TR_disableVMSL environment variable can disable this optimization (for debugging purposes).
+
+Signed-off-by: Hadi Jooybar <hjooybar@ca.ibm.com>
+---
+ compiler/z/codegen/OMRTreeEvaluator.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/compiler/z/codegen/OMRTreeEvaluator.cpp b/compiler/z/codegen/OMRTreeEvaluator.cpp
+index 164d68b008..2e55e7e1b5 100644
+--- a/compiler/z/codegen/OMRTreeEvaluator.cpp
++++ b/compiler/z/codegen/OMRTreeEvaluator.cpp
+@@ -9503,12 +9503,12 @@ inlineP256Multiply(TR::Node * node, TR::CodeGenerator * cg)
+    static const char * disableECCSIMD = feGetEnv("TR_disableECCSIMD");
+    static const char * disableECCMLGR = feGetEnv("TR_disableECCMLGR");
+    static const char * disableECCKarat = feGetEnv("TR_disableECCKarat");
+-   static const char * EnableVMSL = feGetEnv("TR_enableVMSL");
++   static const char * disableVMSL = feGetEnv("TR_disableVMSL");
+ 
+    bool disableSIMDP256 = NULL != disableECCSIMD || comp->getOption(TR_Randomize) && cg->randomizer.randomBoolean();
+    bool disableMLGRP256 = NULL != disableECCMLGR || comp->getOption(TR_Randomize) && cg->randomizer.randomBoolean();
+ 
+-   if (EnableVMSL || cg->getS390ProcessorInfo()->supportsArch(TR_S390ProcessorInfo::TR_zNext))
++   if (!disableVMSL && cg->getS390ProcessorInfo()->supportsArch(TR_S390ProcessorInfo::TR_zNext))
+       return inlineVMSL256Multiply(node, cg);
+    if (disableECCKarat==NULL && cg->getSupportsVectorRegisters())
+       return inlineSIMDP256Multiply(node, cg);

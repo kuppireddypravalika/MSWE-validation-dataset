@@ -1,0 +1,25 @@
+From bb32115ac5648212130ee1c2c73b4e31718cee79 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Sat, 30 Dec 2017 20:31:23 +0000
+Subject: [PATCH] DXF: avoid excessive memory allocation. Fixes
+ https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=4839. Credit to OSS
+ Fuzz
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@41150 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/ogr/ogrsf_frmts/dxf/ogrdxflayer.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/gdal/ogr/ogrsf_frmts/dxf/ogrdxflayer.cpp b/gdal/ogr/ogrsf_frmts/dxf/ogrdxflayer.cpp
+index d62f3fe5628b..36b7f80954f0 100644
+--- a/gdal/ogr/ogrsf_frmts/dxf/ogrdxflayer.cpp
++++ b/gdal/ogr/ogrsf_frmts/dxf/ogrdxflayer.cpp
+@@ -3150,6 +3150,8 @@ OGRDXFFeature *OGRDXFLayer::TranslateINSERT()
+                 break;
+             }
+         }
++        if( apoPendingFeatures.size() > 100000 )
++            break;
+     }
+ 
+     // The block geometries were appended to apoPendingFeatures

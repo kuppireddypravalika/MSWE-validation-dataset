@@ -1,0 +1,41 @@
+From 5fa073543abaa67aa778c4c13d6eb4202e109a52 Mon Sep 17 00:00:00 2001
+From: Marcus Tillmanns <marcus.tillmanns@qt.io>
+Date: Thu, 4 May 2023 14:14:43 +0200
+Subject: [PATCH] Utils: Fix hasSuppressedQuestions
+
+QSettings::childKeys() only returns direct child values,
+not child groups. Therefore we also need to check
+QSettings::childGroups() here.
+
+We don't need to iterate all the keys. Keys are only created with
+"true" value.
+
+Change-Id: Ie4653dca1dfbad85ab895440a756c8e03aa78118
+Reviewed-by: Qt CI Bot <qt_ci_bot@qt-project.org>
+Reviewed-by: Eike Ziller <eike.ziller@qt.io>
+---
+ src/libs/utils/checkablemessagebox.cpp | 10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
+
+diff --git a/src/libs/utils/checkablemessagebox.cpp b/src/libs/utils/checkablemessagebox.cpp
+index 4420fc66cbc..5d3011ff597 100644
+--- a/src/libs/utils/checkablemessagebox.cpp
++++ b/src/libs/utils/checkablemessagebox.cpp
+@@ -443,15 +443,9 @@ void CheckableMessageBox::resetAllDoNotAskAgainQuestions(QSettings *settings)
+ bool CheckableMessageBox::hasSuppressedQuestions(QSettings *settings)
+ {
+     QTC_ASSERT(settings, return false);
+-    bool hasSuppressed = false;
+     settings->beginGroup(QLatin1String(kDoNotAskAgainKey));
+-    const QStringList childKeys = settings->childKeys();
+-    for (const QString &subKey : childKeys) {
+-        if (settings->value(subKey, false).toBool()) {
+-            hasSuppressed = true;
+-            break;
+-        }
+-    }
++    const bool hasSuppressed = !settings->childKeys().isEmpty()
++                               || !settings->childGroups().isEmpty();
+     settings->endGroup();
+     return hasSuppressed;
+ }

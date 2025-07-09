@@ -1,0 +1,56 @@
+From 683d0d9918380690fcd73aba62a55fc6d1f40bd4 Mon Sep 17 00:00:00 2001
+From: Jan Engelhardt <jengelh@inai.de>
+Date: Thu, 22 Jun 2017 22:43:45 +0200
+Subject: [PATCH] gateway: add move assignment operator for BinaryArray
+
+CID-150124 (#1 of 1): Missing move assignment operator
+(MISSING_MOVE_ASSIGNMENT)
+missing_move_assignment: Class BinaryArray may benefit from adding a
+move assignment operator. See other events which show the copy
+assignment operator being applied to rvalue(s), where a move assignment
+may be faster.
+
+References: KC-595
+---
+ gateway/IMAP.h | 21 ++++++++++++++++++++-
+ 1 file changed, 20 insertions(+), 1 deletion(-)
+
+diff --git a/gateway/IMAP.h b/gateway/IMAP.h
+index 311e72330..df3fa7ef2 100644
+--- a/gateway/IMAP.h
++++ b/gateway/IMAP.h
+@@ -21,6 +21,7 @@
+ #include <memory>
+ #include <mutex>
+ #include <string>
++#include <utility>
+ #include <vector>
+ #include <list>
+ #include <set>
+@@ -141,7 +142,25 @@ class BinaryArray _kc_final {
+ 		bcheap = false;
+ 		return *this;
+ 	}
+-    
++
++	BinaryArray &operator=(BinaryArray &&b)
++	{
++		cb = b.cb;
++		bcheap = false;
++		if (b.cb == 0) {
++			lpb = nullptr;
++		} else if (!b.bcheap) {
++			lpb = b.lpb;
++			b.lpb = nullptr;
++			b.cb = 0;
++			b.bcheap = false;
++		} else {
++			lpb = new BYTE[cb];
++			memcpy(lpb, b.lpb, cb);
++		}
++		return *this;
++	}
++
+ 	BYTE *lpb;
+ 	ULONG cb;
+ 	bool bcheap;

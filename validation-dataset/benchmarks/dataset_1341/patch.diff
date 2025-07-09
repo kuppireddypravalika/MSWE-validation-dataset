@@ -1,0 +1,30 @@
+From 258c6cea1ef0ce8ca6aaf8dd48ed43dc5e0ac662 Mon Sep 17 00:00:00 2001
+From: "joey.cc.cheng" <joey.cc.cheng@vivotek.com>
+Date: Fri, 4 Aug 2023 10:58:09 +0800
+Subject: [PATCH] fix possible memory leakage by freeing codec context
+
+---
+ mainwindow.cpp | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/mainwindow.cpp b/mainwindow.cpp
+index 87a0776..0512367 100644
+--- a/mainwindow.cpp
++++ b/mainwindow.cpp
+@@ -298,8 +298,14 @@ void MainWindow::on_actionOpen_triggered()
+ 
+ void MainWindow::on_stopButton_clicked()
+ {
+-    player->stopRTSP();
+-    delete player;
++    if (player!=NULL)
++    {
++        player->stopRTSP();
++        delete player;
++    }
++    player=NULL;
+     ui->startButton->setEnabled(true);
++    if (pCodecCtx != NULL)
++        avcodec_free_context(&pCodecCtx);
+ }
+ 

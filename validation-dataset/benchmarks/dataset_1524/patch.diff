@@ -1,0 +1,42 @@
+From 8115b1a4c8f056a1c73d3a50a7df79c1b5785d35 Mon Sep 17 00:00:00 2001
+From: Mikko Vanhatalo <mikko.vanhatalo@fmi.fi>
+Date: Wed, 8 Mar 2017 13:52:21 +0200
+Subject: [PATCH] Change from LOCKSTEP to zip_range
+
+---
+ himan-plugins/source/icing.cpp | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
+
+diff --git a/himan-plugins/source/icing.cpp b/himan-plugins/source/icing.cpp
+index e8bd8006b..3f3a8c76e 100644
+--- a/himan-plugins/source/icing.cpp
++++ b/himan-plugins/source/icing.cpp
+@@ -79,11 +79,15 @@ void icing::Calculate(shared_ptr<info> myTargetInfo, unsigned short theThreadInd
+ 
+ 	string deviceType = "CPU";
+ 
+-	LOCKSTEP(myTargetInfo, TInfo, VvInfo, ClInfo)
++	auto& target = VEC(myTargetInfo);
++
++	// LOCKSTEP(myTargetInfo, TInfo, VvInfo, ClInfo)
++	for (auto&& tup : zip_range(target, VEC(TInfo), VEC(VvInfo), VEC(ClInfo)))
+ 	{
+-		double T = TInfo->Value();
+-		double Vv = VvInfo->Value();
+-		double Cl = ClInfo->Value();
++		double& result = tup.get<0>();
++		double T = tup.get<1>();
++		double Vv = tup.get<2>();
++		double Cl = tup.get<3>();
+ 
+ 		if (T == kFloatMissing || Vv == kFloatMissing || Cl == kFloatMissing)
+ 		{
+@@ -186,7 +190,7 @@ void icing::Calculate(shared_ptr<info> myTargetInfo, unsigned short theThreadInd
+ 			Icing = 0;
+ 		}
+ 
+-		myTargetInfo->Value(Icing);
++		result = Icing;
+ 	}
+ 
+ 	myThreadedLogger->Info("[" + deviceType + "] Missing values: " +

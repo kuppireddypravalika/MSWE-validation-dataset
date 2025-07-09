@@ -1,0 +1,35 @@
+From 09e698d82647185910c95ce0d3a28f7154b1dd0a Mon Sep 17 00:00:00 2001
+From: Dennis Oberst <dennis.oberst@qt.io>
+Date: Wed, 9 Aug 2023 15:54:36 +0200
+Subject: [PATCH] QList: use new assign() in operator=(std::initializer_list)
+
+operator=(~) and assign(~) share similar names but, until now, have not
+shared the same functionality. This patch introduces the usage of
+QList::assign() within the non-sharing assignment operator to
+effectively boost efficiency by reusing the available capacity.
+
+Task-number: QTBUG-106201
+Change-Id: I01a0511af336f2f410158a07d91e5759c8ff46db
+Reviewed-by: Qt CI Bot <qt_ci_bot@qt-project.org>
+Reviewed-by: Marc Mutz <marc.mutz@qt.io>
+Reviewed-by: Thiago Macieira <thiago.macieira@intel.com>
+---
+ src/corelib/tools/qlist.h | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/src/corelib/tools/qlist.h b/src/corelib/tools/qlist.h
+index 79de8fced0b..a5512ddf0d4 100644
+--- a/src/corelib/tools/qlist.h
++++ b/src/corelib/tools/qlist.h
+@@ -289,10 +289,7 @@ class QList
+ 
+     QList<T> &operator=(std::initializer_list<T> args)
+     {
+-        d = DataPointer(Data::allocate(qsizetype(args.size())));
+-        if (args.size())
+-            d->copyAppend(args.begin(), args.end());
+-        return *this;
++        return assign(args);
+     }
+ 
+     template <typename InputIterator, if_input_iterator<InputIterator> = true>

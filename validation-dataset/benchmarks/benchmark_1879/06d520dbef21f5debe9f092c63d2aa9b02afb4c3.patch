@@ -1,0 +1,47 @@
+From 06d520dbef21f5debe9f092c63d2aa9b02afb4c3 Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@qt.io>
+Date: Wed, 5 Jul 2023 08:54:34 +0200
+Subject: [PATCH] QLogging: add qYieldCpu() to CAS loop
+
+CAS failures should result in PAUSE/YIELD, cf. qYieldCpu() docs.
+
+qYieldCpu() is only available since Qt 6.3, though, so adding it as a
+follow-up with limited pick-to.
+
+Task-number: QTBUG-115062
+Pick-to: 6.6 6.5
+Change-Id: Ibcc73881875a47935940015e30b9a27a282054d4
+Reviewed-by: Thiago Macieira <thiago.macieira@intel.com>
+---
+ src/corelib/global/qlogging.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/corelib/global/qlogging.cpp b/src/corelib/global/qlogging.cpp
+index 86eb6fbf4cd..50b2ac9cd0f 100644
+--- a/src/corelib/global/qlogging.cpp
++++ b/src/corelib/global/qlogging.cpp
+@@ -14,6 +14,7 @@
+ #include "qdebug.h"
+ #include "qmutex.h"
+ #include <QtCore/private/qlocking_p.h>
++#include <QtCore/private/qsimd_p.h>
+ #include "qloggingcategory.h"
+ #ifndef QT_BOOTSTRAPPED
+ #include "qelapsedtimer.h"
+@@ -23,7 +24,6 @@
+ #include "qthread.h"
+ #include "private/qloggingregistry_p.h"
+ #include "private/qcoreapplication_p.h"
+-#include "private/qsimd_p.h"
+ #include <qtcore_tracepoints_p.h>
+ #endif
+ #ifdef Q_OS_WIN
+@@ -191,7 +191,7 @@ static bool is_fatal_count_down(QAtomicInt &n)
+ 
+     int v = n.loadRelaxed();
+     while (v != 0 && !n.testAndSetRelaxed(v, v - 1, v))
+-        ;
++        qYieldCpu();
+     return v == 1; // we exited the loop, so either v == 0 or CAS succeeded to set n from v to v-1
+ }
+ 

@@ -1,0 +1,39 @@
+From 7f289f3f2b793eee9f2fb264e2808f6ca7d2f37a Mon Sep 17 00:00:00 2001
+From: Huangzizhou <zizhou@nyu.edu>
+Date: Fri, 21 Oct 2022 16:34:54 -0400
+Subject: [PATCH] faster multiscale unit test
+
+---
+ tests/test_assembler.cpp | 12 ------------
+ 1 file changed, 12 deletions(-)
+
+diff --git a/tests/test_assembler.cpp b/tests/test_assembler.cpp
+index 18dc5914ff..7079df4319 100644
+--- a/tests/test_assembler.cpp
++++ b/tests/test_assembler.cpp
+@@ -151,11 +151,6 @@ TEST_CASE("multiscale_derivatives", "[assembler]")
+ 						}
+ 					}
+ 				],
+-				"space": {
+-					"advanced": {
+-						"quadrature_order": 3
+-					}
+-				},
+ 				"solver": {
+ 					"linear": {
+ 						"solver": "Eigen::SimplicialLDLT"
+@@ -164,13 +159,6 @@ TEST_CASE("multiscale_derivatives", "[assembler]")
+ 				"boundary_conditions": {
+ 					"periodic_boundary": [true, true]
+ 				},
+-				"output": {
+-					"paraview": {
+-						"options": {
+-							"material": true
+-						}
+-					}
+-				},
+ 				"materials": {
+ 					"type": "NeoHookean",
+ 					"E": 100,

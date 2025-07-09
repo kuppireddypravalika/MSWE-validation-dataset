@@ -1,0 +1,25 @@
+From 19b9afe4cb0a195feee80d4dfa849d762e19f396 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bj=C3=B8rnar=20Grip=20Fj=C3=A6r?= <bjornar.fjar@gmail.com>
+Date: Tue, 25 Apr 2017 09:41:17 +0200
+Subject: [PATCH] Use cleaner vector iteration
+
+---
+ .../ProjectDataModel/Summary/RimSummaryCurveFilter.cpp        | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/ApplicationCode/ProjectDataModel/Summary/RimSummaryCurveFilter.cpp b/ApplicationCode/ProjectDataModel/Summary/RimSummaryCurveFilter.cpp
+index cd01636a562..e9a8fc4866c 100644
+--- a/ApplicationCode/ProjectDataModel/Summary/RimSummaryCurveFilter.cpp
++++ b/ApplicationCode/ProjectDataModel/Summary/RimSummaryCurveFilter.cpp
+@@ -275,9 +275,9 @@ void RimSummaryCurveFilter::fieldChangedByUi(const caf::PdmFieldHandle* changedF
+     }
+     else if (changedField == &m_showLegend)
+     {
+-        for (size_t i = 0; i < m_curves().size(); ++i)
++        for (auto curve : m_curves)
+         {
+-            m_curves()[i]->showLegend(m_showLegend());
++            curve->showLegend(m_showLegend());
+         }
+     }
+     else

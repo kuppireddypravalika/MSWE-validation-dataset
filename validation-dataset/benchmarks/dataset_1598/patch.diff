@@ -1,0 +1,22 @@
+From 7da64079bdbb7e62c3414735d134041cf577fd65 Mon Sep 17 00:00:00 2001
+From: Harald Lang <harald.lang@in.tum.de>
+Date: Mon, 6 May 2019 16:27:14 +0200
+Subject: [PATCH] use scan iterator for decompression
+
+---
+ src/dtl/bitmap/util/convert.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/dtl/bitmap/util/convert.hpp b/src/dtl/bitmap/util/convert.hpp
+index a044ea6d..8ed4762b 100644
+--- a/src/dtl/bitmap/util/convert.hpp
++++ b/src/dtl/bitmap/util/convert.hpp
+@@ -23,7 +23,7 @@ template<typename T>
+ boost::dynamic_bitset<$u32>
+ to_bitmap_using_iterator(const T& encoded_bitmap) {
+   boost::dynamic_bitset<$u32> bm(encoded_bitmap.size());
+-  auto it = encoded_bitmap.it();
++  auto it = encoded_bitmap.scan_it();
+   while (!it.end()) {
+     for (std::size_t i = it.pos(); i < it.pos() + it.length(); ++i) {
+       assert(bm[i] == false);

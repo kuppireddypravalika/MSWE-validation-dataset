@@ -1,0 +1,25 @@
+From 553ce6dd91153510306b55e67475caedb18a3286 Mon Sep 17 00:00:00 2001
+From: johanjan <devnull@localhost>
+Date: Sun, 4 Dec 2005 03:41:08 +0000
+Subject: [PATCH] Tailorized "2005-12-03 21:41:08 by johanjan" NSE:
+
+Switched um and uc in bilinear form as well as Garth pointed
+out. Linear solver for momentum equation is now much faster (~10
+iterations).
+---
+ src/modules/navierstokes/NSESolver.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/modules/navierstokes/NSESolver.cpp b/src/modules/navierstokes/NSESolver.cpp
+index 29084123b79..f927f7f5cf9 100644
+--- a/src/modules/navierstokes/NSESolver.cpp
++++ b/src/modules/navierstokes/NSESolver.cpp
+@@ -100,7 +100,7 @@ void NSESolver::solve()
+   cout << "Create bilinear form: momentum" << endl;
+ 
+   // Define the bilinear and linear forms
+-  NSEMomentum::BilinearForm amom(um,uc,delta1,delta2,k,nu);
++  NSEMomentum::BilinearForm amom(uc,um,delta1,delta2,k,nu);
+   NSEMomentum::LinearForm Lmom(uc,um,u0,f,p,delta1,delta2,k,nu);
+ 
+   cout << "Create bilinear form: continuity" << endl;

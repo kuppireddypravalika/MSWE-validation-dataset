@@ -1,0 +1,23 @@
+From 1213ef658ce8e11d4a60a85a8ad466ea269643de Mon Sep 17 00:00:00 2001
+From: Dobiasd <editgym@gmail.com>
+Date: Fri, 13 Sep 2019 15:32:26 +0200
+Subject: [PATCH] Improve break condition in gradient descent
+
+---
+ include/fplus/optimize.hpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/include/fplus/optimize.hpp b/include/fplus/optimize.hpp
+index 7d18e840..bbcc7002 100644
+--- a/include/fplus/optimize.hpp
++++ b/include/fplus/optimize.hpp
+@@ -152,7 +152,8 @@ pos_t minimize_downhill(
+             multiply(
+                 add(new_momentum, new_momentum_add),
+                 step_factor);
+-        if (dist_to_origin(new_momentum) <= std::numeric_limits<double>::min())
++        if (dist_to_origin(momentum) <= std::numeric_limits<double>::min() &&
++            dist_to_origin(new_momentum) <= std::numeric_limits<double>::min())
+         {
+             break;
+         }

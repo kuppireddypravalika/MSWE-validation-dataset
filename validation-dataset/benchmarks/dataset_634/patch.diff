@@ -1,0 +1,25 @@
+From f84061c3ab51d54ad88af656d51a231967174fae Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Pawe=C5=82=20Bylica?= <chfast@gmail.com>
+Date: Thu, 13 Feb 2020 14:56:30 +0100
+Subject: [PATCH] Optimize push() helper in parse_expr()
+
+---
+ lib/fizzy/parser_expr.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/lib/fizzy/parser_expr.cpp b/lib/fizzy/parser_expr.cpp
+index f0a56ea51..1c7197a5c 100644
+--- a/lib/fizzy/parser_expr.cpp
++++ b/lib/fizzy/parser_expr.cpp
+@@ -15,8 +15,9 @@ inline void store(uint8_t* dst, T value) noexcept
+ template <typename T>
+ inline void push(bytes& b, T value)
+ {
+-    b.resize(b.size() + sizeof(value));
+-    store(&b[b.size() - sizeof(value)], value);
++    uint8_t storage[sizeof(T)];
++    store(storage, value);
++    b.append(storage, sizeof(storage));
+ }
+ 
+ struct LabelPosition

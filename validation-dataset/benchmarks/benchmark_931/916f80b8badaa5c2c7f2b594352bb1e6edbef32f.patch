@@ -1,0 +1,45 @@
+From 916f80b8badaa5c2c7f2b594352bb1e6edbef32f Mon Sep 17 00:00:00 2001
+From: senquack <dansilsby@gmail.com>
+Date: Mon, 14 Nov 2016 02:09:59 -0500
+Subject: [PATCH] mipsrec: Optimize emitted code in rec_lsu.cpp.h
+ LoadFromAddr()
+
+Optimize detection of lower-8MB addresses:
+Reduces emitted instruction count by 2 for every series of
+loads. Should have no effect on compatibility.
+---
+ src/recompiler/mips/rec_lsu.cpp.h | 20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
+
+diff --git a/src/recompiler/mips/rec_lsu.cpp.h b/src/recompiler/mips/rec_lsu.cpp.h
+index 104dc3a2..186767a1 100644
+--- a/src/recompiler/mips/rec_lsu.cpp.h
++++ b/src/recompiler/mips/rec_lsu.cpp.h
+@@ -155,12 +155,22 @@ static void LoadFromAddr(int count)
+ 	regPushState();
+ 
+ 	// Is address in lower 8MB region? (2MB mirrored x4)
+-	LUI(TEMP_2, 0x80);
+-	ADDIU(MIPSREG_A0, r1, imm_min);
+-	EXT(TEMP_1, MIPSREG_A0, 0, 0x1d); // and 0x1fffffff
+-	SLTU(TEMP_3, TEMP_1, TEMP_2);
++	//  We check only the effective address of first load in the series,
++	// seeing if bits 27:24 are unset to determine if it is in lower 8MB.
++	// See comments in StoreToAddr().
++
++	// Get the effective address of first load in the series.
++	// ---> NOTE: leave value in MIPSREG_A0, it will be used later!
++	ADDIU(MIPSREG_A0, r1, _Imm_);
++
++#ifdef HAVE_MIPS32R2_EXT_INS
++	EXT(TEMP_2, MIPSREG_A0, 24, 4);
++#else
++	LUI(TEMP_2, 0x0f00);
++	AND(TEMP_2, TEMP_2, MIPSREG_A0);
++#endif
+ 	u32 *backpatch_label_hle_1 = (u32 *)recMem;
+-	BEQZ(TEMP_3, 0); // beqz temp_2, label_hle
++	BGTZ(TEMP_2, 0); // beqz temp_2, label_hle
+ 	//NOTE: Delay slot of branch is harmlessly occupied by the first op
+ 	// of the branch-not-taken section below (writing to TEMP_2)
+ 

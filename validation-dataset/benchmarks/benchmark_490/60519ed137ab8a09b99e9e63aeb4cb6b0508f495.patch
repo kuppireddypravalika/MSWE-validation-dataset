@@ -1,0 +1,33 @@
+From 60519ed137ab8a09b99e9e63aeb4cb6b0508f495 Mon Sep 17 00:00:00 2001
+From: Miles Stoudenmire <miles.stoudenmire@gmail.com>
+Date: Fri, 20 Dec 2013 11:35:01 -0500
+Subject: [PATCH] Improved MPS sum routine to do less copying.
+
+---
+ itensor/mps.h | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/itensor/mps.h b/itensor/mps.h
+index 0cd2ebffb..998065336 100644
+--- a/itensor/mps.h
++++ b/itensor/mps.h
+@@ -762,13 +762,14 @@ sum(const std::vector<MPSType>& terms, MPSType& res,
+         {
+         //Add all MPS's in pairs
+         const int nsize = (Nt%2==0 ? Nt/2 : (Nt-1)/2+1);
+-        std::vector<MPSType> tpair(2), 
+-                             newterms(nsize); 
++        std::vector<MPSType> newterms(nsize); 
+         for(int n = 0, np = 0; n < Nt-1; n += 2, ++np)
+             {
+-            tpair[0] = terms.at(n); 
+-            tpair[1] = terms.at(n+1);
+-            sum(tpair,newterms.at(np),cut,maxm);
++            MPSType& nt = newterms.at(np);
++            nt = terms.at(n);
++            nt.cutoff(cut);
++            nt.maxm(maxm);
++            nt += terms.at(n+1);
+             }
+         if(Nt%2 == 1) newterms.at(nsize-1) = terms.back();
+ 

@@ -1,0 +1,23 @@
+From 6c8166dd00efe8dc3cbe4b8d401878a0714a90ef Mon Sep 17 00:00:00 2001
+From: Jeroen Baert <3607063+Forceflow@users.noreply.github.com>
+Date: Sun, 5 Jul 2020 23:15:33 +0200
+Subject: [PATCH] Speedup for really large models
+
+---
+ src/tri_convert/tri_convert.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/tri_convert/tri_convert.cpp b/src/tri_convert/tri_convert.cpp
+index c9569d4..10edbb8 100644
+--- a/src/tri_convert/tri_convert.cpp
++++ b/src/tri_convert/tri_convert.cpp
+@@ -94,7 +94,8 @@ int main(int argc, char *argv[]){
+ 	// Moving mesh to origin
+ 	cout << "Moving mesh to origin ... "; 
+ 	Timer timer = Timer();
+-	for(size_t i = 0; i < themesh->vertices.size() ; i++){
++#pragma omp parallel for
++	for(int64_t i = 0; i < (int64_t) themesh->vertices.size() ; i++){
+ 		themesh->vertices[i] = themesh->vertices[i] - toTriMesh(mesh_bbox.min);
+ 	}
+ 	cout << "done in " << timer.elapsed_time_milliseconds << " s." << endl;

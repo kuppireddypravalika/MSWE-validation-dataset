@@ -1,0 +1,23 @@
+From 6ef735c41e2d5c0ee6462b80baa95b242a521322 Mon Sep 17 00:00:00 2001
+From: Randy Mackay <rmackay9@yahoo.com>
+Date: Sat, 23 Apr 2016 09:37:06 +0900
+Subject: [PATCH] AP_RSSI: use fabsf  instead of abs
+
+resolves compiler warning
+---
+ libraries/AP_RSSI/AP_RSSI.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libraries/AP_RSSI/AP_RSSI.cpp b/libraries/AP_RSSI/AP_RSSI.cpp
+index dfd83f8b5d7495..742eab037d8e30 100644
+--- a/libraries/AP_RSSI/AP_RSSI.cpp
++++ b/libraries/AP_RSSI/AP_RSSI.cpp
+@@ -183,7 +183,7 @@ float AP_RSSI::scale_and_constrain_float_rssi(float current_rssi_value, float lo
+     if (range_is_inverted)
+     {
+         // Swap values so we can treat them as low->high uniformly in the code that follows
+-        current_rssi_value = high_rssi_range + abs(current_rssi_value - low_rssi_range);
++        current_rssi_value = high_rssi_range + fabsf(current_rssi_value - low_rssi_range);
+         std::swap(low_rssi_range, high_rssi_range);        
+     }
+ 

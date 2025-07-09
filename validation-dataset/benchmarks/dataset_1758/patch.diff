@@ -1,0 +1,34 @@
+From 042753fb25be4080258601e196eb2496e62409b2 Mon Sep 17 00:00:00 2001
+From: Ivan Komissarov <abbapoh@gmail.com>
+Date: Mon, 4 Oct 2021 14:13:05 +0300
+Subject: [PATCH] Micro optimization
+
+No need to allocate a string we don't use when getting value from cache
+
+Change-Id: I5a0a47998004e42fe159789f6248559968e36139
+Reviewed-by: Christian Kandeler <christian.kandeler@qt.io>
+---
+ src/lib/corelib/language/moduleloader.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/lib/corelib/language/moduleloader.cpp b/src/lib/corelib/language/moduleloader.cpp
+index 4d8c9076f9..f8e8fb36a2 100644
+--- a/src/lib/corelib/language/moduleloader.cpp
++++ b/src/lib/corelib/language/moduleloader.cpp
+@@ -3757,14 +3757,14 @@ Item *ModuleLoader::wrapInProjectIfNecessary(Item *item)
+ QString ModuleLoader::findExistingModulePath(const QString &searchPath,
+         const QualifiedId &moduleName)
+ {
+-    QString dirPath = searchPath + QStringLiteral("/modules");
+-
+     // isFileCaseCorrect is a very expensive call on macOS, so we cache the value for the
+     // modules and search paths we've already processed
+     auto &moduleInfo = m_existingModulePathCache[{searchPath, moduleName}];
+     if (moduleInfo)
+         return *moduleInfo;
+ 
++    QString dirPath = searchPath + QStringLiteral("/modules");
++
+     for (const QString &moduleNamePart : moduleName) {
+         dirPath = FileInfo::resolvePath(dirPath, moduleNamePart);
+         if (!FileInfo::exists(dirPath) || !FileInfo::isFileCaseCorrect(dirPath)) {

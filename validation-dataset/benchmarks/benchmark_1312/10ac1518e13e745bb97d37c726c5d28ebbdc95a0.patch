@@ -1,0 +1,35 @@
+From 10ac1518e13e745bb97d37c726c5d28ebbdc95a0 Mon Sep 17 00:00:00 2001
+From: Ryan Houdek <Sonicadvance1@gmail.com>
+Date: Sat, 12 Jun 2021 18:52:51 -0700
+Subject: [PATCH] Enables transparent huge pages in our 64-bit VA allocator
+
+Transparent huge pages is a feature that the linux kernel opportunistically uses.
+Depending on kernel configuration this feature is either enabled always, or when you madvise the region.
+
+To ensure we hit both cases, madvise the regions we allocate in the 64-bit VMA allocator always
+
+Can reduce kernel bookkeeping memory usage for our abusive allocator
+---
+ .../FEXCore/Source/Utils/Allocator/64BitAllocator.cpp    | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/External/FEXCore/Source/Utils/Allocator/64BitAllocator.cpp b/External/FEXCore/Source/Utils/Allocator/64BitAllocator.cpp
+index 4a53b9c4a7..135115164d 100644
+--- a/External/FEXCore/Source/Utils/Allocator/64BitAllocator.cpp
++++ b/External/FEXCore/Source/Utils/Allocator/64BitAllocator.cpp
+@@ -666,6 +666,15 @@ OSAllocator_64Bit::OSAllocator_64Bit() {
+         LiveRegions = ObjectAlloc->new_construct(LiveRegions, ObjectAlloc);
+       }
+       else {
++
++        // If the allocation size is large than a page, then try allowing it to be a huge page
++        // This enables the kernel to use transparent large pages in the allocator which can reduce memory pressure
++        // Considering we are allocating the entire VA space, this is a good thing
++        // If MADV_HUGEPAGE isn't support then this will fail harmlessly
++        if (AllocationSize > 4096) {
++          ::madvise(Ptr, AllocationSize, MADV_HUGEPAGE);
++        }
++
+         bool Merged = false;
+         if (PrevReserved) {
+           Merged = MergeReservedRegionIfPossible(PrevReserved, reinterpret_cast<uint64_t>(Ptr), AllocationSize);

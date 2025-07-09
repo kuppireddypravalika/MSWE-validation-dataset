@@ -1,0 +1,29 @@
+From 3b6db5a7ca9a56975d888d883557c0430b983958 Mon Sep 17 00:00:00 2001
+From: Hendrik Leppkes <h.leppkes@gmail.com>
+Date: Thu, 2 Aug 2012 16:40:03 +0200
+Subject: [PATCH] Only perform filtering if there actually is something to do.
+
+This avoid an extra thread sync with the filtering thread if nothing is being done in the thread.
+---
+ decoder/LAVVideo/LAVVideo.cpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/decoder/LAVVideo/LAVVideo.cpp b/decoder/LAVVideo/LAVVideo.cpp
+index 79bf97cbd..33c7e0960 100644
+--- a/decoder/LAVVideo/LAVVideo.cpp
++++ b/decoder/LAVVideo/LAVVideo.cpp
+@@ -1161,9 +1161,12 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
+     return S_OK;
+   }
+ 
+-  if (pFrame->format == LAVPixFmt_DXVA2)
++  // Only perform filtering if we have to.
++  // DXVA Native generally can't be filtered, and the only filtering we currently support is YADIF deint
++  if ( pFrame->format == LAVPixFmt_DXVA2
++    || !(m_Decoder.IsInterlaced() && m_settings.SWDeintMode == SWDeintMode_YADIF)) {
+     return DeliverToRenderer(pFrame);
+-  else {
++  } else {
+     if (m_bMTFiltering) {
+       // Feed new frames into queue
+       while (m_MTFilterContext.inputQueue.Size() >= LAV_MT_FILTER_QUEUE_SIZE)

@@ -1,0 +1,32 @@
+From ac38bf409c368b544ddb0d17b1c8546c47d0d1e1 Mon Sep 17 00:00:00 2001
+From: Duncan Sands <baldrick@free.fr>
+Date: Sun, 28 Feb 2010 13:07:24 +0000
+Subject: [PATCH] Port commit 95321 (stoklund) from llvm-gcc: Increase inliner
+ thresholds by 25.
+
+This makes the inliner about as agressive as it was before my changes to the
+inliner cost calculations. These levels give the same performance and slightly
+smaller code than before.
+---
+ dragonegg/llvm-backend.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/dragonegg/llvm-backend.cpp b/dragonegg/llvm-backend.cpp
+index 444c271c3005..28561bd1477a 100644
+--- a/dragonegg/llvm-backend.cpp
++++ b/dragonegg/llvm-backend.cpp
+@@ -266,11 +266,11 @@ void handleVisibility(tree decl, GlobalValue *GV) {
+ static unsigned GuessAtInliningThreshold() {
+   if (optimize_size)
+     // Reduce inline limit.
+-    return 50;
++    return 75;
+   
+   if (optimize >= 3)
+-    return 250;
+-  return 200;
++    return 275;
++  return 225;
+ }
+ 
+ // SizeOfGlobalMatchesDecl - Whether the size of the given global value is the

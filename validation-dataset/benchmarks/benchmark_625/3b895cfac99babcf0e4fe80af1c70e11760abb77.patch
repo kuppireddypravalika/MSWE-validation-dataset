@@ -1,0 +1,30 @@
+From 3b895cfac99babcf0e4fe80af1c70e11760abb77 Mon Sep 17 00:00:00 2001
+From: Dale Johannesen <dalej@apple.com>
+Date: Tue, 12 May 2009 22:32:29 +0000
+Subject: [PATCH] Slightly improve generated code in a degenerate case. Should
+ remove a warning from MSVC.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@71603 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ utils/TableGen/DAGISelEmitter.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/utils/TableGen/DAGISelEmitter.cpp b/utils/TableGen/DAGISelEmitter.cpp
+index 39791e2cba5..0e2e61596f6 100644
+--- a/utils/TableGen/DAGISelEmitter.cpp
++++ b/utils/TableGen/DAGISelEmitter.cpp
+@@ -2025,6 +2025,14 @@ void DAGISelEmitter::EmitInstructionSelector(std::ostream &OS) {
+       OpcodeVTMap.find(OpName);
+     std::vector<std::string> &OpVTs = OpVTI->second;
+     OS << "  case " << OpName << ": {\n";
++    // If we have only one variant and it's the default, elide the
++    // switch.  Marginally faster, and makes MSVC happier.
++    if (OpVTs.size()==1 && OpVTs[0].empty()) {
++      OS << "    return Select_" << getLegalCName(OpName) << "(N);\n";
++      OS << "    break;\n";
++      OS << "  }\n";
++      continue;
++    }
+     // Keep track of whether we see a pattern that has an iPtr result.
+     bool HasPtrPattern = false;
+     bool HasDefaultPattern = false;

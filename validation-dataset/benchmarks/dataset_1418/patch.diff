@@ -1,0 +1,29 @@
+From e22bdb82110406587ef83620404e72e5807e84c6 Mon Sep 17 00:00:00 2001
+From: Sandor Kertesz <cgr@ecmwf.int>
+Date: Tue, 26 Jan 2016 16:15:45 +0000
+Subject: [PATCH] ecFlowUI: getting large output > 80MB seems to hang the whole
+ GUI ECFLOW-494
+
+---
+ Viewer/src/TextPager/TextPagerEdit.cpp | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/Viewer/src/TextPager/TextPagerEdit.cpp b/Viewer/src/TextPager/TextPagerEdit.cpp
+index ddef7c323..276f2582a 100644
+--- a/Viewer/src/TextPager/TextPagerEdit.cpp
++++ b/Viewer/src/TextPager/TextPagerEdit.cpp
+@@ -684,8 +684,12 @@ QRect TextPagerEdit::cursorRect(const TextPagerCursor &textCursor) const
+     if (d->layoutForPosition(textCursor.position(), &offset)) {
+         ASSUME(offset != -1);
+         QTextLine line = d->lineForPosition(textCursor.position());
+-        qreal x = line.cursorToX(offset);
+-        return QRect(x, line.y(), d->cursorWidth, line.height());
++
++        //if line is empty line.cursorToX() crashes. A qt bug?
++        if(line.isValid()) {
++        	qreal x = line.cursorToX(offset);
++        	return QRect(x, line.y(), d->cursorWidth, line.height());
++        }
+     }
+     return QRect();
+ }

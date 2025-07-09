@@ -1,0 +1,23 @@
+From 39f124e5d011c4e086ea6785b20bcfbdec2a2f6b Mon Sep 17 00:00:00 2001
+From: Kai Pastor <dg0yt@darc.de>
+Date: Thu, 1 Oct 2015 08:42:54 +0200
+Subject: [PATCH] OcdFileImport: Avoid unnecessary 64 bit conversions in
+ convertOcdPoint
+
+---
+ src/fileformats/ocd_file_format_p.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/fileformats/ocd_file_format_p.h b/src/fileformats/ocd_file_format_p.h
+index 56ad56e19..16e8e1925 100644
+--- a/src/fileformats/ocd_file_format_p.h
++++ b/src/fileformats/ocd_file_format_p.h
+@@ -295,7 +295,7 @@ QString OcdFileImport::convertOcdString(const QChar* src) const
+ inline
+ MapCoord OcdFileImport::convertOcdPoint(const Ocd::OcdPoint32& ocd_point) const
+ {
+-	return MapCoord::fromNative(qint64(ocd_point.x >> 8) * 10, qint64(ocd_point.y >> 8) * -10);
++	return MapCoord { (ocd_point.x >> 8) * 10, (ocd_point.y >> 8) * -10 };
+ }
+ 
+ inline

@@ -1,0 +1,29 @@
+From c374894d9e33bcc86af2453a4b6c1e20765a2ec6 Mon Sep 17 00:00:00 2001
+From: Mountagha <muntaghaba@gmail.com>
+Date: Thu, 17 Nov 2022 01:37:48 -0500
+Subject: [PATCH] optimizing a bit tensor_array initialization (#48066)
+
+---
+ paddle/phi/core/tensor_array.cc | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/paddle/phi/core/tensor_array.cc b/paddle/phi/core/tensor_array.cc
+index 0f8e4ba4c926d2..2007e71d5a0fdd 100644
+--- a/paddle/phi/core/tensor_array.cc
++++ b/paddle/phi/core/tensor_array.cc
+@@ -23,13 +23,12 @@ TensorArray::TensorArray(const std::vector<DenseTensor>& vec) {
+ /// \brief Test whether the tensor's storage in TensorArray is allocated.
+ /// return Whether all tensors in TensorArray is allocated.
+ bool TensorArray::initialized() const {
+-  bool init = true;
+   for (auto tensor : tensors_) {
+     if (!tensor.IsInitialized()) {
+-      init = false;
++      return false;
+     }
+   }
+-  return init;
++  return true;
+ }
+ 
+ int64_t TensorArray::numel() const {

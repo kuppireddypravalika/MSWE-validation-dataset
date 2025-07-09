@@ -1,0 +1,30 @@
+From 5fe398bda55aaf6d1a80d057907de25d2c5e29a4 Mon Sep 17 00:00:00 2001
+From: Jonathan Thomas <jonathan@openshot.org>
+Date: Tue, 1 Feb 2022 15:46:35 -0600
+Subject: [PATCH] Reducing pre-roll to 12 frames
+
+---
+ src/Qt/VideoCacheThread.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/Qt/VideoCacheThread.cpp b/src/Qt/VideoCacheThread.cpp
+index 89f2afbb4..524c5b862 100644
+--- a/src/Qt/VideoCacheThread.cpp
++++ b/src/Qt/VideoCacheThread.cpp
+@@ -16,7 +16,6 @@
+ #include "Exceptions.h"
+ #include "Frame.h"
+ #include "OpenMPUtilities.h"
+-#include "ZmqLogger.h"
+ 
+ #include <algorithm>
+ #include <thread>    // for std::this_thread::sleep_for
+@@ -28,7 +27,7 @@ namespace openshot
+ 	VideoCacheThread::VideoCacheThread()
+ 	: Thread("video-cache"), speed(1), is_playing(false),
+ 	reader(NULL), current_display_frame(1), cached_frame_count(0),
+-	min_frames_ahead(24), max_frames_ahead(OPEN_MP_NUM_PROCESSORS * 6)
++	min_frames_ahead(12), max_frames_ahead(OPEN_MP_NUM_PROCESSORS * 6)
+     {
+     }
+ 

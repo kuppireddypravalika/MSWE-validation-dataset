@@ -1,0 +1,22 @@
+From 01c66d0b3fb80058afa03265e0c743ee598449d4 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Romain=20Fran=C3=A7ois?= <romain@r-enthusiasts.com>
+Date: Mon, 27 Sep 2010 10:02:04 +0000
+Subject: [PATCH] identified possible perf improvement
+
+---
+ inst/include/Rcpp/vector/Vector.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/inst/include/Rcpp/vector/Vector.h b/inst/include/Rcpp/vector/Vector.h
+index cde855e82..7d8b6acf3 100644
+--- a/inst/include/Rcpp/vector/Vector.h
++++ b/inst/include/Rcpp/vector/Vector.h
+@@ -65,6 +65,8 @@ class Vector :
+ 	
+ 	template <typename T>
+ 	Vector& operator=( const T& x){
++	    // TODO: wrap will reallocate the memory. we can definitely avoid that
++	    //       if this is of the same size as the target
+ 		RObject::setSEXP( r_cast<RTYPE>( wrap(x) ) ) ;
+ 		return *this ;
+ 	}

@@ -1,0 +1,50 @@
+From bf4c50ea336e929330ca6c15b8a3520cb55e82ca Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Sat, 13 Sep 2014 21:30:12 +0200
+Subject: [PATCH] QCalendarWidget: use ctor-init-list (I)
+
+Saves 64 bytes of text size.
+
+Change-Id: I77c52b80b835b4e59e0683b41d5a4cee8a34d40a
+Reviewed-by: Liang Qi <liang.qi@theqtcompany.com>
+---
+ src/widgets/widgets/qcalendarwidget.cpp | 26 ++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
+
+diff --git a/src/widgets/widgets/qcalendarwidget.cpp b/src/widgets/widgets/qcalendarwidget.cpp
+index 00711439589..3e2b9827519 100644
+--- a/src/widgets/widgets/qcalendarwidget.cpp
++++ b/src/widgets/widgets/qcalendarwidget.cpp
+@@ -969,19 +969,19 @@ class QCalendarView : public QTableView
+ };
+ 
+ QCalendarModel::QCalendarModel(QObject *parent)
+-    : QAbstractTableModel(parent)
+-{
+-    m_date = QDate::currentDate();
+-    m_minimumDate = QDate::fromJulianDay(1);
+-    m_maximumDate = QDate(7999, 12, 31);
+-    m_shownYear = m_date.year();
+-    m_shownMonth = m_date.month();
+-    m_firstDay = QLocale().firstDayOfWeek();
+-    m_horizontalHeaderFormat = QCalendarWidget::ShortDayNames;
+-    m_weekNumbersShown = true;
+-    m_firstColumn = 1;
+-    m_firstRow = 1;
+-    m_view = 0;
++    : QAbstractTableModel(parent),
++      m_firstColumn(1),
++      m_firstRow(1),
++      m_date(QDate::currentDate()),
++      m_minimumDate(QDate::fromJulianDay(1)),
++      m_maximumDate(7999, 12, 31),
++      m_shownYear(m_date.year()),
++      m_shownMonth(m_date.month()),
++      m_firstDay(QLocale().firstDayOfWeek()),
++      m_horizontalHeaderFormat(QCalendarWidget::ShortDayNames),
++      m_weekNumbersShown(true),
++      m_view(Q_NULLPTR)
++{
+ }
+ 
+ Qt::DayOfWeek QCalendarModel::dayOfWeekForColumn(int column) const

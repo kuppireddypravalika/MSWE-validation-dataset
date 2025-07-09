@@ -1,0 +1,36 @@
+From b418e073b155cf465089fe0a6f591f73e76e8051 Mon Sep 17 00:00:00 2001
+From: Francois Hebert <fmh33@cornell.edu>
+Date: Tue, 4 Feb 2020 17:02:43 -0800
+Subject: [PATCH] Replace a loop with a call to dot_product
+
+---
+ .../NewtonianEuler/Sources/LaneEmdenGravitationalField.cpp   | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/src/Evolution/Systems/NewtonianEuler/Sources/LaneEmdenGravitationalField.cpp b/src/Evolution/Systems/NewtonianEuler/Sources/LaneEmdenGravitationalField.cpp
+index a86169a47dac..b795ed277e9f 100644
+--- a/src/Evolution/Systems/NewtonianEuler/Sources/LaneEmdenGravitationalField.cpp
++++ b/src/Evolution/Systems/NewtonianEuler/Sources/LaneEmdenGravitationalField.cpp
+@@ -6,6 +6,7 @@
+ #include <cstddef>
+ 
+ #include "DataStructures/DataVector.hpp"
++#include "DataStructures/Tensor/EagerMath/DotProduct.hpp"
+ #include "DataStructures/Tensor/Tensor.hpp"
+ #include "PointwiseFunctions/AnalyticSolutions/NewtonianEuler/LaneEmdenStar.hpp"
+ #include "Utilities/Gsl.hpp"
+@@ -25,13 +26,11 @@ void LaneEmdenGravitationalField::apply(
+     const NewtonianEuler::Solutions::LaneEmdenStar& star,
+     const tnsr::I<DataVector, 3>& x) noexcept {
+   const auto gravitational_field = star.gravitational_field(x);
+-  get(*source_energy_density) = 0.0;
+   for (size_t i = 0; i < 3; ++i) {
+     source_momentum_density->get(i) =
+         get(mass_density_cons) * gravitational_field.get(i);
+-    get(*source_energy_density) +=
+-        momentum_density.get(i) * gravitational_field.get(i);
+   }
++  *source_energy_density = dot_product(momentum_density, gravitational_field);
+ }
+ 
+ }  // Namespace Sources

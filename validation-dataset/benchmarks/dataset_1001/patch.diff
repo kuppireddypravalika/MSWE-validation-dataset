@@ -1,0 +1,37 @@
+From a086820de8eadbd830f3aa5ebf822d548a465879 Mon Sep 17 00:00:00 2001
+From: Ghabry <gabriel+github@mastergk.de>
+Date: Sun, 18 Apr 2021 21:14:55 +0200
+Subject: [PATCH] When the cache is exhausted do not delete unreferenced assets
+ that were used during the last 50ms (approx. 3 frames).
+
+The current behaviour (flush everything unreferenced when cache is full) was added to workaround out-of-memory issues on systems with limited RAM but this direct unload makes some use cases like face rendering in the Battle scene with Gauge style really slow (when the cache is full the face is unloaded and reloaded from disk once every frame).
+
+I hope that 50ms is a good compromise here.
+
+Fix #2509
+---
+ src/cache.cpp | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/src/cache.cpp b/src/cache.cpp
+index 63f3078369..2f091b0658 100644
+--- a/src/cache.cpp
++++ b/src/cache.cpp
+@@ -101,8 +101,15 @@ namespace {
+ 				continue;
+ 			}
+ 
+-			if (cache_size <= cache_limit && cur_ticks - it->second.last_access < 3s) {
+-				// Below memory limit and last access < 3s
++			auto last_access = cur_ticks - it->second.last_access;
++			bool cache_exhausted = cache_size > cache_limit;
++			if (cache_exhausted) {
++				if (last_access <= 50ms) {
++					// Used during the last 3 frames, must be important, keep it.
++					++it;
++					continue;
++				}
++			} else if (last_access <= 3s) {
+ 				++it;
+ 				continue;
+ 			}

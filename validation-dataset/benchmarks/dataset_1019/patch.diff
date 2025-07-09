@@ -1,0 +1,22 @@
+From 99ce32839053da5982613f0a158a50d5315b8f43 Mon Sep 17 00:00:00 2001
+From: "Garth N. Wells" <gnw20@cam.ac.uk>
+Date: Tue, 9 Oct 2012 13:10:17 +0100
+Subject: [PATCH] Fix performance regression. Fixes Bug #1064336
+
+---
+ dolfin/fem/UFCCell.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/dolfin/fem/UFCCell.h b/dolfin/fem/UFCCell.h
+index cd618aff094..5107468a3c8 100644
+--- a/dolfin/fem/UFCCell.h
++++ b/dolfin/fem/UFCCell.h
+@@ -167,7 +167,7 @@ namespace dolfin
+       {
+         if (use_global_indices && topology.have_global_indices(d))
+         {
+-          const std::vector<uint> global_indices = topology.global_indices(d);
++          const std::vector<uint>& global_indices = topology.global_indices(d);
+           for (uint i = 0; i < num_cell_entities[d]; ++i)
+             entity_indices[d][i] = global_indices[cell.entities(d)[i]];
+         }

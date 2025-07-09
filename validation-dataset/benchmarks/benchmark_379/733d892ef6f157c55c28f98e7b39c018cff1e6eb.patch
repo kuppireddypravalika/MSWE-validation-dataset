@@ -1,0 +1,32 @@
+From 733d892ef6f157c55c28f98e7b39c018cff1e6eb Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Wed, 25 Nov 2020 18:52:19 +0100
+Subject: [PATCH] [metacling] In DeepAutoLoadImpl, use the fact that class name
+ is normalized:
+
+Considerably speeds up the deeply nested, hot loops through all members.
+---
+ core/metacling/src/TCling.cxx | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/core/metacling/src/TCling.cxx b/core/metacling/src/TCling.cxx
+index f7ccaf9706e50..ec6ac9af82354 100644
+--- a/core/metacling/src/TCling.cxx
++++ b/core/metacling/src/TCling.cxx
+@@ -6075,6 +6075,7 @@ Int_t TCling::ShallowAutoLoadImpl(const char *cls)
+ ////////////////////////////////////////////////////////////////////////////////
+ // Iterate through the data member of the class (either through the TProtoClass
+ // or through Cling) and trigger, recursively, the loading the necessary libraries.
++// \note `cls` is expected to be already normalized!
+ Int_t TCling::DeepAutoLoadImpl(const char *cls)
+ {
+    Int_t status = ShallowAutoLoadImpl(cls);
+@@ -6090,7 +6091,7 @@ Int_t TCling::DeepAutoLoadImpl(const char *cls)
+       auto insertResult = gClassOnStack.insert(std::string(cls));
+       if (insertResult.second) {
+          // Now look through the TProtoClass to load the required library/dictionary
+-         TProtoClass *proto = TClassTable::GetProto(cls);
++         TProtoClass *proto = TClassTable::GetProtoNorm(cls);
+          if (proto) {
+             for(auto element : proto->GetData()) {
+                const char *subtypename = element->GetTypeName();

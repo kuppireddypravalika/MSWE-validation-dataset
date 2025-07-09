@@ -1,0 +1,28 @@
+From 0a132174cc3bee3c7c6c0c15bdb37e2c911a7771 Mon Sep 17 00:00:00 2001
+From: Eric Niebler <eniebler@nvidia.com>
+Date: Wed, 8 Mar 2023 11:10:38 -0800
+Subject: [PATCH] Stop using operator[] on iterators in for_each[_n]
+
+Too much code in Thrust assumes that it[n] returns the same type as
+*(it+n), but the standard only requires that it[n] is convertible to the
+type of *(it+n). Thrust should avoid using operator[] on iterators and
+prefer instead to use addition/dereference.
+
+Fixes #1452
+---
+ thrust/system/cuda/detail/for_each.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/thrust/system/cuda/detail/for_each.h b/thrust/system/cuda/detail/for_each.h
+index 6378f3de75b..518538ff362 100644
+--- a/thrust/system/cuda/detail/for_each.h
++++ b/thrust/system/cuda/detail/for_each.h
+@@ -55,7 +55,7 @@ namespace cuda_cub {
+     template <class Size>
+     THRUST_DEVICE_FUNCTION void operator()(Size idx)
+     {
+-      op(raw_reference_cast(input[idx]));
++      op(raw_reference_cast(*(input + idx)));
+     }
+   };
+ 

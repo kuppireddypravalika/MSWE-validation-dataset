@@ -1,0 +1,23 @@
+From 9dc548944127c89e25988a34df2884d6d5cbd14b Mon Sep 17 00:00:00 2001
+From: "Michael J. Spencer" <bigcheesegs@gmail.com>
+Date: Wed, 20 Mar 2013 18:58:07 +0000
+Subject: [PATCH] memcpy instead of copy_n. Faster than copy_n on MSVC :(.
+
+llvm-svn: 177557
+---
+ lld/lib/ReaderWriter/ELF/SectionChunks.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lld/lib/ReaderWriter/ELF/SectionChunks.h b/lld/lib/ReaderWriter/ELF/SectionChunks.h
+index 8301818611c..ab20edf90c2 100644
+--- a/lld/lib/ReaderWriter/ELF/SectionChunks.h
++++ b/lld/lib/ReaderWriter/ELF/SectionChunks.h
+@@ -355,7 +355,7 @@ void AtomSection<ELFT>::write(ELFWriter *writer,
+     if (contentSize == 0)
+       continue;
+     uint8_t *atomContent = chunkBuffer + ai->_fileOffset;
+-    std::copy_n(content.data(), contentSize, atomContent);
++    std::memcpy(atomContent, content.data(), contentSize);
+     const TargetRelocationHandler<ELFT> &relHandler =
+         this->_targetInfo.template getTargetHandler<ELFT>()
+         .getRelocationHandler();

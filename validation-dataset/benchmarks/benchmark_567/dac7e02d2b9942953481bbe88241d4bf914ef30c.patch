@@ -1,0 +1,37 @@
+From dac7e02d2b9942953481bbe88241d4bf914ef30c Mon Sep 17 00:00:00 2001
+From: Brian Duff <bduff@google.com>
+Date: Sat, 21 Feb 2015 15:22:43 -0800
+Subject: [PATCH] Expose generate_clear as an option.
+
+I wasn't able to get the clear() method to inline into the
+constructor when optimizations are on in proguard. As a result,
+every message has an extra superfluous kept method assuming the
+app never uses clear() directly.
+
+There are a couple of instances where setting this option false is
+necessary in order to get code dexing successfully without hitting
+the method limit, e.g. https://goto.google.com/tltzq
+
+In this example, I tried turning on the method/inlining/unique and
+method/inlining/short optimizations before resorting to adding the
+generate_clear option, but the method count did not decrease. The
+clear() methods were contributing over a thousand extra methods.
+
+Change-Id: If6a9651d6a59cdf70b1040d8248779710ac73105
+---
+ src/google/protobuf/compiler/javanano/javanano_generator.cc | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/google/protobuf/compiler/javanano/javanano_generator.cc b/src/google/protobuf/compiler/javanano/javanano_generator.cc
+index 67b257485aeff..ad215cb79ebd9 100644
+--- a/src/google/protobuf/compiler/javanano/javanano_generator.cc
++++ b/src/google/protobuf/compiler/javanano/javanano_generator.cc
+@@ -156,6 +156,8 @@ bool JavaNanoGenerator::Generate(const FileDescriptor* file,
+       params.set_generate_clone(option_value == "true");
+     } else if (option_name == "generate_intdefs") {
+       params.set_generate_intdefs(option_value == "true");
++    } else if (option_name == "generate_clear") {
++      params.set_generate_clear(option_value == "true");
+     } else {
+       *error = "Ignore unknown javanano generator option: " + option_name;
+     }

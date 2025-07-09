@@ -1,0 +1,48 @@
+From c294e6d26a4fe0a2b5986f66397d341b3fca9f92 Mon Sep 17 00:00:00 2001
+From: Ludovic Desroches <ludovic.desroches@microchip.com>
+Date: Wed, 25 Jan 2023 14:16:48 +0100
+Subject: [PATCH] CameraImpl: get_camera_device_list can simply return
+ m_devices
+
+As CameraImpl maintain a devices list due to its watcher for the device
+monitor, there is no need to compute the device list each time it's
+reuested. We can just return m_devices.
+
+Signed-off-by: Ludovic Desroches <ludovic.desroches@microchip.com>
+Acked-by: Cyrille Pitchen <cyrille.pitchen@microchip.com>
+---
+ src/detail/camera/gstcameraimpl.cpp | 21 +--------------------
+ 1 file changed, 1 insertion(+), 20 deletions(-)
+
+diff --git a/src/detail/camera/gstcameraimpl.cpp b/src/detail/camera/gstcameraimpl.cpp
+index 1a8d4709..b23f12ae 100644
+--- a/src/detail/camera/gstcameraimpl.cpp
++++ b/src/detail/camera/gstcameraimpl.cpp
+@@ -540,26 +540,7 @@ CameraImpl::~CameraImpl() noexcept
+ 
+ std::vector<std::string> CameraImpl::get_camera_device_list()
+ {
+-    std::vector<std::string> dlist;
+-
+-    std::string caps_name;
+-    std::string caps_format;
+-    std::vector<std::tuple<int, int>> resolutions;
+-
+-    GList* devlist = gst_device_monitor_get_devices(m_device_monitor);
+-    for (GList* i = g_list_first(devlist); i; i = g_list_next(i))
+-    {
+-        auto device = static_cast<GstDevice*>(i->data);
+-        if (device == nullptr)
+-            continue;
+-
+-        const auto devnode = gstreamer_get_device_path(device);
+-        EGTLOG_DEBUG("device : {}", devnode);
+-        dlist.push_back(devnode);
+-    }
+-    g_list_free(devlist);
+-
+-    return dlist;
++    return m_devices;
+ }
+ 
+ std::tuple<std::string, std::string, std::string, std::vector<std::tuple<int, int>>>

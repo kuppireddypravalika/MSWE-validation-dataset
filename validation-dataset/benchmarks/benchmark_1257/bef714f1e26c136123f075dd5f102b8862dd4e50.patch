@@ -1,0 +1,25 @@
+From bef714f1e26c136123f075dd5f102b8862dd4e50 Mon Sep 17 00:00:00 2001
+From: Philip Chimento <philip.chimento@gmail.com>
+Date: Tue, 28 Sep 2021 23:27:32 -0700
+Subject: [PATCH] importer: Don't reinitialize search path every time
+
+gjs_get_search_path() caches its expensive initialization, but due to
+never setting the search_path_initialized variable to true, the cache was
+never used and the initialization was repeated every time.
+---
+ gjs/importer.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/gjs/importer.cpp b/gjs/importer.cpp
+index 717131330..b7dfba95d 100644
+--- a/gjs/importer.cpp
++++ b/gjs/importer.cpp
+@@ -809,6 +809,8 @@ JSFunctionSpec gjs_importer_proto_funcs[] = {
+ #else
+         gjs_search_path.push_back(GJS_JS_DIR);
+ #endif
++
++        search_path_initialized = true;
+     }
+ 
+     return gjs_search_path;

@@ -1,0 +1,22 @@
+From 410ffa24c1ba8630985fa05a5666d95818acead4 Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Thu, 10 Dec 2020 08:05:41 -0700
+Subject: [PATCH] Use mLineHeight instead of recalculating
+
+---
+ OPHD/UI/Core/ListBox.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/OPHD/UI/Core/ListBox.cpp b/OPHD/UI/Core/ListBox.cpp
+index f93359c20..1abcc64da 100644
+--- a/OPHD/UI/Core/ListBox.cpp
++++ b/OPHD/UI/Core/ListBox.cpp
+@@ -216,7 +216,7 @@ void ListBox::onMouseMove(int x, int y, int /*relX*/, int /*relY*/)
+ 		return;
+ 	}
+ 
+-	mCurrentHighlight = (static_cast<std::size_t>(y - mRect.y) + mScrollOffsetInPixels) / static_cast<std::size_t>(mFont.height() + 2);
++	mCurrentHighlight = (static_cast<std::size_t>(y - mRect.y) + mScrollOffsetInPixels) / static_cast<std::size_t>(mLineHeight);
+ 
+ 	if (mCurrentHighlight >= mItems.size())
+ 	{

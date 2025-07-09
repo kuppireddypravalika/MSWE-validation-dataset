@@ -1,0 +1,33 @@
+From 15238e91eb9e75ce6956852688fd1f0b68f9156a Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Mon, 4 Jan 2016 17:40:55 +0100
+Subject: [PATCH] QList: don't lose reserved capacity in op+= with empty LHS
+
+It is very rare that operator+= is used as operator=.
+Most of the time, one op+= is followed by more op+=s.
+
+The old code checked whether *this was empty, and simply
+shallow-copied the RHS into the LHS in that case. This
+has one severe drawback: a reserve() on the LHS is lost.
+
+Fix by not checking for isEmpty() but for d == &shared_null.
+
+Change-Id: Iff28e496cf24cc93f248449d74012c4f3a87253e
+Reviewed-by: Olivier Goffart (Woboq GmbH) <ogoffart@woboq.com>
+---
+ src/corelib/tools/qlist.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/corelib/tools/qlist.h b/src/corelib/tools/qlist.h
+index 75d59350f6be..5509c3adcea2 100644
+--- a/src/corelib/tools/qlist.h
++++ b/src/corelib/tools/qlist.h
+@@ -935,7 +935,7 @@ template <typename T>
+ Q_OUTOFLINE_TEMPLATE QList<T> &QList<T>::operator+=(const QList<T> &l)
+ {
+     if (!l.isEmpty()) {
+-        if (isEmpty()) {
++        if (d == &QListData::shared_null) {
+             *this = l;
+         } else {
+             Node *n = (d->ref.isShared())

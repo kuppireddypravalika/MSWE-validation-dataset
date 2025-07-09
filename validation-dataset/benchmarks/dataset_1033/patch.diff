@@ -1,0 +1,26 @@
+From b4235f18701b4fdc73acf798ed8a47cd5a9fc597 Mon Sep 17 00:00:00 2001
+From: Simon Funke <simon.funke@gmail.com>
+Date: Mon, 6 Feb 2017 15:45:34 +0100
+Subject: [PATCH] Time the apply call in the PISolver::step
+
+---
+ dolfin/multistage/PointIntegralSolver.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/dolfin/multistage/PointIntegralSolver.cpp b/dolfin/multistage/PointIntegralSolver.cpp
+index 1216497bd35..8a76e95d85a 100644
+--- a/dolfin/multistage/PointIntegralSolver.cpp
++++ b/dolfin/multistage/PointIntegralSolver.cpp
+@@ -205,10 +205,12 @@ void PointIntegralSolver::step(double dt)
+                                              _local_to_global_dofs.data());
+   }
+ 
++  Timer timer_apply("PointIntegralSolver::apply");
+   for (unsigned int stage=0; stage<_num_stages; stage++)
+     _scheme->stage_solutions()[stage]->vector()->apply("insert");
+ 
+   _scheme->solution()->vector()->apply("insert");
++  timer_apply.stop();
+ 
+   // Update time
+   *_scheme->t() = t0 + dt;

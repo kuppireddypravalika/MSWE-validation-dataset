@@ -1,0 +1,38 @@
+From 2aa0a2e6a18c5353c31fd50e81f6bc7a5dec2ec6 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Micha=C5=82=20Chojnowski?= <michal.chojnowski@scylladb.com>
+Date: Tue, 10 Aug 2021 14:40:31 +0200
+Subject: [PATCH] test: perf: perf_collection: use the optimized version of
+ bptree
+
+Since key_compare does not conform to SimpleLessCompare, the benchmark
+tests the non-optimized version of bptree (without SIMD key search).
+We want to test the optimized version.
+
+Closes #9180
+---
+ test/perf/perf_collection.cc | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/test/perf/perf_collection.cc b/test/perf/perf_collection.cc
+index f30758f75684..42446a4d3c88 100644
+--- a/test/perf/perf_collection.cc
++++ b/test/perf/perf_collection.cc
+@@ -31,6 +31,9 @@ using per_key_t = int64_t;
+ 
+ struct key_compare {
+     bool operator()(const per_key_t& a, const per_key_t& b) const noexcept { return a < b; }
++    int64_t simplify_key(per_key_t k) noexcept {
++        return k;
++    }
+ };
+ 
+ struct key_tri_compare {
+@@ -46,6 +49,8 @@ using namespace seastar;
+ /* On node size 32 and less linear search works better */
+ using test_bplus_tree = bplus::tree<per_key_t, unsigned long, key_compare, 4, bplus::key_search::linear>;
+ 
++static_assert(bplus::SimpleLessCompare<int64_t, key_compare>);
++
+ #include "utils/intrusive_btree.hh"
+ 
+ class perf_intrusive_key {

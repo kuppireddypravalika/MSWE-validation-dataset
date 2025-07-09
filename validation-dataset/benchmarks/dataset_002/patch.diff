@@ -1,0 +1,25 @@
+From ab23190edd6276f5e25fa8360eb4b78a1414444a Mon Sep 17 00:00:00 2001
+From: ulteq <ulteq@web.de>
+Date: Sat, 2 Feb 2019 21:19:46 +0100
+Subject: [PATCH] :wrench: Slightly faster keyword parsing
+
+Roughly 3% faster truck file parsing
+---
+ source/main/resources/rig_def_fileformat/RigDef_Parser.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/source/main/resources/rig_def_fileformat/RigDef_Parser.cpp b/source/main/resources/rig_def_fileformat/RigDef_Parser.cpp
+index ea6c288cdf..6ae3f51132 100644
+--- a/source/main/resources/rig_def_fileformat/RigDef_Parser.cpp
++++ b/source/main/resources/rig_def_fileformat/RigDef_Parser.cpp
+@@ -3158,8 +3158,8 @@ void Parser::AddMessage(std::string const & line, Message::Type type, std::strin
+ File::Keyword Parser::IdentifyKeywordInCurrentLine()
+ {
+     // Quick check - keyword always starts with ASCII letter
+-    char c = m_current_line[0]; // Note: line comes in trimmed
+-    if (! ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')))
++    char c = tolower(m_current_line[0]); // Note: line comes in trimmed
++    if (c > 'z' || c < 'a')
+     {
+         return File::KEYWORD_INVALID;
+     }

@@ -1,0 +1,22 @@
+From 79e2deb8a5654d9b3599e5ead739c67a63c9b376 Mon Sep 17 00:00:00 2001
+From: Luke Wagner <lw@mozilla.com>
+Date: Mon, 8 Nov 2010 14:35:29 -0800
+Subject: [PATCH] Bug 609075 - speed up JSString::flatten a bit, part 1 (r=gal)
+
+---
+ js/src/jsstr.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/js/src/jsstr.cpp b/js/src/jsstr.cpp
+index 720ec1308ce..e205c32584d 100644
+--- a/js/src/jsstr.cpp
++++ b/js/src/jsstr.cpp
+@@ -212,7 +212,7 @@ RopeAllocSize(const size_t length, size_t *capacity)
+     if (length > ROPE_DOUBLING_MAX)
+         size = minCap + (minCap / 8);
+     else
+-        size = 1 << (JS_CeilingLog2(minCap));
++        size = RoundUpPow2(minCap);
+     *capacity = (size / sizeof(jschar)) - 1;
+     JS_ASSERT(size >= sizeof(JSRopeBufferInfo));
+     return size;

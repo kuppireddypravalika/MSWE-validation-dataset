@@ -1,0 +1,37 @@
+From 38dc1f7597c66e205e5ece0e677187ea2dfa8052 Mon Sep 17 00:00:00 2001
+From: Thiago Macieira <thiago.macieira@intel.com>
+Date: Wed, 1 Aug 2012 17:54:32 +0200
+Subject: [PATCH] Optimise QMutexLocker a little: don't call relock() in the
+ constructor
+
+QMutexLocker does not support being passed already-locked mutexes,
+unless they are recursive mutexes. But in that case, it behaves as if
+the mutex weren't locked in the first place.
+
+Since that's the case, there's no point in testing the low bit to see if
+it's set or not. It's never going to be.
+
+Change-Id: Ie4b81f7e2cca16e6db36f3cb51a5377dbdfc157d
+Reviewed-by: Olivier Goffart <ogoffart@woboq.com>
+---
+ src/corelib/thread/qmutex.h | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/src/corelib/thread/qmutex.h b/src/corelib/thread/qmutex.h
+index 22da73a8b8..4fe4df09c6 100644
+--- a/src/corelib/thread/qmutex.h
++++ b/src/corelib/thread/qmutex.h
+@@ -116,8 +116,11 @@ class Q_CORE_EXPORT QMutexLocker
+         Q_ASSERT_X((reinterpret_cast<quintptr>(m) & quintptr(1u)) == quintptr(0),
+                    "QMutexLocker", "QMutex pointer is misaligned");
+         val = quintptr(m);
+-        // relock() here ensures that we call QMutex::lock() instead of QBasicMutex::lock()
+-        relock();
++        if (Q_LIKELY(m)) {
++            // call QMutex::lock() instead of QBasicMutex::lock()
++            static_cast<QMutex *>(m)->lock();
++            val |= 1;
++        }
+     }
+     inline ~QMutexLocker() { unlock(); }
+ 

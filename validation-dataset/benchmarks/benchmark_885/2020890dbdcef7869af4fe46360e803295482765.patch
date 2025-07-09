@@ -1,0 +1,31 @@
+From 2020890dbdcef7869af4fe46360e803295482765 Mon Sep 17 00:00:00 2001
+From: Sergio Martins <smartins@kde.org>
+Date: Wed, 17 Jan 2018 10:58:24 +0000
+Subject: [PATCH] virtual-signal: bailout early if method is not virtual
+
+Minor performance improvement
+---
+ src/checks/level1/virtual-signal.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/checks/level1/virtual-signal.cpp b/src/checks/level1/virtual-signal.cpp
+index 967fa6b7..753c1f8a 100644
+--- a/src/checks/level1/virtual-signal.cpp
++++ b/src/checks/level1/virtual-signal.cpp
+@@ -43,7 +43,7 @@ VirtualSignal::VirtualSignal(const std::string &name, ClazyContext *context)
+ void VirtualSignal::VisitDecl(Decl *stmt)
+ {
+     auto method = dyn_cast<CXXMethodDecl>(stmt);
+-    if (!method)
++    if (!method || !method->isVirtual())
+         return;
+ 
+     AccessSpecifierManager *accessSpecifierManager = m_context->accessSpecifierManager;
+@@ -51,6 +51,6 @@ void VirtualSignal::VisitDecl(Decl *stmt)
+         return;
+ 
+     QtAccessSpecifierType qst = accessSpecifierManager->qtAccessSpecifierType(method);
+-    if (qst == QtAccessSpecifier_Signal && method->isVirtual())
++    if (qst == QtAccessSpecifier_Signal)
+         emitWarning(method, "signal is virtual");
+ }

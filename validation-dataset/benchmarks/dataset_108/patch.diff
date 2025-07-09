@@ -1,0 +1,22 @@
+From 80320486fe9465fad80b28ba1a0c6ce3acc0386b Mon Sep 17 00:00:00 2001
+From: Rangi <remy.oukaour+rangi42@gmail.com>
+Date: Sat, 30 May 2020 22:15:38 -0400
+Subject: [PATCH] sprintf(a, "%s", b) --> strcpy(a, b)
+
+---
+ src/main-window.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/main-window.cpp b/src/main-window.cpp
+index 3924d33..0b4ea0e 100644
+--- a/src/main-window.cpp
++++ b/src/main-window.cpp
+@@ -1250,7 +1250,7 @@ void Main_Window::open_map(const char *directory, const char *filename) {
+ 	sprintf(buffer, PROGRAM_NAME " - %s", basename);
+ 	copy_label(buffer);
+ 	if (ends_with(basename, ".blk")) {
+-		sprintf(buffer, "%s", basename);
++		strcpy(buffer, basename);
+ 		size_t n = strlen(buffer);
+ 		buffer[n-4] = '\0';
+ 		strcat(buffer, ".png");

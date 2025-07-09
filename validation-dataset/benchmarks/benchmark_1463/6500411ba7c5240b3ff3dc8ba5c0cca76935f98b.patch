@@ -1,0 +1,28 @@
+From 6500411ba7c5240b3ff3dc8ba5c0cca76935f98b Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Sat, 2 Feb 2019 15:50:24 -0500
+Subject: [PATCH] [libromdata] ValveVTF: Use isPow2(), not popcount().
+
+isPow2() is faster on CPUs that don't have the `popcnt` instruction,
+and might be faster even if the CPU does have it, since gcc doesn't
+emit `popcnt` unless a specific option is given.
+
+MSVC's __popcnt() intrinsic wasn't used at all, either, since it
+*only* emits `popcnt` and has no fallback for CPUs that don't have it.
+---
+ src/libromdata/Texture/ValveVTF.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/libromdata/Texture/ValveVTF.cpp b/src/libromdata/Texture/ValveVTF.cpp
+index 7de1862323..893aeb2c07 100644
+--- a/src/libromdata/Texture/ValveVTF.cpp
++++ b/src/libromdata/Texture/ValveVTF.cpp
+@@ -329,7 +329,7 @@ const rp_image *ValveVTFPrivate::loadImage(void)
+ 	// Some malformed images may have a smaller width in the header,
+ 	// so calculate the row width here.
+ 	int row_width = vtfHeader.width;
+-	if (popcount(row_width) != 1) {
++	if (!isPow2(row_width)) {
+ 		// Adjust to the next power of two.
+ 		// We need to calculate the actual stride in order to
+ 		// prevent crashes in the SSE2 code.

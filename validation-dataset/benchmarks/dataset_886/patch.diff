@@ -1,0 +1,26 @@
+From cf621f2cd5f676dbdfad6deab84d3e63c804fea8 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Cl=C3=A9ment=20Vuchener?= <clement.vuchener@gmail.com>
+Date: Sun, 22 Jul 2018 14:00:37 +0200
+Subject: [PATCH] do not allocate memory for flagarrays with invalid size
+
+---
+ src/flagarray.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/flagarray.cpp b/src/flagarray.cpp
+index a1aadf89..2d66576a 100644
+--- a/src/flagarray.cpp
++++ b/src/flagarray.cpp
+@@ -15,11 +15,11 @@ FlagArray::FlagArray(DFInstance *df, VIRTADDR base_addr)
+     //size of the byte array
+     uint32_t size_in_bytes = m_df->read_mem<uint32_t>(base_addr + m_df->pointer_size());
+ 
+-    m_flags = QBitArray(size_in_bytes * 8);
+     if(size_in_bytes > 1000){
+         LOGW << "aborting reading flags, size too large" << size_in_bytes;
+         return;
+     }
++    m_flags = QBitArray(size_in_bytes * 8);
+     BYTE b;
+     int position;
+     for(uint i = 0; i < size_in_bytes; i++){

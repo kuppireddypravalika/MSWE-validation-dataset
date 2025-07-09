@@ -1,0 +1,41 @@
+From 369c25a9633769e4887b9f5bb5f2c7c232da61a5 Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Thu, 10 Dec 2020 08:44:17 -0700
+Subject: [PATCH] Make clip rect apply to fewer calls
+
+The clip rect is mainly useful for drawing list items, and accounting
+for the scroll position, where items may be clipped by the bounds of the
+scroll area.
+---
+ OPHD/UI/Core/ListBox.cpp | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/OPHD/UI/Core/ListBox.cpp b/OPHD/UI/Core/ListBox.cpp
+index 6afecba45..9082dc1f6 100644
+--- a/OPHD/UI/Core/ListBox.cpp
++++ b/OPHD/UI/Core/ListBox.cpp
+@@ -244,11 +244,10 @@ void ListBox::update()
+ 
+ 	const auto borderColor = hasFocus() ? mBorderColorActive : mBorderColorNormal;
+ 	renderer.drawBox(mRect, borderColor);
++	renderer.drawBoxFilled(mScrollArea, mBackgroundColorNormal);
+ 
+ 	renderer.clipRect(mRect);
+ 
+-	renderer.drawBoxFilled(mScrollArea, mBackgroundColorNormal);
+-
+ 	// Highlight currently selected item
+ 	auto itemBounds = mScrollArea;
+ 	itemBounds.height = static_cast<int>(mLineHeight);
+@@ -274,9 +273,9 @@ void ListBox::update()
+ 		textPosition.y += mLineHeight;
+ 	}
+ 
+-	mSlider.update();
+-
+ 	renderer.clipRectClear();
++
++	mSlider.update();
+ }
+ 
+ 

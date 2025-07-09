@@ -1,0 +1,40 @@
+From b40b7e3fafe9b6ef68a5b100e2a6601adcb67b8b Mon Sep 17 00:00:00 2001
+From: Chris Lattner <sabre@nondot.org>
+Date: Sun, 20 Sep 2009 05:15:12 +0000
+Subject: [PATCH] don't use count + insert, just do insert + failure.  Also,
+ instead of deleting from the middle of a vector, swap the last element in and
+ pop_back.  Also saves 330 bytes :)
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@82365 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Support/CommandLine.cpp | 15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
+
+diff --git a/lib/Support/CommandLine.cpp b/lib/Support/CommandLine.cpp
+index f5ce5a71232..e2da198ea7b 100644
+--- a/lib/Support/CommandLine.cpp
++++ b/lib/Support/CommandLine.cpp
+@@ -1051,14 +1051,17 @@ class HelpPrinter {
+                           std::ptr_fun(ShowHidden ? isReallyHidden : isHidden)),
+                Opts.end());
+ 
+-    // Eliminate duplicate entries in table (from enum flags options, f.e.)
++    // Eliminate duplicate entries in table (from enum flags options, f.e.).
+     {  // Give OptionSet a scope
+       SmallPtrSet<Option*, 32> OptionSet;
+-      for (unsigned i = 0; i != Opts.size(); ++i)
+-        if (OptionSet.count(Opts[i]) == 0)
+-          OptionSet.insert(Opts[i]);   // Add new entry to set
+-        else
+-          Opts.erase(Opts.begin()+i--);    // Erase duplicate
++      for (unsigned i = 0; i != Opts.size(); ++i) {
++        if (OptionSet.insert(Opts[i]))    // Add new entry to set
++          continue;
++        // Erase duplicate.
++        Opts[i] = Opts.back();
++        Opts.pop_back();
++        --i;
++      }
+     }
+ 
+     if (ProgramOverview)

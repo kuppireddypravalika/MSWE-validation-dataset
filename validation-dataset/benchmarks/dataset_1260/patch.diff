@@ -1,0 +1,44 @@
+From cdddaf21b006163fa771ab2a626925d5bbaa0eb9 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@musicpd.org>
+Date: Thu, 2 Apr 2020 15:36:58 +0200
+Subject: [PATCH] db/simple/Directory: optimize GetName() using the parent's
+ path
+
+This method gets called a lot during MPD startup, via FindChild() and
+directory_load_subdir(), so this is worth optimizing at the expense of
+code readability.
+
+This speeds up MPD startup by 10%.
+---
+ src/db/plugins/simple/Directory.cxx | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/src/db/plugins/simple/Directory.cxx b/src/db/plugins/simple/Directory.cxx
+index 27602afc2f..66aa6cd482 100644
+--- a/src/db/plugins/simple/Directory.cxx
++++ b/src/db/plugins/simple/Directory.cxx
+@@ -32,6 +32,7 @@
+ #include "fs/Traits.hxx"
+ #include "util/Alloc.hxx"
+ #include "util/DeleteDisposer.hxx"
++#include "util/StringCompare.hxx"
+ 
+ #include <assert.h>
+ #include <string.h>
+@@ -69,7 +70,15 @@ Directory::GetName() const noexcept
+ {
+ 	assert(!IsRoot());
+ 
+-	return PathTraitsUTF8::GetBase(path.c_str());
++	if (parent->IsRoot())
++		return path.c_str();
++
++	assert(StringAfterPrefix(path.c_str(), parent->path.c_str()) != nullptr);
++	assert(*StringAfterPrefix(path.c_str(), parent->path.c_str()) == PathTraitsUTF8::SEPARATOR);
++
++	/* strip the parent directory path and the slash separator
++	   from this directory's path, and the base name remains */
++	return path.c_str() + parent->path.length() + 1;
+ }
+ 
+ Directory *

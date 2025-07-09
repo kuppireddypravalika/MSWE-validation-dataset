@@ -1,0 +1,44 @@
+From 5aef624f9a8683ba3e944c5e2525996ab31592b6 Mon Sep 17 00:00:00 2001
+From: Frank Warmerdam <warmerdam@pobox.com>
+Date: Mon, 13 Feb 2006 17:22:54 +0000
+Subject: [PATCH] Avoid large amounts of linked list walking adding rows when
+ serializing RAT.
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@9157 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gcore/gdal_rat.cpp | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/gcore/gdal_rat.cpp b/gcore/gdal_rat.cpp
+index 02d3b7a8a41a..2660f03e9413 100644
+--- a/gcore/gdal_rat.cpp
++++ b/gcore/gdal_rat.cpp
+@@ -28,6 +28,10 @@
+  ******************************************************************************
+  *
+  * $Log$
++ * Revision 1.7  2006/02/13 17:22:54  fwarmerdam
++ * Avoid large amounts of linked list walking adding rows when
++ * serializing RAT.
++ *
+  * Revision 1.6  2005/11/01 22:16:36  fwarmerdam
+  * fix comments (bug 985)
+  *
+@@ -1297,10 +1301,16 @@ CPLXMLNode *GDALRasterAttributeTable::Serialize() const
+ /*      Write out each row.                                             */
+ /* -------------------------------------------------------------------- */
+     int iRow;
++    CPLXMLNode *psTail = NULL;
+ 
+     for( iRow = 0; iRow < nRowCount; iRow++ )
+     {
+-        psRow = CPLCreateXMLNode( psTree, CXT_Element, "Row" );
++        psRow = CPLCreateXMLNode( NULL, CXT_Element, "Row" );
++        if( psTail == NULL )
++            CPLAddXMLChild( psTree, psRow );
++        else
++            psTail->psNext = psRow;
++        psTail = psRow;
+ 
+         sprintf( szValue, "%d", iRow );
+         CPLCreateXMLNode( 

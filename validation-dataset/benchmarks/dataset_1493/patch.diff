@@ -1,0 +1,27 @@
+From 801871e3041100ac41beb8067ddb23d281c3ed66 Mon Sep 17 00:00:00 2001
+From: "bernard.parisse" <bernard.parisse@23ce0884-8a58-47d3-bc5c-ddf1cd5b9f9e>
+Date: Thu, 12 Apr 2018 16:27:05 +0000
+Subject: [PATCH] [giac] try to improve sign for solutions for
+ solve(sin(x)+/-cos(x)=0)
+
+git-svn-id: https://dev.geogebra.org/svn/trunk/geogebra/giac@61091 23ce0884-8a58-47d3-bc5c-ddf1cd5b9f9e
+---
+ src/giac/cpp/solve.cc | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/giac/cpp/solve.cc b/src/giac/cpp/solve.cc
+index 5bf921d3..76550ef6 100644
+--- a/src/giac/cpp/solve.cc
++++ b/src/giac/cpp/solve.cc
+@@ -1676,9 +1676,9 @@ namespace giac {
+ 	else
+ 	  b=b._SYMBptr->feuille;
+ 	if (sina)
+-	  a=cst_pi/2-a;
++	  a=a-cst_pi/2;
+ 	if (sinb)
+-	  b=cst_pi/2-b;
++	  b=b-cst_pi/2;
+ 	// cos(a)+cos(b)=0 equivalent to cos((a+b)/2)*cos((a-b)/2)=0
+ 	expr=cos((a+b)/2,contextptr)*cos((a-b)/2,contextptr);
+ 	return expr;

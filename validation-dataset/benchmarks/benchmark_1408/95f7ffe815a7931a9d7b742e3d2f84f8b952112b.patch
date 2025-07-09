@@ -1,0 +1,45 @@
+From 95f7ffe815a7931a9d7b742e3d2f84f8b952112b Mon Sep 17 00:00:00 2001
+From: Nils Deppe <nils@nilsdeppe.com>
+Date: Thu, 25 Aug 2022 13:34:14 -0700
+Subject: [PATCH] Use std::uinque_ptr<double[]> in ApplyMatrices
+
+This eliminates a zero-initialization that std::vectors do.
+---
+ src/DataStructures/ApplyMatrices.cpp | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/src/DataStructures/ApplyMatrices.cpp b/src/DataStructures/ApplyMatrices.cpp
+index 04eb46ed967e..0609ae9a2e29 100644
+--- a/src/DataStructures/ApplyMatrices.cpp
++++ b/src/DataStructures/ApplyMatrices.cpp
+@@ -6,8 +6,9 @@
+ #include <array>
+ #include <complex>
+ #include <cstddef>
+-#include <vector>
++#include <memory>
+ 
++#include "DataStructures/DataVector.hpp"
+ #include "DataStructures/Index.hpp"
+ #include "DataStructures/Matrix.hpp"
+ #include "DataStructures/Transpose.hpp"
+@@ -41,7 +42,8 @@ void do_transpose(const gsl::not_null<double*> result, const double* const data,
+ }
+ 
+ struct Scratch {
+-  std::vector<double> buffer;
++  // NOLINTNEXTLINE(modernize-avoid-c-arrays)
++  std::unique_ptr<double[]> buffer;
+   double* a;
+   double* b;
+ };
+@@ -64,7 +66,8 @@ Scratch get_scratch(const std::array<MatrixType, Dim>& matrices,
+     }
+   }
+   Scratch result{};
+-  result.buffer.resize(2 * size);
++  // NOLINTNEXTLINE(modernize-avoid-c-arrays)
++  result.buffer = cpp20::make_unique_for_overwrite<double[]>(2 * size);
+   result.a = &result.buffer[0];
+   result.b = &result.buffer[size];
+   return result;

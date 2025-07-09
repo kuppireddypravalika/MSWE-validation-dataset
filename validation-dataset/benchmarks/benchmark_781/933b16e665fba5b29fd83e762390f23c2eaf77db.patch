@@ -1,0 +1,33 @@
+From 933b16e665fba5b29fd83e762390f23c2eaf77db Mon Sep 17 00:00:00 2001
+From: Benjamin Kramer <benny.kra@googlemail.com>
+Date: Sat, 7 Aug 2010 12:37:00 +0000
+Subject: [PATCH] Kill rarely used std::sort.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@110516 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Support/Timer.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/lib/Support/Timer.cpp b/lib/Support/Timer.cpp
+index 44ee1777cb5..bf459548498 100644
+--- a/lib/Support/Timer.cpp
++++ b/lib/Support/Timer.cpp
+@@ -20,6 +20,7 @@
+ #include "llvm/System/Mutex.h"
+ #include "llvm/System/Process.h"
+ #include "llvm/ADT/OwningPtr.h"
++#include "llvm/ADT/STLExtras.h"
+ #include "llvm/ADT/StringMap.h"
+ using namespace llvm;
+ 
+@@ -315,8 +316,8 @@ void TimerGroup::addTimer(Timer &T) {
+ 
+ void TimerGroup::PrintQueuedTimers(raw_ostream &OS) {
+   // Sort the timers in descending order by amount of time taken.
+-  std::sort(TimersToPrint.begin(), TimersToPrint.end());
+-  
++  array_pod_sort(TimersToPrint.begin(), TimersToPrint.end());
++
+   TimeRecord Total;
+   for (unsigned i = 0, e = TimersToPrint.size(); i != e; ++i)
+     Total += TimersToPrint[i].first;

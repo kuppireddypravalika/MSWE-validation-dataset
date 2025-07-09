@@ -1,0 +1,31 @@
+From a3d6598f9afce8017b99d5d9947824ebd43777ec Mon Sep 17 00:00:00 2001
+From: Pilow <pierre.laupretre@gmail.com>
+Date: Wed, 22 May 2019 20:16:28 +0200
+Subject: [PATCH] [object-access] Use some const auto&
+
+---
+ src/compiler/value/ObjectAccess.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/compiler/value/ObjectAccess.cpp b/src/compiler/value/ObjectAccess.cpp
+index 1b0e122e..3f1a02f4 100644
+--- a/src/compiler/value/ObjectAccess.cpp
++++ b/src/compiler/value/ObjectAccess.cpp
+@@ -189,7 +189,7 @@ void ObjectAccess::analyze(SemanticAnalyzer* analyzer) {
+ 
+ 		if (std_class->static_fields.find(field->content) != std_class->static_fields.end()) {
+ 
+-			auto mod_field = std_class->static_fields.at(field->content);
++			const auto& mod_field = std_class->static_fields.at(field->content);
+ 			type = mod_field.type;
+ 
+ 			if (mod_field.fun != nullptr) {
+@@ -209,7 +209,7 @@ void ObjectAccess::analyze(SemanticAnalyzer* analyzer) {
+ 	if (!found and object_class != nullptr) {
+ 		// Attribute : (x -> x).return
+ 		try {
+-			auto f = object_class->fields.at(field->content);
++			const auto& f = object_class->fields.at(field->content);
+ 			type = f.type;
+ 			if (f.fun != nullptr) {
+ 				access_function = f.fun;

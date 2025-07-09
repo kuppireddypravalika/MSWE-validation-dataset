@@ -1,0 +1,38 @@
+From e22f031a62d4e262cc0efb1a2d9ffd21f165c8ce Mon Sep 17 00:00:00 2001
+From: "ki.stfu" <ki.stfu@gmail.com>
+Date: Thu, 9 Jun 2016 14:04:56 -0700
+Subject: [PATCH] Cleanup: Initialize Value from tools/gn by moving std::string
+
+Previously it used string::swap, but std::move is more effective in this case.
+
+BUG=367418
+TEST=
+R=brettw@chromium.org
+
+Review-Url: https://codereview.chromium.org/1350043004
+Cr-Original-Commit-Position: refs/heads/master@{#399012}
+Cr-Mirrored-From: https://chromium.googlesource.com/chromium/src
+Cr-Mirrored-Commit: 0b310e43469a5ef54d76661ec36e4a7e1ca09d3f
+---
+ tools/gn/value.cc | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/tools/gn/value.cc b/tools/gn/value.cc
+index 1bf0bb7a..9a52fbaa 100644
+--- a/tools/gn/value.cc
++++ b/tools/gn/value.cc
+@@ -41,12 +41,10 @@ Value::Value(const ParseNode* origin, int64_t int_val)
+ 
+ Value::Value(const ParseNode* origin, std::string str_val)
+     : type_(STRING),
+-      string_value_(),
++      string_value_(std::move(str_val)),
+       boolean_value_(false),
+       int_value_(0),
+-      origin_(origin) {
+-  string_value_.swap(str_val);
+-}
++      origin_(origin) {}
+ 
+ Value::Value(const ParseNode* origin, const char* str_val)
+     : type_(STRING),

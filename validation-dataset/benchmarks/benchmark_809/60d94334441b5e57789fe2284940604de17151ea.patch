@@ -1,0 +1,26 @@
+From 60d94334441b5e57789fe2284940604de17151ea Mon Sep 17 00:00:00 2001
+From: Mark Stoodley <mstoodle@ca.ibm.com>
+Date: Thu, 18 May 2017 16:46:53 -0400
+Subject: [PATCH] Omit X86 frame pointer for JitBuilder
+
+To put our best performance foot forward, we should omit
+the frame pointer on x86.
+
+Signed-off-by: Mark Stoodley <mstoodle@ca.ibm.com>
+---
+ jitbuilder/control/Jit.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/jitbuilder/control/Jit.cpp b/jitbuilder/control/Jit.cpp
+index 81e6404df0..b2b52fe7ce 100644
+--- a/jitbuilder/control/Jit.cpp
++++ b/jitbuilder/control/Jit.cpp
+@@ -179,7 +179,7 @@ extern "C"
+ bool
+ initializeJit()
+    {
+-   return initializeJitBuilder(0, 0, 0, (char *)"-Xjit:acceptHugeMethods,enableBasicBlockHoisting");
++   return initializeJitBuilder(0, 0, 0, (char *)"-Xjit:acceptHugeMethods,enableBasicBlockHoisting,omitFramePointer");
+    }
+ 
+ extern "C"

@@ -1,0 +1,31 @@
+From 9c181d3e76ee7c8c64a59da11284920a6bf03285 Mon Sep 17 00:00:00 2001
+From: Dan Paulat <dpaulat@gmail.com>
+Date: Sun, 25 Feb 2024 18:19:21 -0600
+Subject: [PATCH] Use std::expf instead of std::pow with e
+
+---
+ wxdata/source/scwx/wsr88d/rpg/product_description_block.cpp | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/wxdata/source/scwx/wsr88d/rpg/product_description_block.cpp b/wxdata/source/scwx/wsr88d/rpg/product_description_block.cpp
+index f09a32b4d..ee0726c72 100644
+--- a/wxdata/source/scwx/wsr88d/rpg/product_description_block.cpp
++++ b/wxdata/source/scwx/wsr88d/rpg/product_description_block.cpp
+@@ -4,7 +4,6 @@
+ 
+ #include <array>
+ #include <istream>
+-#include <numbers>
+ #include <set>
+ #include <string>
+ 
+@@ -1029,8 +1028,7 @@ ProductDescriptionBlock::data_value(std::uint8_t level) const
+          }
+          else
+          {
+-            f = static_cast<float>(std::pow<double>(
+-               std::numbers::e, (level - log_offset()) / log_scale()));
++            f = std::expf((level - log_offset()) / log_scale());
+          }
+          break;
+ 

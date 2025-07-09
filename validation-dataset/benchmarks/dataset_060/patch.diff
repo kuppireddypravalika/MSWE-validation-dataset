@@ -1,0 +1,26 @@
+From d5e7d20d67eadf3a6eb6d036f35ad054d5d30fe2 Mon Sep 17 00:00:00 2001
+From: jakpiase <jakpia21@gmail.com>
+Date: Tue, 25 Oct 2022 10:46:37 +0200
+Subject: [PATCH] minor split optimization (#47314)
+
+---
+ paddle/phi/kernels/onednn/split_kernel.cc | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/paddle/phi/kernels/onednn/split_kernel.cc b/paddle/phi/kernels/onednn/split_kernel.cc
+index 94c0924e36e00b..057aa7325f165c 100644
+--- a/paddle/phi/kernels/onednn/split_kernel.cc
++++ b/paddle/phi/kernels/onednn/split_kernel.cc
+@@ -69,10 +69,8 @@ void SplitWithNumKernel(const Context& dev_ctx,
+                         std::vector<DenseTensor*> outs) {
+   int axis_value = axis_scalar.to<int>();
+   auto input_axis_dim = x.dims().at(axis_value);
+-  std::vector<int64_t> sections_vec;
+-  for (int i = 0; i < num; ++i) {
+-    sections_vec.push_back(input_axis_dim / num);
+-  }
++  const std::vector<int64_t> sections_vec(num, input_axis_dim / num);
++
+   IntArray sections(sections_vec);
+   SplitKernel<T, Context>(dev_ctx, x, sections, axis_scalar, outs);
+ }

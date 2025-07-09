@@ -1,0 +1,40 @@
+From c272f50fed9c57fb9853ca77c3dcc7b12dcb9a8c Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Luk=C3=A1=C5=A1=20Karas?= <lukas.karas@centrum.cz>
+Date: Tue, 31 May 2016 21:03:32 +0200
+Subject: [PATCH] improve peak memory usage estimate
+
+MapService cleanup tile cache after loading new tile data.
+It means that cache size can overflow its maximum for short time.
+Measure memory usage after loading of tiles (that includes cache
+cleanup at the end) don't corresponds with memory usage peak.
+For better memory usage estimate, PerformanceTest setup
+cache size to high number before load and return back to default
+after memory measure.
+---
+ Demos/src/PerformanceTest.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/Demos/src/PerformanceTest.cpp b/Demos/src/PerformanceTest.cpp
+index 9408dffc9..1f0e3bf7a 100644
+--- a/Demos/src/PerformanceTest.cpp
++++ b/Demos/src/PerformanceTest.cpp
+@@ -368,6 +368,10 @@ int main(int argc, char* argv[])
+ 
+         std::list<osmscout::TileRef> tiles;
+ 
++        // set cache size almost unlimited, 
++        // for better estimate of peak memory usage by tile loading
++        mapService->SetCacheSize(10000000);
++        
+         mapService->LookupTiles(magnification,dataBoundingBox,tiles);
+         mapService->LoadMissingTileData(searchParameter,*styleConfig,tiles);
+         mapService->ConvertTilesToMapData(tiles,data);
+@@ -395,6 +399,8 @@ int main(int argc, char* argv[])
+         stats.allocSum = stats.allocSum + (double)alloc_info.uordblks;
+ #endif
+ 
++        // set cache size back to default
++        mapService->SetCacheSize(25);
+         dbTimer.Stop();
+ 
+         double dbTime=dbTimer.GetMilliseconds();

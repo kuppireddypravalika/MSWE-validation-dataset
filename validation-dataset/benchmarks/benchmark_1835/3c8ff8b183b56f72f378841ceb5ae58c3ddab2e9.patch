@@ -1,0 +1,46 @@
+From 3c8ff8b183b56f72f378841ceb5ae58c3ddab2e9 Mon Sep 17 00:00:00 2001
+From: Niels Dekker <N.Dekker@lumc.nl>
+Date: Fri, 21 Oct 2022 12:27:15 +0200
+Subject: [PATCH] STYLE: Remove new, do make_unique_for_overwrite in
+ NeighborhoodAllocator
+
+Replaced `new` with `make_unique_for_overwrite` in its copy-constructor. Removed
+`new` and `delete[]` from its documentation, as suggested by Mihail Isakov.
+
+Following C++ Core Guidelines, September 23, 2022, "Avoid calling `new` and `delete`
+explicitly", from http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#Rr-newdelete
+---
+ Modules/Core/Common/include/itkNeighborhoodAllocator.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/Modules/Core/Common/include/itkNeighborhoodAllocator.h b/Modules/Core/Common/include/itkNeighborhoodAllocator.h
+index a4d0b4811b1..fb66cd8ddcd 100644
+--- a/Modules/Core/Common/include/itkNeighborhoodAllocator.h
++++ b/Modules/Core/Common/include/itkNeighborhoodAllocator.h
+@@ -60,7 +60,7 @@ class NeighborhoodAllocator
+   /** Defaulted destructor */
+   ~NeighborhoodAllocator() = default;
+ 
+-  /** Allocates memory using new() */
++  /** Allocates memory. */
+   void
+   Allocate(unsigned int n)
+   {
+@@ -68,7 +68,7 @@ class NeighborhoodAllocator
+     m_ElementCount = n;
+   }
+ 
+-  /** Deallocates memory using delete[](). */
++  /** Deallocates memory. */
+   void
+   Deallocate()
+   {
+@@ -79,7 +79,7 @@ class NeighborhoodAllocator
+   /** Copy constructor. */
+   NeighborhoodAllocator(const Self & other)
+     : m_ElementCount(other.m_ElementCount)
+-    , m_Data(new TPixel[other.m_ElementCount])
++    , m_Data(make_unique_for_overwrite<TPixel[]>(other.m_ElementCount))
+   {
+     std::copy_n(other.m_Data.get(), m_ElementCount, m_Data.get());
+   }

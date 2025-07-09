@@ -1,0 +1,22 @@
+From eeff1de2ffa920f535cf663b2d362cefb933d0cd Mon Sep 17 00:00:00 2001
+From: Tobias Ludwig <tludwig@inf.fu-berlin.de>
+Date: Wed, 17 Dec 2014 17:13:16 +0100
+Subject: [PATCH] grid3d draw : reduce subimage size
+
+---
+ .../tracking/algorithm/BeesBookTagMatcher/resources/Grid3D.cpp  | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/source/tracking/algorithm/BeesBookTagMatcher/resources/Grid3D.cpp b/source/tracking/algorithm/BeesBookTagMatcher/resources/Grid3D.cpp
+index 6ee272bc..695604d6 100644
+--- a/source/tracking/algorithm/BeesBookTagMatcher/resources/Grid3D.cpp
++++ b/source/tracking/algorithm/BeesBookTagMatcher/resources/Grid3D.cpp
+@@ -267,7 +267,7 @@ void Grid3D::draw(cv::Mat &img, const cv::Point &center, const bool isActive) co
+ 
+ void Grid3D::draw(cv::Mat &img, const bool isActive) const
+ {
+-	const int radius = static_cast<int>(std::ceil(_radius));
++	const int radius = static_cast<int>(std::ceil(this->getPixelRadius()));
+ 	const cv::Point subimage_origin( std::max(       0, _center.x - radius), std::max(       0, _center.y - radius) );
+ 	const cv::Point subimage_end   ( std::min(img.cols, _center.x + radius), std::min(img.rows, _center.y + radius) );
+ 

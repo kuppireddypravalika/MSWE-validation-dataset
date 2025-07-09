@@ -1,0 +1,28 @@
+From 17116d5155699292280c4fd202b4460426284a5a Mon Sep 17 00:00:00 2001
+From: Sergey Petrunya <psergey@askmonty.org>
+Date: Fri, 12 Feb 2010 01:31:18 +0300
+Subject: [PATCH] Subquery optimizations: backport: enable disabled subquery
+ code in BKA
+
+---
+ sql/sql_select.h | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/sql/sql_select.h b/sql/sql_select.h
+index a0c35c3af07..4af1de01f67 100644
+--- a/sql/sql_select.h
++++ b/sql/sql_select.h
+@@ -282,13 +282,11 @@ typedef struct st_join_table {
+   }
+   bool check_rowid_field()
+   {
+-/* !!!NB igor: enable the code in this comment after backporting the SJ code 
+     if (keep_current_rowid && !used_rowid_fields)
+     {
+       used_rowid_fields= 1;
+       used_fieldlength+= table->file->ref_length;
+     }
+-*/    
+     return test(used_rowid_fields);
+   }
+   bool is_inner_table_of_semi_join_with_first_match()

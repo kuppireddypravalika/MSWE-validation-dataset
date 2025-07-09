@@ -1,0 +1,26 @@
+From 02739b385751e2a22470321fea25a8e3da074133 Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@gmail.com>
+Date: Sat, 29 Apr 2017 17:46:13 +0000
+Subject: [PATCH] [ConstantRange] Replace getMaxValue+zext with getLowBitsSet.
+ Replace zero-init+setBit with getOneBitSet. NFC
+
+---
+ llvm/lib/IR/ConstantRange.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/llvm/lib/IR/ConstantRange.cpp b/llvm/lib/IR/ConstantRange.cpp
+index 754844e371a8..8b595a69ad37 100644
+--- a/llvm/lib/IR/ConstantRange.cpp
++++ b/llvm/lib/IR/ConstantRange.cpp
+@@ -569,9 +569,8 @@ ConstantRange ConstantRange::truncate(uint32_t DstTySize) const {
+   if (isFullSet())
+     return ConstantRange(DstTySize, /*isFullSet=*/true);
+ 
+-  APInt MaxValue = APInt::getMaxValue(DstTySize).zext(getBitWidth());
+-  APInt MaxBitValue(getBitWidth(), 0);
+-  MaxBitValue.setBit(DstTySize);
++  APInt MaxValue = APInt::getLowBitsSet(getBitWidth(), DstTySize);
++  APInt MaxBitValue = APInt::getOneBitSet(getBitWidth(), DstTySize);
+ 
+   APInt LowerDiv(Lower), UpperDiv(Upper);
+   ConstantRange Union(DstTySize, /*isFullSet=*/false);

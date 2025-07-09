@@ -1,0 +1,25 @@
+From 77cd1558bf56bd49526fcafe4263a4cdc5a40472 Mon Sep 17 00:00:00 2001
+From: cpw <13495049+CPWstatic@users.noreply.github.com>
+Date: Fri, 15 Jan 2021 15:25:36 +0800
+Subject: [PATCH] Enhance the dedup with emplace once. (#618)
+
+---
+ src/executor/query/DedupExecutor.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/executor/query/DedupExecutor.cpp b/src/executor/query/DedupExecutor.cpp
+index 3d19fb8e684..e5b2d29a587 100644
+--- a/src/executor/query/DedupExecutor.cpp
++++ b/src/executor/query/DedupExecutor.cpp
+@@ -30,10 +30,9 @@ folly::Future<Status> DedupExecutor::execute() {
+     builder.value(iter->valuePtr());
+     std::unordered_set<const LogicalRow*> unique;
+     while (iter->valid()) {
+-        if (unique.find(iter->row()) != unique.end()) {
++        if (!unique.emplace(iter->row()).second) {
+             iter->unstableErase();
+         } else {
+-            unique.emplace(iter->row());
+             iter->next();
+         }
+     }

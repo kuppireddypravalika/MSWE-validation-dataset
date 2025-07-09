@@ -1,0 +1,39 @@
+From e82ff935b539e94cc6b21830d0cb0f2e19461a6c Mon Sep 17 00:00:00 2001
+From: Sainan <sainan@calamity.gg>
+Date: Fri, 21 Jun 2024 06:21:55 +0200
+Subject: [PATCH] Add fast path for string.replace when max_replace == 0
+
+---
+ src/lstrlib.cpp | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/src/lstrlib.cpp b/src/lstrlib.cpp
+index 501726e6b0..bf65e82334 100644
+--- a/src/lstrlib.cpp
++++ b/src/lstrlib.cpp
+@@ -26,6 +26,7 @@
+ #include "lualib.h"
+ 
+ 
++#include "vendor/Soup/soup/string.hpp"
+ #include "vendor/Soup/soup/urlenc.hpp"
+ 
+ 
+@@ -2295,6 +2296,17 @@ static int str_replace (lua_State *L) {
+   luaL_check(L, sublen == 0, "argument 'substitute' for string.replace cannot be empty");
+   luaL_check(L, max_replace < 0, "argument 'max_replace' for string.replace cannot be negative");
+ 
++  if (max_replace == 0) {
++    /* No limit on number of replaces; use a faster way to get it done. */
++    pluto_pushstring(L,
++      soup::string::join(
++        soup::string::explode(og, std::string(sub, sublen)),
++        std::string(new_, newlen)
++      )
++    );
++    return 1;
++  }
++
+   const bool erase = newlen == 0;
+   size_t replacements = 0;
+   while ((pos = og.find(sub, pos, sublen)) != std::string::npos) {

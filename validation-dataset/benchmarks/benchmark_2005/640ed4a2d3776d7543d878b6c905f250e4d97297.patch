@@ -1,0 +1,23 @@
+From 640ed4a2d3776d7543d878b6c905f250e4d97297 Mon Sep 17 00:00:00 2001
+From: Stenzek <stenzek@gmail.com>
+Date: Sun, 14 Jul 2024 21:26:17 +1000
+Subject: [PATCH] CPU/Recompiler: Eliminate redundant speculative reg read
+
+---
+ src/core/cpu_recompiler_code_generator.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/core/cpu_recompiler_code_generator.cpp b/src/core/cpu_recompiler_code_generator.cpp
+index af340634bb..9c0f78abd3 100644
+--- a/src/core/cpu_recompiler_code_generator.cpp
++++ b/src/core/cpu_recompiler_code_generator.cpp
+@@ -3049,8 +3049,7 @@ bool CodeGenerator::Compile_cop2(Instruction instruction, const CodeCache::Instr
+       if (g_settings.gpu_pgxp_enable)
+         EmitFunctionCall(nullptr, PGXP::CPU_SWC2, Value::FromConstantU32(instruction.bits), address, value);
+ 
+-      SpeculativeValue spec_base = SpeculativeReadReg(instruction.i.rs);
+-      if (spec_base)
++      if (spec_address)
+         SpeculativeWriteMemory(*spec_address, std::nullopt);
+     }
+ 

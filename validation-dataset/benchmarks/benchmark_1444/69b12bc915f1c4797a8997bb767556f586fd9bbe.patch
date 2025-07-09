@@ -1,0 +1,43 @@
+From 69b12bc915f1c4797a8997bb767556f586fd9bbe Mon Sep 17 00:00:00 2001
+From: Austin Clements <amdragon@mit.edu>
+Date: Mon, 12 Mar 2012 10:58:18 -0400
+Subject: [PATCH] More mtrace un-bit-rotting
+
+Previously, sched always paused call tracing but if it then returned
+directly because there was nothing else to schedule, call tracing
+didn't get resumed.  We could simply resume tracing in this case, but
+this fix instead moves the pause *after* the next proc is picked, so
+that we don't get lots of spurious pause/resume pairs.
+---
+ kernel/sched.cc | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/kernel/sched.cc b/kernel/sched.cc
+index fec18fa2a..8d97ff7ad 100644
+--- a/kernel/sched.cc
++++ b/kernel/sched.cc
+@@ -55,11 +55,6 @@ sched(void)
+     panic("sched interruptible");
+   intena = mycpu()->intena;
+   myproc()->curcycles += rdtsc() - myproc()->tsc;
+-  if (myproc()->get_state() == ZOMBIE)
+-    mtstop(myproc());
+-  else
+-    mtpause(myproc());
+-  mtign();
+ 
+   struct proc *next = schednext();
+   if (next == nullptr) {
+@@ -80,6 +75,12 @@ sched(void)
+   mycpu()->proc = next;
+   mycpu()->prev = prev;
+ 
++  if (prev->get_state() == ZOMBIE)
++    mtstop(prev);
++  else
++    mtpause(prev);
++  mtign();
++
+   switchvm(next);
+   next->set_state(RUNNING);
+   next->tsc = rdtsc();

@@ -1,0 +1,30 @@
+From f78232dcbf734a1c7e42ae60b58c9bbe14b64516 Mon Sep 17 00:00:00 2001
+From: Erich Keane <erich.keane@intel.com>
+Date: Tue, 17 Oct 2017 17:45:21 +0000
+Subject: [PATCH] Replace use of SmallVector::back + pop_back with pop_back_val
+
+I ran across an instance where the value was being loaded
+out via back, then immediately popped.  Since pop_back_val
+is more efficient at this (it moves out), replace this
+instance.
+
+
+git-svn-id: https://llvm.org/svn/llvm-project/cfe/trunk@316015 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Sema/AnalysisBasedWarnings.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/lib/Sema/AnalysisBasedWarnings.cpp b/lib/Sema/AnalysisBasedWarnings.cpp
+index 08fc0802c6e..bdfed6ead10 100644
+--- a/lib/Sema/AnalysisBasedWarnings.cpp
++++ b/lib/Sema/AnalysisBasedWarnings.cpp
+@@ -361,8 +361,7 @@ static bool hasThrowOutNonThrowingFunc(SourceLocation &OpLoc, CFG *BodyCFG) {
+   SmallVector<CFGBlock *, 16> Stack;
+   Stack.push_back(&BodyCFG->getEntry());
+   while (!Stack.empty()) {
+-    CFGBlock *CurBlock = Stack.back();
+-    Stack.pop_back();
++    CFGBlock *CurBlock = Stack.pop_back_val();
+ 
+     unsigned ID = CurBlock->getBlockID();
+     ThrowState CurState = States[ID];

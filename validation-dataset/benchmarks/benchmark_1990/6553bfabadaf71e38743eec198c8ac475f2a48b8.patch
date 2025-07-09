@@ -1,0 +1,42 @@
+From 6553bfabadaf71e38743eec198c8ac475f2a48b8 Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Fri, 3 Dec 2021 00:40:29 -0700
+Subject: [PATCH] Use `NAS2D::mapToVector` for single step initialization
+
+Here the lambda is used to deduce the correct function overload. There
+is both a `std::string` and `std::wstring` overload, and there is not
+enough context when deducing template parameters to `mapToVector` to
+determine which one is desired.
+
+Perhaps if `mapToVector` was updated with C++20 Concepts, it might be
+possible to make this work without the lambda.
+---
+ OPHD/Technology/TechnologyCatalog.cpp | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/OPHD/Technology/TechnologyCatalog.cpp b/OPHD/Technology/TechnologyCatalog.cpp
+index 0cdac9d7a..e1dbc0ac0 100644
+--- a/OPHD/Technology/TechnologyCatalog.cpp
++++ b/OPHD/Technology/TechnologyCatalog.cpp
+@@ -4,6 +4,7 @@
+ #include <NAS2D/Utility.h>
+ #include <NAS2D/Filesystem.h>
+ #include <NAS2D/ParserHelper.h>
++#include <NAS2D/ContainerUtils.h>
+ 
+ #include <algorithm>
+ #include <stdexcept>
+@@ -105,11 +106,8 @@ namespace
+ 		tech.name = dictionary.get("name");
+ 		tech.description = dictionary.get("description", std::string{""});
+ 
+-		auto requiredIds = NAS2D::split(dictionary.get("requires", std::string{""}));
+-		for (auto& id : requiredIds)
+-		{
+-			tech.requiredTechnologies.push_back(std::stoi(id));
+-		}
++		const auto stoi = [](const auto& string) { return std::stoi(string); };
++		tech.requiredTechnologies = NAS2D::mapToVector(NAS2D::split(dictionary.get("requires", std::string{""})), stoi);
+ 
+ 		if (const auto* techElement = technology.firstChildElement("effects"))
+ 		{

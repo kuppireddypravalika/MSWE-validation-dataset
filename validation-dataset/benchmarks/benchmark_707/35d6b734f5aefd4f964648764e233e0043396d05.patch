@@ -1,0 +1,41 @@
+From 35d6b734f5aefd4f964648764e233e0043396d05 Mon Sep 17 00:00:00 2001
+From: Julian Oes <julian@oes.ch>
+Date: Wed, 18 Jan 2023 14:29:18 +1300
+Subject: [PATCH] perf: avoid leaks in dtor
+
+From what address sanitizer tells me, we need to tell delete what type
+it is deleting.
+
+Signed-off-by: Julian Oes <julian@oes.ch>
+---
+ src/lib/perf/perf_counter.cpp | 17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
+
+diff --git a/src/lib/perf/perf_counter.cpp b/src/lib/perf/perf_counter.cpp
+index 067c67577bb3..8cd3ddddeb90 100644
+--- a/src/lib/perf/perf_counter.cpp
++++ b/src/lib/perf/perf_counter.cpp
+@@ -181,7 +181,22 @@ perf_free(perf_counter_t handle)
+ 	sq_rem(&handle->link, &perf_counters);
+ 	pthread_mutex_unlock(&perf_counters_mutex);
+ 
+-	delete handle;
++	switch (handle->type) {
++	case PC_COUNT:
++		delete (struct perf_ctr_count *)handle;
++		break;
++
++	case PC_ELAPSED:
++		delete (struct perf_ctr_elapsed *)handle;
++		break;
++
++	case PC_INTERVAL:
++		delete (struct perf_ctr_interval *)handle;
++		break;
++
++	default:
++		break;
++	}
+ }
+ 
+ void

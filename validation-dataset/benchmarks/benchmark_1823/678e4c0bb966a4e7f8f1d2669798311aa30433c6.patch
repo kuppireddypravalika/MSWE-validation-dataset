@@ -1,0 +1,31 @@
+From 678e4c0bb966a4e7f8f1d2669798311aa30433c6 Mon Sep 17 00:00:00 2001
+From: "Raphael S. Carvalho" <raphaelsc@scylladb.com>
+Date: Tue, 20 Apr 2021 14:36:12 -0300
+Subject: [PATCH] compaction: Make reshape compaction always use
+ partitioned_sstable_set
+
+Reshape compaction potentially works with disjoint sstables, so it will
+benefit a lot from using partitioned_sstable_set, which is able to
+incrementally open the disjoint sstables. Without it, all sstables are
+opened at once, which means unbounded memory usage.
+
+Signed-off-by: Raphael S. Carvalho <raphaelsc@scylladb.com>
+---
+ sstables/compaction.cc | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/sstables/compaction.cc b/sstables/compaction.cc
+index 900552bbbfaf..62d99666b79b 100644
+--- a/sstables/compaction.cc
++++ b/sstables/compaction.cc
+@@ -857,6 +857,10 @@ class reshape_compaction : public compaction {
+         : compaction(cf, std::move(descriptor)) {
+     }
+ 
++    virtual sstables::sstable_set make_sstable_set_for_input() const override {
++        return sstables::make_partitioned_sstable_set(_schema, make_lw_shared<sstable_list>(sstable_list{}), false);
++    }
++
+     flat_mutation_reader make_sstable_reader() const override {
+         return _compacting->make_local_shard_sstable_reader(_schema,
+                 _permit,

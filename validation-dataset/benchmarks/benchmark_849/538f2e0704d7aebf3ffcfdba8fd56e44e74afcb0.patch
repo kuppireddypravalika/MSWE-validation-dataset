@@ -1,0 +1,23 @@
+From 538f2e0704d7aebf3ffcfdba8fd56e44e74afcb0 Mon Sep 17 00:00:00 2001
+From: "Benjamin Thomas (Aviansie Ben)" <ben@benthomas.ca>
+Date: Tue, 17 Sep 2019 18:12:50 +0000
+Subject: [PATCH] Perform minor cleanup of Tril's combine function
+
+Signed-off-by: Ben Thomas <ben@benthomas.ca>
+---
+ fvtest/compilertriltest/JitTest.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/fvtest/compilertriltest/JitTest.hpp b/fvtest/compilertriltest/JitTest.hpp
+index 370788cfd6..a7fbbd63fc 100644
+--- a/fvtest/compilertriltest/JitTest.hpp
++++ b/fvtest/compilertriltest/JitTest.hpp
+@@ -279,7 +279,7 @@ template <typename L, typename R>
+ std::vector<std::tuple<L, R>> combine(std::vector<L> l, std::vector<R> r)
+    {
+    auto v = std::vector<std::tuple<L, R>>();
+-   v.reserve((l.end() - l.begin())*(r.end() - r.begin()));
++   v.reserve(l.size() * r.size());
+    for (auto i = l.begin(); i != l.end(); ++i)
+       for (auto j = r.begin(); j != r.end(); ++j)
+          v.push_back(std::make_tuple(*i, *j));

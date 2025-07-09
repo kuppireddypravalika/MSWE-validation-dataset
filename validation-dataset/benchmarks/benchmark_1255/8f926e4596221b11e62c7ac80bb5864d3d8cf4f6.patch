@@ -1,0 +1,39 @@
+From 8f926e4596221b11e62c7ac80bb5864d3d8cf4f6 Mon Sep 17 00:00:00 2001
+From: David Edmundson <kde@davidedmundson.co.uk>
+Date: Wed, 21 Nov 2018 15:30:53 +0000
+Subject: [PATCH] Use correct variable type for returned value from
+ read/sendfile
+
+Summary:
+n stores the read/transferred bytes. This returns a ssize_t.
+We were casting to an int, which theoretically is a loss of data.
+
+In practice it isn't an issue as we only read a max of MAX_IPC_SIZE at a
+time, which would fit in an int.
+
+Reviewers: apol
+
+Reviewed By: apol
+
+Subscribers: kde-frameworks-devel
+
+Tags: #frameworks
+
+Differential Revision: https://phabricator.kde.org/D17051
+---
+ src/ioslaves/file/file_unix.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/ioslaves/file/file_unix.cpp b/src/ioslaves/file/file_unix.cpp
+index 34422e535..7ed0ae889 100644
+--- a/src/ioslaves/file/file_unix.cpp
++++ b/src/ioslaves/file/file_unix.cpp
+@@ -251,7 +251,7 @@ void FileProtocol::copy(const QUrl &srcUrl, const QUrl &destUrl,
+ 
+     KIO::filesize_t processed_size = 0;
+     char buffer[ MAX_IPC_SIZE ];
+-    int n;
++    ssize_t n = 0;
+ #ifdef USE_SENDFILE
+     bool use_sendfile = buff_src.st_size < 0x7FFFFFFF;
+ #endif

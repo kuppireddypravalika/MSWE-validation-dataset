@@ -1,0 +1,33 @@
+From 5287422f46db6cdb7d7bef1958be8d2244b97742 Mon Sep 17 00:00:00 2001
+From: Arjen Hiemstra <ahiemstra@heimr.nl>
+Date: Tue, 5 Jul 2022 11:56:12 +0200
+Subject: [PATCH] Add unroll hint to inner loop in
+ WindowQuads::makeInterleavedArrays
+
+The inner loop here has a fixed size and unrolling it allows better
+vectorization. Both GCC and clang recognise the `#pragma GCC unroll`
+directive.
+---
+ src/libkwineffects/kwineffects.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/libkwineffects/kwineffects.cpp b/src/libkwineffects/kwineffects.cpp
+index 9fbb6115230..53b438a0ce2 100644
+--- a/src/libkwineffects/kwineffects.cpp
++++ b/src/libkwineffects/kwineffects.cpp
+@@ -1053,6 +1053,7 @@ void WindowQuadList::makeInterleavedArrays(unsigned int type, GLVertex2D *vertic
+     switch (type) {
+     case GL_QUADS: {
+         for (const WindowQuad &quad : *this) {
++#pragma GCC unroll 4
+             for (int j = 0; j < 4; j++) {
+                 const WindowVertex &wv = quad[j];
+ 
+@@ -1068,6 +1069,7 @@ void WindowQuadList::makeInterleavedArrays(unsigned int type, GLVertex2D *vertic
+         for (const WindowQuad &quad : *this) {
+             GLVertex2D v[4]; // Four unique vertices / quad
+ 
++#pragma GCC unroll 4
+             for (int j = 0; j < 4; j++) {
+                 const WindowVertex &wv = quad[j];
+ 

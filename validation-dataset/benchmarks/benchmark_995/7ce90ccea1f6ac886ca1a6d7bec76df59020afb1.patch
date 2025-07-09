@@ -1,0 +1,31 @@
+From 7ce90ccea1f6ac886ca1a6d7bec76df59020afb1 Mon Sep 17 00:00:00 2001
+From: Lars Kiesow <lkiesow@uos.de>
+Date: Wed, 28 Sep 2011 01:57:59 +0200
+Subject: [PATCH] Default number of threads is now automatically set to number
+ of available CPU cores.
+
+---
+ src/reconstruct/Options.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/reconstruct/Options.cpp b/src/reconstruct/Options.cpp
+index 1214c565..772bcc4c 100644
+--- a/src/reconstruct/Options.cpp
++++ b/src/reconstruct/Options.cpp
+@@ -6,6 +6,7 @@
+  */
+ 
+ #include "Options.hpp"
++#include <omp.h>
+ 
+ namespace reconstruct{
+ 
+@@ -24,7 +25,7 @@ Options::Options(int argc, char** argv) : m_descr("Supported options")
+ 		("optimizePlanes,o", "Shift all triangle vertices of a cluster onto their shared plane")
+ 		("savePointsAndNormals,s", "Exports original point cloud data together with normals into a single file called 'points_and_normals.ply'")
+ 		("recalcNormals,r", "Always estimate normals, even if given in .ply file.")
+-		("threads,t", value<int>(&m_numThreads)->default_value(4), "Number of threads")
++		("threads,t", value<int>(&m_numThreads)->default_value( omp_get_num_procs() ), "Number of threads")
+ 		("saveNormals", "Writes all points and interpolated normals to a file called 'normals.nor'")
+ 		("kd", value<int>(&m_kd)->default_value(5), "Number of normals used for distance function evaluation")
+ 	    ("ki", value<int>(&m_ki)->default_value(10), "Number of normals used in the normal interpolation process")

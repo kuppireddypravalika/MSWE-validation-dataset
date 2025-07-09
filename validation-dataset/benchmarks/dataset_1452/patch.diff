@@ -1,0 +1,22 @@
+From 20fd90a7bb8500b340a8b5e2e69fda281516c64b Mon Sep 17 00:00:00 2001
+From: "K. S. Ernest (iFire) Lee" <ernest.lee@chibifire.com>
+Date: Sat, 3 Jul 2021 15:51:51 -0700
+Subject: [PATCH] Use world transform to local instead of calculating it.
+
+---
+ ik_effector_3d.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ik_effector_3d.cpp b/ik_effector_3d.cpp
+index abb1f65..ac6b260 100644
+--- a/ik_effector_3d.cpp
++++ b/ik_effector_3d.cpp
+@@ -82,7 +82,7 @@ void IKEffector3D::update_goal_transform(Skeleton3D *p_skeleton) {
+ 		Node3D *target_node = Object::cast_to<Node3D>(node);
+ 		Transform3D node_xform = target_node->get_global_transform();
+ 		if (use_target_node_rotation) {
+-			goal_transform = p_skeleton->get_global_transform().affine_inverse() * node_xform;
++			goal_transform = p_skeleton->world_transform_to_global_pose(node_xform);
+ 		} else {
+ 			goal_transform = Transform3D(Basis(), p_skeleton->to_local(node_xform.origin));
+ 		}

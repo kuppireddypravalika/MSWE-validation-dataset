@@ -1,0 +1,32 @@
+From c8478a9077152fef16ce423ca2f62bf4e205f819 Mon Sep 17 00:00:00 2001
+From: Philippe Canal <pcanal@fnal.gov>
+Date: Thu, 27 Sep 2012 09:18:48 +0000
+Subject: [PATCH] Use Qualifiers rather than only the fast qualifiers
+
+git-svn-id: http://root.cern.ch/svn/root/trunk@46212 27541ba8-7e3a-0410-8455-c3a389f83636
+---
+ core/metautils/src/TMetaUtils.cxx | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/core/metautils/src/TMetaUtils.cxx b/core/metautils/src/TMetaUtils.cxx
+index 469b617b928dd..7356b95df6208 100644
+--- a/core/metautils/src/TMetaUtils.cxx
++++ b/core/metautils/src/TMetaUtils.cxx
+@@ -133,7 +133,7 @@ clang::QualType ROOT::TMetaUtils::AddDefaultParameters(clang::QualType instanceT
+    
+    // Treat the Scope.
+    clang::NestedNameSpecifier* prefix = 0;
+-   unsigned int prefix_qualifiers = instanceType.getLocalFastQualifiers();
++   clang::Qualifiers prefix_qualifiers = instanceType.getLocalQualifiers();
+    const clang::ElaboratedType* etype 
+       = llvm::dyn_cast<clang::ElaboratedType>(instanceType.getTypePtr());
+    if (etype) {
+@@ -240,7 +240,7 @@ clang::QualType ROOT::TMetaUtils::AddDefaultParameters(clang::QualType instanceT
+    
+    if (prefix) {
+       instanceType = Ctx.getElaboratedType(clang::ETK_None,prefix,instanceType);
+-      instanceType.setLocalFastQualifiers(prefix_qualifiers);
++      instanceType = Ctx.getQualifiedType(instanceType,prefix_qualifiers);
+    }
+    return instanceType;
+ }

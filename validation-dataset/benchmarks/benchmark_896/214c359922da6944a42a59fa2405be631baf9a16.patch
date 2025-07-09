@@ -1,0 +1,50 @@
+From 214c359922da6944a42a59fa2405be631baf9a16 Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Sun, 16 Jul 2017 17:00:05 -0400
+Subject: [PATCH] [libromdata] SegaPVR: Use intrinsics for uilog2() if
+ available.
+
+- gcc: Use __builtin_clz().
+- MSVC: Use _BitScanReverse().
+---
+ src/libromdata/SegaPVR.cpp | 16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
+
+diff --git a/src/libromdata/SegaPVR.cpp b/src/libromdata/SegaPVR.cpp
+index f0003a0982..cc1e7280db 100644
+--- a/src/libromdata/SegaPVR.cpp
++++ b/src/libromdata/SegaPVR.cpp
+@@ -43,6 +43,10 @@ using namespace LibRpBase;
+ using std::unique_ptr;
+ using std::vector;
+ 
++#ifdef _MSC_VER
++#include <intrin.h>
++#endif
++
+ namespace LibRomData {
+ 
+ class SegaPVRPrivate : public RomDataPrivate
+@@ -161,12 +165,20 @@ inline void SegaPVRPrivate::byteswap_gvr(PVR_Header *gvr)
+  */
+ inline unsigned int SegaPVRPrivate::uilog2(unsigned int n)
+ {
+-	// TODO: Bit scan intrinsics.
+-	// FIXME: Handle n == 0?
++#if defined(__GNUC__)
++	return (n == 0 ? 0 : __builtin_clz(n));
++#elif defined(_MSC_VER)
++	if (n == 0)
++		return 0;
++	unsigned long index;
++	unsigned char x = _BitScanReverse(&index, n);
++	return (x ? index : 0);
++#else
+ 	unsigned int ret = 0;
+ 	while (n >>= 1)
+ 		ret++;
+ 	return ret;
++#endif
+ }
+ 
+ /**

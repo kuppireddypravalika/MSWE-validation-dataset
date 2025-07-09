@@ -1,0 +1,29 @@
+From c4d0825680f3d04392bcb43dac18e2c5bc4c2115 Mon Sep 17 00:00:00 2001
+From: Petr Hosek <phosek@chromium.org>
+Date: Tue, 17 Jan 2017 20:41:04 +0000
+Subject: [PATCH] [scudo] Eliminate the runtime dependency on libc++abi
+
+Making this variable non-static avoids the need for locking to ensure
+that the initialization is thread-safe which in turns eliminates the
+runtime dependency on libc++abi library (for __cxa_guard_acquire and
+__cxa_guard_release) which makes it possible to link scudo against
+pure C programs.
+
+Differential Revision: https://reviews.llvm.org/D28757
+---
+ compiler-rt/lib/scudo/scudo_utils.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/compiler-rt/lib/scudo/scudo_utils.cpp b/compiler-rt/lib/scudo/scudo_utils.cpp
+index ffa65b219fd1..74144080c04c 100644
+--- a/compiler-rt/lib/scudo/scudo_utils.cpp
++++ b/compiler-rt/lib/scudo/scudo_utils.cpp
+@@ -87,7 +87,7 @@ CPUIDRegs getCPUFeatures() {
+ 
+ bool testCPUFeature(CPUFeature Feature)
+ {
+-  static CPUIDRegs FeaturesRegs = getCPUFeatures();
++  CPUIDRegs FeaturesRegs = getCPUFeatures();
+ 
+   switch (Feature) {
+     case CRC32CPUFeature:  // CRC32 is provided by SSE 4.2.

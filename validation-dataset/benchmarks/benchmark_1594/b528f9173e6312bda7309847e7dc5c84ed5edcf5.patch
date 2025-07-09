@@ -1,0 +1,30 @@
+From b528f9173e6312bda7309847e7dc5c84ed5edcf5 Mon Sep 17 00:00:00 2001
+From: Jeroen van der Wulp <j.v.d.wulp@tue.nl>
+Date: Wed, 15 Jul 2009 12:42:30 +0000
+Subject: [PATCH] Changes:
+
+ - global variables are instantiated before equations are selected
+
+    In some cases this leads to a very substantial reduction in the number of
+    equations that is selected. As a result the source code of compiling
+    rewrites is smaller and execution is faster.
+
+
+
+git-svn-id: https://svn.win.tue.nl/repos/MCRL2/trunk@6779 21252fe5-60e8-0310-8ff0-c1ae1001594e
+---
+ tools/lps2lts/exploration.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/tools/lps2lts/exploration.cpp b/tools/lps2lts/exploration.cpp
+index bee4282dad..d4e933447e 100644
+--- a/tools/lps2lts/exploration.cpp
++++ b/tools/lps2lts/exploration.cpp
+@@ -113,6 +113,7 @@ bool initialise_lts_generation(lts_generation_options *opts)
+   lg_error = false;
+ 
+   lgopts->specification.load(lgopts->filename);
++  lgopts->specification.instantiate_global_variables();
+ 
+   if ( lgopts->removeunused )
+   {

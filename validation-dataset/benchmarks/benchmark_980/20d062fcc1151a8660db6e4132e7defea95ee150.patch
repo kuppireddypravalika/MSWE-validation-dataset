@@ -1,0 +1,30 @@
+From 20d062fcc1151a8660db6e4132e7defea95ee150 Mon Sep 17 00:00:00 2001
+From: Anton Korobeynikov <asl@math.spbu.ru>
+Date: Thu, 16 Jul 2009 14:25:46 +0000
+Subject: [PATCH] We don't have FP truncstores
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@76039 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Target/SystemZ/SystemZISelLowering.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/lib/Target/SystemZ/SystemZISelLowering.cpp b/lib/Target/SystemZ/SystemZISelLowering.cpp
+index fcf55c113db..7538bdc790a 100644
+--- a/lib/Target/SystemZ/SystemZISelLowering.cpp
++++ b/lib/Target/SystemZ/SystemZISelLowering.cpp
+@@ -123,12 +123,15 @@ SystemZTargetLowering::SystemZTargetLowering(SystemZTargetMachine &tm) :
+   setOperationAction(ISD::MULHS,            MVT::i64, Expand);
+   setOperationAction(ISD::SMUL_LOHI,        MVT::i64, Expand);
+ 
++  // Lower some FP stuff
+   setOperationAction(ISD::FSIN,             MVT::f32, Expand);
+   setOperationAction(ISD::FSIN,             MVT::f64, Expand);
+   setOperationAction(ISD::FCOS,             MVT::f32, Expand);
+   setOperationAction(ISD::FCOS,             MVT::f64, Expand);
+   setOperationAction(ISD::UINT_TO_FP,       MVT::i32, Expand);
+   setOperationAction(ISD::UINT_TO_FP,       MVT::i64, Expand);
++
++  setTruncStoreAction(MVT::f64, MVT::f32, Expand);
+ }
+ 
+ SDValue SystemZTargetLowering::LowerOperation(SDValue Op, SelectionDAG &DAG) {

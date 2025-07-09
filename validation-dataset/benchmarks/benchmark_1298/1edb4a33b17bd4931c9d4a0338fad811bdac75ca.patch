@@ -1,0 +1,44 @@
+From 1edb4a33b17bd4931c9d4a0338fad811bdac75ca Mon Sep 17 00:00:00 2001
+From: Jon Palmisciano <jp@jonpalmisc.com>
+Date: Tue, 28 Jun 2022 10:11:30 -0400
+Subject: [PATCH] Fix type parsing issue caused by making type parsing faster
+
+---
+ InfoHandler.cpp | 22 ++++++++++------------
+ 1 file changed, 10 insertions(+), 12 deletions(-)
+
+diff --git a/InfoHandler.cpp b/InfoHandler.cpp
+index 562428a..3d523ca 100644
+--- a/InfoHandler.cpp
++++ b/InfoHandler.cpp
+@@ -109,20 +109,18 @@ void InfoHandler::applyMethodType(BinaryViewRef bv, const ObjectiveNinja::ClassI
+ 
+         typeString += part + suffix;
+     }
++    typeString += ";";
+ 
+-    TypeParserResult result;
+     std::string errors;
+-    if (!bv->ParseTypesFromSource(typeString, {}, {}, result, errors))
+-        return;
+-
+-    if (result.types.empty())
+-        return;
+-
+-    auto functionType = result.types[0].type;
+-
+-    // Search for the method's implementation function; apply the type if found.
+-    if (auto f = bv->GetAnalysisFunction(bv->GetDefaultPlatform(), mi.implAddress))
+-        f->SetUserType(functionType);
++    TypeParserResult tpResult;
++    auto ok = bv->ParseTypesFromSource(typeString, {}, {}, tpResult, errors);
++    if (ok && !tpResult.functions.empty()) {
++        auto functionType = tpResult.functions[0].type;
++
++        // Search for the method's implementation function; apply the type if found.
++        if (auto f = bv->GetAnalysisFunction(bv->GetDefaultPlatform(), mi.implAddress))
++            f->SetUserType(functionType);
++    }
+ 
+     auto name = "[" + ci.name + " " + mi.selector + "]";
+     defineSymbol(bv, mi.implAddress, name, "", FunctionSymbol);

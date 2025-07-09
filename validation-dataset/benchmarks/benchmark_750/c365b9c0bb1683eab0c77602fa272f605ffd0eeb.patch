@@ -1,0 +1,22 @@
+From c365b9c0bb1683eab0c77602fa272f605ffd0eeb Mon Sep 17 00:00:00 2001
+From: greg7mdp <greg7mdp@gmail.com>
+Date: Mon, 18 Mar 2024 16:06:01 -0400
+Subject: [PATCH] Use improved version from Matt.
+
+---
+ libraries/chain/include/eosio/chain/incremental_merkle.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libraries/chain/include/eosio/chain/incremental_merkle.hpp b/libraries/chain/include/eosio/chain/incremental_merkle.hpp
+index 8f06c8205f..68b4348e9d 100644
+--- a/libraries/chain/include/eosio/chain/incremental_merkle.hpp
++++ b/libraries/chain/include/eosio/chain/incremental_merkle.hpp
+@@ -19,7 +19,7 @@ constexpr uint64_t calculate_max_depth(uint64_t node_count) {
+    if (node_count == 0)
+       return 0;
+    // following is non-floating point equivalent to `std::ceil(std::log2(node_count)) + 1)` (and about 9x faster)
+-   return 8*sizeof(node_count) - std::countl_zero(std::bit_ceil(node_count));
++   return std::bit_width(std::bit_ceil(node_count));
+ }
+ 
+ template<typename ContainerA, typename ContainerB>

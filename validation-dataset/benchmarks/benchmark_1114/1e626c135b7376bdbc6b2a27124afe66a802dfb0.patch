@@ -1,0 +1,31 @@
+From 1e626c135b7376bdbc6b2a27124afe66a802dfb0 Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@qt.io>
+Date: Wed, 21 Jun 2023 07:44:10 +0200
+Subject: [PATCH] QMessageBox: use %ls and qUtf6Printable()
+
+... instead of %s and qPrintable()
+
+Less operations, less code expansion.
+
+Amends 408fbd3f2d7a6b87521f5b3c27ecf6341dc06e13.
+
+Pick-to: 6.6
+Change-Id: I5a3d2e79623bd32c348a2d655e3a2c8d98eca1e3
+Reviewed-by: Axel Spoerl <axel.spoerl@qt.io>
+---
+ src/widgets/dialogs/qmessagebox.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/widgets/dialogs/qmessagebox.cpp b/src/widgets/dialogs/qmessagebox.cpp
+index dde15fbaf33..0e7ef44808f 100644
+--- a/src/widgets/dialogs/qmessagebox.cpp
++++ b/src/widgets/dialogs/qmessagebox.cpp
+@@ -2860,7 +2860,7 @@ Q_WIDGETS_EXPORT void _q_requireVersion(int argc, char *argv[], QAnyStringView r
+                                     .arg(qAppName(), required.toString(), current.toString());
+     QMessageBox::critical(nullptr, QApplication::tr("Incompatible Qt Library Error"),
+                           message, QMessageBox::Abort);
+-    qFatal("%s", qPrintable(message));
++    qFatal("%ls", qUtf16Printable(message));
+ }
+ 
+ #if QT_DEPRECATED_SINCE(6,2)

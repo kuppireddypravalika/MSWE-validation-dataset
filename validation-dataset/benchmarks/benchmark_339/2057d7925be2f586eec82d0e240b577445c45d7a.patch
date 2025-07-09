@@ -1,0 +1,28 @@
+From 2057d7925be2f586eec82d0e240b577445c45d7a Mon Sep 17 00:00:00 2001
+From: Filip Jeremic <fjeremic@ca.ibm.com>
+Date: Fri, 8 Jun 2018 13:52:16 -0400
+Subject: [PATCH] Start loop iteration for getIntegerArgumentRegister at the
+ right offset
+
+getIntegerArgumentRegister returns valid values for offsets starting at
+getNumIntegerArgumentRegisters - 1. No need to iterate an extra time in
+the loop here.
+
+Signed-off-by: Filip Jeremic <fjeremic@ca.ibm.com>
+---
+ compiler/z/codegen/OMRMachine.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/compiler/z/codegen/OMRMachine.cpp b/compiler/z/codegen/OMRMachine.cpp
+index c22bfc34a4..29ed60cd0c 100644
+--- a/compiler/z/codegen/OMRMachine.cpp
++++ b/compiler/z/codegen/OMRMachine.cpp
+@@ -6518,7 +6518,7 @@ OMR::Z::Machine::initializeGlobalRegisterTable()
+             }
+ 
+ 
+-         for (i = linkage->getNumIntegerArgumentRegisters(); i >= 0; i--)
++         for (i = linkage->getNumIntegerArgumentRegisters() - 1; i >= 0; i--)
+             p = self()->addGlobalReg(linkage->getIntegerArgumentRegister(i), p);
+ 
+          self()->setLastLinkageGPR(p-1);

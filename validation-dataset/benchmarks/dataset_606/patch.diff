@@ -1,0 +1,23 @@
+From 5cce8c33cabd92afecfb0ec31f841d3082d15b3d Mon Sep 17 00:00:00 2001
+From: Jeffrey Walton <noloader@gmail.com>
+Date: Thu, 7 Apr 2016 19:05:30 -0400
+Subject: [PATCH] Improve performance of fix to Issue 146
+
+---
+ rijndael.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/rijndael.cpp b/rijndael.cpp
+index 92f9dea82..547a19902 100644
+--- a/rijndael.cpp
++++ b/rijndael.cpp
+@@ -391,7 +391,8 @@ void Rijndael::Enc::ProcessAndXorBlock(const byte *inBlock, const byte *xorBlock
+ 	// timing attack countermeasure. see comments at top for more details
+ 	const int cacheLineSize = GetCacheLineSize();
+ 	unsigned int i;
+-	volatile word32 u = 0;
++	volatile word32 _u = 0;
++	word32 u = _u;
+ #if defined(CRYPTOPP_ALLOW_UNALIGNED_DATA_ACCESS) || defined(CRYPTOPP_ALLOW_RIJNDAEL_UNALIGNED_DATA_ACCESS)
+ 	for (i=0; i<2048; i+=cacheLineSize)
+ #else

@@ -1,0 +1,31 @@
+From a4ee2563bc430bc77b2a071eff0830b64c388a42 Mon Sep 17 00:00:00 2001
+From: Vadim Zeitlin <vadim@wxwidgets.org>
+Date: Thu, 30 Nov 2023 00:44:51 +0100
+Subject: [PATCH] Use current encoding for char command line arguments if
+ possible
+
+This is more consistent with the conversion in the other direction, but
+here we also fall back to UTF-8 if conversion fails as it seems better
+than just losing the argument entirely.
+
+Also make the conversion a bit more efficient by stealing the pointer
+from wxCharBuffer instead of using strdup() to copy the string.
+---
+ src/common/init.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/common/init.cpp b/src/common/init.cpp
+index 4b9fc5e14b8f..d3dd21fc00b2 100644
+--- a/src/common/init.cpp
++++ b/src/common/init.cpp
+@@ -240,7 +240,9 @@ void wxInitData::InitIfNecessary(int argcIn, wchar_t** argvIn)
+ 
+     for ( int i = 0; i < argc; i++ )
+     {
+-        argvA[i] = wxStrdup(wxConvUTF8.cWC2MB(argv[i]));
++        // Try to use the current encoding, but if it fails, it's better to
++        // fall back to UTF-8 than lose an argument entirely.
++        argvA[i] = wxConvWhateverWorks.cWC2MB(argvIn[i]).release();
+     }
+ #endif // __WINDOWS__/!__WINDOWS__
+ }

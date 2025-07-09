@@ -1,0 +1,29 @@
+From cfc4a3e94bc213e5bdc07f866e0172e98eedc6fa Mon Sep 17 00:00:00 2001
+From: lijewski <mjlijewski@lbl.gov>
+Date: Tue, 1 May 2012 10:37:52 -0700
+Subject: [PATCH] Shortcut out of TagBoxArray::mapPeriodic() if there's no
+ parallel work.
+
+---
+ Src/C_AMRLib/TagBox.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/Src/C_AMRLib/TagBox.cpp b/Src/C_AMRLib/TagBox.cpp
+index 5410434cbd5..2a6d9838090 100644
+--- a/Src/C_AMRLib/TagBox.cpp
++++ b/Src/C_AMRLib/TagBox.cpp
+@@ -385,6 +385,14 @@ TagBoxArray::mapPeriodic (const Geometry& geom)
+         }
+     }
+ 
++    int nrecv = IDs.size();
++    ParallelDescriptor::ReduceIntMax(nrecv);
++    if (nrecv == 0)
++        //
++        // There's no parallel work to do.
++        //
++        return;
++
+     facd.CollectData();
+ 
+     TagBox src;

@@ -1,0 +1,31 @@
+From d2ee3b02c8f101f9abdbadcc6abedb2e1459fde9 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Lu=C3=ADs=20Pereira?= <luis.artur.pereira@gmail.com>
+Date: Mon, 2 Feb 2015 10:35:58 -0800
+Subject: [PATCH] QIconLoader: don't re-evaluate container.size() all the time
+
+Experience shows that the compiler does not recognize the
+size() call as a constant expression, so help it along.
+
+Port of commit
+https://qt.gitorious.org/qt/qtbase/commits/5335a7153549fcb66f357c04b3b94e3ab112dc4e
+---
+ qiconfix/qiconloader.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/qiconfix/qiconloader.cpp b/qiconfix/qiconloader.cpp
+index f7646eb..5c1ecc7 100644
+--- a/qiconfix/qiconloader.cpp
++++ b/qiconfix/qiconloader.cpp
+@@ -669,9 +669,11 @@ void QIconLoaderEngineFixed::virtual_hook(int id, void *data)
+             QIconEngine::AvailableSizesArgument &arg
+                     = *reinterpret_cast<QIconEngine::AvailableSizesArgument*>(data);
+             arg.sizes.clear();
++            const int N = m_entries.size();
++            arg.sizes.reserve(N);
+ 
+             // Gets all sizes from the DirectoryInfo entries
+-            for (int i = 0 ; i < m_entries.size() ; ++i) {
++            for (int i = 0; i < N; ++i) {
+                 int size = m_entries.at(i)->dir.size;
+                 arg.sizes.append(QSize(size, size));
+             }

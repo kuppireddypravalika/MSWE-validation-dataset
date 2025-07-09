@@ -1,0 +1,22 @@
+From 18e28f5e3b03ce59319d788a3c36b89cd3a693cd Mon Sep 17 00:00:00 2001
+From: Robert Smith <robert.smith@florey.edu.au>
+Date: Wed, 30 Sep 2020 18:04:28 +1000
+Subject: [PATCH] mrhistmatch: Use LLT rather than LDLT
+
+---
+ cmd/mrhistmatch.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/cmd/mrhistmatch.cpp b/cmd/mrhistmatch.cpp
+index 725ff8e21a..12eb133a7d 100644
+--- a/cmd/mrhistmatch.cpp
++++ b/cmd/mrhistmatch.cpp
+@@ -121,7 +121,7 @@ void match_linear (Image<float>& input,
+   if (estimate_intercept)
+     input_matrix.col(1).fill (1.0f);
+ 
+-  auto parameters = (input_matrix.transpose() * input_matrix).ldlt().solve(input_matrix.transpose() * output_vector).eval();
++  auto parameters = (input_matrix.transpose() * input_matrix).llt().solve(input_matrix.transpose() * output_vector).eval();
+ 
+   Header H (input);
+   H.datatype() = DataType::Float32;

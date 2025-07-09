@@ -1,0 +1,35 @@
+From f250509718f692289dded2d4f25404e2252dd4a1 Mon Sep 17 00:00:00 2001
+From: Ryan Houdek <Sonicadvance1@gmail.com>
+Date: Sat, 15 Jul 2023 23:23:32 -0700
+Subject: [PATCH] OpcodeDispatcher: Minor optimization to phminposuw
+
+This instruction doesn't match ARM semantics very well since it returns
+the position of the minimum element.
+
+But at the very least the insert in to the final instruction can be a
+bit more optimal, Converts an 5 inst eor+mov+mov+mov+mov in to 2 inst
+mov+mov.
+
+This works because `VUMinV` already zero extends the vector so the
+position only needs to be inserted at the end.
+---
+ .../Source/Interface/Core/OpcodeDispatcher/Vector.cpp        | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/External/FEXCore/Source/Interface/Core/OpcodeDispatcher/Vector.cpp b/External/FEXCore/Source/Interface/Core/OpcodeDispatcher/Vector.cpp
+index 33a88a1477..2c1d5368f6 100644
+--- a/External/FEXCore/Source/Interface/Core/OpcodeDispatcher/Vector.cpp
++++ b/External/FEXCore/Source/Interface/Core/OpcodeDispatcher/Vector.cpp
+@@ -4221,11 +4221,8 @@ OrderedNode* OpDispatchBuilder::PHMINPOSUWOpImpl(OpcodeArgs) {
+                   Element, MinGPR, Indexes[i - 1], Pos);
+   }
+ 
+-  // Insert the minimum in to bits [15:0]
+-  OrderedNode *Result = _VMov(2, Min);
+-
+   // Insert position in to bits [18:16]
+-  return _VInsGPR(16, 2, 1, Result, Pos);
++  return _VInsGPR(16, 2, 1, Min, Pos);
+ }
+ 
+ void OpDispatchBuilder::PHMINPOSUWOp(OpcodeArgs) {

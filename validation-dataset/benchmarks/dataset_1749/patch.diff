@@ -1,0 +1,46 @@
+From e6975b764d7eae444fc594317f9e378eb7399160 Mon Sep 17 00:00:00 2001
+From: Christian Kandeler <christian.kandeler@qt.io>
+Date: Mon, 24 Oct 2016 17:37:01 +0200
+Subject: [PATCH] ModuleMerger: Do not clone the module prototype
+
+It's not necessary. We only need some properties in the new item.
+
+========== Performance data for Resolving ==========
+    Old instruction count: 1963775746
+    New instruction count: 1944925005
+    Relative change: -1 %
+    Old peak memory usage: 23364840 Bytes
+    New peak memory usage: 20666648 Bytes
+    Relative change: -12 %
+
+Change-Id: I69729584eafc64b3d3bc422e559fc6ec8124a0eb
+Reviewed-by: Joerg Bornemann <joerg.bornemann@qt.io>
+---
+ src/lib/corelib/language/modulemerger.cpp | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/src/lib/corelib/language/modulemerger.cpp b/src/lib/corelib/language/modulemerger.cpp
+index d0dc3e3561..3b82f8da30 100644
+--- a/src/lib/corelib/language/modulemerger.cpp
++++ b/src/lib/corelib/language/modulemerger.cpp
+@@ -251,13 +251,16 @@ void ModuleMerger::appendPrototypeValueToNextChain(Item *moduleProto, const QStr
+     if (pd.isScalar())
+         return;
+     if (!m_clonedModulePrototype) {
+-        m_clonedModulePrototype = moduleProto->clone();
++        m_clonedModulePrototype = Item::create(moduleProto->pool(), ItemType::Module);
+         m_clonedModulePrototype->setScope(m_mergedModule.item);
+     }
+-    const ValuePtr clonedValue = m_clonedModulePrototype->property(propertyName);
+-    QBS_CHECK(clonedValue);
+-    clonedValue->setDefiningItem(m_clonedModulePrototype);
++    const ValuePtr &protoValue = moduleProto->property(propertyName);
++    QBS_CHECK(protoValue);
++    const ValuePtr clonedValue = protoValue->clone();
+     lastInNextChain(sv)->setNext(clonedValue);
++    clonedValue->setDefiningItem(m_clonedModulePrototype);
++    m_clonedModulePrototype->setPropertyDeclaration(propertyName, pd);
++    m_clonedModulePrototype->setProperty(propertyName, clonedValue);
+ }
+ 
+ ValuePtr ModuleMerger::lastInNextChain(const ValuePtr &v)

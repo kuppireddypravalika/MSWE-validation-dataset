@@ -1,0 +1,30 @@
+From 380b65f7a08b36fd07544323ad3a0276a0599b5b Mon Sep 17 00:00:00 2001
+From: Ye Luo <yeluo@anl.gov>
+Date: Fri, 20 May 2022 11:56:51 -0500
+Subject: [PATCH] Better with a range based loop.
+
+---
+ src/Estimators/EstimatorManagerInput.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/Estimators/EstimatorManagerInput.cpp b/src/Estimators/EstimatorManagerInput.cpp
+index 7c8d74b9e8..c3c49dd0cb 100644
+--- a/src/Estimators/EstimatorManagerInput.cpp
++++ b/src/Estimators/EstimatorManagerInput.cpp
+@@ -34,13 +34,14 @@ EstimatorManagerInput::EstimatorManagerInput(std::initializer_list<EstimatorMana
+ 
+   est_offset        = 0;
+   scalar_est_offset = 0;
+-  std::for_each(emil.begin(), emil.end(), [&](const EstimatorManagerInput& emi) {
++  for (const EstimatorManagerInput& emi : emil)
++  {
+     std::copy(emi.estimator_inputs_.begin(), emi.estimator_inputs_.end(), estimator_inputs_.begin() + est_offset);
+     est_offset += emi.estimator_inputs_.size();
+     std::copy(emi.scalar_estimator_inputs_.begin(), emi.scalar_estimator_inputs_.end(),
+               scalar_estimator_inputs_.begin() + scalar_est_offset);
+     scalar_est_offset += emi.scalar_estimator_inputs_.size();
+-  });
++  }
+ }
+ 
+ void EstimatorManagerInput::readXML(xmlNodePtr cur)

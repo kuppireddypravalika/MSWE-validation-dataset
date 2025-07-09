@@ -1,0 +1,29 @@
+From 807f1e302a268ab79a483aae5b9dfa4b362dcc28 Mon Sep 17 00:00:00 2001
+From: Andrew Kaylor <andrew.kaylor@intel.com>
+Date: Wed, 14 Dec 2016 19:30:18 +0000
+Subject: [PATCH] [WinEH] Avoid holding references to BlockColor (DenseMap)
+ entries while inserting new elements
+
+Differential Revision: https://reviews.llvm.org/D27693
+---
+ llvm/lib/CodeGen/WinEHPrepare.cpp | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/llvm/lib/CodeGen/WinEHPrepare.cpp b/llvm/lib/CodeGen/WinEHPrepare.cpp
+index 8b81a48a7b13..568720c66e55 100644
+--- a/llvm/lib/CodeGen/WinEHPrepare.cpp
++++ b/llvm/lib/CodeGen/WinEHPrepare.cpp
+@@ -1202,8 +1202,12 @@ void WinEHPrepare::replaceUseWithLoad(Value *V, Use &U, AllocaInst *&SpillSlot,
+       Goto->setSuccessor(0, PHIBlock);
+       CatchRet->setSuccessor(NewBlock);
+       // Update the color mapping for the newly split edge.
++      // Grab a reference to the ColorVector to be inserted before getting the
++      // reference to the vector we are copying because inserting the new
++      // element in BlockColors might cause the map to be reallocated.
++      ColorVector &ColorsForNewBlock = BlockColors[NewBlock];
+       ColorVector &ColorsForPHIBlock = BlockColors[PHIBlock];
+-      BlockColors[NewBlock] = ColorsForPHIBlock;
++      ColorsForNewBlock = ColorsForPHIBlock;
+       for (BasicBlock *FuncletPad : ColorsForPHIBlock)
+         FuncletBlocks[FuncletPad].push_back(NewBlock);
+       // Treat the new block as incoming for load insertion.

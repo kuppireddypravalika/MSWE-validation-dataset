@@ -1,0 +1,25 @@
+From a8defb0250502e06150dab34b76866dacf635f49 Mon Sep 17 00:00:00 2001
+From: Markus Vieth <mvieth@techfak.uni-bielefeld.de>
+Date: Mon, 21 Feb 2022 21:17:37 +0100
+Subject: [PATCH] Use nth_element instead of sort for median
+
+---
+ .../apps/3d_rec_framework/feature_wrapper/normal_estimator.h | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/apps/3d_rec_framework/include/pcl/apps/3d_rec_framework/feature_wrapper/normal_estimator.h b/apps/3d_rec_framework/include/pcl/apps/3d_rec_framework/feature_wrapper/normal_estimator.h
+index b9a6f51fbd1..64ec3e95abe 100644
+--- a/apps/3d_rec_framework/include/pcl/apps/3d_rec_framework/feature_wrapper/normal_estimator.h
++++ b/apps/3d_rec_framework/include/pcl/apps/3d_rec_framework/feature_wrapper/normal_estimator.h
+@@ -47,7 +47,10 @@ class PreProcessorAndNormalEstimator {
+       avg_distances[i] = avg_dist_neighbours;
+     }
+ 
+-    std::sort(avg_distances.begin(), avg_distances.end());
++    // median: nth_element is faster than sorting everything
++    std::nth_element(avg_distances.begin(),
++                     avg_distances.begin() + (avg_distances.size() / 2 + 1),
++                     avg_distances.end());
+     float avg = avg_distances[static_cast<int>(avg_distances.size()) / 2 + 1];
+     return avg;
+   }

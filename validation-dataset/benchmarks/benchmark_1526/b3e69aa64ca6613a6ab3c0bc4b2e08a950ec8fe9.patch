@@ -1,0 +1,23 @@
+From b3e69aa64ca6613a6ab3c0bc4b2e08a950ec8fe9 Mon Sep 17 00:00:00 2001
+From: rbucek <radek.bucek@dts-soft.cz>
+Date: Thu, 28 Nov 2019 18:17:10 +0100
+Subject: [PATCH] fix performace issue with rrd / vm_pexec / fork  - use vfork
+ instead of fork
+
+---
+ tools.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tools.cpp b/tools.cpp
+index c2ad8eadf..b1c7256ef 100644
+--- a/tools.cpp
++++ b/tools.cpp
+@@ -4596,7 +4596,7 @@ bool vm_pexec(const char *cmdLine, SimpleBuffer *out, SimpleBuffer *err,
+ 	int pipe_stderr[2];
+ 	pipe(pipe_stdout);
+ 	pipe(pipe_stderr);
+-	int fork_rslt = fork();
++	int fork_rslt = vfork();
+ 	if(fork_rslt == 0) {
+ 		close(pipe_stdout[0]);
+ 		close(pipe_stderr[0]);

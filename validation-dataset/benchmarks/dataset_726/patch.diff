@@ -1,0 +1,22 @@
+From 36f742e2e7e1da5dfcd58dcec99543b54149557f Mon Sep 17 00:00:00 2001
+From: Paul Cornett <paulcor@users.noreply.github.com>
+Date: Sun, 17 Feb 2019 22:28:44 -0800
+Subject: [PATCH] Avoid pointless bitwise operation on a bool
+
+---
+ src/osx/fswatcher_fsevents.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/osx/fswatcher_fsevents.cpp b/src/osx/fswatcher_fsevents.cpp
+index 06f41a7ba020..8d60e1799402 100644
+--- a/src/osx/fswatcher_fsevents.cpp
++++ b/src/osx/fswatcher_fsevents.cpp
+@@ -420,7 +420,7 @@ bool wxFsEventsFileSystemWatcher::RemoveAll()
+         FSEventStreamInvalidate(it->second);
+         FSEventStreamRelease(it->second);
+         ++it;
+-        ret |= true;
++        ret = true;
+     }
+     m_streams.clear();
+     return ret;

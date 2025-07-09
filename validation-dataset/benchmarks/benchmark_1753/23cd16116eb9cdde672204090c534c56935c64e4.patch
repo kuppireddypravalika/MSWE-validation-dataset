@@ -1,0 +1,40 @@
+From 23cd16116eb9cdde672204090c534c56935c64e4 Mon Sep 17 00:00:00 2001
+From: kmurray <k.murray@utoronto.ca>
+Date: Tue, 20 Nov 2018 16:26:52 -0500
+Subject: [PATCH] vpr: Improve randomization of switchpoint shuffling during
+ switch block creation
+
+Previously, the same random number generator seed was used for all
+switchpoint shufflings, which produced some problematic switch block
+patterns (e.g. connected wires with the same sets of turns, making it
+impossible to route in some directions).
+---
+ vpr/src/route/build_switchblocks.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/vpr/src/route/build_switchblocks.cpp b/vpr/src/route/build_switchblocks.cpp
+index 3848e6df402..5cb5fe6cafa 100644
+--- a/vpr/src/route/build_switchblocks.cpp
++++ b/vpr/src/route/build_switchblocks.cpp
+@@ -184,6 +184,9 @@ struct t_wire_switchpoint {
+ /* Used to get info about a given wire type based on the name */
+ typedef map< string, Wire_Info > t_wire_type_sizes;
+ 
++constexpr int SEED = 1;
++std::default_random_engine f_switchpoint_shuffle_rng(SEED);
++
+ 
+ /************ Function Declarations ************/
+ /* Counts the number of wires in each wire type in the specified channel */
+@@ -730,10 +733,7 @@ static std::vector<t_wire_switchpoint> get_switchpoint_wires(const DeviceGrid& g
+     if (switchpoint_order == SwitchPointOrder::SHUFFLED) {
+         //We new re-order the switchpoints to try to make adjacent switchpoints have different values
+ 
+-        constexpr int SEED = 1;
+-        std::default_random_engine rng(SEED);
+-
+-        std::shuffle(all_collected_wire_switchpoints.begin(), all_collected_wire_switchpoints.end(), rng);
++        std::shuffle(all_collected_wire_switchpoints.begin(), all_collected_wire_switchpoints.end(), f_switchpoint_shuffle_rng);
+     } else {
+         VTR_ASSERT(switchpoint_order == SwitchPointOrder::FIXED);
+         //Already ordered so same switchpoints are adjacent by above collection loop

@@ -1,0 +1,24 @@
+From 0b06014414b7b526c2cd695d45a7ea23b55ff296 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Marco=20Trevisan=20=28Trevi=C3=B1o=29?= <mail@3v1n0.net>
+Date: Sat, 13 Oct 2018 19:44:03 -0500
+Subject: [PATCH] gtype: use Atomized string for static ones
+
+We can avoid doing a copy of the string for a static one
+---
+ gi/gtype.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/gi/gtype.cpp b/gi/gtype.cpp
+index 5ef79579e..67bdad45e 100644
+--- a/gi/gtype.cpp
++++ b/gi/gtype.cpp
+@@ -98,7 +98,8 @@ to_string_func(JSContext *cx,
+     GType gtype = GPOINTER_TO_SIZE(priv);
+ 
+     if (gtype == 0) {
+-        JS::RootedString str(cx, JS_NewStringCopyZ(cx, "[object GType prototype]"));
++        JS::RootedString str(cx,
++                             JS_AtomizeString(cx, "[object GType prototype]"));
+         if (!str)
+             return false;
+         rec.rval().setString(str);

@@ -1,0 +1,35 @@
+From 0d9489e7aa01641d6b76e1b8b769ccdcb3bb81a0 Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Wed, 18 Sep 2013 10:32:49 +0200
+Subject: [PATCH] QString: avoid a QLocale detach in vsprintf
+
+I didn't dig deeper to check where the additional reference came from,
+but tracing confirmed that the QSharedDataPointer<QLocalePrivate>::detach()
+call is gone with this change.
+
+Background:
+QString::vsprintf is used in the logging framework, and as such shouldn't
+waste any memory. It's currently anyway unusable from, say, signal handlers,
+but this is low-hanging fruit that shaves off one of the dozen or so
+memory allocations involved in a simple qFatal() call.
+
+Change-Id: I19fa2148f669dfc7b5f276221151e25a4348cbfe
+Reviewed-by: Olivier Goffart <ogoffart@woboq.com>
+Reviewed-by: Kai Koehne <kai.koehne@digia.com>
+---
+ src/corelib/tools/qstring.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/corelib/tools/qstring.cpp b/src/corelib/tools/qstring.cpp
+index b909e9e09b3c..ac7052f3a142 100644
+--- a/src/corelib/tools/qstring.cpp
++++ b/src/corelib/tools/qstring.cpp
+@@ -5505,7 +5505,7 @@ QString &QString::sprintf(const char *cformat, ...)
+ 
+ QString &QString::vsprintf(const char* cformat, va_list ap)
+ {
+-    QLocale locale(QLocale::C);
++    const QLocale locale(QLocale::C);
+ 
+     if (!cformat || !*cformat) {
+         // Qt 1.x compat

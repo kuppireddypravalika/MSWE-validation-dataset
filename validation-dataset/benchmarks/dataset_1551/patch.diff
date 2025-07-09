@@ -1,0 +1,33 @@
+From e6930b3b80ba979a7d3f7a3cca89a8b180fe813d Mon Sep 17 00:00:00 2001
+From: Andreas Schaefer <gentryx@gmx.de>
+Date: Fri, 4 Apr 2014 23:34:41 +0200
+Subject: [PATCH] only check image content if image could actually be loaded
+
+---
+ src/io/test/unit/silowritertest.h | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/src/io/test/unit/silowritertest.h b/src/io/test/unit/silowritertest.h
+index 18a9bcea5..10d291d62 100644
+--- a/src/io/test/unit/silowritertest.h
++++ b/src/io/test/unit/silowritertest.h
+@@ -217,11 +217,15 @@ class SiloWriterTest : public CxxTest::TestSuite
+ 
+         QImage result;
+         result.load(QString(imageFile.c_str()));
+-        TS_ASSERT_EQUALS(QSize(1024, 1024), result.size());
+ 
+-        for (int y = 0; y < 1024; ++y) {
+-            for (int x = 0; x < 1024; ++x) {
+-                ret[result.pixel(x, y)] += 1;
++        QSize expectedSize(1024, 1024);
++        TS_ASSERT_EQUALS(expectedSize, result.size());
++
++        if (result.size() == expectedSize) {
++            for (int y = 0; y < 1024; ++y) {
++                for (int x = 0; x < 1024; ++x) {
++                    ret[result.pixel(x, y)] += 1;
++                }
+             }
+         }
+ 

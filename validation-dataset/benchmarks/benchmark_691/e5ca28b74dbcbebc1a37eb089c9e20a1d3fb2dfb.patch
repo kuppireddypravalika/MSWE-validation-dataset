@@ -1,0 +1,40 @@
+From e5ca28b74dbcbebc1a37eb089c9e20a1d3fb2dfb Mon Sep 17 00:00:00 2001
+From: Chris Lattner <sabre@nondot.org>
+Date: Sun, 15 Jan 2006 07:19:53 +0000
+Subject: [PATCH] reorder passes
+
+llvm-svn: 25326
+---
+ llvm/lib/Target/SparcV8/SparcV8TargetMachine.cpp | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/llvm/lib/Target/SparcV8/SparcV8TargetMachine.cpp b/llvm/lib/Target/SparcV8/SparcV8TargetMachine.cpp
+index fbe353fc051..08e38fc7a36 100644
+--- a/llvm/lib/Target/SparcV8/SparcV8TargetMachine.cpp
++++ b/llvm/lib/Target/SparcV8/SparcV8TargetMachine.cpp
+@@ -73,9 +73,6 @@ bool SparcV8TargetMachine::addPassesToEmitFile(PassManager &PM,
+   // FIXME: Implement efficient support for garbage collection intrinsics.
+   PM.add(createLowerGCPass());
+ 
+-  // Make sure that no unreachable blocks are instruction selected.
+-  PM.add(createUnreachableBlockEliminationPass());
+-
+   // FIXME: implement the invoke/unwind instructions!
+   PM.add(createLowerInvokePass());
+ 
+@@ -90,9 +87,14 @@ bool SparcV8TargetMachine::addPassesToEmitFile(PassManager &PM,
+     // Replace malloc and free instructions with library calls.
+     PM.add(createLowerAllocationsPass());
+     PM.add(createLowerSelectPass());
++    // Make sure that no unreachable blocks are instruction selected.
++    PM.add(createUnreachableBlockEliminationPass());
+     PM.add(createSparcV8SimpleInstructionSelector(*this));
+-  } else
++  } else {
++    // Make sure that no unreachable blocks are instruction selected.
++    PM.add(createUnreachableBlockEliminationPass());
+     PM.add(createSparcV8ISelDag(*this));
++  }
+ 
+   // Print machine instructions as they were initially generated.
+   if (PrintMachineCode)

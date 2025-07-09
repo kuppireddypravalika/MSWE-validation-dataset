@@ -1,0 +1,21 @@
+From 67b4780e2b42c9aa2583f09fcc59fb361ffdb4a9 Mon Sep 17 00:00:00 2001
+From: David Lindauer <touchstone222@runbox.com>
+Date: Mon, 9 Feb 2015 21:54:45 -0500
+Subject: [PATCH] fix problem with optimizing a constant expression
+
+---
+ src/occ/x86/peep.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/occ/x86/peep.c b/src/occ/x86/peep.c
+index b2d7649e4..944a691b2 100644
+--- a/src/occ/x86/peep.c
++++ b/src/occ/x86/peep.c
+@@ -799,6 +799,7 @@ void peep_cmp(OCODE *ip)
+             ip->opcode = op_and;
+             ip->oper2 = copy_addr(ip->oper1);
+             if (ip2->opcode == op_mov && equal_address(ip->oper1, ip2->oper1) && ip2->oper2->mode != am_dreg
++                && ip2->oper2->mode != am_immed
+                 && (ip1->opcode == op_je || ip1->opcode == op_jne) )
+             {
+                 if (!live(ip->oper1->liveRegs, ip->oper1->preg))

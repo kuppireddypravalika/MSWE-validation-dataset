@@ -1,0 +1,45 @@
+From c1024746d5cab15e7c5e040d34a18266bedcfbbe Mon Sep 17 00:00:00 2001
+From: rikss <>
+Date: Mon, 17 Oct 2011 20:37:11 +0000
+Subject: [PATCH] optimize parsing of genome files
+
+---
+ tools/clustering/qt_clust.cpp | 25 ++++++++++++++++++++-----
+ 1 file changed, 20 insertions(+), 5 deletions(-)
+
+diff --git a/tools/clustering/qt_clust.cpp b/tools/clustering/qt_clust.cpp
+index dfbd399..90e2d40 100644
+--- a/tools/clustering/qt_clust.cpp
++++ b/tools/clustering/qt_clust.cpp
+@@ -506,11 +506,26 @@ void load_genome( AgentId id, unsigned char *genome ) {
+ 		compressed = true;
+ 	}
+ 
+-    char* s; int i;
+-    for (i=0;  i< GENES; i++) {
+-        s = readline(fp);
+-        genome[i] = (unsigned char) atoi(s);
+-    }
++	// 4 bytes per gene ("xxx\n") + fudge.
++	char buf[4 * GENES + 128];
++	size_t nread = fread( buf, sizeof(char), sizeof(buf), fp );
++	errif( (nread == 0) || (nread >= sizeof(buf)),
++		   "Unreasonable number of bytes read: %lu\n", nread );
++
++	size_t i = 0;
++	int igene = 0;
++	while( i < nread ) {
++		if( isdigit(buf[i]) ) {
++			genome[igene++] = atoi( buf + i );
++			do {
++				i++;
++			} while( isdigit(buf[i]) );
++		} else {
++			i++;
++		}
++	}
++
++	errif( igene != GENES, "Unexpected number of genes for agent %d: %d\n", id, igene );
+ 
+ 	if( !compressed ) {
+ 		fclose(fp);

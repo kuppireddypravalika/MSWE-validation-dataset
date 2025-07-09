@@ -1,0 +1,26 @@
+From b0edce4839a0b7ee341dd3809b8992d48099d82d Mon Sep 17 00:00:00 2001
+From: Magne Sjaastad <magne.sjaastad@ceetronsolutions.com>
+Date: Thu, 17 Aug 2023 15:41:24 +0200
+Subject: [PATCH] Avoid update connected editors
+
+The call to updateConnectedEditors is very time consuming for summary models with many vectors. Testing indicates that this update is not required.
+---
+ ApplicationLibCode/UserInterface/RiuPlotMainWindow.cpp | 5 -----
+ 1 file changed, 5 deletions(-)
+
+diff --git a/ApplicationLibCode/UserInterface/RiuPlotMainWindow.cpp b/ApplicationLibCode/UserInterface/RiuPlotMainWindow.cpp
+index 8c9cd355da5..73fe0e767cb 100644
+--- a/ApplicationLibCode/UserInterface/RiuPlotMainWindow.cpp
++++ b/ApplicationLibCode/UserInterface/RiuPlotMainWindow.cpp
+@@ -174,11 +174,6 @@ void RiuPlotMainWindow::initializeGuiNewProjectLoaded()
+     setPdmRoot( RimProject::current() );
+     restoreTreeViewState();
+ 
+-    if ( m_pdmUiPropertyView && m_pdmUiPropertyView->currentObject() )
+-    {
+-        m_pdmUiPropertyView->currentObject()->uiCapability()->updateConnectedEditors();
+-    }
+-
+     auto sumPlotManager = dynamic_cast<RimSummaryPlotManager*>( m_summaryPlotManager.get() );
+     if ( sumPlotManager )
+     {

@@ -1,0 +1,46 @@
+From 39ab294e1b6309fdaeb2e8d8b6ce55199daf3952 Mon Sep 17 00:00:00 2001
+From: gitamohr <gitamohr@users.noreply.github.com>
+Date: Fri, 11 Feb 2022 11:46:46 -0800
+Subject: [PATCH] hd: Avoid constructing an _Entry unless we need to, since it
+ is quite expensive to destroy (due to a std::list member).
+
+(Internal change: 2215288)
+---
+ pxr/imaging/hd/bufferArrayRegistry.cpp | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
+
+diff --git a/pxr/imaging/hd/bufferArrayRegistry.cpp b/pxr/imaging/hd/bufferArrayRegistry.cpp
+index 8fe4c37631..8b8f8c782e 100644
+--- a/pxr/imaging/hd/bufferArrayRegistry.cpp
++++ b/pxr/imaging/hd/bufferArrayRegistry.cpp
+@@ -24,6 +24,8 @@
+ #include "pxr/imaging/hd/bufferArrayRegistry.h"
+ #include "pxr/imaging/hd/bufferArray.h"
+ 
++#include <tuple>
++
+ PXR_NAMESPACE_OPEN_SCOPE
+ 
+ 
+@@ -57,12 +59,17 @@ HdBufferArrayRangeSharedPtr HdBufferArrayRegistry::AllocateRange(
+         strategy->ComputeAggregationId(bufferSpecs, usageHint);
+ 
+     // We use insert to do a find and insert operation
+-    std::pair<_BufferArrayIndex::iterator, bool> result =
+-            _entries.insert(std::make_pair(aggrId, _Entry()));
++    auto iter = _entries.find(aggrId);
++    bool inserted = false;
++    if (iter == _entries.end()) {
++        // _Entry()'s dtor is very expensive due to std::list member, so avoid
++        // constructing one unless we didn't find one.
++        std::tie(iter, inserted) = _entries.emplace(aggrId, _Entry());
++    }
+ 
+-    _Entry &entry = (result.first)->second;
++    _Entry &entry = iter->second;
+ 
+-    if (result.second) {
++    if (inserted) {
+         // We just created a new entry so make sure it has a buffer in it.
+         _InsertNewBufferArray(entry,
+                               HdBufferArraySharedPtr(),

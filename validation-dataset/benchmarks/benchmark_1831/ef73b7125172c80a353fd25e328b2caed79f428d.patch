@@ -1,0 +1,28 @@
+From ef73b7125172c80a353fd25e328b2caed79f428d Mon Sep 17 00:00:00 2001
+From: Alexander Neundorf <neundorf@kde.org>
+Date: Thu, 28 Oct 2004 22:12:49 +0000
+Subject: [PATCH] -tiny micro optimization
+
+Alex
+---
+ parts/outputviews/compileerrorfilter.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/parts/outputviews/compileerrorfilter.cpp b/parts/outputviews/compileerrorfilter.cpp
+index cfef8722f37..c8a7be987a5 100644
+--- a/parts/outputviews/compileerrorfilter.cpp
++++ b/parts/outputviews/compileerrorfilter.cpp
+@@ -70,11 +70,11 @@ void CompileErrorFilter::processLine( const QString& line )
+ 	QString compiler;
+ 	int i = 0;
+ 	bool isWarning = false;
+-	ErrorFormat* errFormats = errorFormats();
++	ErrorFormat* const errFormats = errorFormats();
+ 	ErrorFormat* format = &errFormats[i];
+ 	while( !format->expression.isEmpty() )
+ 	{
+-		QRegExp regExp = format->expression;
++		QRegExp& regExp = format->expression;
+ 
+ 		if ( regExp.search( line ) != -1 ) {
+ 	                hasmatch = true;

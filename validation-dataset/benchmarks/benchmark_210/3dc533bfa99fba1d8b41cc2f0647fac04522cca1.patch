@@ -1,0 +1,22 @@
+From 3dc533bfa99fba1d8b41cc2f0647fac04522cca1 Mon Sep 17 00:00:00 2001
+From: jgdumas <jgdumas@dda9dfc7-2772-4c6c-972d-d99ad1e2f97f>
+Date: Mon, 7 Jul 2008 19:57:01 +0000
+Subject: [PATCH] ilogb instead of (size_t)logb Also better for cygwin
+
+---
+ src/kernel/zpz/givtablelimits.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/kernel/zpz/givtablelimits.h b/src/kernel/zpz/givtablelimits.h
+index 8f7dec1c..55878f9b 100755
+--- a/src/kernel/zpz/givtablelimits.h
++++ b/src/kernel/zpz/givtablelimits.h
+@@ -71,7 +71,7 @@ class AdicSize {
+         tmp *= double(P-1);
+         tmp *= double(e);
+         tmp *= double(nm);
+-        size_t k = size_t(logb(tmp));
++        size_t k = ilogb(tmp);
+         return ( (53/(2*e-1))>k ? ++k : 0);        
+     }
+         

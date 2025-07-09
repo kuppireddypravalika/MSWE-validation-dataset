@@ -1,0 +1,25 @@
+From cb3654b7ca62261b7fbd61fbc6aca38930c86f90 Mon Sep 17 00:00:00 2001
+From: Sanjay Patel <spatel@rotateright.com>
+Date: Tue, 20 Feb 2018 21:52:46 +0000
+Subject: [PATCH] [InstCombine] remove unneeded operand swap: NFCI
+
+FMul is commutative, so complexity-based canonicalization should always
+take care of the swap via SimplifyAssociativeOrCommutative().
+---
+ llvm/lib/Transforms/InstCombine/InstCombineMulDivRem.cpp | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/llvm/lib/Transforms/InstCombine/InstCombineMulDivRem.cpp b/llvm/lib/Transforms/InstCombine/InstCombineMulDivRem.cpp
+index 7e402eb2307f..cb42d24cd34b 100644
+--- a/llvm/lib/Transforms/InstCombine/InstCombineMulDivRem.cpp
++++ b/llvm/lib/Transforms/InstCombine/InstCombineMulDivRem.cpp
+@@ -549,9 +549,6 @@ Instruction *InstCombiner::visitFMul(BinaryOperator &I) {
+   if (Value *V = SimplifyVectorOp(I))
+     return replaceInstUsesWith(I, V);
+ 
+-  if (isa<Constant>(Op0))
+-    std::swap(Op0, Op1);
+-
+   if (Value *V = SimplifyFMulInst(Op0, Op1, I.getFastMathFlags(),
+                                   SQ.getWithInstruction(&I)))
+     return replaceInstUsesWith(I, V);

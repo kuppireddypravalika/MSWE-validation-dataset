@@ -1,0 +1,22 @@
+From 4e52a6e31b19b0f2bdaf8c44d20e138b97787d9b Mon Sep 17 00:00:00 2001
+From: tteuling <tteuling@users.sourceforge.net>
+Date: Thu, 22 Mar 2012 10:37:56 +0100
+Subject: [PATCH] Increase cache size for index.
+
+---
+ libosmscout/src/osmscout/Database.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libosmscout/src/osmscout/Database.cpp b/libosmscout/src/osmscout/Database.cpp
+index cf199935a..a8d17c454 100644
+--- a/libosmscout/src/osmscout/Database.cpp
++++ b/libosmscout/src/osmscout/Database.cpp
+@@ -38,7 +38,7 @@ namespace osmscout {
+     areaNodeIndexCacheSize(1000),
+     nodeIndexCacheSize(1000),
+     nodeCacheSize(1000),
+-    wayIndexCacheSize(1000),
++    wayIndexCacheSize(2000),
+     wayCacheSize(8000),
+     relationIndexCacheSize(1000),
+     relationCacheSize(1000),

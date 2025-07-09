@@ -1,0 +1,23 @@
+From e7f0696513d8b1b3ff20de42ec9457f626ad5f9f Mon Sep 17 00:00:00 2001
+From: mozga-intel <mateusz.ozga@intel.com>
+Date: Fri, 25 May 2018 15:38:58 +0200
+Subject: [PATCH] Top K with omp
+
+---
+ paddle/fluid/operators/top_k_op.h | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/paddle/fluid/operators/top_k_op.h b/paddle/fluid/operators/top_k_op.h
+index d44eeae8e6ff9a..b31fee22a2d21a 100644
+--- a/paddle/fluid/operators/top_k_op.h
++++ b/paddle/fluid/operators/top_k_op.h
+@@ -55,6 +55,9 @@ class TopkKernel : public framework::OpKernel<T> {
+     // NOTE: eigen shape doesn't affect paddle tensor.
+     eg_input.reshape(flat2dims);
+ 
++#ifdef PADDLE_WITH_MKLDNN
++#pragma omp parallel for
++#endif
+     for (size_t i = 0; i < row; i++) {
+       std::vector<std::pair<T, size_t>> vec;
+       for (size_t j = 0; j < col; j++) {

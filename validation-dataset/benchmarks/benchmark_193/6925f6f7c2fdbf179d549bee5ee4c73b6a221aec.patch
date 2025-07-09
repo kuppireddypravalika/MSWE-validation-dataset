@@ -1,0 +1,30 @@
+From 6925f6f7c2fdbf179d549bee5ee4c73b6a221aec Mon Sep 17 00:00:00 2001
+From: eisneinechse <42617957+eisneinechse@users.noreply.github.com>
+Date: Fri, 7 Sep 2018 10:44:18 -0700
+Subject: [PATCH] Use the static scheduler in ordered clause. Otherwise OpenMP
+ uses a scheduler it thinks is best which can be dynamic or guided. Both
+ sometimes let other threads continue before the block is finished. That will
+ crash the program with high thread counts and a cache that is not large
+ enough to hold old enough frames, which leads to a crash when in some cases
+ like transitions two different frames are used although one is no longer in
+ the cache. The static scheduler always waits until the block is finished
+ before enabling other threads.
+
+---
+ src/Timeline.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/Timeline.cpp b/src/Timeline.cpp
+index 35b912839..34dab1d80 100644
+--- a/src/Timeline.cpp
++++ b/src/Timeline.cpp
+@@ -717,7 +717,8 @@ std::shared_ptr<Frame> Timeline::GetFrame(int64_t requested_frame)
+ 		#pragma omp parallel
+ 		{
+ 			// Loop through all requested frames
+-			#pragma omp for ordered firstprivate(nearby_clips, requested_frame, minimum_frames)
++			// The scheduler has to be static!
++			#pragma omp for ordered schedule(static,1) firstprivate(nearby_clips, requested_frame, minimum_frames)
+ 			for (int64_t frame_number = requested_frame; frame_number < requested_frame + minimum_frames; frame_number++)
+ 			{
+ 				// Debug output

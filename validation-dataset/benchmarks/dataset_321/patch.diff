@@ -1,0 +1,34 @@
+From eff9be049f502b81765446f3c54d4b3dc0ea88b9 Mon Sep 17 00:00:00 2001
+From: Stuart Morgan <smorgan@mythtv.org>
+Date: Fri, 13 Feb 2015 10:47:35 +0000
+Subject: [PATCH] Have lossless transcode use larger buffers when replexing HD
+ video
+
+---
+ mythtv/programs/mythtranscode/mpeg2fix.cpp | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/mythtv/programs/mythtranscode/mpeg2fix.cpp b/mythtv/programs/mythtranscode/mpeg2fix.cpp
+index 4165c8d7799..b4c7be0b8b4 100644
+--- a/mythtv/programs/mythtranscode/mpeg2fix.cpp
++++ b/mythtv/programs/mythtranscode/mpeg2fix.cpp
+@@ -622,6 +622,19 @@ void MPEG2fixup::InitReplex()
+     //   it also contains the start pos of the next frame
+     // index_arbuf only uses, pts, framesize, length, start, (active, err)
+ 
++    if (vFrame.first()->mpeg2_seq.height >= 720)
++    {
++        LOG(VB_GENERAL, LOG_NOTICE, "MPEG2fixup::InitReplex(): High Definition input, increasing replex buffers");
++        if (rx.otype == REPLEX_MPEG2)
++            rx.otype = REPLEX_HDTV;
++        else if (rx.otype == REPLEX_TS_SD)
++            rx.otype = REPLEX_TS_HD;
++        else
++        {
++            LOG(VB_GENERAL, LOG_WARNING, "MPEG2fixup::InitReplex(): Using '--ostream=dvd' with HD video is an invalid combination");
++        }
++    }
++
+     //this should support > 100 frames
+     uint32_t memsize = vFrame.first()->mpeg2_seq.width *
+                        vFrame.first()->mpeg2_seq.height * 10;

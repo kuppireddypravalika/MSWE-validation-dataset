@@ -1,0 +1,28 @@
+From dce2612a7c511e85c5a1b46d1e76b88b56be4c99 Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Tue, 26 Jan 2016 19:33:30 +0100
+Subject: [PATCH] qmake: replace a Q_FOREACH loop with QList::op+=
+
+Change-Id: Ibaa49f0d6ea5cbcb5d4d305ec9c55286eac5046e
+Reviewed-by: Lars Knoll <lars.knoll@theqtcompany.com>
+---
+ qmake/library/qmakeevaluator.cpp | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/qmake/library/qmakeevaluator.cpp b/qmake/library/qmakeevaluator.cpp
+index 6d40d368671f..8b3f483a76fa 100644
+--- a/qmake/library/qmakeevaluator.cpp
++++ b/qmake/library/qmakeevaluator.cpp
+@@ -1472,11 +1472,8 @@ void QMakeEvaluator::updateFeaturePaths()
+ 
+     QStringList feature_roots;
+ 
+-    foreach (const QString &f, m_option->getPathListEnv(QLatin1String("QMAKEFEATURES")))
+-        feature_roots += f;
+-
++    feature_roots += m_option->getPathListEnv(QLatin1String("QMAKEFEATURES"));
+     feature_roots += m_qmakefeatures;
+-
+     feature_roots += m_option->splitPathList(
+                 m_option->propertyValue(ProKey("QMAKEFEATURES")).toQString(m_mtmp));
+ 

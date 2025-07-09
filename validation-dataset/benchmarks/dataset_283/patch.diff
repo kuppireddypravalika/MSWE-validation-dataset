@@ -1,0 +1,39 @@
+From 9944743a9d4f77b8bbcf6c365b3dd8a262b5adfb Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Mon, 12 Feb 2018 13:11:56 +0000
+Subject: [PATCH] GTM: avoid excessive processing time. Fixes
+ https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=6236. Credit to OSS
+ Fuzz
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@41455 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/ogr/ogrsf_frmts/gtm/gtm.cpp | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/gdal/ogr/ogrsf_frmts/gtm/gtm.cpp b/gdal/ogr/ogrsf_frmts/gtm/gtm.cpp
+index e8be519669d2..7f8107119c3b 100644
+--- a/gdal/ogr/ogrsf_frmts/gtm/gtm.cpp
++++ b/gdal/ogr/ogrsf_frmts/gtm/gtm.cpp
+@@ -682,17 +682,18 @@ vsi_l_offset GTM::findFirstWaypointOffset()
+     for (int i = 0; i < n_maps; ++i)
+     {
+         /* Read image name string size */
+-        unsigned short stringSize = readUShort(pGTMFile);
++        bool bSuccess = false;
++        unsigned short stringSize = readUShort(pGTMFile, &bSuccess);
+ 
+         /* skip image name string */
+-        if ( VSIFSeekL(pGTMFile, stringSize, SEEK_CUR) != 0)
++        if ( !bSuccess ||  VSIFSeekL(pGTMFile, stringSize, SEEK_CUR) != 0)
+             return 0;
+ 
+         /* read image comment string size */
+-        stringSize = readUShort(pGTMFile);
++        stringSize = readUShort(pGTMFile, &bSuccess);
+ 
+         /* skip image comment string */
+-        if ( VSIFSeekL(pGTMFile, stringSize, SEEK_CUR) != 0)
++        if ( !bSuccess || VSIFSeekL(pGTMFile, stringSize, SEEK_CUR) != 0)
+             return 0;
+ 
+         /* skip the others image parameters */

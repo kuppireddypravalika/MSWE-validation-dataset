@@ -1,0 +1,24 @@
+From 8b6750d52e38814faef786d4f7399eef179c9755 Mon Sep 17 00:00:00 2001
+From: Thomas Neele <t.s.neele@tue.nl>
+Date: Tue, 18 Sep 2018 18:13:59 +0200
+Subject: [PATCH] Extract function symbol more efficiently
+
+---
+ libraries/atermpp/source/aterm_io_binary.cpp | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/libraries/atermpp/source/aterm_io_binary.cpp b/libraries/atermpp/source/aterm_io_binary.cpp
+index 158c172bd7..f92f0360a3 100644
+--- a/libraries/atermpp/source/aterm_io_binary.cpp
++++ b/libraries/atermpp/source/aterm_io_binary.cpp
+@@ -304,9 +304,7 @@ static void write_symbol(const function_symbol& sym, ostream& os)
+ static const function_symbol& get_function_symbol(const aterm& t)
+ {
+   assert(t.type_is_int() || t.type_is_list() || t.type_is_appl());
+-  return t.type_is_int()  ? detail::function_adm.AS_INT :
+-         t.type_is_list() ? (t==aterm_list() ? detail::function_adm.AS_EMPTY_LIST : detail::function_adm.AS_LIST) :
+-         down_cast<aterm_appl>(t).function();
++  return detail::address(t)->function();
+ }
+ 
+ /**

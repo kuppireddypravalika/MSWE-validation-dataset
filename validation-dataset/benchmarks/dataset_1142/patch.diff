@@ -1,0 +1,40 @@
+From 56674888496f4f4c104f9791fc12589b4b535700 Mon Sep 17 00:00:00 2001
+From: Frank Warmerdam <warmerdam@pobox.com>
+Date: Tue, 8 Feb 2005 18:15:34 +0000
+Subject: [PATCH] Removed tail recursion in IReadBlock() to avoid stack
+ overflows.
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@7049 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ frmts/aaigrid/aaigriddataset.cpp | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/frmts/aaigrid/aaigriddataset.cpp b/frmts/aaigrid/aaigriddataset.cpp
+index d1a2345dd574..7ed2764e3cba 100644
+--- a/frmts/aaigrid/aaigriddataset.cpp
++++ b/frmts/aaigrid/aaigriddataset.cpp
+@@ -28,6 +28,9 @@
+  *****************************************************************************
+  *
+  * $Log$
++ * Revision 1.28  2005/02/08 18:15:34  fwarmerdam
++ * Removed tail recursion in IReadBlock() to avoid stack overflows.
++ *
+  * Revision 1.27  2005/02/08 17:06:27  fwarmerdam
+  * Fixed up Delete() method to avoid error if there is no .prj.
+  *
+@@ -226,7 +229,13 @@ CPLErr AAIGRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
+         return CE_Failure;
+ 
+     if( panLineOffset[nBlockYOff] == 0 )
+-        IReadBlock( nBlockXOff, nBlockYOff-1, NULL );
++    {
++        int iPrevLine;
++
++        for( iPrevLine = 1; iPrevLine <= nBlockYOff; iPrevLine++ )
++            if( panLineOffset[iPrevLine] == 0 )
++                IReadBlock( nBlockXOff, iPrevLine-1, NULL );
++    }
+ 
+     if( panLineOffset[nBlockYOff] == 0 )
+         return CE_Failure;

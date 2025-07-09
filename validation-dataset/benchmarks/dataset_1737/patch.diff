@@ -1,0 +1,35 @@
+From 03a472ea080e98b26d50efd1548bb47a90ca556e Mon Sep 17 00:00:00 2001
+From: Marcin Kowalczyk <qrczak@google.com>
+Date: Mon, 26 Feb 2024 09:36:14 -0800
+Subject: [PATCH] Optimize `Reflection::ScratchSpace::CopyFromCord()`.
+
+If the Cord is already flat, return a pointer to its data instead of copying
+them to a string.
+
+PiperOrigin-RevId: 610434454
+---
+ src/google/protobuf/message.h | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/google/protobuf/message.h b/src/google/protobuf/message.h
+index aa46aa9b79057..6c9872ab3b379 100644
+--- a/src/google/protobuf/message.h
++++ b/src/google/protobuf/message.h
+@@ -101,6 +101,7 @@
+ #include "absl/memory/memory.h"
+ #include "absl/strings/cord.h"
+ #include "absl/strings/string_view.h"
++#include "absl/types/optional.h"
+ #include "google/protobuf/arena.h"
+ #include "google/protobuf/descriptor.h"
+ #include "google/protobuf/generated_message_reflection.h"
+@@ -601,6 +602,9 @@ class PROTOBUF_EXPORT Reflection final {
+     friend class Reflection;
+ 
+     absl::string_view CopyFromCord(const absl::Cord& cord) {
++      if (absl::optional<absl::string_view> flat = cord.TryFlat()) {
++        return *flat;
++      }
+       if (!buffer_) {
+         buffer_ = absl::make_unique<std::string>();
+       }

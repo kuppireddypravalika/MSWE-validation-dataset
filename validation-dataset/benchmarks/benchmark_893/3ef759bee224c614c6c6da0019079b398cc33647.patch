@@ -1,0 +1,30 @@
+From 3ef759bee224c614c6c6da0019079b398cc33647 Mon Sep 17 00:00:00 2001
+From: dsp56300 <dsp56300@users.noreply.github.com>
+Date: Mon, 8 Jul 2024 20:49:06 +0200
+Subject: [PATCH] make use of x86s ability to move immediate to memory, no need
+ to move to a register first
+
+---
+ source/dsp56kEmu/jitmem.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/source/dsp56kEmu/jitmem.cpp b/source/dsp56kEmu/jitmem.cpp
+index c53a1889..736fc247 100644
+--- a/source/dsp56kEmu/jitmem.cpp
++++ b/source/dsp56kEmu/jitmem.cpp
+@@ -13,9 +13,15 @@ namespace dsp56k
+ {
+ 	void Jitmem::mov(uint32_t* _dst, const uint32_t& _imm) const
+ 	{
++#ifdef HAVE_X86_64
++		const RegScratch reg(m_block);
++		const auto p = makePtr(reg, _dst, sizeof(_imm));
++		m_block.asm_().mov(p, asmjit::Imm(_imm));
++#else
+ 		const RegGP src(m_block);
+ 		m_block.asm_().mov(r32(src), asmjit::Imm(_imm));
+ 		mov<sizeof(_imm)>(_dst, src);
++#endif
+ 	}
+ 
+ 	void Jitmem::mov(uint64_t* _dst, const uint64_t& _imm) const

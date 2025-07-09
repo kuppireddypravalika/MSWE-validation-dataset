@@ -1,0 +1,41 @@
+From ef106d357da460110b0bad17be2b85f098a30098 Mon Sep 17 00:00:00 2001
+From: Tobias Doerffel <tobias.doerffel@gmail.com>
+Date: Mon, 22 May 2017 08:46:42 +0200
+Subject: [PATCH] Service: VncProxyConnection: eliminate variables in
+ handleRect()
+
+---
+ service/src/VncProxyConnection.cpp | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/service/src/VncProxyConnection.cpp b/service/src/VncProxyConnection.cpp
+index 2100ff17f..f0561ccdd 100644
+--- a/service/src/VncProxyConnection.cpp
++++ b/service/src/VncProxyConnection.cpp
+@@ -325,8 +325,6 @@ bool VncProxyConnection::handleRect( QBuffer& buffer, rfbFramebufferUpdateRectHe
+ 
+ 	const int bytesPerPixel = clientProtocol().pixelFormat().bitsPerPixel / 8;
+ 	const int bytesPerRow = ( width + 7 ) / 8;
+-	const int bytesPerLine = width * bytesPerPixel;
+-	const int rawSize = width * height * bytesPerPixel;
+ 
+ 	switch( rectHeader.encoding )
+ 	{
+@@ -340,7 +338,7 @@ bool VncProxyConnection::handleRect( QBuffer& buffer, rfbFramebufferUpdateRectHe
+ 
+ 	case rfbEncodingRichCursor:
+ 		return width * height == 0 ||
+-				( buffer.read( rawSize ).size() == rawSize &&
++				( buffer.read( width * height * bytesPerPixel ).size() == width * height * bytesPerPixel &&
+ 				  buffer.read( bytesPerRow * height ).size() == bytesPerRow * height );
+ 
+ 	case rfbEncodingSupportedMessages:
+@@ -352,7 +350,7 @@ bool VncProxyConnection::handleRect( QBuffer& buffer, rfbFramebufferUpdateRectHe
+ 		return buffer.read( width ).size() == width;
+ 
+ 	case rfbEncodingRaw:
+-		return buffer.read( bytesPerLine * height ).size() == bytesPerLine * height;
++		return buffer.read( width * height * bytesPerPixel ).size() == width * height * bytesPerPixel;
+ 
+ 	case rfbEncodingCopyRect:
+ 		return buffer.read( sz_rfbCopyRect ).size() == sz_rfbCopyRect;

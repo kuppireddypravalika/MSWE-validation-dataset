@@ -1,0 +1,35 @@
+From 1c775ac22fbf4e6f0809b39b0c694e327b5d3d70 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Tue, 29 Sep 2009 22:26:16 +0000
+Subject: [PATCH] Rasterlite CreateCopy() : Enclose insertions into table by
+ BEGIN/COMMIT to enhance performance
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@17715 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/frmts/rasterlite/rasterlitecreatecopy.cpp | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/gdal/frmts/rasterlite/rasterlitecreatecopy.cpp b/gdal/frmts/rasterlite/rasterlitecreatecopy.cpp
+index cae8b18ac788..46be58bac253 100644
+--- a/gdal/frmts/rasterlite/rasterlitecreatecopy.cpp
++++ b/gdal/frmts/rasterlite/rasterlitecreatecopy.cpp
+@@ -547,7 +547,9 @@ RasterliteCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
+     int nTotalBlocks = nXBlocks * nYBlocks;
+ 
+     char** papszTileDriverOptions = RasterliteGetTileDriverOptions(papszOptions);
+-
++    
++    OGR_DS_ExecuteSQL(hDS, "BEGIN", NULL, NULL);
++    
+     CPLErr eErr = CE_None;
+     int nBlockXOff, nBlockYOff;
+     for(nBlockYOff=0;eErr == CE_None && nBlockYOff<nYBlocks;nBlockYOff++)
+@@ -680,6 +682,8 @@ RasterliteCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
+         }
+     }
+     
++    OGR_DS_ExecuteSQL(hDS, "COMMIT", NULL, NULL);
++    
+     CSLDestroy(papszTileDriverOptions);
+     
+     VSIFree(pabyMEMDSBuffer);

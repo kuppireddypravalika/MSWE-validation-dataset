@@ -1,0 +1,22 @@
+From f1c76bda7d33170c7809e6f451373b94933b3d22 Mon Sep 17 00:00:00 2001
+From: Hendrik Leppkes <h.leppkes@gmail.com>
+Date: Thu, 17 Mar 2016 12:54:36 +0100
+Subject: [PATCH] Stop reading before the end of the buffer to avoid overreads
+
+---
+ decoder/LAVAudio/LAVAudio.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/decoder/LAVAudio/LAVAudio.cpp b/decoder/LAVAudio/LAVAudio.cpp
+index b37a849b9..b1486a742 100644
+--- a/decoder/LAVAudio/LAVAudio.cpp
++++ b/decoder/LAVAudio/LAVAudio.cpp
+@@ -1738,7 +1738,7 @@ HRESULT CLAVAudio::ResyncMPEGAudio()
+   uint8_t *buf = m_buff.Ptr();
+   int size = m_buff.GetCount();
+ 
+-  for (int i = 0; i < size; i++)
++  for (int i = 0; i < (size - 3); i++)
+   {
+     uint32_t header, header2;
+     int frame_size = check_mpegaudio_header(buf + i, &header);

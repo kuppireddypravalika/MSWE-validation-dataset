@@ -1,0 +1,30 @@
+From 470dcc511bd90ceff655bf40af2f03dd889cc172 Mon Sep 17 00:00:00 2001
+From: Fushan Wen <qydwhotmail@gmail.com>
+Date: Sat, 28 May 2022 14:59:56 +0800
+Subject: [PATCH] shell: use `std::copy_if` in `ShellCorona::panelsForScreen`
+
+Consider using std::accumulate algorithm instead of a raw loop. (CWE-398)
+in shell/shellcorona.cpp:1148
+---
+ shell/shellcorona.cpp | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/shell/shellcorona.cpp b/shell/shellcorona.cpp
+index 4a6009eb306..6d0c58ca883 100644
+--- a/shell/shellcorona.cpp
++++ b/shell/shellcorona.cpp
+@@ -1131,11 +1131,9 @@ PanelView *ShellCorona::panelView(Plasma::Containment *containment) const
+ QList<PanelView *> ShellCorona::panelsForScreen(QScreen *screen) const
+ {
+     QList<PanelView *> ret;
+-    for (PanelView *v : m_panelViews) {
+-        if (v->screenToFollow() == screen) {
+-            ret += v;
+-        }
+-    }
++    std::copy_if(m_panelViews.cbegin(), m_panelViews.cend(), std::back_inserter(ret), [screen](const PanelView *v) {
++        return v->screenToFollow() == screen;
++    });
+     return ret;
+ }
+ 

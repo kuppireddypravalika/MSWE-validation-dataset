@@ -1,0 +1,26 @@
+From 94bcb262802d2518372409dfc5c35b3e17f268c4 Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Sat, 26 Jun 2021 15:50:52 -0600
+Subject: [PATCH] Iterate over only XmlElement nodes for mine veins
+
+---
+ OPHD/Mine.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/OPHD/Mine.cpp b/OPHD/Mine.cpp
+index fb9611509..4fd2e0112 100644
+--- a/OPHD/Mine.cpp
++++ b/OPHD/Mine.cpp
+@@ -340,10 +340,10 @@ void Mine::deserialize(NAS2D::Xml::XmlElement* element)
+ 	mProductionRate = static_cast<MineProductionRate>(yield);
+ 
+ 	mVeins.resize(static_cast<std::size_t>(depth));
+-	for (XmlNode* vein = element->firstChild(); vein != nullptr; vein = vein->nextSibling())
++	for (auto* vein = element->firstChildElement(); vein != nullptr; vein = vein->nextSiblingElement())
+ 	{
+ 		auto mineVein = MineVein{0, 0, 0, 0};
+-		auto* attribute = vein->toElement()->firstAttribute();
++		auto* attribute = vein->firstAttribute();
+ 		int id = 0;
+ 		while (attribute)
+ 		{

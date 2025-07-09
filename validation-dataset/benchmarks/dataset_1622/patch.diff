@@ -1,0 +1,47 @@
+From 322387ce7b5e768d6bd0b8dda1b8f9b704e88f47 Mon Sep 17 00:00:00 2001
+From: Volker Hilsheimer <volker.hilsheimer@qt.io>
+Date: Wed, 10 May 2023 10:13:57 +0200
+Subject: [PATCH] Accessibility: call update handler even if not active
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Update handlers should get informed about accessibility updates even if
+the platform's accessibility bridge is not activated. E.g. an analytics
+or test framework (like Qt Insights) might want to use the handler to
+record relevant events.
+
+While many events are only delivered if QAccessible::isActive returns
+true to avoid spending computing time on creating the relevant event
+data (e.g. in item views that can be expensive), the most important
+events are still delivered. And requiring activation of accessibility
+before events can be recorded through a handler has side effects on
+performance, which we want to avoid.
+
+Change-Id: I896b873574f6ad2527f755912d4950aa1f898097
+Reviewed-by: Qt CI Bot <qt_ci_bot@qt-project.org>
+Reviewed-by: Jan Arve Sæther <jan-arve.saether@qt.io>
+---
+ src/gui/accessible/qaccessible.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/gui/accessible/qaccessible.cpp b/src/gui/accessible/qaccessible.cpp
+index b382f2003777..583abf5302d8 100644
+--- a/src/gui/accessible/qaccessible.cpp
++++ b/src/gui/accessible/qaccessible.cpp
+@@ -866,11 +866,11 @@ void QAccessible::updateAccessibility(QAccessibleEvent *event)
+             if (iface->tableInterface())
+                 iface->tableInterface()->modelChange(static_cast<QAccessibleTableModelChangeEvent*>(event));
+         }
++    }
+ 
+-        if (updateHandler) {
+-            updateHandler(event);
+-            return;
+-        }
++    if (updateHandler) {
++        updateHandler(event);
++        return;
+     }
+ 
+     if (QPlatformAccessibility *pfAccessibility = platformAccessibility())

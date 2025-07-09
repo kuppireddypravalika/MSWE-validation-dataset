@@ -1,0 +1,23 @@
+From 916cbb306f3871ed29c777b9a97bc6efb4927358 Mon Sep 17 00:00:00 2001
+From: Magne Sjaastad <magne.sjaastad@ceetronsolutions.com>
+Date: Fri, 26 Feb 2021 13:47:31 +0100
+Subject: [PATCH] Streamlines : Set default max days to 5000
+
+On large models, the time to compute streamlines can use much memory and be time consuming. Reducing the max number of days will help in some cases.
+---
+ .../Streamlines/RimStreamlineInViewCollection.cpp               | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ApplicationLibCode/ProjectDataModel/Streamlines/RimStreamlineInViewCollection.cpp b/ApplicationLibCode/ProjectDataModel/Streamlines/RimStreamlineInViewCollection.cpp
+index ea3648dc496..3c061ff0038 100644
+--- a/ApplicationLibCode/ProjectDataModel/Streamlines/RimStreamlineInViewCollection.cpp
++++ b/ApplicationLibCode/ProjectDataModel/Streamlines/RimStreamlineInViewCollection.cpp
+@@ -114,7 +114,7 @@ RimStreamlineInViewCollection::RimStreamlineInViewCollection()
+     m_resolution = 20.0;
+ 
+     CAF_PDM_InitFieldNoDefault( &m_maxDays, "MaxDays", "Max Days", "", "", "" );
+-    m_maxDays = 50000;
++    m_maxDays = 5000;
+ 
+     CAF_PDM_InitFieldNoDefault( &m_useProducers, "UseProducers", "Producer Wells", "", "", "" );
+     m_useProducers = true;

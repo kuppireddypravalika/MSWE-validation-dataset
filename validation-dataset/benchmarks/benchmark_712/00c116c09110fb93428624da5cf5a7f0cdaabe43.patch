@@ -1,0 +1,25 @@
+From 00c116c09110fb93428624da5cf5a7f0cdaabe43 Mon Sep 17 00:00:00 2001
+From: Matt Larsen <mclarsen@users.noreply.github.com>
+Date: Tue, 5 Jan 2021 08:09:58 -0800
+Subject: [PATCH] changing blueprint ghost type to int (#1694)
+
+This MR changes the type of the ghost field used by conduit blueprint from `double` to `int`. Ascent expects integers, and this reduces the storage space required for the field.
+---
+ Src/Extern/Conduit/AMReX_Conduit_Blueprint.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Src/Extern/Conduit/AMReX_Conduit_Blueprint.cpp b/Src/Extern/Conduit/AMReX_Conduit_Blueprint.cpp
+index 56c041c640a..f2d21243e9b 100644
+--- a/Src/Extern/Conduit/AMReX_Conduit_Blueprint.cpp
++++ b/Src/Extern/Conduit/AMReX_Conduit_Blueprint.cpp
+@@ -234,8 +234,8 @@ void AddFabGhostIndicatorField (const FArrayBox& fab,
+     Node &n_field = res["fields/ascent_ghosts"];
+     n_field["association"] = "element";
+     n_field["topology"] = "topo";
+-    n_field["values"].set(DataType::float64(fab.box().numPts()));
+-    float64_array vals_array = n_field["values"].value();
++    n_field["values"].set(DataType::int32(fab.box().numPts()));
++    int32_array vals_array = n_field["values"].value();
+ 
+     int dims = BL_SPACEDIM;
+ 

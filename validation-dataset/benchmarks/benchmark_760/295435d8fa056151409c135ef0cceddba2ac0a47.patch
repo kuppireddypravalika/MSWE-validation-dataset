@@ -1,0 +1,40 @@
+From 295435d8fa056151409c135ef0cceddba2ac0a47 Mon Sep 17 00:00:00 2001
+From: "Martin T. H. Sandsmark" <martin.sandsmark@kde.org>
+Date: Mon, 20 Sep 2021 12:02:45 +0200
+Subject: [PATCH] Make sure we release memory when clearing the (possibly huge)
+ scroll history
+
+---
+ src/Screen.cpp | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/src/Screen.cpp b/src/Screen.cpp
+index ffc7135a4..0f1c2508b 100644
+--- a/src/Screen.cpp
++++ b/src/Screen.cpp
+@@ -27,6 +27,13 @@
+ #include "profile/Profile.h"
+ #include "profile/ProfileManager.h"
+ 
++// For malloc_trim, which is a GNU extension
++#ifdef __GNUC__
++extern "C" {
++#include <malloc.h>
++}
++#endif
++
+ using namespace Konsole;
+ 
+ // Macro to convert x,y position on screen to position within an image.
+@@ -1693,6 +1700,11 @@ void Screen::setScroll(const HistoryType &t, bool copyPreviousScroll)
+         auto oldHistory = std::move(_history);
+         t.scroll(_history);
+     }
++
++#ifdef __GNUC__
++    // We might have been using gigabytes of memory, so make sure it is actually released
++    malloc_trim(0);
++#endif
+ }
+ 
+ bool Screen::hasScroll() const

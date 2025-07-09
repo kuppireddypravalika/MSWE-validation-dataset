@@ -1,0 +1,24 @@
+From 842a99000d64659bf85108b946baeac342015b09 Mon Sep 17 00:00:00 2001
+From: Rafael Espindola <rafael.espindola@gmail.com>
+Date: Wed, 6 Dec 2017 19:13:23 +0000
+Subject: [PATCH] Add an early return.
+
+Total memory allocation when linking clang goes from 281.80MB to
+270.96MB.
+---
+ lld/ELF/LinkerScript.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/lld/ELF/LinkerScript.cpp b/lld/ELF/LinkerScript.cpp
+index 7db282bdb721..f301afc40317 100644
+--- a/lld/ELF/LinkerScript.cpp
++++ b/lld/ELF/LinkerScript.cpp
+@@ -184,6 +184,8 @@ static std::string getFilename(InputFile *File) {
+ }
+ 
+ bool LinkerScript::shouldKeep(InputSectionBase *S) {
++  if (KeptSections.empty())
++    return false;
+   std::string Filename = getFilename(S->File);
+   for (InputSectionDescription *ID : KeptSections)
+     if (ID->FilePat.match(Filename))

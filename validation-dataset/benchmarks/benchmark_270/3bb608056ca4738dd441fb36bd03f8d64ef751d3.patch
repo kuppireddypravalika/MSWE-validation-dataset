@@ -1,0 +1,27 @@
+From 3bb608056ca4738dd441fb36bd03f8d64ef751d3 Mon Sep 17 00:00:00 2001
+From: Laszlo Ersek <laszlo.ersek@scylladb.com>
+Date: Tue, 13 Aug 2024 15:19:41 +0200
+Subject: [PATCH] gms/gossiper: get "int32_t" value of "gms::version_type"
+ explicitly
+
+In do_sort(), we need to drop to "int32_t" temporarily, so that we can
+call ::abs() on the version difference. Do that explicitly.
+
+Signed-off-by: Laszlo Ersek <laszlo.ersek@scylladb.com>
+---
+ gms/gossiper.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gms/gossiper.cc b/gms/gossiper.cc
+index e9ff9d48a861..3f7dbbc3e7fd 100644
+--- a/gms/gossiper.cc
++++ b/gms/gossiper.cc
+@@ -148,7 +148,7 @@ void gossiper::do_sort(utils::chunked_vector<gossip_digest>& g_digest_list) cons
+         auto ep = g_digest.get_endpoint();
+         auto ep_state = this->get_endpoint_state_ptr(ep);
+         version_type version = ep_state ? this->get_max_endpoint_state_version(*ep_state) : version_type();
+-        int32_t diff_version = ::abs(version - g_digest.get_max_version());
++        int32_t diff_version = ::abs((version - g_digest.get_max_version()).value());
+         diff_digests.emplace_back(gossip_digest(ep, g_digest.get_generation(), version_type(diff_version)));
+     }
+ 

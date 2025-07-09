@@ -1,0 +1,35 @@
+From 9a159cc02dca1d5adf25f8e49f31325a306a2ac8 Mon Sep 17 00:00:00 2001
+From: Magne Sjaastad <magne.sjaastad@ceetronsolutions.com>
+Date: Fri, 2 Jun 2023 15:32:03 +0200
+Subject: [PATCH] Performance: Property filter on a time step difference case
+ is slow #10339
+
+---
+ .../ReservoirDataModel/RigCaseCellResultCalculator.cpp     | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/ApplicationLibCode/ReservoirDataModel/RigCaseCellResultCalculator.cpp b/ApplicationLibCode/ReservoirDataModel/RigCaseCellResultCalculator.cpp
+index 33e89332141..3c8abe8945e 100644
+--- a/ApplicationLibCode/ReservoirDataModel/RigCaseCellResultCalculator.cpp
++++ b/ApplicationLibCode/ReservoirDataModel/RigCaseCellResultCalculator.cpp
+@@ -104,6 +104,10 @@ bool RigCaseCellResultCalculator::computeDifference( RigEclipseCaseData*
+         return false;
+     }
+ 
++    // Check if result is already computed. If not having an early return here, the same result is recomputed every time data is requested,
++    // and this is a huge performance hit on larger grids.
++    if ( sourceCaseResults->isResultLoaded( address ) ) return true;
++
+     RigEclipseResultAddress nativeAddress( address );
+     nativeAddress.setDeltaCaseId( RigEclipseResultAddress::noCaseDiffValue() );
+     nativeAddress.setDeltaTimeStepIndex( RigEclipseResultAddress::noTimeLapseValue() );
+@@ -178,7 +182,8 @@ bool RigCaseCellResultCalculator::computeDifference( RigEclipseCaseData*
+                 RigResultAccessorFactory::createFromResultAddress( baseCase, gridIdx, porosityModel, baseFrameIdx, nativeAddress );
+             if ( baseResultAccessor.isNull() ) continue;
+ 
+-            for ( size_t localGridCellIdx = 0; localGridCellIdx < grid->cellCount(); localGridCellIdx++ )
++#pragma omp parallel for
++            for ( long localGridCellIdx = 0; localGridCellIdx < static_cast<long>( grid->cellCount() ); localGridCellIdx++ )
+             {
+                 size_t reservoirCellIndex = grid->reservoirCellIndex( localGridCellIdx );
+                 if ( activeCellInfo->isActive( reservoirCellIndex ) )

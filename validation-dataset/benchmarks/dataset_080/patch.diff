@@ -1,0 +1,28 @@
+From dccd6970bf042aa75e3ee54a694a3d3cb942aba2 Mon Sep 17 00:00:00 2001
+From: "Wladimir J. van der Laan" <laanwj@gmail.com>
+Date: Mon, 10 Apr 2017 15:16:34 +0200
+Subject: [PATCH] Merge #10164: Wallet: reduce excess logic InMempool()
+
+3491476 Wallet: reduce excess logic InMemPool() (Kewde)
+
+Tree-SHA512: 554ea2827cfd482281fae0ba3d0a7989dbfeace98a35462732ea08bf3cc94c9564a9ea8ca2fa9905b963367d0b56a490ef0d83ceb6731c8f06187de98b6a7f23
+---
+ src/wallet/wallet.cpp | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/src/wallet/wallet.cpp b/src/wallet/wallet.cpp
+index f7892af937..0077c398da 100644
+--- a/src/wallet/wallet.cpp
++++ b/src/wallet/wallet.cpp
+@@ -2186,10 +2186,7 @@ CAmount CWalletTx::GetChange() const
+ bool CWalletTx::InMempool() const
+ {
+     LOCK(mempool.cs);
+-    if (mempool.exists(GetHash())) {
+-        return true;
+-    }
+-    return false;
++    return mempool.exists(GetHash());
+ }
+ 
+ bool CWalletTx::IsTrusted() const

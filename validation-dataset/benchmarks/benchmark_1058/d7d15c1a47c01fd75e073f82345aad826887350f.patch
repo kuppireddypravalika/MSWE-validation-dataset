@@ -1,0 +1,31 @@
+From d7d15c1a47c01fd75e073f82345aad826887350f Mon Sep 17 00:00:00 2001
+From: Dennis Oberst <dennis.oberst@qt.io>
+Date: Mon, 31 Jul 2023 17:27:14 +0200
+Subject: [PATCH] Use new QBA::assign in QXcbMime::mimeDataForAtom
+
+QByteArray::assign() re-uses existing unshared capacity(), if any, and
+is therefore potentially more efficient than '= QByteArray(~)' (and
+never slower).
+
+Task-number: QTBUG-106201
+Pick-to: 6.6
+Change-Id: I5e5114064c8aaa23892e95c235335632d7c5cd0a
+Reviewed-by: Marc Mutz <marc.mutz@qt.io>
+---
+ src/plugins/platforms/xcb/qxcbmime.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/plugins/platforms/xcb/qxcbmime.cpp b/src/plugins/platforms/xcb/qxcbmime.cpp
+index 9d624230716..3e3223d3634 100644
+--- a/src/plugins/platforms/xcb/qxcbmime.cpp
++++ b/src/plugins/platforms/xcb/qxcbmime.cpp
+@@ -79,8 +79,7 @@ bool QXcbMime::mimeDataForAtom(QXcbConnection *connection, xcb_atom_t a, QMimeDa
+         if (atomName == "text/uri-list"_L1
+             && connection->atomName(a) == "text/x-moz-url") {
+             const QString mozUri = QLatin1StringView(data->split('\n').constFirst()) + u'\n';
+-            *data = QByteArray(reinterpret_cast<const char *>(mozUri.data()),
+-                               mozUri.size() * 2);
++            data->assign({reinterpret_cast<const char *>(mozUri.data()), mozUri.size() * 2});
+         } else if (atomName == "application/x-color"_L1)
+             *dataFormat = 16;
+         ret = true;

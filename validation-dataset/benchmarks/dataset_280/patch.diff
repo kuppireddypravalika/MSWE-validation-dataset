@@ -1,0 +1,37 @@
+From ae217f74475a65895ddfbf279d7c019eddac6222 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Wed, 17 Jan 2018 08:15:37 +0000
+Subject: [PATCH] BSB: avoid excessive memory allocation attempt. Fixes
+ https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=5390. Credit to OSS
+ Fuzz
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@41279 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/frmts/bsb/bsb_read.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/gdal/frmts/bsb/bsb_read.c b/gdal/frmts/bsb/bsb_read.c
+index 0c3b562dd1ec..f64d32f38bb4 100644
+--- a/gdal/frmts/bsb/bsb_read.c
++++ b/gdal/frmts/bsb/bsb_read.c
+@@ -449,6 +449,20 @@ BSBInfo *BSBOpen( const char *pszFilename )
+ /* -------------------------------------------------------------------- */
+ /*      Initialize memory for line offset list.                         */
+ /* -------------------------------------------------------------------- */
++    if( psInfo->nYSize > 10000000 )
++    {
++        vsi_l_offset nCurOffset = VSIFTellL(fp);
++        vsi_l_offset nFileSize;
++        VSIFSeekL(fp, 0, SEEK_END);
++        nFileSize = VSIFTellL(fp);
++        if( nFileSize < (vsi_l_offset)(psInfo->nYSize) )
++        {
++            CPLError( CE_Failure, CPLE_AppDefined, "Truncated file" );
++            BSBClose( psInfo );
++            return NULL;
++        }
++        VSIFSeekL(fp, nCurOffset, SEEK_SET);
++    }
+     psInfo->panLineOffset = (int *)
+         VSI_MALLOC2_VERBOSE(sizeof(int), psInfo->nYSize);
+     if (psInfo->panLineOffset == NULL)

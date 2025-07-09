@@ -1,0 +1,36 @@
+From 7b3124f6223e4b18e63aeaebf6d8dad94401ba6c Mon Sep 17 00:00:00 2001
+From: Jeroen van der Wulp <j.v.d.wulp@tue.nl>
+Date: Wed, 29 Apr 2009 10:42:59 +0000
+Subject: [PATCH] Changes:
+
+ - fix for rewriter performance problem
+
+    Replaced a call to add_data_decls with set_data_decls. The original idea
+    was to add the differences to the specification instead of the whole thing.
+    This change accompishes just this.
+
+
+
+git-svn-id: https://svn.win.tue.nl/repos/MCRL2/trunk@6118 21252fe5-60e8-0310-8ff0-c1ae1001594e
+---
+ libraries/data/include/mcrl2/data/rewriter.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/libraries/data/include/mcrl2/data/rewriter.h b/libraries/data/include/mcrl2/data/rewriter.h
+index c0ad618170..44505c3199 100644
+--- a/libraries/data/include/mcrl2/data/rewriter.h
++++ b/libraries/data/include/mcrl2/data/rewriter.h
+@@ -232,11 +232,11 @@ namespace data {
+           for (atermpp::term_list< data::data_equation >::const_iterator r = new_equations.begin();
+                                                                         r != new_equations.end(); ++r) {
+             if (!m_rewriter->addRewriteRule(detail::impl_exprs_appl(*r, &substitution_context, &declarations, 0))) {
+-               throw mcrl2::runtime_error("Could not add rewrite rule!");
++              throw mcrl2::runtime_error("Could not add rewrite rule! (" + pp(*r) + ")");
+             }
+           }
+ 
+-          m_specification = core::detail::add_data_decls(m_specification, declarations);
++          m_specification = core::detail::set_data_decls(m_specification, declarations);
+         }
+ 
+         m_substitution_context = substitution_context;

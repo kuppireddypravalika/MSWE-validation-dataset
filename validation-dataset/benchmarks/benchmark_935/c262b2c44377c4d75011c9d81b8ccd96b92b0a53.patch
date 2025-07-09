@@ -1,0 +1,22 @@
+From c262b2c44377c4d75011c9d81b8ccd96b92b0a53 Mon Sep 17 00:00:00 2001
+From: Fushan Wen <qydwhotmail@gmail.com>
+Date: Wed, 15 Nov 2023 22:55:39 +0800
+Subject: [PATCH] Positioner: make sure std::span is faster than QList::mid
+
+---
+ containments/desktop/plugins/folder/positioner.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/containments/desktop/plugins/folder/positioner.cpp b/containments/desktop/plugins/folder/positioner.cpp
+index 792f9dd703..f857bba10e 100644
+--- a/containments/desktop/plugins/folder/positioner.cpp
++++ b/containments/desktop/plugins/folder/positioner.cpp
+@@ -791,6 +791,8 @@ void Positioner::applyPositions()
+     m_proxyToSource.clear();
+     m_sourceToProxy.clear();
+ 
++    // The assertion makes sure std::span is faster than QList::mid
++    static_assert(!std::is_trivially_copy_assignable_v<decltype(m_positions)::value_type>);
+     const std::span positions{std::next(m_positions.cbegin(), 2), m_positions.cend()};
+ 
+     if (positions.size() % 3 != 0) {

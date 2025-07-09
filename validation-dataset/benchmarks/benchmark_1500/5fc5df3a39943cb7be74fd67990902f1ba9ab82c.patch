@@ -1,0 +1,36 @@
+From 5fc5df3a39943cb7be74fd67990902f1ba9ab82c Mon Sep 17 00:00:00 2001
+From: Nicolas Goutte <nicolasg@snafu.de>
+Date: Sun, 21 Nov 2004 15:53:52 +0000
+Subject: [PATCH] Improve OASIS thumbnail: - generate it with an Alpha channel
+ (as needed by specification) - save it as PNG with quality "0" (more known as
+ -9 parameter)
+
+svn path=/trunk/koffice/; revision=364788
+---
+ lib/kofficecore/koDocument.cc | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/lib/kofficecore/koDocument.cc b/lib/kofficecore/koDocument.cc
+index 877721f8f38..b2fd1170eb9 100644
+--- a/lib/kofficecore/koDocument.cc
++++ b/lib/kofficecore/koDocument.cc
+@@ -1175,13 +1175,16 @@ bool KoDocument::saveToStore( KoStore* _store, const QString & _path )
+ bool KoDocument::saveOasisPreview( KoStore* store )
+ {
+     const QPixmap pix = generatePreview( QSize( 128, 128 ) );
+-    // ### TODO: test if this really works! (No, it does not work. Still no alpha channel!)
+-    const QImage preview ( pix.convertToImage().convertDepth( 32, Qt::ColorOnly | Qt::ThresholdAlphaDither ) );
++    QImage preview ( pix.convertToImage().convertDepth( 32, Qt::ColorOnly ) );
++    if ( !preview.hasAlphaBuffer() )
++    {
++        preview.setAlphaBuffer( true );
++    }
+     // ### TODO: freedesktop.org Thumbnail specification (date...)
+     KoStoreDevice io ( store );
+     if ( !io.open( IO_WriteOnly ) )
+         return false;
+-    if ( ! preview.save( &io, "PNG" ) ) // ### TODO What is -9 in quality terms?
++    if ( ! preview.save( &io, "PNG", 0 ) )
+         return false;
+     io.close();
+     return true;

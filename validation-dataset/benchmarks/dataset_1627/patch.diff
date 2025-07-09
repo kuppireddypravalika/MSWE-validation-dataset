@@ -1,0 +1,33 @@
+From 4dacaaf15a51860f3a7a2d72ca033ccc38165de1 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Tor=20Arne=20Vestb=C3=B8?= <tor.arne.vestbo@qt.io>
+Date: Thu, 15 Jun 2023 14:54:01 +0200
+Subject: [PATCH] Skip clearing the QIcon cache on QIconLoader theme key change
+
+QThemeIconEngine takes care of creating a new icon engine when
+the icon theme key changes, so we don't need to invalidate the
+entire QIcon cache.
+
+Pick-to: 6.6
+Change-Id: Ie3bca00a9146d1f429b2a6f8ab0b39e15834d158
+Reviewed-by: Axel Spoerl <axel.spoerl@qt.io>
+---
+ src/gui/image/qiconloader.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/gui/image/qiconloader.cpp b/src/gui/image/qiconloader.cpp
+index faa230519239..d0adf9b8f256 100644
+--- a/src/gui/image/qiconloader.cpp
++++ b/src/gui/image/qiconloader.cpp
+@@ -133,9 +133,10 @@ void QIconLoader::updateSystemTheme()
+ 
+ void QIconLoader::invalidateKey()
+ {
++    // Invalidating the key here will result in QThemeIconEngine
++    // recreating the actual engine the next time the icon is used.
++    // We don't need to clear the QIcon cache itself.
+     m_themeKey++;
+-
+-    QIconPrivate::clearIconCache();
+ }
+ 
+ QString QIconLoader::themeName() const

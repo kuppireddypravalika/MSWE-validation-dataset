@@ -1,0 +1,31 @@
+From 73b52c0f5e3ad37cfd87fe6a051d120e8da13174 Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@gmail.com>
+Date: Wed, 7 Jun 2017 00:58:09 +0000
+Subject: [PATCH] [LazyValueInfo] Remove redundant calls to
+ ConstantRange::contains. The same exact call was made in the if above and we
+ already know it returned true. NFC
+
+---
+ llvm/lib/Analysis/LazyValueInfo.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/llvm/lib/Analysis/LazyValueInfo.cpp b/llvm/lib/Analysis/LazyValueInfo.cpp
+index 12fa94409016..a673b6d42471 100644
+--- a/llvm/lib/Analysis/LazyValueInfo.cpp
++++ b/llvm/lib/Analysis/LazyValueInfo.cpp
+@@ -1684,13 +1684,13 @@ static LazyValueInfo::Tristate getPredicateResult(unsigned Pred, Constant *C,
+       if (!CR.contains(CI->getValue()))
+         return LazyValueInfo::False;
+ 
+-      if (CR.isSingleElement() && CR.contains(CI->getValue()))
++      if (CR.isSingleElement())
+         return LazyValueInfo::True;
+     } else if (Pred == ICmpInst::ICMP_NE) {
+       if (!CR.contains(CI->getValue()))
+         return LazyValueInfo::True;
+ 
+-      if (CR.isSingleElement() && CR.contains(CI->getValue()))
++      if (CR.isSingleElement())
+         return LazyValueInfo::False;
+     }
+ 

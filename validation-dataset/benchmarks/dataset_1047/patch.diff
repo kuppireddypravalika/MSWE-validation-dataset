@@ -1,0 +1,30 @@
+From bde1838fa031a680eec21d8a0ee3001741b6cb9c Mon Sep 17 00:00:00 2001
+From: Huang-Ming Huang <huangming.huang@gmail.com>
+Date: Tue, 28 Feb 2017 10:52:54 -0600
+Subject: [PATCH] Optimize mb_copy() for common cases
+
+---
+ dds/DCPS/DataSampleHeader.cpp | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/dds/DCPS/DataSampleHeader.cpp b/dds/DCPS/DataSampleHeader.cpp
+index 4bafbf66d10..43724e22b81 100644
+--- a/dds/DCPS/DataSampleHeader.cpp
++++ b/dds/DCPS/DataSampleHeader.cpp
+@@ -34,6 +34,16 @@ namespace {
+   template <typename T>
+   bool mb_copy(T& dest, const ACE_Message_Block& mb, size_t offset, bool swap)
+   {
++    if (mb.length() >= sizeof(T)) {
++      // Avoid creating ACE_Message_Block from the heap if we just need one.
++      ACE_Message_Block temp(mb.data_block (), ACE_Message_Block::DONT_DELETE);
++      temp.rd_ptr(mb.rd_ptr()+offset);
++      temp.wr_ptr(mb.wr_ptr());
++      OpenDDS::DCPS::Serializer ser(&temp, swap);
++      ser.buffer_read(reinterpret_cast<char*>(&dest), sizeof(T), swap);
++      return true;
++    }
++
+     ACE_Message_Block* temp = mb.duplicate();
+     if (!temp) { // couldn't allocate
+       return false;

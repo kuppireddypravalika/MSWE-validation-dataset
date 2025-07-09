@@ -1,0 +1,22 @@
+From e40b6e6cef12695352948d89c21bdc6898d4d8be Mon Sep 17 00:00:00 2001
+From: Eric T Dawson <eric.t.dawson@utexas.edu>
+Date: Tue, 5 Jul 2016 09:46:51 +0100
+Subject: [PATCH] Performance twiddling with kmer heap
+
+---
+ mkmh.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/mkmh.cpp b/mkmh.cpp
+index d9e5326..0439fba 100644
+--- a/mkmh.cpp
++++ b/mkmh.cpp
+@@ -145,7 +145,7 @@ namespace mkmh{
+         //priority_queue<string> ret(base.begin(), base.end());
+         for (auto k : kmer){
+             vector<string> outmers(seq.length() - k, "");
+-            //#pragma omp parallel for
++            #pragma omp parallel for
+             for (int i = 0; i < seq.length() - k; i++){
+                 string forward = seq.substr(i, k);
+                 string revrev = reverse(reverse_complement(forward));

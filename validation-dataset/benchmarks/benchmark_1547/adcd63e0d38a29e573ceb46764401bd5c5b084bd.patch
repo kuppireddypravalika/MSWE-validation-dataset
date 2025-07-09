@@ -1,0 +1,26 @@
+From adcd63e0d38a29e573ceb46764401bd5c5b084bd Mon Sep 17 00:00:00 2001
+From: Berkus <berkus@exquance.com>
+Date: Fri, 6 Jul 2012 13:20:55 +0300
+Subject: [PATCH] Replace loop with cpu-specific string instruction.
+
+---
+ src/runtime/memutils.h | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/src/runtime/memutils.h b/src/runtime/memutils.h
+index 510c4a7c..76a65ee3 100644
+--- a/src/runtime/memutils.h
++++ b/src/runtime/memutils.h
+@@ -29,11 +29,7 @@ namespace memutils {
+ //Clearing 0x00040000 bytes at 0x009e2000 - this errored out in unrolled version, looks like counter wrapped. Need UTest.
+ inline void* fill_memory(void* dest, int value, size_t count)
+ {
+-    char *xs = reinterpret_cast<char*>(dest);
+-    while (count--)
+-    {
+-        *xs++ = value;
+-    }
++    asm volatile ("rep stosb" :: "c"(count), "a"(value), "D"(dest) : "memory");
+     return dest;
+ }
+ 

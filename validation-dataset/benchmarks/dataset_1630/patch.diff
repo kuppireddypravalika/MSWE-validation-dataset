@@ -1,0 +1,41 @@
+From 3b6ae86ce8a1d45e735c748f1cc766d9c592755a Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@qt.io>
+Date: Tue, 8 Aug 2023 07:37:03 +0200
+Subject: [PATCH] tst_QSctpSocket: replace QList with const array
+
+"Never use a dynamically-sized container for statically-sized data."
+
+Port the loop from Q_FOREACH (which can't deal with arrays) to ranged
+for (which can).
+
+Pick-to: 6.6 6.5
+Task-number: QTBUG-115839
+Change-Id: Iecfc037c8bbfc0b3196ed0c65f680768a8d2353a
+Reviewed-by: Ivan Solovev <ivan.solovev@qt.io>
+---
+ .../network/socket/qsctpsocket/tst_qsctpsocket.cpp    | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/tests/auto/network/socket/qsctpsocket/tst_qsctpsocket.cpp b/tests/auto/network/socket/qsctpsocket/tst_qsctpsocket.cpp
+index d661ad5405bc..1d1402a08231 100644
+--- a/tests/auto/network/socket/qsctpsocket/tst_qsctpsocket.cpp
++++ b/tests/auto/network/socket/qsctpsocket/tst_qsctpsocket.cpp
+@@ -127,12 +127,13 @@ void tst_QSctpSocket::bind_data()
+     // these ranges are guaranteed to be reserved for 'documentation purposes',
+     // and thus, should be unused in the real world. Not that I'm assuming the
+     // world is full of competent administrators, or anything.
+-    QStringList knownBad;
+-    knownBad << "198.51.100.1";
+-    knownBad << "2001:0DB8::1";
+-    foreach (const QString &badAddress, knownBad) {
++    const QString knownBad[] = {
++        "198.51.100.1",
++        "2001:0DB8::1",
++    };
++
++    for (const QString &badAddress : knownBad)
+         QTest::newRow(badAddress.toLatin1().constData()) << badAddress << false << QString();
+-    }
+ }
+ 
+ // Testing bind function

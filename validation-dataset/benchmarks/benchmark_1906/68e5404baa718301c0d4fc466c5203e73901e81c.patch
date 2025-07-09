@@ -1,0 +1,32 @@
+From 68e5404baa718301c0d4fc466c5203e73901e81c Mon Sep 17 00:00:00 2001
+From: Marijn Kruisselbrink <mkruisselbrink@kde.org>
+Date: Mon, 13 Dec 2010 05:09:24 -0800
+Subject: [PATCH] use QLatin1String to eliminate some unneeded char* -> QString
+ conversions
+
+---
+ filters/kspread/excel/import/ImportUtils.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/filters/kspread/excel/import/ImportUtils.cpp b/filters/kspread/excel/import/ImportUtils.cpp
+index 8354236166d..9abf62f4a4d 100644
+--- a/filters/kspread/excel/import/ImportUtils.cpp
++++ b/filters/kspread/excel/import/ImportUtils.cpp
+@@ -99,7 +99,7 @@ CellFormatKey::CellFormatKey(const Swinder::Format* format, const QString& formu
+     : format(format), isGeneral(format->valueFormat() == "General"), decimalCount(-1)
+ {
+     if (!isGeneral) {
+-        if (formula.startsWith("msoxl:=")) { // special cases
++        if (formula.startsWith(QLatin1String("msoxl:="))) { // special cases
+             QRegExp roundRegExp( "^msoxl:=ROUND[A-Z]*\\(.*;[\\s]*([0-9]+)[\\s]*\\)$" );
+             if (roundRegExp.indexIn(formula) >= 0) {
+                 bool ok = false;
+@@ -108,7 +108,7 @@ CellFormatKey::CellFormatKey(const Swinder::Format* format, const QString& formu
+                     decimalCount = decimals;
+                 }
+             }
+-        } else if (formula.startsWith("msoxl:=RAND(")) {
++        } else if (formula.startsWith(QLatin1String("msoxl:=RAND("))) {
+             decimalCount = 9;
+         }
+     }

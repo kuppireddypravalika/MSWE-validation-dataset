@@ -1,0 +1,32 @@
+From 2de0eddf472a6b1deaab604bb98be750f78b7547 Mon Sep 17 00:00:00 2001
+From: Tim Blechmann <timblech@users.sourceforge.net>
+Date: Fri, 19 Jun 2009 17:42:20 +0000
+Subject: [PATCH] clz: use gcc's builtin clz implementation if available
+
+git-svn-id: https://supercollider.svn.sourceforge.net/svnroot/supercollider/trunk@9234 a380766d-ff14-0410-b294-a243070f3f08
+---
+ Headers/plugin_interface/clz.h | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/Headers/plugin_interface/clz.h b/Headers/plugin_interface/clz.h
+index b3465513dc2..7d2a7759f06 100644
+--- a/Headers/plugin_interface/clz.h
++++ b/Headers/plugin_interface/clz.h
+@@ -37,6 +37,17 @@ count leading zeroes function and those that can be derived from it
+ // powerpc native count leading zeroes instruction:
+ #define CLZ(x)  ((int)__cntlzw((unsigned int)x))
+ 
++#elif defined(__GCC__)
++
++/* use gcc's builtins */
++static __inline__ int32 CLZ(int32 arg)
++{
++    if (arg)
++        return __builtin_clz(arg);
++    else
++        return 32;
++}
++
+ #elif defined(SC_WIN32) && !defined(__GCC__)
+ 
+ static int32 CLZ( int32 arg )

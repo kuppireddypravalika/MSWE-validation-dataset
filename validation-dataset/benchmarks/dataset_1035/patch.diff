@@ -1,0 +1,22 @@
+From 6bd838d807f534bcc2211f075237ecf052c7f67b Mon Sep 17 00:00:00 2001
+From: Michal Habera <michal.habera@gmail.com>
+Date: Fri, 13 Aug 2021 18:43:13 +0200
+Subject: [PATCH] Faster way of fetching tdim (#1665)
+
+---
+ cpp/dolfinx/fem/CoordinateElement.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/cpp/dolfinx/fem/CoordinateElement.cpp b/cpp/dolfinx/fem/CoordinateElement.cpp
+index ad92273f17e..2a29e332233 100644
+--- a/cpp/dolfinx/fem/CoordinateElement.cpp
++++ b/cpp/dolfinx/fem/CoordinateElement.cpp
+@@ -72,7 +72,7 @@ mesh::CellType CoordinateElement::cell_shape() const
+ //-----------------------------------------------------------------------------
+ int CoordinateElement::topological_dimension() const
+ {
+-  return basix::cell::topology(_element->cell_type()).size() - 1;
++  return basix::cell::topological_dimension(_element->cell_type());
+ }
+ //-----------------------------------------------------------------------------
+ xt::xtensor<double, 4>

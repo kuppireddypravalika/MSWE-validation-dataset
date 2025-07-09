@@ -1,0 +1,33 @@
+From f25d60664a9302a94f5d5f30ec557e6e606a4ed4 Mon Sep 17 00:00:00 2001
+From: kmurray <k.murray@utoronto.ca>
+Date: Mon, 24 Sep 2018 10:24:44 -0400
+Subject: [PATCH] vpr: Decrease incremental reroute net fanout threshold to 16
+
+Previously, was set to 64 to avoid degrading critical path delay.
+However, since the router will now automatically rip-up delay degraded
+connections this value can be lowered.
+
+On the VTR and (a subset of) the Titan benchmarks the new threshold showed
+a 13% and 5% reduction in fixed channel width route-time respectively,
+compared to the old default.
+---
+ vpr/src/base/read_options.cpp | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/vpr/src/base/read_options.cpp b/vpr/src/base/read_options.cpp
+index 872e9ec5f06..02530ab1853 100644
+--- a/vpr/src/base/read_options.cpp
++++ b/vpr/src/base/read_options.cpp
+@@ -969,11 +969,7 @@ static argparse::ArgumentParser create_arg_parser(std::string prog_name, t_optio
+ 
+     route_grp.add_argument(args.min_incremental_reroute_fanout, "--min_incremental_reroute_fanout")
+             .help("The net fanout threshold above which nets will be re-routed incrementally.")
+-            /* Based on testing, choosing a low threshold can lead to instability
+-               where sometimes route time and critical path are degraded. 64 seems
+-               to be a reasonable choice for most circuits. For nets with a greater
+-               distribution of high fanout nets, choose a larger threshold */
+-            .default_value("64")
++            .default_value("16")
+             .show_in(argparse::ShowIn::HELP_ONLY);
+ 
+ 

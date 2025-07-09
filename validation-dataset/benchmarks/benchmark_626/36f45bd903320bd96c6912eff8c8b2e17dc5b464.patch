@@ -1,0 +1,27 @@
+From 36f45bd903320bd96c6912eff8c8b2e17dc5b464 Mon Sep 17 00:00:00 2001
+From: Rui Ueyama <ruiu@google.com>
+Date: Fri, 3 Jul 2015 05:31:35 +0000
+Subject: [PATCH] COFF: Call exit(0) on success to not call destructors.
+
+This change cut the link time of chrome.dll from 24 seconds
+to 22 seconds (5% gain). When the control reaches end of link(),
+all output files have already been written. All in-memory
+objects can just vanish. There is no use to call their dtors.
+---
+ lld/COFF/Driver.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/lld/COFF/Driver.cpp b/lld/COFF/Driver.cpp
+index 9006d0368660..ade0333a72c0 100644
+--- a/lld/COFF/Driver.cpp
++++ b/lld/COFF/Driver.cpp
+@@ -652,7 +652,8 @@ bool LinkerDriver::link(llvm::ArrayRef<const char *> ArgsArr) {
+     }
+     Symtab.printMap(Out);
+   }
+-  return true;
++  // Call exit to avoid calling destructors.
++  exit(0);
+ }
+ 
+ } // namespace coff

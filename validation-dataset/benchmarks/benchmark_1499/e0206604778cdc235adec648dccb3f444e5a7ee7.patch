@@ -1,0 +1,23 @@
+From e0206604778cdc235adec648dccb3f444e5a7ee7 Mon Sep 17 00:00:00 2001
+From: Jonas Hahnfeld <jonas.hahnfeld@cern.ch>
+Date: Fri, 14 Jul 2023 12:03:22 +0200
+Subject: [PATCH] Use logical or for boolean operands
+
+This resolves a bitwise-instead-of-logical warning from Clang.
+---
+ lib/Differentiator/ReverseModeVisitor.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/Differentiator/ReverseModeVisitor.cpp b/lib/Differentiator/ReverseModeVisitor.cpp
+index b205ba6b4..2e9fc2bf0 100644
+--- a/lib/Differentiator/ReverseModeVisitor.cpp
++++ b/lib/Differentiator/ReverseModeVisitor.cpp
+@@ -1139,7 +1139,7 @@ Expr* getArraySizeExpr(const ArrayType* AT, ASTContext& context,
+     const Expr* value = RS->getRetValue();
+     QualType type = value->getType();
+     auto dfdf = m_Pullback;
+-    if (isa<FloatingLiteral>(dfdf) | isa<IntegerLiteral>(dfdf)) {
++    if (isa<FloatingLiteral>(dfdf) || isa<IntegerLiteral>(dfdf)) {
+       ExprResult tmp = dfdf;
+       dfdf = m_Sema
+                  .ImpCastExprToType(tmp.get(), type,

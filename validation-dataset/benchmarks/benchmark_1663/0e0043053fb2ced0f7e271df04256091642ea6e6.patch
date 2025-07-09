@@ -1,0 +1,41 @@
+From 0e0043053fb2ced0f7e271df04256091642ea6e6 Mon Sep 17 00:00:00 2001
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Date: Tue, 9 Jan 2024 16:30:17 +0200
+Subject: [PATCH] gstreamer: Support for pre-1.16 GstEvent
+
+The gst_clear_event() function used by libcamerasrc has been introduced
+in GStreamer 1.16, while libcamera claims to need 1.14 or newer. This
+causes a compilation error. Fix it by copying the gst_clear_event()
+implementation to gstlibcamera-utils.h when compiling with older
+GStreamer version.
+
+The version check makes it clear that the workaround is needed with
+older versions only, flagging it for removal when the minimum GStreamer
+version requirement will be bumped.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Reviewed-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+---
+ src/gstreamer/gstlibcamera-utils.h | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/src/gstreamer/gstlibcamera-utils.h b/src/gstreamer/gstlibcamera-utils.h
+index fd304a8ba..6adeab0eb 100644
+--- a/src/gstreamer/gstlibcamera-utils.h
++++ b/src/gstreamer/gstlibcamera-utils.h
+@@ -25,6 +25,13 @@ void gst_libcamera_clamp_and_set_frameduration(libcamera::ControlList &controls,
+ 					       GstStructure *element_caps);
+ void gst_libcamera_framerate_to_caps(GstCaps *caps, const GstStructure *element_caps);
+ 
++#if !GST_CHECK_VERSION(1, 16, 0)
++static inline void gst_clear_event(GstEvent **event_ptr)
++{
++	g_clear_pointer(event_ptr, gst_mini_object_unref);
++}
++#endif
++
+ #if !GST_CHECK_VERSION(1, 17, 1)
+ gboolean gst_task_resume(GstTask *task);
+ #endif

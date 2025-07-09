@@ -1,0 +1,25 @@
+From 1c91f1a230ac7f61ad0c2ed9718d12514353b629 Mon Sep 17 00:00:00 2001
+From: Joel Holdsworth <joel@airwebreathe.org.uk>
+Date: Sun, 28 Dec 2014 21:00:33 +0000
+Subject: [PATCH] Viewport: Use fabs instead of branch
+
+---
+ pv/view/viewport.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/pv/view/viewport.cpp b/pv/view/viewport.cpp
+index 971eb755..0e89f3ad 100644
+--- a/pv/view/viewport.cpp
++++ b/pv/view/viewport.cpp
+@@ -92,9 +92,8 @@ bool Viewport::touch_event(QTouchEvent *event)
+ 
+ 	double w = touchPoint1.pos().x() - touchPoint0.pos().x();
+ 	if (abs(w) >= 1.0) {
+-		double scale = (pinch_offset1_ - pinch_offset0_) / w;
+-		if (scale < 0)
+-			scale = -scale;
++		const double scale =
++			fabs((pinch_offset1_ - pinch_offset0_) / w);
+ 		double offset = pinch_offset0_ - touchPoint0.pos().x() * scale;
+ 		if (scale > 0)
+ 			view_.set_scale_offset(scale, offset);

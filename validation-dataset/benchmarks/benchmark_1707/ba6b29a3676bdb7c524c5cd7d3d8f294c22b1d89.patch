@@ -1,0 +1,29 @@
+From ba6b29a3676bdb7c524c5cd7d3d8f294c22b1d89 Mon Sep 17 00:00:00 2001
+From: Allan Sandfeld Jensen <allan.jensen@qt.io>
+Date: Thu, 1 Oct 2020 13:05:53 +0200
+Subject: [PATCH] Fix inefficient use of qToBigEndian
+
+It can do unaligned access directly as well.
+
+Change-Id: I4046cf69e2ad8eb628b8b53bfa521800bb35dc6d
+Reviewed-by: Thiago Macieira <thiago.macieira@intel.com>
+---
+ src/gui/platform/unix/dbustray/qdbustraytypes.cpp | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/src/gui/platform/unix/dbustray/qdbustraytypes.cpp b/src/gui/platform/unix/dbustray/qdbustraytypes.cpp
+index f2fec41aff5..4408bfae5a0 100644
+--- a/src/gui/platform/unix/dbustray/qdbustraytypes.cpp
++++ b/src/gui/platform/unix/dbustray/qdbustraytypes.cpp
+@@ -108,10 +108,7 @@ QXdgDBusImageVector iconToQXdgDBusImageVector(const QIcon &icon)
+         }
+         // copy and endian-convert
+         QXdgDBusImageStruct kim(im.width(), im.height());
+-        const uchar *end = im.constBits() + im.sizeInBytes();
+-        uchar *dest = reinterpret_cast<uchar *>(kim.data.data());
+-        for (const uchar *src = im.constBits(); src < end; src += 4, dest += 4)
+-            qToUnaligned(qToBigEndian<quint32>(qFromUnaligned<quint32>(src)), dest);
++        qToBigEndian<quint32>(im.constBits(), im.width() * im.height(), kim.data.data());
+ 
+         ret << kim;
+     }

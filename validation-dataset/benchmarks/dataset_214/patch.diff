@@ -1,0 +1,23 @@
+From 2908b758516c4ccf2fb59c96d580c563eafe6cde Mon Sep 17 00:00:00 2001
+From: Steven Lamerton <steve.lamerton@gmail.com>
+Date: Thu, 18 Feb 2010 22:04:19 +0000
+Subject: [PATCH] Reduce default scan depth as threading reduces the need to
+ scan with more depth
+
+---
+ controls/dirctrl.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/controls/dirctrl.cpp b/controls/dirctrl.cpp
+index 6d51c1f..839dfd5 100644
+--- a/controls/dirctrl.cpp
++++ b/controls/dirctrl.cpp
+@@ -67,7 +67,7 @@ END_EVENT_TABLE()
+ DirCtrl::DirCtrl(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
+ 		: wxTreeCtrl(parent, id, pos, size, style)
+ {
+-	SetScanDepth(2);
++	SetScanDepth(1);
+ 	AddRoot(wxT("Hidden Root"));
+ 	m_Image = new wxImageList(16, 16);
+ 	m_Image->Add(wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER));

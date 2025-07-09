@@ -1,0 +1,29 @@
+From 37d36fec04320868c09e789862494f1bd913ad58 Mon Sep 17 00:00:00 2001
+From: Philippe Canal <pcanal@fnal.gov>
+Date: Thu, 2 Oct 2014 14:06:34 +0900
+Subject: [PATCH] Avoid protoClasses for classes in libCore and libRIO's
+ dictionary.
+
+Since we do not load in rootcling the pch or the header for libCore and libRIO, the
+TClass object coming from their dictionary are actually partial and
+should not be used. [The TClass used of the I/O of the rootpcm are
+complete as we explicitly load their header in rootcling).
+---
+ core/utils/src/rootclingTCling.cxx | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/core/utils/src/rootclingTCling.cxx b/core/utils/src/rootclingTCling.cxx
+index 4c1e80111c091..5662bc7265eba 100644
+--- a/core/utils/src/rootclingTCling.cxx
++++ b/core/utils/src/rootclingTCling.cxx
+@@ -95,6 +95,10 @@ bool CloseStreamerInfoROOTFile()
+                    << normName << '\n';
+          return false;
+       }
++      // Never store a proto class for a class which rootcling already has
++      // an 'official' TClass (i.e. the dictionary is in libCore or libRIO).
++      if (cl->IsLoaded()) continue;
++
+       // We include transient classes as they could be used by a derived
+       // class which may have rules setting the member of the transient class.
+       // (And the derived class RealData *do* contain member from the transient

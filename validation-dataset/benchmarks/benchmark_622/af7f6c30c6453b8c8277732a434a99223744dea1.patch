@@ -1,0 +1,32 @@
+From af7f6c30c6453b8c8277732a434a99223744dea1 Mon Sep 17 00:00:00 2001
+From: Sven Verdoolaege <skimo@kotnet.org>
+Date: Mon, 26 Mar 2012 17:58:33 +0200
+Subject: [PATCH] turn on --isl-schedule-maximize-band-depth by default
+
+On average, this seems to produce better results on PolyBench.
+
+Signed-off-by: Sven Verdoolaege <skimo@kotnet.org>
+---
+ ppcg.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/ppcg.c b/ppcg.c
+index f87d0d3..70713fd 100644
+--- a/ppcg.c
++++ b/ppcg.c
+@@ -16,6 +16,7 @@
+ #include <isl/options.h>
+ #include <isl/schedule.h>
+ #include <isl/ast_build.h>
++#include <isl/schedule.h>
+ #include <pet.h>
+ #include "ppcg.h"
+ #include "ppcg_options.h"
+@@ -391,6 +392,7 @@ int main(int argc, char **argv)
+ 
+ 	ctx = isl_ctx_alloc_with_options(&options_args, options);
+ 	isl_options_set_schedule_outer_zero_distance(ctx, 1);
++	isl_options_set_schedule_maximize_band_depth(ctx, 1);
+ 	argc = options_parse(options, argc, argv, ISL_ARG_ALL);
+ 
+ 	if (check_options(ctx) < 0)

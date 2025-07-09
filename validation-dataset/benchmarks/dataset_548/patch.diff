@@ -1,0 +1,42 @@
+From bc7e60cbcd1c7eb9f0dc315b3122498d7aa1ab75 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@duempel.org>
+Date: Sat, 12 Apr 2008 04:21:18 +0000
+Subject: [PATCH] check cb->stop in the while loop
+
+Checking dc->stop in the while condition and again after the while
+loop costs some CPU cycles we should save.
+
+git-svn-id: https://svn.musicpd.org/mpd/trunk@7340 09075e82-0dd4-0310-85a5-a0d7c8717e4f
+---
+ src/outputBuffer.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/outputBuffer.c b/src/outputBuffer.c
+index d8c4e816aa..9d77caf3a0 100644
+--- a/src/outputBuffer.c
++++ b/src/outputBuffer.c
+@@ -161,10 +161,13 @@ static int tailChunk(OutputBuffer * cb, InputStream * inStream,
+ 	if (chunk->chunkSize == sizeof(chunk->data)) {
+ 		/* this chunk is full; allocate a new chunk */
+ 		next = successor(cb, cb->end);
+-		while (cb->begin == next && !dc->stop) {
++		while (cb->begin == next) {
+ 			/* all chunks are full of decoded data; wait
+ 			   for the player to free one */
+ 
++			if (dc->stop)
++				return OUTPUT_BUFFER_DC_STOP;
++
+ 			if (dc->seek) {
+ 				if (seekable) {
+ 					return OUTPUT_BUFFER_DC_SEEK;
+@@ -180,9 +183,6 @@ static int tailChunk(OutputBuffer * cb, InputStream * inStream,
+ 			}
+ 		}
+ 
+-		if (dc->stop)
+-			return OUTPUT_BUFFER_DC_STOP;
+-
+ 		output_buffer_expand(cb, next);
+ 		chunk = outputBufferGetChunk(cb, next);
+ 		assert(chunk->chunkSize == 0);

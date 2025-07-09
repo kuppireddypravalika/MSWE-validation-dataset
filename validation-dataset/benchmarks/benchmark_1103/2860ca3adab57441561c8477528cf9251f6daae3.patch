@@ -1,0 +1,27 @@
+From 2860ca3adab57441561c8477528cf9251f6daae3 Mon Sep 17 00:00:00 2001
+From: Jake Hemstad <jhemstad@nvidia.com>
+Date: Wed, 5 May 2021 13:37:52 -0500
+Subject: [PATCH] Use reference to force value conversion.
+
+Previously, the transform_iterator implementation would make a copy
+of the adapted iterators value when dereferencing it in order to
+force conversion to the value_type. This prevented transform_iterators
+over non-copyable types. Using a reference instead allows for forcing
+the conversion without invoking a copy ctor.
+---
+ thrust/iterator/transform_iterator.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/thrust/iterator/transform_iterator.h b/thrust/iterator/transform_iterator.h
+index fff050e1c05..5520b2a1fe8 100644
+--- a/thrust/iterator/transform_iterator.h
++++ b/thrust/iterator/transform_iterator.h
+@@ -312,7 +312,7 @@ template <class AdaptableUnaryFunction, class Iterator, class Reference = use_de
+       // Create a temporary to allow iterators with wrapped references to
+       // convert to their value type before calling m_f. Note that this
+       // disallows non-constant operations through m_f.
+-      typename thrust::iterator_value<Iterator>::type x = *this->base();
++      typename thrust::iterator_value<Iterator>::type const& x = *this->base();
+       return m_f(x);
+     }
+ 

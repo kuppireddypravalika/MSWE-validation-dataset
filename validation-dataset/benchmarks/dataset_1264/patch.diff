@@ -1,0 +1,26 @@
+From 4be76f3c8fd45b2bcbea661e69cf4f53588de88d Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@musicpd.org>
+Date: Sun, 7 Feb 2021 21:24:47 +0100
+Subject: [PATCH] archive/iso9660: check "skip==0" before doing optimized large
+ read
+
+After a Seek() to an odd offset, some data needs to be skipped from
+the start of the block, and reading right into the given buffer
+doesn't work.
+---
+ src/archive/plugins/Iso9660ArchivePlugin.cxx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/archive/plugins/Iso9660ArchivePlugin.cxx b/src/archive/plugins/Iso9660ArchivePlugin.cxx
+index f0123e58f7..56bf15c28d 100644
+--- a/src/archive/plugins/Iso9660ArchivePlugin.cxx
++++ b/src/archive/plugins/Iso9660ArchivePlugin.cxx
+@@ -266,7 +266,7 @@ Iso9660InputStream::Read(std::unique_lock<Mutex> &,
+ 
+ 		const lsn_t read_lsn = lsn + offset / ISO_BLOCKSIZE;
+ 
+-		if (read_size >= ISO_BLOCKSIZE) {
++		if (read_size >= ISO_BLOCKSIZE && skip == 0) {
+ 			/* big read - read right into the caller's buffer */
+ 
+ 			auto nbytes = iso->SeekRead(ptr, read_lsn,

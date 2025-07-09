@@ -1,0 +1,27 @@
+From 596d82099ac7038746410466168b21cf2ef4ff89 Mon Sep 17 00:00:00 2001
+From: HongyuJia <jiahongyu@baidu.com>
+Date: Thu, 29 Sep 2022 10:39:42 +0800
+Subject: [PATCH] [OptLayoutSelect] Select the highest priority layout (#46598)
+
+* select highest priority layout
+
+* opt performance, save virtual table find
+---
+ paddle/phi/api/lib/kernel_dispatch.h | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/paddle/phi/api/lib/kernel_dispatch.h b/paddle/phi/api/lib/kernel_dispatch.h
+index 1ca88acab8cc15..015c1be57370a2 100644
+--- a/paddle/phi/api/lib/kernel_dispatch.h
++++ b/paddle/phi/api/lib/kernel_dispatch.h
+@@ -100,7 +100,9 @@ struct KernelKeyParser : ArgsIterator<KernelKeyParser> {
+     key_set.backend_set =
+         key_set.backend_set | detail::GetTensorBackendSet(tensor);
+     // TODO(chenweihang): select multi layout and dtype
+-    key_set.layout = tensor.layout();
++    phi::DataLayout tensor_layout = tensor.layout();
++    key_set.layout =
++        tensor_layout > key_set.layout ? tensor_layout : key_set.layout;
+     key_set.dtype = tensor.dtype();
+     dtype_set = dtype_set | DataTypeSet(key_set.dtype);
+     auto promote_result = PromoteTypes(dtype_set);

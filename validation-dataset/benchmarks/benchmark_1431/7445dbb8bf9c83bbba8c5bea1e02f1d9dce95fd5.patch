@@ -1,0 +1,28 @@
+From 7445dbb8bf9c83bbba8c5bea1e02f1d9dce95fd5 Mon Sep 17 00:00:00 2001
+From: Michael Buesch <m@bues.ch>
+Date: Mon, 17 Jun 2019 21:20:08 +0200
+Subject: [PATCH] emcmodule: Do not use memcpy to copy non-trivial types
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This fixes:
+
+emc/usr_intf/axis/extensions/emcmodule.cc:284:55: warning: ‘void* memcpy(void*, const void*, size_t)’ writing to an object of type ‘class EMC_STAT’ with no trivial copy-assignment; use copy-assignment or copy-initialization instead [-Wclass-memaccess]
+---
+ src/emc/usr_intf/axis/extensions/emcmodule.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/emc/usr_intf/axis/extensions/emcmodule.cc b/src/emc/usr_intf/axis/extensions/emcmodule.cc
+index be4279a63..275148e5c 100644
+--- a/src/emc/usr_intf/axis/extensions/emcmodule.cc
++++ b/src/emc/usr_intf/axis/extensions/emcmodule.cc
+@@ -281,7 +281,7 @@ static PyObject *poll(pyStatChannel *s, PyObject *o) {
+     if(!check_stat(s->c)) return NULL;
+     if(s->c->peek() == EMC_STAT_TYPE) {
+         EMC_STAT *emcStatus = static_cast<EMC_STAT*>(s->c->get_address());
+-        memcpy(&s->status, emcStatus, sizeof(EMC_STAT));
++        s->status = *emcStatus;
+     }
+     Py_INCREF(Py_None);
+     return Py_None;

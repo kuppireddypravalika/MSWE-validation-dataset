@@ -1,0 +1,22 @@
+From e5c1137d9467d2a520b351a1b18833b28912f214 Mon Sep 17 00:00:00 2001
+From: Florian Echtler <floe@butterbrot.org>
+Date: Fri, 1 Apr 2022 13:24:12 +0200
+Subject: [PATCH] use linear interpolation instead of NN, much better quality
+
+---
+ src/Camera.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/Camera.cpp b/src/Camera.cpp
+index d68598b..84fe599 100644
+--- a/src/Camera.cpp
++++ b/src/Camera.cpp
+@@ -252,7 +252,7 @@ void Camera::send_buffer() {
+ 
+   Mat* output = new Mat(th,tw,input.type());
+ 
+-  warpPerspective(input,*output,pm,output->size(),INTER_NEAREST);
++  warpPerspective(input,*output,pm,output->size(),INTER_LINEAR);
+ 
+   if (do_blank) output->setTo(Scalar(0,255,0));
+ 

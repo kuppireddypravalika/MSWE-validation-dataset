@@ -1,0 +1,24 @@
+From 16cde15a2f7087c23f780615063d37adb979ee4a Mon Sep 17 00:00:00 2001
+From: Olly Betts <olly@survex.com>
+Date: Tue, 28 Nov 2017 17:50:38 +1300
+Subject: [PATCH] Avoid char * array members in the library
+
+This reduces relocations at dynamic library load time, which reduces
+the time to load the library.
+---
+ xapian-core/backends/glass/glass_compact.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/xapian-core/backends/glass/glass_compact.cc b/xapian-core/backends/glass/glass_compact.cc
+index ab22380bb74..8e904dd16bc 100644
+--- a/xapian-core/backends/glass/glass_compact.cc
++++ b/xapian-core/backends/glass/glass_compact.cc
+@@ -784,7 +784,7 @@ GlassDatabase::compact(Xapian::Compactor * compactor,
+ {
+     struct table_list {
+ 	// The "base name" of the table.
+-	const char * name;
++	char name[9];
+ 	// The type.
+ 	Glass::table_type type;
+ 	// Create tables after position lazily.

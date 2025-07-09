@@ -1,0 +1,53 @@
+From 5907656bbbeefbdba3c7a64e38ff98efe438e16e Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@musicpd.org>
+Date: Wed, 10 Mar 2021 17:47:14 +0100
+Subject: [PATCH] output/wasapi: stop the IAudioClient while paused
+
+Instead of generating silence, do nothing, don't waste CPU time.
+---
+ .../plugins/wasapi/WasapiOutputPlugin.cxx     | 25 +++++++++----------
+ 1 file changed, 12 insertions(+), 13 deletions(-)
+
+diff --git a/src/output/plugins/wasapi/WasapiOutputPlugin.cxx b/src/output/plugins/wasapi/WasapiOutputPlugin.cxx
+index 7092deb928..f393f88717 100644
+--- a/src/output/plugins/wasapi/WasapiOutputPlugin.cxx
++++ b/src/output/plugins/wasapi/WasapiOutputPlugin.cxx
+@@ -366,7 +366,12 @@ try {
+ 				   IAudioClient if we're paused */
+ 				continue;
+ 
+-			break;
++			/* stop the IAudioClient while paused; it will
++			   be restarted as soon as we're asked to
++			   resume playback */
++			Stop(client);
++			started = false;
++			continue;
+ 
+ 		case Status::PLAY:
+ 			break;
+@@ -400,18 +405,12 @@ try {
+ 			}
+ 		};
+ 
+-		if (current_state == Status::PLAY) {
+-			const UINT32 write_size = write_in_frames * frame_size;
+-			UINT32 new_data_size = 0;
+-			new_data_size = spsc_buffer.pop(data, write_size);
+-			std::fill_n(data + new_data_size,
+-				    write_size - new_data_size, 0);
+-			InterruptWaiter();
+-		} else {
+-			mode = AUDCLNT_BUFFERFLAGS_SILENT;
+-			FormatDebug(wasapi_output_domain,
+-				    "Working thread paused");
+-		}
++		const UINT32 write_size = write_in_frames * frame_size;
++		UINT32 new_data_size = 0;
++		new_data_size = spsc_buffer.pop(data, write_size);
++		std::fill_n(data + new_data_size,
++			    write_size - new_data_size, 0);
++		InterruptWaiter();
+ 	}
+ } catch (...) {
+ 	error.ptr = std::current_exception();

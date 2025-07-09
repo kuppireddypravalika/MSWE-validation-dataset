@@ -1,0 +1,23 @@
+From ebb12690c8f482217324efac92535b45beb1dc16 Mon Sep 17 00:00:00 2001
+From: Jakob Rath <git@jakobrath.eu>
+Date: Tue, 14 May 2019 16:12:38 +0200
+Subject: [PATCH] Use Literal::createEquality instead of binder.applyTo
+
+---
+ Inferences/ForwardSubsumptionDemodulation2.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/Inferences/ForwardSubsumptionDemodulation2.cpp b/Inferences/ForwardSubsumptionDemodulation2.cpp
+index ae24f62edf..c963773ceb 100644
+--- a/Inferences/ForwardSubsumptionDemodulation2.cpp
++++ b/Inferences/ForwardSubsumptionDemodulation2.cpp
+@@ -517,7 +517,8 @@ bool ForwardSubsumptionDemodulation2::perform(Clause* cl, Clause*& replacement,
+                 }
+                 // We could not show redundancy with dlit alone,
+                 // so now we have to look at the other literals of cl
+-                Literal* eqLitS = binder.applyTo(eqLit);  // TODO maybe it's faster to call Literal::create2(lhsS, rhsS)? we have the terms already... (add an assert just to be sure it's really the same)
++                Literal* eqLitS = Literal::createEquality(true, lhsS, rhsS, eqSort);
++                ASS_EQ(eqLitS, binder.applyTo(eqLit));
+                 for (unsigned li2 = 0; li2 < cl->length(); li2++) {
+                   // skip dlit (already checked with r_cmp_t above) and matched literals (i.e., CΘ)
+                   if (dli != li2 && !isMatched[li2]) {

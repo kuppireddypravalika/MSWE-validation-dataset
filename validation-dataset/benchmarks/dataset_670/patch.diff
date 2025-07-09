@@ -1,0 +1,32 @@
+From 0f39d62df06c3989067c2b7e0b4914a0ada1330d Mon Sep 17 00:00:00 2001
+From: loveemu <loveemu@gmail.com>
+Date: Tue, 24 Feb 2015 22:35:04 +0900
+Subject: [PATCH] Improve SearchForPSXADPCM (single version) to choose a
+ SampColl that contains more samples (anti-false-positive logic)
+
+---
+ src/main/formats/PSXSPU.cpp | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/src/main/formats/PSXSPU.cpp b/src/main/formats/PSXSPU.cpp
+index 006d060b..835219b5 100644
+--- a/src/main/formats/PSXSPU.cpp
++++ b/src/main/formats/PSXSPU.cpp
+@@ -190,7 +190,16 @@ PSXSampColl* PSXSampColl::SearchForPSXADPCM (RawFile* file, const string& format
+ {
+ 	std::vector<PSXSampColl*>& sampColls = SearchForPSXADPCMs(file, format);
+ 	if (sampColls.size() != 0) {
+-		return sampColls[0];
++		// pick up one of the SampColls
++		size_t bestSampleCount = 0;
++		PSXSampColl* bestSampColl = sampColls[0];
++		for (size_t i = 0; i < sampColls.size(); i++) {
++			if (sampColls[i]->samples.size() > bestSampleCount) {
++				bestSampleCount = sampColls[i]->samples.size();
++				bestSampColl = sampColls[i];
++			}
++		}
++		return bestSampColl;
+ 	}
+ 	else {
+ 		return NULL;

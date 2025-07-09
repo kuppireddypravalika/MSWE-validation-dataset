@@ -1,0 +1,30 @@
+From cb73734247158006a1bd3bf22bc2d5b5597eda53 Mon Sep 17 00:00:00 2001
+From: Owen Anderson <resistor@mac.com>
+Date: Fri, 26 Jun 2009 18:09:03 +0000
+Subject: [PATCH] Use atomic operations for accessing this global counter.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@74294 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Support/Annotation.cpp | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/lib/Support/Annotation.cpp b/lib/Support/Annotation.cpp
+index 9c3efa37d86..b7780433c06 100644
+--- a/lib/Support/Annotation.cpp
++++ b/lib/Support/Annotation.cpp
+@@ -68,9 +68,12 @@ AnnotationID AnnotationManager::getID(const char *Name) {  // Name -> ID
+   if (I == E) {
+     sys::SmartScopedWriter<true> Writer(&*AnnotationsLock);
+     I = IDMap->find(Name);
+-    if (I == IDMap->end())
+-      (*IDMap)[Name] = IDCounter++;   // Add a new element
+-    return AnnotationID(IDCounter-1);
++    if (I == IDMap->end()) {
++      unsigned newCount = sys::AtomicIncrement(&IDCounter);
++      (*IDMap)[Name] = newCount-1;   // Add a new element
++      return AnnotationID(newCount-1);
++    } else
++      return AnnotationID(I->second);
+   }
+   return AnnotationID(I->second);
+ }

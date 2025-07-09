@@ -1,0 +1,31 @@
+From a858daf0387db23809b2f91300c6de7295dc9169 Mon Sep 17 00:00:00 2001
+From: Patryk Wrobel <patryk.wrobel@scylladb.com>
+Date: Thu, 25 Jan 2024 14:31:05 +0100
+Subject: [PATCH] service/client_state.cc: remove redundant copying
+
+db::schema_tables::all_table_names() returns std::vector<sstring>.
+Usage of range-for loop without reference results in copying each
+of the elements of the traversed container. Such copying is redundant.
+
+This change introduces usage of const reference to avoid copying.
+
+Signed-off-by: Patryk Wrobel <patryk.wrobel@scylladb.com>
+
+Closes scylladb/scylladb#16983
+---
+ service/client_state.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/service/client_state.cc b/service/client_state.cc
+index 7c8e867526d1..4b5255438663 100644
+--- a/service/client_state.cc
++++ b/service/client_state.cc
+@@ -151,7 +151,7 @@ future<> service::client_state::has_access(const sstring& ks, auth::command_desc
+         for (auto cf : { db::system_keyspace::LOCAL, db::system_keyspace::PEERS }) {
+             tmp.insert(auth::make_data_resource(db::system_keyspace::NAME, cf));
+         }
+-        for (auto cf : db::schema_tables::all_table_names(db::schema_features::full())) {
++        for (const auto& cf : db::schema_tables::all_table_names(db::schema_features::full())) {
+             tmp.insert(auth::make_data_resource(db::schema_tables::NAME, cf));
+         }
+         return tmp;

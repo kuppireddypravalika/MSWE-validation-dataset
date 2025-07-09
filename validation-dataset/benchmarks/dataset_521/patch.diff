@@ -1,0 +1,30 @@
+From 1cd9b14f4feba7eaccb71742c7e62ab1e2b23bac Mon Sep 17 00:00:00 2001
+From: Warboy <neo_nihilist@hotmail.com>
+Date: Mon, 8 Sep 2014 10:14:31 +1000
+Subject: [PATCH] arcing projectiles
+
+curvature should start at (1.73 / sqrt(sqrt(70.0 / 10.0)) = 1.06358350461)
+rather than 0.5 for arcing shots, as strength and weight are assumed to be
+70 and 10 respectively
+---
+ src/Battlescape/TileEngine.cpp | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/src/Battlescape/TileEngine.cpp b/src/Battlescape/TileEngine.cpp
+index 41138c0232..2eb53484c8 100644
+--- a/src/Battlescape/TileEngine.cpp
++++ b/src/Battlescape/TileEngine.cpp
+@@ -2700,6 +2700,13 @@ bool TileEngine::validateThrow(BattleAction &action, Position originVoxel, Posit
+ 	{
+ 		curvature = std::max(0.48, 1.73 / sqrt(sqrt((double)(action.actor->getStats()->strength) / (double)(action.weapon->getRules()->getWeight()))) + (action.actor->isKneeled()? 0.1 : 0.0));
+ 	}
++	else
++	{
++		// arcing projectile weapons assume a fixed strength and weight.(70 and 10 respectively)
++		// curvature should be approximately 1.06358350461 at this point.
++		curvature = 1.73 / sqrt(sqrt(70.0 / 10.0)) + (action.actor->isKneeled()? 0.1 : 0.0);
++	}
++
+ 	Tile *targetTile = _save->getTile(action.target);
+ 	// object blocking - can't throw here
+ 	if ((action.type == BA_THROW

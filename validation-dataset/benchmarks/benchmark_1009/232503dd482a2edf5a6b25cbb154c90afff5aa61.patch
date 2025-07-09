@@ -1,0 +1,40 @@
+From 232503dd482a2edf5a6b25cbb154c90afff5aa61 Mon Sep 17 00:00:00 2001
+From: Mark Stoodley <mstoodle@ca.ibm.com>
+Date: Mon, 20 Mar 2017 10:10:04 -0400
+Subject: [PATCH] Force acceptHugeMethods option for JitBuilder
+
+Because the IL generation step for JitBuilder takes such a simple
+approach, reasonable sized methods can actually overflow the
+complexity thresholds (number of blocks, number of nodes, number
+of symbols, etc.) that the OMR compiler has in place, based on how
+the Java JIT compiler tends to generate IL. There is an escape
+hatch called "acceptHugeMethods" that overrides these thresholds
+and it can allow several analyses (e.g. use-def info) to proceed
+even when the method is large. There is a compile-time cost for
+that, but the trade-off is unexpectedly poor optimization. For
+now, let's take the compile time hit in these "large" methods
+to get better performance. The strategic solution would be to
+pursue the improvements under discussion in issue 834.
+
+This commit just hard codes the acceptHugeMethods option when
+initializeJit is called; there is no impact to the public
+interface.
+
+Signed-off-by: Mark Stoodley <mstoodle@ca.ibm.com>
+---
+ jitbuilder/control/Jit.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/jitbuilder/control/Jit.cpp b/jitbuilder/control/Jit.cpp
+index 3fc267f187..bfc5602242 100644
+--- a/jitbuilder/control/Jit.cpp
++++ b/jitbuilder/control/Jit.cpp
+@@ -178,7 +178,7 @@ extern "C"
+ bool
+ initializeJit()
+    {
+-   return initializeJitBuilder(0, 0, 0, (char *)"-Xjit");
++   return initializeJitBuilder(0, 0, 0, (char *)"-Xjit:acceptHugeMethods");
+    }
+ 
+ extern "C"

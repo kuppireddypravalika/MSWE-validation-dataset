@@ -1,0 +1,22 @@
+From 1bb44df33dd68a6f4af16a803a4d5a581eb8b480 Mon Sep 17 00:00:00 2001
+From: Tobias Junghans <tobydox@veyon.io>
+Date: Thu, 17 Jan 2019 12:02:44 +0100
+Subject: [PATCH] LDAP: avoid unnecessary conversion to lower chars
+
+---
+ plugins/ldap/common/LdapClient.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/plugins/ldap/common/LdapClient.cpp b/plugins/ldap/common/LdapClient.cpp
+index 7e7b4859f..c823c60e0 100644
+--- a/plugins/ldap/common/LdapClient.cpp
++++ b/plugins/ldap/common/LdapClient.cpp
+@@ -106,7 +106,7 @@ QStringList LdapClient::queryAttributeValues( const QString& dn, const QString&
+ 	}
+ 
+ 	if( dn.isEmpty() && attribute != m_namingContextAttribute &&
+-		attribute.toLower().contains( QLatin1String("namingcontext") ) == false )
++		attribute.contains( QLatin1String("namingcontext"), Qt::CaseInsensitive ) == false )
+ 	{
+ 		qCritical() << Q_FUNC_INFO << "DN is empty!";
+ 		return entries;

@@ -1,0 +1,39 @@
+From 05cc5c81abb84a023b5dcbe3b835c07b08ed5c0d Mon Sep 17 00:00:00 2001
+From: Tobias Grosser <tobias@grosser.es>
+Date: Fri, 26 Jun 2015 12:09:28 +0000
+Subject: [PATCH] Drop divs before adding array-out-of-bounds assumptions
+
+In case we have modulo operations in the access function (supported since
+r240518), the assumptions generated to ensure array accesses remain within
+bounds can contain existentially quantified dimensions which results in more
+complex and more difficult to handle integer sets. As a result LNT's linpack
+benchmark started to fail due to excessive compile time.
+
+We now just drop the existentially quantified dimensions. This should be
+generally save, but may result in less precise assumptions which may
+consequently make us fall back to the original (unoptimized) code more often. In
+practice, these cases probably do not appear to often.
+
+I had difficulties to extract a good test case, but fortunately our LNT bots
+cover this one well.
+---
+ polly/lib/Analysis/ScopInfo.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/polly/lib/Analysis/ScopInfo.cpp b/polly/lib/Analysis/ScopInfo.cpp
+index 654a95c400d6..94e14fd9cdba 100644
+--- a/polly/lib/Analysis/ScopInfo.cpp
++++ b/polly/lib/Analysis/ScopInfo.cpp
+@@ -559,6 +559,12 @@ void MemoryAccess::assumeNoOutOfBound(const IRAccess &Access) {
+   Outside = isl_set_apply(Outside, isl_map_reverse(getAccessRelation()));
+   Outside = isl_set_intersect(Outside, Statement->getDomain());
+   Outside = isl_set_params(Outside);
++
++  // Remove divs to avoid the construction of overly complicated assumptions.
++  // Doing so increases the set of parameter combinations that are assumed to
++  // not appear. This is always save, but may make the resulting run-time check
++  // bail out more often than strictly necessary.
++  Outside = isl_set_remove_divs(Outside);
+   Outside = isl_set_complement(Outside);
+   Statement->getParent()->addAssumption(Outside);
+   isl_space_free(Space);

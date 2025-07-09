@@ -1,0 +1,41 @@
+From 9f49723b954d1565f2d5bdaacdb222b284486a22 Mon Sep 17 00:00:00 2001
+From: Ahmed Bhayat <ahmed.bhayat@manchester.ac.uk>
+Date: Thu, 8 Jul 2021 13:11:59 +0100
+Subject: [PATCH] Making the replace function more efficient by not searching
+ through sorts
+
+---
+ Kernel/EqHelper.cpp | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/Kernel/EqHelper.cpp b/Kernel/EqHelper.cpp
+index 0a7a2010cf..34f0900a4b 100644
+--- a/Kernel/EqHelper.cpp
++++ b/Kernel/EqHelper.cpp
+@@ -77,12 +77,17 @@ Literal* EqHelper::replace(Literal* lit, TermList what, TermList by)
+ /**
+  * Replace all occurences of the subterm  @b tSrc by @b tDest in the term/literal
+  * @b lit, and return the result
++ *
++ * Cannot be used to replace a sort
+  */
+ Term* EqHelper::replace(Term* trm0, TermList tSrc, TermList tDest)
+ {
+   CALL("EqHelper::replace(Term*,...)");
+   ASS(trm0->shared());
+   ASS(!trm0->isSort());
++  ASS(!tSrc.isVar() || !tSrc.term()->isSort());
++  ASS(!tDest.isVar() || !tDest.term()->isSort());
++
+ 
+   static Stack<TermList*> toDo(8);
+   static Stack<Term*> terms(8);
+@@ -129,7 +134,7 @@ Term* EqHelper::replace(Term* trm0, TermList tSrc, TermList tDest)
+       modified.setTop(true);
+       continue;
+     }
+-    if (tl.isVar()) {
++    if (tl.isVar() || tl.term()->isSort()) {
+       args.push(tl);
+       continue;
+     }

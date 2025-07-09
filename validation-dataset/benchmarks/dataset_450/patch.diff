@@ -1,0 +1,41 @@
+From 3d1d779da7112ea3d08217f37cac8fcba78a9808 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@musicpd.org>
+Date: Mon, 18 Dec 2017 23:50:31 +0100
+Subject: [PATCH] storage/State: use std::set instead of sorting a std::list
+
+---
+ src/storage/StorageState.cxx | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/src/storage/StorageState.cxx b/src/storage/StorageState.cxx
+index beeb4eebb1..721a0ce37c 100644
+--- a/src/storage/StorageState.cxx
++++ b/src/storage/StorageState.cxx
+@@ -35,7 +35,7 @@
+ #include "IOThread.hxx"
+ #include "Log.hxx"
+ 
+-#include <list>
++#include <set>
+ #include <boost/crc.hpp>
+ 
+ #define MOUNT_STATE_BEGIN        "mount_begin"
+@@ -118,16 +118,14 @@ storage_state_restore(const char *line, TextFile &file, Instance &instance)
+ unsigned
+ storage_state_get_hash(const Instance &instance)
+ {
+-	std::list<std::string> mounts;
++	std::set<std::string> mounts;
+ 
+ 	const auto visitor = [&mounts](const char *mount_uri, const Storage &storage) {
+-		mounts.push_back(std::string(mount_uri) + ":" + storage.MapUTF8(""));
++		mounts.emplace(std::string(mount_uri) + ":" + storage.MapUTF8(""));
+ 	};
+ 
+ 	((CompositeStorage*)instance.storage)->VisitMounts(visitor);
+ 
+-	mounts.sort();
+-
+ 	boost::crc_32_type result;
+ 
+ 	for (auto mount: mounts) {

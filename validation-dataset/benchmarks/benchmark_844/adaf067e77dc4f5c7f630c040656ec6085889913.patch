@@ -1,0 +1,35 @@
+From adaf067e77dc4f5c7f630c040656ec6085889913 Mon Sep 17 00:00:00 2001
+From: Jarek Kobus <jaroslaw.kobus@qt.io>
+Date: Tue, 7 Mar 2023 15:48:57 +0100
+Subject: [PATCH] CompilationDBParser: Use QtConcurrent invocation for async
+ run
+
+Change-Id: I9649db2d7c890e89ddc3f5da36715b4fa6d5219b
+Reviewed-by: Christian Kandeler <christian.kandeler@qt.io>
+---
+ .../compilationdatabaseprojectmanager/compilationdbparser.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/plugins/compilationdatabaseprojectmanager/compilationdbparser.cpp b/src/plugins/compilationdatabaseprojectmanager/compilationdbparser.cpp
+index 251e9685c45..830d51439fc 100644
+--- a/src/plugins/compilationdatabaseprojectmanager/compilationdbparser.cpp
++++ b/src/plugins/compilationdatabaseprojectmanager/compilationdbparser.cpp
+@@ -8,8 +8,8 @@
+ 
+ #include <coreplugin/progressmanager/progressmanager.h>
+ #include <projectexplorer/treescanner.h>
++#include <utils/asynctask.h>
+ #include <utils/mimeutils.h>
+-#include <utils/runextensions.h>
+ 
+ #include <QCryptographicHash>
+ #include <QDir>
+@@ -95,7 +95,7 @@ void CompilationDbParser::start()
+     }
+ 
+     // Thread 2: Parse the project file.
+-    const QFuture<DbContents> future = runAsync(&CompilationDbParser::parseProject, this);
++    const QFuture<DbContents> future = Utils::asyncRun(&CompilationDbParser::parseProject, this);
+     Core::ProgressManager::addTask(future,
+                                    Tr::tr("Parse \"%1\" project").arg(m_projectName),
+                                    "CompilationDatabase.Parse");

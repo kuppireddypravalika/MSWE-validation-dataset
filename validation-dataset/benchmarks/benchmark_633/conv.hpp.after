@@ -1,0 +1,76 @@
+#ifndef SIMPLE_CONV_HPP
+#define SIMPLE_CONV_HPP
+
+#include <vector>
+#include <cstddef>
+
+namespace bench633 {
+
+class Matrix {
+    std::size_t r_, c_;
+    std::vector<double> data_;
+public:
+    Matrix(std::size_t r=0, std::size_t c=0): r_(r), c_(c), data_(r*c) {}
+    std::size_t rows() const { return r_; }
+    std::size_t cols() const { return c_; }
+    double& operator()(std::size_t i, std::size_t j) { return data_[i*c_ + j]; }
+    double operator()(std::size_t i, std::size_t j) const { return data_[i*c_ + j]; }
+    Matrix evaluate() const { return *this; }
+};
+
+class AddMatrixExpr {
+    const Matrix& A_; const Matrix& B_;
+public:
+    AddMatrixExpr(const Matrix& A, const Matrix& B) : A_(A), B_(B) {}
+    std::size_t rows() const { return A_.rows(); }
+    std::size_t cols() const { return A_.cols(); }
+    double operator()(std::size_t i, std::size_t j) const { return A_(i,j) + B_(i,j); }
+    Matrix evaluate() const {
+        Matrix tmp(rows(), cols());
+        for (std::size_t i=0;i<rows();++i)
+            for (std::size_t j=0;j<cols();++j)
+                tmp(i,j) = (*this)(i,j);
+        return tmp;
+    }
+};
+
+template <typename Expr>
+Matrix make_temporary(const Expr& e) {
+    return e.evaluate();
+}
+
+struct conv2d_valid_impl {
+    template <typename In, typename Ker, typename Out>
+    static void apply(const In& input, const Ker& kernel, Out& output) {
+        const std::size_t ir = input.rows();
+        const std::size_t ic = input.cols();
+        const std::size_t kr = kernel.rows();
+        const std::size_t kc = kernel.cols();
+        for (std::size_t i=0;i<=ir-kr;++i) {
+            for (std::size_t j=0;j<=ic-kc;++j) {
+                double sum=0.0;
+                for (std::size_t r=0;r<kr;++r)
+                    for (std::size_t c=0;c<kc;++c)
+                        sum += input(i+r,j+c)*kernel(r,c);
+                output(i,j)=sum;
+            }
+        }
+    }
+};
+
+// Optimized apply with temporaries for D==1 or D==2
+template <std::size_t D>
+struct conv_apply_optimized {
+    template <typename A, typename B, typename C>
+    static void apply(A&& a, B&& b, C&& c) {
+        if (D==1 || D==2) {
+            conv2d_valid_impl::apply(make_temporary(a), make_temporary(b), c);
+        } else {
+            conv2d_valid_impl::apply(a,b,c);
+        }
+    }
+};
+
+} // namespace bench633
+
+#endif

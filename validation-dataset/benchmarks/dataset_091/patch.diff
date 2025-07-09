@@ -1,0 +1,34 @@
+From 1991ed96001300f12f19af3fd4bbfa3193ec3deb Mon Sep 17 00:00:00 2001
+From: Alexander Block <ablock84@gmail.com>
+Date: Tue, 7 Apr 2020 06:26:53 +0200
+Subject: [PATCH] Only process 32 IS locks at a time in
+ ProcessPendingInstantSendLocks
+
+---
+ src/llmq/quorums_instantsend.cpp | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/src/llmq/quorums_instantsend.cpp b/src/llmq/quorums_instantsend.cpp
+index 1fd2b1526f..03704c9f00 100644
+--- a/src/llmq/quorums_instantsend.cpp
++++ b/src/llmq/quorums_instantsend.cpp
+@@ -732,7 +732,18 @@ bool CInstantSendManager::ProcessPendingInstantSendLocks()
+ 
+     {
+         LOCK(cs);
+-        pend = std::move(pendingInstantSendLocks);
++        // only process a max 32 locks at a time to avoid duplicate verification of recovered signatures which have been
++        // verified by CSigningManager in parallel
++        const size_t maxCount = 32;
++        if (pendingInstantSendLocks.size() <= maxCount) {
++            pend = std::move(pendingInstantSendLocks);
++        } else {
++            while (pend.size() < maxCount) {
++                auto it = pendingInstantSendLocks.begin();
++                pend.emplace(it->first, std::move(it->second));
++                pendingInstantSendLocks.erase(it);
++            }
++        }
+     }
+ 
+     if (pend.empty()) {

@@ -1,0 +1,28 @@
+From 23eff5c75a3d1ab9d2901a1cd39e0b1302957007 Mon Sep 17 00:00:00 2001
+From: Anton Korobeynikov <asl@math.spbu.ru>
+Date: Thu, 16 Jul 2009 14:20:08 +0000
+Subject: [PATCH] We don't have any FP extloads
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@76018 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Target/SystemZ/SystemZISelLowering.cpp | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/lib/Target/SystemZ/SystemZISelLowering.cpp b/lib/Target/SystemZ/SystemZISelLowering.cpp
+index 9721c67cff5..e929aa1c941 100644
+--- a/lib/Target/SystemZ/SystemZISelLowering.cpp
++++ b/lib/Target/SystemZ/SystemZISelLowering.cpp
+@@ -65,6 +65,13 @@ SystemZTargetLowering::SystemZTargetLowering(SystemZTargetMachine &tm) :
+   setLoadExtAction(ISD::ZEXTLOAD, MVT::i1, Promote);
+   setLoadExtAction(ISD::EXTLOAD,  MVT::i1, Promote);
+ 
++  setLoadExtAction(ISD::SEXTLOAD, MVT::f32, Promote);
++  setLoadExtAction(ISD::ZEXTLOAD, MVT::f32, Promote);
++  setLoadExtAction(ISD::EXTLOAD,  MVT::f32, Promote);
++  setLoadExtAction(ISD::SEXTLOAD, MVT::f64, Promote);
++  setLoadExtAction(ISD::ZEXTLOAD, MVT::f64, Promote);
++  setLoadExtAction(ISD::EXTLOAD,  MVT::f64, Promote);
++
+   setStackPointerRegisterToSaveRestore(SystemZ::R15D);
+   setSchedulingPreference(SchedulingForLatency);
+ 

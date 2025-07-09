@@ -1,0 +1,35 @@
+From da95ad91b3602a6c60c62948ffb33e3399571a59 Mon Sep 17 00:00:00 2001
+From: Thiago Macieira <thiago.macieira@intel.com>
+Date: Fri, 22 Sep 2023 10:44:21 -0700
+Subject: [PATCH] QStorageInfo/Linux: move from MountInfo's contents
+
+Copying QStrings and QByteArrays is reasonably cheap, but moving is
+cheaper.
+
+Pick-to: 6.6
+Change-Id: I9d43e5b91eb142d6945cfffd1787498ead687da2
+Reviewed-by: Thiago Macieira <thiago.macieira@intel.com>
+Reviewed-by: Ahmad Samir <a.samirh78@gmail.com>
+---
+ src/corelib/io/qstorageinfo_linux.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/corelib/io/qstorageinfo_linux.cpp b/src/corelib/io/qstorageinfo_linux.cpp
+index 502cb322fbc..552567c63b1 100644
+--- a/src/corelib/io/qstorageinfo_linux.cpp
++++ b/src/corelib/io/qstorageinfo_linux.cpp
+@@ -149,10 +149,10 @@ void QStorageInfoPrivate::initRootPath()
+         }
+     }
+     if (bestInfo) {
+-        rootPath = bestInfo->mountPoint;
+-        device = bestInfo->device;
+-        fileSystemType = bestInfo->fsType;
+-        subvolume = bestInfo->fsRoot;
++        rootPath = std::move(bestInfo->mountPoint);
++        device = std::move(bestInfo->device);
++        fileSystemType = std::move(bestInfo->fsType);
++        subvolume = std::move(bestInfo->fsRoot);
+     }
+ }
+ 

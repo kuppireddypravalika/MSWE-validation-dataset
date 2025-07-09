@@ -1,0 +1,22 @@
+From 0af2445f89f3395a7e23b68acf69e3868196db39 Mon Sep 17 00:00:00 2001
+From: Harald Lang <harald.lang@in.tum.de>
+Date: Fri, 8 Feb 2019 14:34:36 +0100
+Subject: [PATCH] avoid redundant rank computation
+
+---
+ src/dtl/bitmap/teb.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/dtl/bitmap/teb.hpp b/src/dtl/bitmap/teb.hpp
+index 5f1119ea..bd4c7778 100644
+--- a/src/dtl/bitmap/teb.hpp
++++ b/src/dtl/bitmap/teb.hpp
+@@ -777,7 +777,7 @@ class teb {
+             }
+           }
+           // Reached a leaf node.
+-          label = teb_.get_label(node_info.node_idx);
++          label = teb_.L_[node_info.node_idx - node_info.rank];
+           D(std::cout << "reached leaf " << node_info.node_idx  << std::endl;)
+ //          D(std::cout << "label = " << label  << std::endl;)
+           if (label) {

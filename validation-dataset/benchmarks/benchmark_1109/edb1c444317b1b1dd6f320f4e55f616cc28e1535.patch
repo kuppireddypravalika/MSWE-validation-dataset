@@ -1,0 +1,36 @@
+From edb1c444317b1b1dd6f320f4e55f616cc28e1535 Mon Sep 17 00:00:00 2001
+From: Daniel Jasper <djasper@google.com>
+Date: Mon, 23 Nov 2015 22:28:56 +0000
+Subject: [PATCH] Fix test failure introduced by r253859. I believe that the
+ new behavior in r253859 makes sense in many cases and thus, I have fixed the
+ implementation of calculateChangedRanges instead. It had a FIXME anyway
+ saying that it was unecessarily using shiftedCodePosition which resulted in
+ O(N^2) runtime.
+
+git-svn-id: https://llvm.org/svn/llvm-project/clang-tools-extra/trunk@253929 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ .../lib/Tooling/ApplyReplacements.cpp                    | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
+
+diff --git a/clang-apply-replacements/lib/Tooling/ApplyReplacements.cpp b/clang-apply-replacements/lib/Tooling/ApplyReplacements.cpp
+index 127e5708..4603212b 100644
+--- a/clang-apply-replacements/lib/Tooling/ApplyReplacements.cpp
++++ b/clang-apply-replacements/lib/Tooling/ApplyReplacements.cpp
+@@ -209,14 +209,11 @@ RangeVector calculateChangedRanges(
+   RangeVector ChangedRanges;
+ 
+   // Generate the new ranges from the replacements.
+-  //
+-  // NOTE: This is O(n^2) in the number of replacements. If this starts to
+-  // become a problem inline shiftedCodePosition() here and do shifts in a
+-  // single run through this loop.
++  int Shift = 0;
+   for (const tooling::Replacement &R : Replaces) {
+-    unsigned Offset = tooling::shiftedCodePosition(Replaces, R.getOffset());
++    unsigned Offset = R.getOffset() + Shift;
+     unsigned Length = R.getReplacementText().size();
+-
++    Shift += Length - R.getLength();
+     ChangedRanges.push_back(tooling::Range(Offset, Length));
+   }
+ 

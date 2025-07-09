@@ -1,0 +1,26 @@
+From a8e74bc9624fd66fa16be18734e8c4726706f12d Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Andreas=20Sch=C3=A4fer?= <gentryx@gmx.de>
+Date: Thu, 3 Mar 2016 03:00:37 +0100
+Subject: [PATCH] tune performance test to relevant datasets
+
+---
+ src/testbed/performancetests/main.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/testbed/performancetests/main.cpp b/src/testbed/performancetests/main.cpp
+index 7a4bf0b82..c5679e9a1 100644
+--- a/src/testbed/performancetests/main.cpp
++++ b/src/testbed/performancetests/main.cpp
+@@ -297,9 +297,9 @@ class RegionAppend : public CPUBenchmark
+                 }
+             }
+ 
+-            for (int z = 1; z < (dim.z() - 1); ++z) {
+-                for (int y = 1; y < (dim.y() - 1); ++y) {
+-                    r2 << Streak<3>(Coord<3>(1, y, z), dim.x() - 1);
++            for (int z = dim.z(); z < (2 * dim.z()); ++z) {
++                for (int y = 0; y < dim.y(); ++y) {
++                    r2 << Streak<3>(Coord<3>(0, y, z), dim.x());
+                 }
+             }
+ 

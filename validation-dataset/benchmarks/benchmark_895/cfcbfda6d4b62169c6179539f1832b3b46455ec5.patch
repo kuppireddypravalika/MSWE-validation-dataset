@@ -1,0 +1,22 @@
+From cfcbfda6d4b62169c6179539f1832b3b46455ec5 Mon Sep 17 00:00:00 2001
+From: NotCompsky <adammarkgray@gmail.com>
+Date: Fri, 18 Oct 2019 05:52:55 +0100
+Subject: [PATCH] Performance:  Mark condition as unlikely.
+
+---
+ utils/src/mk_playlist.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/utils/src/mk_playlist.cpp b/utils/src/mk_playlist.cpp
+index 3b2853db..29cdaa95 100644
+--- a/utils/src/mk_playlist.cpp
++++ b/utils/src/mk_playlist.cpp
+@@ -60,7 +60,7 @@ void process_rule(InlistFilterRules& r,  const char* const rule_name,  const cha
+ 	memcpy(OUTPUT_FILENAME + OUTPUT_ROOT_DIR_LEN,  out_name,  out_name_len);
+ 	memcpy(OUTPUT_FILENAME + OUTPUT_ROOT_DIR_LEN + out_name_len,  FILE_EXT,  FILE_EXT_LEN + 1);
+ 	
+-	if (r.load(rule_name) == 0){
++	if (unlikely(r.load(rule_name) == 0)){
+ 		fprintf(stderr,  "No such rule: %s\n",  rule_name);
+ 		if (likely(remove(OUTPUT_FILENAME) == 0))
+ 			fprintf(stderr,  "Deleted");

@@ -1,0 +1,28 @@
+From 25d4af61e7dc6c194f8e26a8ed3e260f509c0583 Mon Sep 17 00:00:00 2001
+From: cbenthin <carsten.benthin@intel.com>
+Date: Wed, 4 Dec 2013 06:19:54 -0800
+Subject: [PATCH] performance for crown and xyz_dragon now on par with 2.0
+
+---
+ kernels/xeonphi/bvh4i/bvh4i_intersector16_hybrid.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/kernels/xeonphi/bvh4i/bvh4i_intersector16_hybrid.cpp b/kernels/xeonphi/bvh4i/bvh4i_intersector16_hybrid.cpp
+index 868dfba9e..551be3e97 100644
+--- a/kernels/xeonphi/bvh4i/bvh4i_intersector16_hybrid.cpp
++++ b/kernels/xeonphi/bvh4i/bvh4i_intersector16_hybrid.cpp
+@@ -727,10 +727,10 @@ namespace embree
+ 		    /* intersect one ray against four triangles */
+ 
+ 		    const Triangle1* tptr  = (Triangle1*) curNode.leaf(accel);
+-		    prefetch<PFHINT_NT>(tptr + 3);
+-		    prefetch<PFHINT_NT>(tptr + 2);
+-		    prefetch<PFHINT_NT>(tptr + 1);
+-		    prefetch<PFHINT_NT>(tptr + 0); 
++		    prefetch<PFHINT_L1>(tptr + 3);
++		    prefetch<PFHINT_L1>(tptr + 2);
++		    prefetch<PFHINT_L1>(tptr + 1);
++		    prefetch<PFHINT_L1>(tptr + 0); 
+ 
+ 		    const mic_i and_mask = broadcast4to16i(zlc4);
+ 	      

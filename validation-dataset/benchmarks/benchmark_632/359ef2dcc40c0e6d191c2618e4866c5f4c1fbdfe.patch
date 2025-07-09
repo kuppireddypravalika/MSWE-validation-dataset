@@ -1,0 +1,26 @@
+From 359ef2dcc40c0e6d191c2618e4866c5f4c1fbdfe Mon Sep 17 00:00:00 2001
+From: LADSsoft <touchstone222@runbox.com>
+Date: Sun, 13 Feb 2022 00:03:48 -0500
+Subject: [PATCH] don't use a temporary if don't have to when converting a
+ structure to arithmetic type in arguments
+
+---
+ src/occparse/expr.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/occparse/expr.cpp b/src/occparse/expr.cpp
+index 197536969..b31de9f41 100644
+--- a/src/occparse/expr.cpp
++++ b/src/occparse/expr.cpp
+@@ -3350,7 +3350,10 @@ void AdjustParams(SYMBOL* func, SYMLIST* hr, INITLIST** lptr, bool operands, boo
+                         TYPE* etp = basetype(sym->tp)->btp;
+                         if (cppCast(p->tp, &etp, &p->exp))
+                             p->tp = etp;
+-                        p->exp = createTemporary(sym->tp, p->exp);
++                        if (lvalue(p->exp))
++                            p->exp = p->exp->left;
++                        else
++                            p->exp = createTemporary(sym->tp, p->exp);
+                     }
+                     else
+                     {

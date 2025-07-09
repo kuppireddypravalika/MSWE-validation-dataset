@@ -1,0 +1,24 @@
+From 9a9f7f1f91e6d5dff431665ac5f338ce8f0e65d1 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Mon, 14 Jul 2014 20:17:42 +0000
+Subject: [PATCH] Raster block: use a consistant formula for block size when
+ freeing it with the one used when allocating it
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@27529 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/gcore/gdalrasterblock.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gdal/gcore/gdalrasterblock.cpp b/gdal/gcore/gdalrasterblock.cpp
+index 2e8a54aefe07..6314f47db29f 100644
+--- a/gdal/gcore/gdalrasterblock.cpp
++++ b/gdal/gcore/gdalrasterblock.cpp
+@@ -400,7 +400,7 @@ GDALRasterBlock::~GDALRasterBlock()
+ 
+         VSIFree( pData );
+ 
+-        nSizeInBytes = (nXSize * nYSize * GDALGetDataTypeSize(eType)+7)/8;
++        nSizeInBytes = nXSize * nYSize * (GDALGetDataTypeSize(eType) / 8);
+ 
+         {
+             CPLMutexHolderD( &hRBMutex );

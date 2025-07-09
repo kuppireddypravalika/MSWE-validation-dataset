@@ -1,0 +1,34 @@
+From dc1fbb37c8827eec0dfc31ec0ace8d0b3cb7a668 Mon Sep 17 00:00:00 2001
+From: gagolews <egzaltowany@gmail.com>
+Date: Thu, 30 Jul 2015 16:41:06 +0200
+Subject: [PATCH] small perf impr as sugg by MB
+
+---
+ src/hclust2_vptree_single.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/hclust2_vptree_single.cpp b/src/hclust2_vptree_single.cpp
+index b9f0467..8dedff8 100644
+--- a/src/hclust2_vptree_single.cpp
++++ b/src/hclust2_vptree_single.cpp
+@@ -377,7 +377,7 @@ NumericMatrix HClustBiVpTreeSingle::compute()
+ 
+    prefetch = false;
+    size_t i = 0;
+-   while(i < _n - 1)
++   while(true)
+    {
+       //Rcout << "iteracja " << i << endl;
+       //Rcout << "pq size = " << pq.size()<< endl;
+@@ -392,8 +392,10 @@ NumericMatrix HClustBiVpTreeSingle::compute()
+ 
+          ret(i,0)=(double)hhi.index1;
+          ret(i,1)=(double)hhi.index2;
+-         ++i;
+          ds.link(s1, s2);
++
++         ++i;
++         if (i == _n-1) break; /* avoid computing unnecessary nn */
+       }
+ #if VERBOSE > 7
+       if (i % 1024 == 0) Rprintf("\r             %d / %d", i+1, _n);

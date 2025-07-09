@@ -1,0 +1,35 @@
+From 18a45bc7eb72da041b028bf599745352386dba3b Mon Sep 17 00:00:00 2001
+From: Jan Friso Groote <j.f.groote@tue.nl>
+Date: Thu, 5 Mar 2015 13:48:57 +0000
+Subject: [PATCH] Slightly optimised the code that the jittyc rewriter
+ generates.
+
+git-svn-id: https://svn.win.tue.nl/repos/MCRL2/trunk@13481 21252fe5-60e8-0310-8ff0-c1ae1001594e
+---
+ libraries/data/source/detail/rewrite/jittyc.cpp | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/libraries/data/source/detail/rewrite/jittyc.cpp b/libraries/data/source/detail/rewrite/jittyc.cpp
+index ed2d7cf2ba..04810c737f 100644
+--- a/libraries/data/source/detail/rewrite/jittyc.cpp
++++ b/libraries/data/source/detail/rewrite/jittyc.cpp
+@@ -1358,16 +1358,15 @@ class RewriterCompilingJitty::ImplementTree
+   bool calc_inner_term(std::ostream& s, const function_symbol& f, const bool rewr, size_t arity=0)
+   {
+     const bool nf = opid_is_nf(f, arity);
+-    const nfs_array nfs(arity);
+-    if (rewr && !nf)
++    if (rewr || nf)
+     {
+-      s << rewr_function_name(f, 0, nfs) << "()";
++      s << m_rewriter.m_nf_cache.insert(f);
+       return true;
+     }
+     else
+     {
+       s << "function_symbol(atermpp::aterm(reinterpret_cast<const atermpp::detail::_aterm*>(" << atermpp::detail::address(f) << ")))";
+-      return rewr || nf;
++      return false;
+     }
+   }
+ 

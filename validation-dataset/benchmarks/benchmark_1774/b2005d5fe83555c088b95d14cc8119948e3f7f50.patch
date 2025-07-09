@@ -1,0 +1,34 @@
+From b2005d5fe83555c088b95d14cc8119948e3f7f50 Mon Sep 17 00:00:00 2001
+From: Rafael Espindola <rafael.espindola@gmail.com>
+Date: Tue, 3 Oct 2017 16:25:48 +0000
+Subject: [PATCH] Use sched_getaffinity instead of
+ std::thread::hardware_concurrency.
+
+The issue with std::thread::hardware_concurrency is that it forwards
+to libc and some implementations (like glibc) don't take thread
+affinity into consideration.
+
+With this change a llvm program that can execute in only 2 cores will
+use 2 threads, even if the machine has 32 cores.
+
+This makes benchmarking a lot easier, but should also help if someone
+doesn't want to use all cores for compilation for example.
+---
+ lld/ELF/SyntheticSections.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/lld/ELF/SyntheticSections.cpp b/lld/ELF/SyntheticSections.cpp
+index 33e373b760de..c2e838bd5e2f 100644
+--- a/lld/ELF/SyntheticSections.cpp
++++ b/lld/ELF/SyntheticSections.cpp
+@@ -2240,8 +2240,8 @@ void MergeNoTailSection::finalizeContents() {
+   // operations in the following tight loop.
+   size_t Concurrency = 1;
+   if (Config->Threads)
+-    if (int N = std::thread::hardware_concurrency())
+-      Concurrency = std::min<size_t>(PowerOf2Floor(N), NumShards);
++    Concurrency =
++        std::min<size_t>(PowerOf2Floor(hardware_concurrency()), NumShards);
+ 
+   // Add section pieces to the builders.
+   parallelForEachN(0, Concurrency, [&](size_t ThreadId) {

@@ -1,0 +1,44 @@
+From bd1939956af929605a779db8180ce09676845613 Mon Sep 17 00:00:00 2001
+From: Frank Warmerdam <warmerdam@pobox.com>
+Date: Fri, 25 Mar 2005 06:31:27 +0000
+Subject: [PATCH] use addSubLineString() to speed up adding edge to ring.
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@7398 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ ogr/ograssemblepolygon.cpp | 16 ++++------------
+ 1 file changed, 4 insertions(+), 12 deletions(-)
+
+diff --git a/ogr/ograssemblepolygon.cpp b/ogr/ograssemblepolygon.cpp
+index b0746b1de9a6..78a26a00c68f 100644
+--- a/ogr/ograssemblepolygon.cpp
++++ b/ogr/ograssemblepolygon.cpp
+@@ -28,6 +28,9 @@
+  ******************************************************************************
+  *
+  * $Log$
++ * Revision 1.11  2005/03/25 06:31:27  fwarmerdam
++ * use addSubLineString() to speed up adding edge to ring.
++ *
+  * Revision 1.10  2003/05/28 19:16:42  warmerda
+  * fixed up argument names and stuff for docs
+  *
+@@ -159,18 +162,7 @@ static void AddEdgeToRing( OGRLinearRing * poRing, OGRLineString * poLine,
+         iStart += iStep;
+     }
+ 
+-/* -------------------------------------------------------------------- */
+-/*      Append points to ring.                                          */
+-/* -------------------------------------------------------------------- */
+-    int         iOutVertex = poRing->getNumPoints();
+-
+-    poRing->setNumPoints( iOutVertex + ABS(iEnd-iStart) + 1 );
+-    
+-    for( int i = iStart; i != (iEnd+iStep); i += iStep )
+-    {
+-        poRing->setPoint( iOutVertex++,
+-                          poLine->getX(i), poLine->getY(i), poLine->getZ(i) );
+-    }
++    poRing->addSubLineString( poLine, iStart, iEnd );
+ }
+ 
+ /************************************************************************/

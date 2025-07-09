@@ -1,0 +1,27 @@
+From 814431cbc5b75bb8a0e43620b5e9d322c6d31934 Mon Sep 17 00:00:00 2001
+From: Raphael Zhou <rzhou@wallix.com>
+Date: Wed, 30 Oct 2013 15:26:32 +0100
+Subject: [PATCH] Avoid memory copy in mod_vnc.
+
+---
+ mod/vnc/vnc.hpp | 7 -------
+ 1 file changed, 7 deletions(-)
+
+diff --git a/mod/vnc/vnc.hpp b/mod/vnc/vnc.hpp
+index 7ff834e819..4c14b43847 100755
+--- a/mod/vnc/vnc.hpp
++++ b/mod/vnc/vnc.hpp
+@@ -1790,13 +1790,6 @@ TODO(" we should manage cursors bigger then 32 x 32  this is not an RDP protocol
+         }
+ 
+         // specific treatement depending on msgType
+-/*
+-        BStream stream(chunk.size());
+-        TODO("Avoid useless buffer copy, parse data (we shoudl probably pass a (sub)stream instead)");
+-        stream.out_copy_bytes(chunk.get_data(), chunk.size());
+-        stream.mark_end();
+-        stream.rewind();
+-*/
+         SubStream stream(chunk, 0, chunk.size());
+ 
+         RDPECLIP::RecvFactory recv_factory(stream);

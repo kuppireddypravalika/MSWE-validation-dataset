@@ -1,0 +1,23 @@
+From 3a731d6e19f9bc337c62d8a684f30a608bb444d0 Mon Sep 17 00:00:00 2001
+From: Ziqi Wang <675973885@qq.com>
+Date: Tue, 14 Jun 2016 14:35:03 -0400
+Subject: [PATCH] Optimizing CollectAllValuesOnInnerRecursive() slightly by
+ changing continue to break
+
+---
+ src/bwtree.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/bwtree.h b/src/bwtree.h
+index 7479a5a..e3892e3 100644
+--- a/src/bwtree.h
++++ b/src/bwtree.h
+@@ -3504,7 +3504,7 @@ class BwTree {
+                  KeyCmpGreaterEqual(item.key, *ubound_p)) {
+                 //bwt_printf("Detected a out of range key in inner base node\n");
+ 
+-                continue;
++                break;
+               }
+ 
+               // If the sep key has already been collected, then ignore

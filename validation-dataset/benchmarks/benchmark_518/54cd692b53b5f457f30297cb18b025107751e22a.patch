@@ -1,0 +1,25 @@
+From 54cd692b53b5f457f30297cb18b025107751e22a Mon Sep 17 00:00:00 2001
+From: Stian Skjelstad <stian.skjelstad@gmail.com>
+Date: Thu, 28 Dec 2023 10:31:06 +0100
+Subject: [PATCH] Fix SSE2 version of convolve()
+
+_mm_madd_epi16 returns an array of 4 int32_t, so must use _mm_add_epi32() to accumulate them correctly. The cross-addition performed later is correct.
+
+Fixes #105
+---
+ src/builders/residfp-builder/residfp/resample/SincResampler.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/builders/residfp-builder/residfp/resample/SincResampler.cpp b/src/builders/residfp-builder/residfp/resample/SincResampler.cpp
+index b3cee4241..1b0227b7f 100755
+--- a/src/builders/residfp-builder/residfp/resample/SincResampler.cpp
++++ b/src/builders/residfp-builder/residfp/resample/SincResampler.cpp
+@@ -127,7 +127,7 @@ int convolve(const short* a, const short* b, int bLength)
+         for (int i = 0; i < n; i++)
+         {
+             const __m128i tmp = _mm_madd_epi16(*(__m128i*)a, *(__m128i*)b);
+-            acc = _mm_add_epi16(acc, tmp);
++            acc = _mm_add_epi32(acc, tmp);
+             a += 8;
+             b += 8;
+         }

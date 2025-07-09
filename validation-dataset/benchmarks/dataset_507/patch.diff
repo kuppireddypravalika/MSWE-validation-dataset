@@ -1,0 +1,44 @@
+From 85565ed41620a6586b2c87a6604e2d673b578d17 Mon Sep 17 00:00:00 2001
+From: FreeZoneMods <stfreeplayzone@yandex.ru>
+Date: Wed, 16 Jun 2021 04:49:55 +1000
+Subject: [PATCH] Optimize explosions
+
+We don't need to restart explosion if multiple GE_GRENADE_EXPLODE events arrive.
+---
+ src/xrGame/Explosive.cpp | 23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
+
+diff --git a/src/xrGame/Explosive.cpp b/src/xrGame/Explosive.cpp
+index 81ca748bcb6..5493c6550f2 100644
+--- a/src/xrGame/Explosive.cpp
++++ b/src/xrGame/Explosive.cpp
+@@ -563,16 +563,19 @@ void CExplosive::OnEvent(NET_Packet& P, u16 type)
+     {
+     case GE_GRENADE_EXPLODE:
+     {
+-        Fvector pos, normal;
+-        u16 parent_id;
+-        P.r_u16(parent_id);
+-        P.r_vec3(pos);
+-        P.r_vec3(normal);
+-
+-        SetInitiator(parent_id);
+-        ExplodeParams(pos, normal);
+-        Explode();
+-        m_fExplodeDuration = m_fExplodeDurationMax;
++        if (!m_explosion_flags.test(flExploding))
++        {
++            Fvector pos, normal;
++            u16 parent_id;
++            P.r_u16(parent_id);
++            P.r_vec3(pos);
++            P.r_vec3(normal);
++
++            SetInitiator(parent_id);
++            ExplodeParams(pos, normal);
++            Explode();
++            m_fExplodeDuration = m_fExplodeDurationMax;
++        }
+         break;
+     }
+     }

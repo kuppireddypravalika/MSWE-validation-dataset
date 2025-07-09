@@ -1,0 +1,24 @@
+From d1fe5a5a3e50010ac40dd393ec0b2bcd4fbae4e9 Mon Sep 17 00:00:00 2001
+From: Hendrik Leppkes <h.leppkes@gmail.com>
+Date: Wed, 5 Feb 2014 22:13:53 +0100
+Subject: [PATCH] Fix shift in buffer size calculation which resulted in too
+ large allocs.
+
+Fixes issue 426.
+---
+ decoder/LAVVideo/LAVPixFmtConverter.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/decoder/LAVVideo/LAVPixFmtConverter.cpp b/decoder/LAVVideo/LAVPixFmtConverter.cpp
+index 09e1daaba..8c786db9e 100644
+--- a/decoder/LAVVideo/LAVPixFmtConverter.cpp
++++ b/decoder/LAVVideo/LAVPixFmtConverter.cpp
+@@ -416,7 +416,7 @@ HRESULT CLAVPixFmtConverter::Convert(LAVFrame *pFrame, uint8_t *dst, int width,
+   // Check if we have proper pixel alignment and the dst memory is actually aligned
+   if (m_RequiredAlignment && (FFALIGN(dstStride, m_RequiredAlignment) != dstStride || ((uintptr_t)dst % 16u))) {
+     outStride = FFALIGN(dstStride, m_RequiredAlignment);
+-    size_t requiredSize = (outStride * planeHeight * lav_pixfmt_desc[m_OutputPixFmt].bpp) << 3;
++    size_t requiredSize = (outStride * planeHeight * lav_pixfmt_desc[m_OutputPixFmt].bpp) >> 3;
+     if (requiredSize > m_nAlignedBufferSize) {
+       DbgLog((LOG_TRACE, 10, L"::Convert(): Conversion requires a bigger stride (need: %d, have: %d), allocating buffer...", outStride, dstStride));
+       av_freep(&m_pAlignedBuffer);

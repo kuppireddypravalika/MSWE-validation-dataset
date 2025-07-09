@@ -1,0 +1,51 @@
+From d88066c5572c0e019c4879dbafd98042985ff769 Mon Sep 17 00:00:00 2001
+From: Bernd Porr <mail@berndporr.me.uk>
+Date: Fri, 28 Jul 2017 00:16:49 +0100
+Subject: [PATCH] Got rid of a couple of event loop calls.
+
+---
+ attysscope.cpp | 13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
+
+diff --git a/attysscope.cpp b/attysscope.cpp
+index c11d5dd..79ff886 100644
+--- a/attysscope.cpp
++++ b/attysscope.cpp
+@@ -629,13 +629,14 @@ int main( int argc, char **argv )
+ 	QPixmap pixmap(":/attys.png");
+ 	QSplashScreen* splash = new QSplashScreen(pixmap);
+ 	splash->setFont( QFont("Helvetica", 12, QFont::Bold) );
+-	a.processEvents();
+ 	splash->show();
+-	a.processEvents();
+ 	splash->showMessage("Scanning for paired devices");
+ 	a.processEvents();
+-	
++
++	// see if we have any Attys!
+ 	int ret = attysScan(splash);
++
++	// zero on success and non zero on failure
+ 	if (ret) {
+ 		a.processEvents();
+ 		Sleep(1000);
+@@ -643,8 +644,6 @@ int main( int argc, char **argv )
+ 		return ret;
+ 	}
+ 	
+-	a.processEvents();
+-	
+ 	// none detected
+ 	if (nAttysDevices<1) {
+ 		printf("No Attys present or not paired.\n");
+@@ -660,9 +659,7 @@ int main( int argc, char **argv )
+ 		if (strstr(argv[i],"-i")) ignoreSettings = 1;
+ 	}
+ 
+-	Attys_scope attys_scope(0,
+-				ignoreSettings
+-	);
++	Attys_scope attys_scope(0,ignoreSettings);
+ 
+ 	// show widget
+ 	attys_scope.show();

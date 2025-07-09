@@ -1,0 +1,37 @@
+From bfca2ec4e2e09ff4c264c0c357fe2716a4f9142d Mon Sep 17 00:00:00 2001
+From: Moligaloo <moligaloo@gmail.com>
+Date: Wed, 28 Mar 2012 00:51:05 +0800
+Subject: [PATCH] Optimize the implementation of Zongshi
+
+---
+ src/core/player.cpp | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/src/core/player.cpp b/src/core/player.cpp
+index 7753b16775..061ceacd3c 100644
+--- a/src/core/player.cpp
++++ b/src/core/player.cpp
+@@ -485,17 +485,18 @@ int Player::getMaxCards() const{
+         shenwei = 2;
+ 
+     int zongshi = 0;
+-    QStringList kingdoms;
+     if(hasSkill("zongshi")){
++        QSet<QString> kingdom_set;
+         foreach(const Player *player, this->getSiblings()){
+-            if(player->isAlive() && !kingdoms.contains(player->getKingdom())){
+-                zongshi++;
+-                kingdoms << player->getKingdom();
++            if(player->isAlive()){
++                kingdom_set << player->getKingdom();
+             }
+         }
++
++        zongshi = kingdom_set.size();
+     }
+-    total = qMax(hp,0) + extra + juejing + xueyi + shenwei + zongshi;
+ 
++    total = qMax(hp,0) + extra + juejing + xueyi + shenwei + zongshi;
+ 
+     return total;
+ }

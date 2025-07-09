@@ -1,0 +1,33 @@
+From 3674f486f26779ff4cf973ea98b3633958af828a Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Sun, 28 Jan 2018 12:11:29 +0000
+Subject: [PATCH] KRO: avoid excessive memory allocation. Fixes
+ https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=5770. Credit OSS Fuzz
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@41360 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/frmts/raw/krodataset.cpp | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/gdal/frmts/raw/krodataset.cpp b/gdal/frmts/raw/krodataset.cpp
+index 56fb9941f131..8c246e1a0268 100644
+--- a/gdal/frmts/raw/krodataset.cpp
++++ b/gdal/frmts/raw/krodataset.cpp
+@@ -192,6 +192,17 @@ GDALDataset *KRODataset::Open( GDALOpenInfo * poOpenInfo )
+         return nullptr;
+     }
+ 
++    vsi_l_offset nExpectedSize = static_cast<vsi_l_offset>(poDS->nRasterXSize)
++        * poDS->nRasterYSize * nComp * nDataTypeSize + 20;
++    VSIFSeekL(poDS->fpImage, 0, SEEK_END);
++    if( VSIFTellL(poDS->fpImage) < nExpectedSize )
++    {
++        CPLError( CE_Failure, CPLE_FileIO,
++                  "File too short" );
++        delete poDS;
++        return nullptr;
++    }
++
+ /* -------------------------------------------------------------------- */
+ /*      Create bands.                                                   */
+ /* -------------------------------------------------------------------- */

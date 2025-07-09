@@ -1,0 +1,38 @@
+From 8d518cf98d7c47b16f770f96c7c7395571d5547c Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Fri, 5 Jun 2015 16:41:52 +0000
+Subject: [PATCH] CPLAcquireMutex(): improve performance on Windows
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@29302 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/port/cpl_multiproc.cpp | 16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
+
+diff --git a/gdal/port/cpl_multiproc.cpp b/gdal/port/cpl_multiproc.cpp
+index f579590522aa..8d88aeacf2b9 100644
+--- a/gdal/port/cpl_multiproc.cpp
++++ b/gdal/port/cpl_multiproc.cpp
+@@ -789,10 +789,20 @@ int CPLAcquireMutex( CPLMutex *hMutexIn, double dfWaitInSeconds )
+     CRITICAL_SECTION *pcs = (CRITICAL_SECTION *)hMutexIn;
+     BOOL ret;
+ 
+-    while( (ret = TryEnterCriticalSection(pcs)) == 0 && dfWaitInSeconds > 0.0 )
++    if( dfWaitInSeconds >= 1000.0 )
+     {
+-        CPLSleep( MIN(dfWaitInSeconds,0.125) );
+-        dfWaitInSeconds -= 0.125;
++        // We assume this is the synonymous for infinite, so it is more
++        // efficient to use EnterCriticalSection() directly
++        EnterCriticalSection(pcs);
++        ret = TRUE;
++    }
++    else
++    {
++        while( (ret = TryEnterCriticalSection(pcs)) == 0 && dfWaitInSeconds > 0.0 )
++        {
++            CPLSleep( MIN(dfWaitInSeconds,0.01) );
++            dfWaitInSeconds -= 0.01;
++        }
+     }
+     
+     return ret;

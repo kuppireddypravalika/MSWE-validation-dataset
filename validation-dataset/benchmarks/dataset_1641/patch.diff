@@ -1,0 +1,44 @@
+From 76e56eb164747a872328e3cf6f4b2fcb916f1fbc Mon Sep 17 00:00:00 2001
+From: Anton Kudryavtsev <anton.kudryavtsev@vk.team>
+Date: Tue, 5 Sep 2023 18:45:07 +0300
+Subject: [PATCH] QNetworkAccessCacheBackend: reduce allocations
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Use CaseInsensitive compare more.
+
+Change-Id: I2f6d19fd63ac2e06c5b0dcb285a578f9ed61c6ab
+Reviewed-by: Mårten Nordheim <marten.nordheim@qt.io>
+---
+ src/network/access/qnetworkaccesscachebackend.cpp | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/src/network/access/qnetworkaccesscachebackend.cpp b/src/network/access/qnetworkaccesscachebackend.cpp
+index 99bef104887d..fd8174c143c7 100644
+--- a/src/network/access/qnetworkaccesscachebackend.cpp
++++ b/src/network/access/qnetworkaccesscachebackend.cpp
+@@ -12,6 +12,8 @@
+ 
+ QT_BEGIN_NAMESPACE
+ 
++using namespace Qt::StringLiterals;
++
+ QNetworkAccessCacheBackend::QNetworkAccessCacheBackend()
+     : QNetworkAccessBackend(QNetworkAccessBackend::TargetType::Local)
+ {
+@@ -51,10 +53,10 @@ bool QNetworkAccessCacheBackend::sendCacheContents()
+     // set the raw headers
+     const QNetworkCacheMetaData::RawHeaderList rawHeaders = item.rawHeaders();
+     for (const auto &header : rawHeaders) {
+-        if (header.first.toLower() == "cache-control") {
+-            const QByteArray cacheControlValue = header.second.toLower();
+-            if (cacheControlValue.contains("must-revalidate")
+-                || cacheControlValue.contains("no-cache")) {
++        if (header.first.compare("cache-control", Qt::CaseInsensitive) == 0) {
++            const QLatin1StringView cacheControlValue(header.second);
++            if (cacheControlValue.contains("must-revalidate"_L1, Qt::CaseInsensitive)
++                || cacheControlValue.contains("no-cache"_L1, Qt::CaseInsensitive)) {
+                 return false;
+             }
+         }

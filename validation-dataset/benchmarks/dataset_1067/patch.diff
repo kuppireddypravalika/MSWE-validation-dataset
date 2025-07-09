@@ -1,0 +1,42 @@
+From 332d510a5a75e71ecfe137c4520d598254410dc0 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Sun, 16 Sep 2012 14:37:59 +0000
+Subject: [PATCH] GDALSuggestedWarpOutput2(): avoid silent int overflow when
+ computing output dimensions
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@24930 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/alg/gdaltransformer.cpp | 20 ++++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
+
+diff --git a/gdal/alg/gdaltransformer.cpp b/gdal/alg/gdaltransformer.cpp
+index b112b942942c..4f5ab160dac1 100644
+--- a/gdal/alg/gdaltransformer.cpp
++++ b/gdal/alg/gdaltransformer.cpp
+@@ -698,8 +698,24 @@ GDALSuggestedWarpOutput2( GDALDatasetH hSrcDS,
+     dfPixelSize = dfDiagonalDist 
+         / sqrt(((double)nInXSize)*nInXSize + ((double)nInYSize)*nInYSize);
+ 
+-    *pnPixels = (int) ((dfMaxXOut - dfMinXOut) / dfPixelSize + 0.5);
+-    *pnLines = (int) ((dfMaxYOut - dfMinYOut) / dfPixelSize + 0.5);
++    double dfPixels = (dfMaxXOut - dfMinXOut) / dfPixelSize;
++    double dfLines =  (dfMaxYOut - dfMinYOut) / dfPixelSize;
++    
++    if( dfPixels > INT_MAX - 1 || dfLines > INT_MAX - 1 )
++    {
++        CPLError( CE_Failure, CPLE_AppDefined, 
++                  "Computed dimensions are too big : %.0f x %.0f",
++                  dfPixels + 0.5, dfLines + 0.5 );
++
++        CPLFree( padfX );
++        CPLFree( padfXRevert );
++        CPLFree( pabSuccess );
++
++        return CE_Failure;
++    }
++
++    *pnPixels = (int) (dfPixels + 0.5);
++    *pnLines = (int) (dfLines + 0.5);
+     
+     double dfPixelSizeX = dfPixelSize;
+     double dfPixelSizeY = dfPixelSize;

@@ -1,0 +1,23 @@
+From f447b9665a74862a7a213315835b286e6ff19241 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Micha=C5=82=20Janiszewski?= <janisozaur@gmail.com>
+Date: Mon, 15 Feb 2016 00:05:33 +0100
+Subject: [PATCH] Use GCC's __builtin_ffs for bitscanforward impl
+
+---
+ src/util/util.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/util/util.c b/src/util/util.c
+index d41ab40cd495..d90091d00075 100644
+--- a/src/util/util.c
++++ b/src/util/util.c
+@@ -158,6 +158,9 @@ int bitscanforward(int source)
+ 	#if _MSC_VER >= 1400 // Visual Studio 2005
+ 		uint8 success = _BitScanForward(&i, source);
+ 		return success != 0 ? i : -1;
++	#elif __GNUC__
++		int success = __builtin_ffs(source);
++		return success - 1;
+ 	#else
+ 	for (i = 0; i < 32; i++)
+ 		if (source & (1u << i))

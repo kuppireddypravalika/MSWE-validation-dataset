@@ -1,0 +1,37 @@
+From 7fdc45a854a9e177559ad99e991c06ed1777e480 Mon Sep 17 00:00:00 2001
+From: Yuri Vanin <yvanin@users.noreply.github.com>
+Date: Mon, 11 Feb 2019 18:35:29 -0800
+Subject: [PATCH] Use cached value for type safety check during unpacking of
+ Any message (#5698)
+
+This performance optimization allows to skip reflection (in the is() method) when the message has been already unpacked once
+---
+ src/google/protobuf/compiler/java/java_message.cc | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/src/google/protobuf/compiler/java/java_message.cc b/src/google/protobuf/compiler/java/java_message.cc
+index 9aabd62a4752b..22ff5cdf8531f 100644
+--- a/src/google/protobuf/compiler/java/java_message.cc
++++ b/src/google/protobuf/compiler/java/java_message.cc
+@@ -1446,13 +1446,17 @@ void ImmutableMessageGenerator::GenerateAnyMethods(io::Printer* printer) {
+     "public <T extends com.google.protobuf.Message> T unpack(\n"
+     "    java.lang.Class<T> clazz)\n"
+     "    throws com.google.protobuf.InvalidProtocolBufferException {\n"
+-    "  if (!is(clazz)) {\n"
++    "  boolean invalidClazz = false;\n"
++    "  if (cachedUnpackValue != null) {\n"
++    "    if (cachedUnpackValue.getClass() == clazz) {\n"
++    "      return (T) cachedUnpackValue;\n"
++    "    }\n"
++    "    invalidClazz = true;\n"
++    "  }\n"
++    "  if (invalidClazz || !is(clazz)) {\n"
+     "    throw new com.google.protobuf.InvalidProtocolBufferException(\n"
+     "        \"Type of the Any message does not match the given class.\");\n"
+     "  }\n"
+-    "  if (cachedUnpackValue != null) {\n"
+-    "    return (T) cachedUnpackValue;\n"
+-    "  }\n"
+     "  T defaultInstance =\n"
+     "      com.google.protobuf.Internal.getDefaultInstance(clazz);\n"
+     "  T result = (T) defaultInstance.getParserForType()\n"

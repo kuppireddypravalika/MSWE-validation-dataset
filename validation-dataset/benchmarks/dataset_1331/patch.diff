@@ -1,0 +1,36 @@
+From 3505f4e552a60f35400adfafd12559ace059dbe5 Mon Sep 17 00:00:00 2001
+From: furszy <matiasfurszyfer@protonmail.com>
+Date: Wed, 22 Jan 2020 20:08:28 -0300
+Subject: [PATCH] Merge #1298: [Model][Performance] Unnecessary double
+ cs_wallet and cs_main lock.
+
+9d94ea66164821aa2dbdaa49fa8f02d1577ea05e [Model][Performance] Double index call locking cs_wallet and cs_main twice for every single record fix. (furszy)
+
+Pull request description:
+
+  Fix a double `index` call locking cs_wallet and cs_main twice in every single model record index request.
+
+ACKs for top commit:
+  random-zebra:
+    utACK 9d94ea66164821aa2dbdaa49fa8f02d1577ea05e
+  Fuzzbawls:
+    utACK 9d94ea66164821aa2dbdaa49fa8f02d1577ea05e
+
+Tree-SHA512: 635b5df450d4522b26651175fcd5d577551ebb54a85704620e022ca17aa84fe948b52e7391e070ee38a7ea14699a45ed57823d14fef2f493810780d9aada575d
+---
+ src/qt/transactiontablemodel.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/qt/transactiontablemodel.cpp b/src/qt/transactiontablemodel.cpp
+index ebdcba55f4..164ae13305 100644
+--- a/src/qt/transactiontablemodel.cpp
++++ b/src/qt/transactiontablemodel.cpp
+@@ -796,7 +796,7 @@ QModelIndex TransactionTableModel::index(int row, int column, const QModelIndex&
+     Q_UNUSED(parent);
+     TransactionRecord* data = priv->index(row);
+     if (data) {
+-        return createIndex(row, column, priv->index(row));
++        return createIndex(row, column, data);
+     }
+     return QModelIndex();
+ }

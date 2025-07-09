@@ -1,0 +1,31 @@
+From 9def501433e80e1a45c0d7888b9ceba4e32ca1fa Mon Sep 17 00:00:00 2001
+From: Stephen Kelly <steveire@gmail.com>
+Date: Mon, 18 Apr 2016 23:27:12 +0200
+Subject: [PATCH] QString: Avoid searching for a needle which is longer than
+ the hay
+
+Avoid incurring the cost of converting the latin1 data in that case.
+
+Several existing QString unit tests excercise the new code path.
+
+Task-number: QTBUG-52617
+Change-Id: I27256d9e7db34f09543e244a79d754ff7932f0d0
+Reviewed-by: Thiago Macieira <thiago.macieira@intel.com>
+---
+ src/corelib/tools/qstring.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/corelib/tools/qstring.cpp b/src/corelib/tools/qstring.cpp
+index 10d3441d2c2b..983d1213d93a 100644
+--- a/src/corelib/tools/qstring.cpp
++++ b/src/corelib/tools/qstring.cpp
+@@ -10005,6 +10005,9 @@ static inline int qt_find_latin1_string(const QChar *haystack, int size,
+                                         QLatin1String needle,
+                                         int from, Qt::CaseSensitivity cs)
+ {
++    if (size < needle.size())
++        return -1;
++
+     const char *latin1 = needle.latin1();
+     int len = needle.size();
+     QVarLengthArray<ushort> s(len);

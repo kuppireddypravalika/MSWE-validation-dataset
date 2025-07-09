@@ -1,0 +1,27 @@
+From 85d22f87390b131683ea3aae352d9d318aded123 Mon Sep 17 00:00:00 2001
+From: GJDuck <gregory@comp.nus.edu.sg>
+Date: Mon, 16 Nov 2020 12:36:58 +0800
+Subject: [PATCH] Replace unsued bytes with `int3' (0xCC)
+
+Can make the disassembly clear(er).
+
+May also slightly improve performance (?)
+---
+ src/e9patch/e9tactics.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/e9patch/e9tactics.cpp b/src/e9patch/e9tactics.cpp
+index 7f021a3..f963b38 100644
+--- a/src/e9patch/e9tactics.cpp
++++ b/src/e9patch/e9tactics.cpp
+@@ -361,7 +361,10 @@ static void patchUnused(Patch *P, unsigned offset)
+     for (unsigned i = offset; i < P->I->size; i++)
+     {
+         if (P->I->patched.state[i] == STATE_INSTRUCTION)
++        {
++            P->I->patched.bytes[i] = /*int3=*/0xcc;
+             P->I->patched.state[i] = STATE_FREE;
++        }
+     }
+ }
+ 

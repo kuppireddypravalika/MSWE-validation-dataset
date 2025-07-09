@@ -1,0 +1,46 @@
+From 76f27145c07679f40b7bd9e1bc35459118804345 Mon Sep 17 00:00:00 2001
+From: Hans Johnson <hans-johnson@uiowa.edu>
+Date: Tue, 18 Feb 2020 14:53:11 -0600
+Subject: [PATCH] PERF: Allow compiler to choose best way to construct a copy
+
+With move semantics added to the language and the standard library updated with
+move constructors added for many types it is now interesting to take an
+argument directly by value, instead of by const-reference, and then copy. This
+check allows the compiler to take care of choosing the best way to construct
+the copy.
+
+The transformation is usually beneficial when the calling code passes an rvalue
+and assumes the move construction is a cheap operation. This short example
+illustrates how the construction of the value happens:
+
+SRCDIR= #My local SRC
+BLDDIR= #My local BLD
+
+cd
+run-clang-tidy.py -extra-arg=-D__clang__ -checks=-*,modernize-pass-by-value  -header-filter=.* -fix
+---
+ Modules/Numerics/FEM/include/itkFEMLoadNode.h | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/Modules/Numerics/FEM/include/itkFEMLoadNode.h b/Modules/Numerics/FEM/include/itkFEMLoadNode.h
+index e7a93080c56..080726fed6d 100644
+--- a/Modules/Numerics/FEM/include/itkFEMLoadNode.h
++++ b/Modules/Numerics/FEM/include/itkFEMLoadNode.h
+@@ -19,6 +19,8 @@
+ #ifndef itkFEMLoadNode_h
+ #define itkFEMLoadNode_h
+ 
++#include <utility>
++
+ #include "itkFEMLoadBase.h"
+ #include "ITKFEMExport.h"
+ #include "vnl/vnl_vector.h"
+@@ -83,7 +85,7 @@ class ITKFEM_EXPORT LoadNode : public Load
+ 
+   LoadNode(Element::ConstPointer element_, unsigned int pt_, vnl_vector<Float> F_)
+     : m_Point(pt_)
+-    , m_Force(F_)
++    , m_Force(std::move(F_))
+   {
+     this->m_Element = element_;
+   }

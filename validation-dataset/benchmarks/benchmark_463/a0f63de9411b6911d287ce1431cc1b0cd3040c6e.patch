@@ -1,0 +1,33 @@
+From a0f63de9411b6911d287ce1431cc1b0cd3040c6e Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?V=C3=A1clav=20Slav=C3=ADk?= <vslavik@fastmail.fm>
+Date: Mon, 30 Jul 2007 10:51:35 +0000
+Subject: [PATCH] don't crash in wxGetEmptyString(): it's now a #define for
+ wxString(), which is not any less efficient now
+
+git-svn-id: https://svn.wxwidgets.org/svn/wx/wxWidgets/trunk@47826 c3d73ce0-8a6f-49c7-b76d-6d57e0e08775
+---
+ include/wx/string.h | 11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
+
+diff --git a/include/wx/string.h b/include/wx/string.h
+index b6002fd5aaf1..cc791c7d7fef 100644
+--- a/include/wx/string.h
++++ b/include/wx/string.h
+@@ -2689,16 +2689,7 @@ inline wxString operator+(wchar_t ch, const wxString& string)
+     { return wxUniChar(ch) + string; }
+ 
+ 
+-#if wxUSE_STL_BASED_WXSTRING
+-    // return an empty wxString (not very useful with wxUSE_STL == 1)
+-    inline const wxString wxGetEmptyString() { return wxString(); }
+-#else // !wxUSE_STL_BASED_WXSTRING
+-    // return an empty wxString (more efficient than wxString() here)
+-    inline const wxString& wxGetEmptyString()
+-    {
+-        return *(wxString *)&wxEmptyString;
+-    }
+-#endif // wxUSE_STL_BASED_WXSTRING/!wxUSE_STL_BASED_WXSTRING
++#define wxGetEmptyString() wxString()
+ 
+ // ----------------------------------------------------------------------------
+ // wxStringBuffer: a tiny class allowing to get a writable pointer into string

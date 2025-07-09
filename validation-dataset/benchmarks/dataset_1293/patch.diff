@@ -1,0 +1,23 @@
+From fc454cd11e26b9eb8ad9f63c05f1ecfef8f90a17 Mon Sep 17 00:00:00 2001
+From: Lion Kortlepel <development@kortlepel.com>
+Date: Wed, 19 Jun 2024 15:53:49 +0200
+Subject: [PATCH] avoid creating a thread every packet
+
+---
+ src/Network/Core.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/Network/Core.cpp b/src/Network/Core.cpp
+index c65f257c..0c51f88e 100644
+--- a/src/Network/Core.cpp
++++ b/src/Network/Core.cpp
+@@ -230,8 +230,7 @@ void GameHandler(SOCKET Client) {
+         if (Temp < 1)
+             break;
+ 
+-        std::thread Respond(Parse, Ret, Client);
+-        Respond.detach();
++        Parse(Ret, Client);
+     } while (Temp > 0);
+     if (Temp == 0) {
+         debug("(Core) Connection closing");

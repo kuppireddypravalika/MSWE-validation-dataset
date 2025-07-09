@@ -1,0 +1,26 @@
+From e78a2d51066f675d16de6e47802a07318eae12c9 Mon Sep 17 00:00:00 2001
+From: Erik Garrison <erik.garrison@gmail.com>
+Date: Fri, 28 Jan 2022 17:12:24 +0100
+Subject: [PATCH] set a minimum window length = 2x the kmer size
+
+---
+ src/yeet/include/parse_args.hpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/yeet/include/parse_args.hpp b/src/yeet/include/parse_args.hpp
+index a6196308..31bd4ddf 100644
+--- a/src/yeet/include/parse_args.hpp
++++ b/src/yeet/include/parse_args.hpp
+@@ -471,8 +471,11 @@ void parse_args(int argc,
+                     map_parameters.segLength,
+                     map_parameters.referenceSize);
+ 
++            // Avoid tiny windows to improve runtime
++            map_parameters.windowSize = std::max((int64_t)map_parameters.kmerSize*2, windowSize);
++
+             // Avoid too big values to improve the accuracy
+-            map_parameters.windowSize = std::min((int64_t)256, windowSize);
++            map_parameters.windowSize = std::min((int64_t)256, map_parameters.windowSize);
+         }
+     }
+ 

@@ -1,0 +1,22 @@
+From 1c4191143cc9785c0a16aa6544d4759350413f45 Mon Sep 17 00:00:00 2001
+From: panjiacheng <panjiacheng@yahoo.com>
+Date: Mon, 20 May 2019 18:17:13 -0700
+Subject: [PATCH] Prediction: reduce feature.proto generation time.
+
+---
+ modules/prediction/container/obstacles/obstacles_container.cc | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/modules/prediction/container/obstacles/obstacles_container.cc b/modules/prediction/container/obstacles/obstacles_container.cc
+index 936b3c3e87..5d5d903d9e 100644
+--- a/modules/prediction/container/obstacles/obstacles_container.cc
++++ b/modules/prediction/container/obstacles/obstacles_container.cc
+@@ -347,8 +347,6 @@ void ObstaclesContainer::BuildLaneGraph() {
+       continue;
+     }
+     if (FLAGS_prediction_offline_mode !=
+-            PredictionConstants::kDumpFeatureProto &&
+-        FLAGS_prediction_offline_mode !=
+             PredictionConstants::kDumpDataForLearning) {
+       ADEBUG << "Building Lane Graph.";
+       obstacle_ptr->BuildLaneGraph();

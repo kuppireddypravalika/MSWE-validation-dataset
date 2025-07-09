@@ -1,0 +1,34 @@
+From ebf15a4e519d4af64e220968a5ab06235594fab9 Mon Sep 17 00:00:00 2001
+From: "Hongli Lai (Phusion)" <hongli@phusion.nl>
+Date: Wed, 7 Jul 2010 01:07:53 +0200
+Subject: [PATCH] Use memchr() to implement isBoundaryChar() instead of our own
+ implementation. This makes it significantly faster.
+
+---
+ MultipartParser.h | 13 ++-----------
+ 1 file changed, 2 insertions(+), 11 deletions(-)
+
+diff --git a/MultipartParser.h b/MultipartParser.h
+index 84145e3..9e9ab65 100644
+--- a/MultipartParser.h
++++ b/MultipartParser.h
+@@ -94,17 +94,8 @@ class MultipartParser {
+ 		return c | 0x20;
+ 	}
+ 	
+-	bool isBoundaryChar(char c) const {
+-		const char *current = boundary.c_str();
+-		const char *end = current + boundary.size();
+-		
+-		while (current < end) {
+-			if (*current == c) {
+-				return true;
+-			}
+-			current++;
+-		}
+-		return false;
++	inline bool isBoundaryChar(char c) const {
++		return memchr(boundaryData, c, boundarySize) != NULL;
+ 	}
+ 	
+ 	bool isHeaderFieldCharacter(char c) const {

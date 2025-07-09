@@ -1,0 +1,25 @@
+From 5a35b56f55c322130eb6dde5902e0b564008a7a0 Mon Sep 17 00:00:00 2001
+From: nackdai <newvf91.brjtn579.dn@gmail.com>
+Date: Wed, 20 Sep 2017 15:37:51 +0900
+Subject: [PATCH] It is enabled to use for cpu code.
+
+---
+ src/libaten/sampler/sobolproxy.h | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/libaten/sampler/sobolproxy.h b/src/libaten/sampler/sobolproxy.h
+index 278318df6..e6062b303 100644
+--- a/src/libaten/sampler/sobolproxy.h
++++ b/src/libaten/sampler/sobolproxy.h
+@@ -36,7 +36,11 @@ namespace aten {
+ 			m_idx = index;
+ 			m_dimension = dimension;
+ 			m_scramble = scramble;
++#ifdef __CUDACC__
+ 			m_matrices = data ? data : m_matrices;
++#else
++			m_matrices = data ? data : sobol::Matrices::matrices;
++#endif
+ 		}
+ 
+ 		AT_VIRTUAL_OVERRIDE_FINAL(AT_DEVICE_API real nextSample())

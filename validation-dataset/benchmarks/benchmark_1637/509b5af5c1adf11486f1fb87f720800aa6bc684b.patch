@@ -1,0 +1,30 @@
+From 509b5af5c1adf11486f1fb87f720800aa6bc684b Mon Sep 17 00:00:00 2001
+From: linas <>
+Date: Mon, 7 Apr 2008 16:10:09 +0000
+Subject: [PATCH] performance optimization: use dynamic cast instead of
+ isAssignableFrom
+
+---
+ src/AtomSpace/AtomTable.cc | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/src/AtomSpace/AtomTable.cc b/src/AtomSpace/AtomTable.cc
+index 8bc3bc1307..56eafe09bd 100644
+--- a/src/AtomSpace/AtomTable.cc
++++ b/src/AtomSpace/AtomTable.cc
+@@ -659,10 +659,12 @@ Handle AtomTable::add(Atom *atom) throw (RuntimeException)
+         return  TLB::addAtom(atom);
+     }
+     Handle existingHandle = UNDEFINED_HANDLE;
+-    if (ClassServer::isAssignableFrom(NODE, atom->getType())) {
++    Node * nnn = dynamic_cast<Node *>(atom);
++    Link * lll = dynamic_cast<Link *>(atom);
++    if (nnn) {
+         // checks if the node handle already exists.
+-        existingHandle = getHandle(((Node*) atom)->getName().c_str(), atom->getType());
+-    } else if (ClassServer::isAssignableFrom(LINK, atom->getType())) {
++        existingHandle = getHandle(nnn->getName().c_str(), atom->getType());
++    } else if (lll) {
+         // New link may already exist.
+         std::vector<Handle> outgoing(atom->getArity());
+         for(int i = 0; i < atom->getArity(); i++) {

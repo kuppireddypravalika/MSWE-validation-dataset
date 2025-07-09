@@ -1,0 +1,29 @@
+From 4bc307f55cb5bc115ab0cb5b33d60782900124ea Mon Sep 17 00:00:00 2001
+From: "bernard.parisse" <bernard.parisse@23ce0884-8a58-47d3-bc5c-ddf1cd5b9f9e>
+Date: Mon, 20 Jun 2016 13:28:07 +0000
+Subject: [PATCH] [giac] improvement for
+ solve(((sin(x))*(exp(x)))+((cos(x))*(exp(x))),x)
+
+git-svn-id: https://dev.geogebra.org/svn/trunk/geogebra/giac@47994 23ce0884-8a58-47d3-bc5c-ddf1cd5b9f9e
+---
+ src/giac/cpp/solve.cc | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/giac/cpp/solve.cc b/src/giac/cpp/solve.cc
+index f0fd0c23..d3a4f584 100644
+--- a/src/giac/cpp/solve.cc
++++ b/src/giac/cpp/solve.cc
+@@ -1811,10 +1811,12 @@ namespace giac {
+ 	    expr=tmp;
+ 	  else {
+ 	    tmp=_lncollect((tmps<s?tmp:expr),contextptr);
+-	    if (int(lvarx(tmp,x).size())<s){
++	    int s1=int(lvarx(tmp,x).size());
++	    if (s1<s){
+ 	      // Note: we are checking solutions numerically later
+ 	      *logptr(contextptr) << gettext("Warning: solving in ") << x << gettext(" equation ") << tmp << "=0" << endl;
+ 	      expr=tmp;
++	      s=s1;
+ 	    }
+ 	    // code added 11 october 2015 for solve(2^(3*x-1)+2^(6*x-2)-2^(3*x+3)-(4^(3*x-2))=0);
+ 	    tmp=_tsimplify(tmps<s?tmp:expr,contextptr);

@@ -1,0 +1,30 @@
+From 98bf70c463ecfadb91df16572f4d0327fcac576d Mon Sep 17 00:00:00 2001
+From: Dhruv Chopra <Dhruv.C.Chopra@ibm.com>
+Date: Fri, 14 Sep 2018 14:19:12 -0400
+Subject: [PATCH] Use logical comparison in minEvaluator
+
+When comparing long values in register pairs, only
+the high word of the registers should do a signed
+comparison. The low words should be evaluated
+logically as the high word comparison would have
+indicated if there was a sign difference between the
+two.
+
+Signed-off-by: Dhruv Chopra <Dhruv.C.Chopra@ibm.com>
+---
+ compiler/z/codegen/ControlFlowEvaluator.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/compiler/z/codegen/ControlFlowEvaluator.cpp b/compiler/z/codegen/ControlFlowEvaluator.cpp
+index 4622ab5f06..18ba37643f 100644
+--- a/compiler/z/codegen/ControlFlowEvaluator.cpp
++++ b/compiler/z/codegen/ControlFlowEvaluator.cpp
+@@ -946,7 +946,7 @@ static TR::Register * maxMinHelper(TR::Node *node, TR::CodeGenerator *cg, bool i
+          cursor = generateS390BranchInstruction(cg, TR::InstOpCode::BRC, TR::InstOpCode::COND_BRNE, node, done);
+          cursor->setStartInternalControlFlow();
+ 
+-         generateRRInstruction(cg, TR::InstOpCode::CR, node, registerA->getLowOrder(), registerB->getLowOrder());
++         generateRRInstruction(cg, TR::InstOpCode::CLR, node, registerA->getLowOrder(), registerB->getLowOrder());
+          generateRRFInstruction(cg, TR::InstOpCode::LOCR, node, registerA->getHighOrder(), registerB->getHighOrder(), mask, true);
+          generateRRFInstruction(cg, TR::InstOpCode::LOCR, node, registerA->getLowOrder(), registerB->getLowOrder(), mask, true);
+ 

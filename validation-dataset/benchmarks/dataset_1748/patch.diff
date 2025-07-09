@@ -1,0 +1,38 @@
+From 0971e0b7453439f01c72551870d8a2a140758593 Mon Sep 17 00:00:00 2001
+From: Christian Kandeler <christian.kandeler@theqtcompany.com>
+Date: Sat, 1 Oct 2016 17:02:56 +0200
+Subject: [PATCH] ModuleLoader: Remove redundant property checks
+
+This has a considerable performance impact for larger projects.
+Example: When resolving the Qt Creator project on my machine, the patch
+speeds up the property checking process by ~98%, while the overall
+resolving time goes down by ~15%.
+
+Change-Id: Ifd3e3fb4840a4b089f50f5de8e826cab7c6e5c5c
+Reviewed-by: Jake Petroules <jake.petroules@qt.io>
+---
+ src/lib/corelib/language/moduleloader.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/lib/corelib/language/moduleloader.cpp b/src/lib/corelib/language/moduleloader.cpp
+index d9fb738a13..b821859ecd 100644
+--- a/src/lib/corelib/language/moduleloader.cpp
++++ b/src/lib/corelib/language/moduleloader.cpp
+@@ -272,6 +272,7 @@ static void handlePropertyError(const ErrorInfo &error, const SetupProjectParame
+ class PropertyDeclarationCheck : public ValueHandler
+ {
+     const QSet<Item *> &m_disabledItems;
++    QSet<Item *> m_handledItems;
+     Item *m_parentItem;
+     QString m_currentName;
+     SetupProjectParameters m_params;
+@@ -321,6 +322,9 @@ class PropertyDeclarationCheck : public ValueHandler
+ 
+     void handleItem(Item *item)
+     {
++        if (m_handledItems.contains(item))
++            return;
++        m_handledItems.insert(item);
+         if (m_disabledItems.contains(item)
+                 // TODO: We never checked module prototypes, apparently. Should we?
+                 // It's currently not possible because of e.g. things like "cpp.staticLibraries"

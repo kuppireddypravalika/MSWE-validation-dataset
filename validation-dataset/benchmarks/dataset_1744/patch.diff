@@ -1,0 +1,34 @@
+From 5542062897811e9ff061e8debd929467e921be4e Mon Sep 17 00:00:00 2001
+From: probonopd <probonopd@users.noreply.github.com>
+Date: Mon, 18 Jun 2018 19:46:45 +0200
+Subject: [PATCH] Close #300, thanks kviktor
+
+In https://github.com/probonopd/linuxdeployqt/issues/300#issuecomment-398049462 @kviktor writes:
+
+> With this workaround things seem to work great (originally I just removed the whole if/return part but with that the program ran for about 15 mins, with the current one it takes around 5 min to complete which is close to the original one, also it fixes the issue that `xcbglintegrations` is not getting copied over)
+---
+ tools/linuxdeployqt/shared.cpp | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/tools/linuxdeployqt/shared.cpp b/tools/linuxdeployqt/shared.cpp
+index 794fa649..7e10db5f 100644
+--- a/tools/linuxdeployqt/shared.cpp
++++ b/tools/linuxdeployqt/shared.cpp
+@@ -1504,8 +1504,15 @@ void deployQmlImport(const QString &appDirPath, const QSet<QString> &rpaths, con
+ 
+     // Skip already deployed imports. This can happen in cases like "QtQuick.Controls.Styles",
+     // where deploying QtQuick.Controls will also deploy the "Styles" sub-import.
+-    if (QDir().exists(importDestinationPath))
+-        return;
++    // NOTE: this stops the deployment of certain imports if there is a folder in them, for example
++    //       - if QtQuick.Controls.Styles is already there QtQuick.Controls is skipped
++    //       - if QtQuick.Extras.Private is there QtQuick.Extras is skipped
++    QDir destDir(importDestinationPath);
++    if (destDir.exists()) {
++        destDir.setFilter(QDir::Files | QDir::NoDotAndDotDot);
++        if(destDir.entryInfoList().length() > 0)
++            return;
++    }
+ 
+     recursiveCopyAndDeploy(appDirPath, rpaths, importSourcePath, importDestinationPath);
+ }

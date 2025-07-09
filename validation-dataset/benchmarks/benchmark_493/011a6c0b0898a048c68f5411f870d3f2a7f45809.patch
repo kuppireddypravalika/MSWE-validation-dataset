@@ -1,0 +1,54 @@
+From 011a6c0b0898a048c68f5411f870d3f2a7f45809 Mon Sep 17 00:00:00 2001
+From: vasil <>
+Date: Thu, 26 Jun 2008 13:39:01 +0000
+Subject: [PATCH] branches/5.1:
+
+Fix Bug#36942 Performance problem in lock_get_n_rec_locks (SHOW INNODB STATUS)
+by not calling lock_get_n_rec_locks() from lock_print_info_summary() on
+production builds.
+
+Approved by:	Heikki (via IM)
+---
+ lock/lock0lock.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/lock/lock0lock.c b/lock/lock0lock.c
+index 39cbf83e58e..c2ede22dccb 100644
+--- a/lock/lock0lock.c
++++ b/lock/lock0lock.c
+@@ -4138,6 +4138,15 @@ lock_rec_print(
+ }
+ 
+ #ifndef UNIV_HOTBACKUP
++
++#ifdef UNIV_DEBUG
++/* Print the number of lock structs from lock_print_info_summary() only
++in non-production builds for performance reasons, see
++http://bugs.mysql.com/36942 */
++#define PRINT_NUM_OF_LOCK_STRUCTS
++#endif /* UNIV_DEBUG */
++
++#ifdef PRINT_NUM_OF_LOCK_STRUCTS
+ /*************************************************************************
+ Calculates the number of record lock structs in the record lock hash table. */
+ static
+@@ -4164,6 +4173,7 @@ lock_get_n_rec_locks(void)
+ 
+ 	return(n_locks);
+ }
++#endif /* PRINT_NUM_OF_LOCK_STRUCTS */
+ 
+ /*************************************************************************
+ Prints info of locks for all transactions. */
+@@ -4207,9 +4217,11 @@ lock_print_info_summary(
+ 		"History list length %lu\n",
+ 		(ulong) trx_sys->rseg_history_len);
+ 
++#ifdef PRINT_NUM_OF_LOCK_STRUCTS
+ 	fprintf(file,
+ 		"Total number of lock structs in row lock hash table %lu\n",
+ 		(ulong) lock_get_n_rec_locks());
++#endif /* PRINT_NUM_OF_LOCK_STRUCTS */
+ }
+ 
+ /*************************************************************************

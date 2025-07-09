@@ -1,0 +1,23 @@
+From 7f4cd9e678e6bc16aff4eb87e2d4916c9b2158fb Mon Sep 17 00:00:00 2001
+From: Jay Foad <jay.foad@gmail.com>
+Date: Mon, 1 Aug 2011 12:28:01 +0000
+Subject: [PATCH] Micro-optimisation in getAliasedGlobal.
+
+llvm-svn: 136610
+---
+ llvm/lib/VMCore/Globals.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/llvm/lib/VMCore/Globals.cpp b/llvm/lib/VMCore/Globals.cpp
+index b8acc45d181..4254fb29e88 100644
+--- a/llvm/lib/VMCore/Globals.cpp
++++ b/llvm/lib/VMCore/Globals.cpp
+@@ -235,7 +235,7 @@ const GlobalValue *GlobalAlias::getAliasedGlobal() const {
+           CE->getOpcode() == Instruction::GetElementPtr) &&
+          "Unsupported aliasee");
+   
+-  return dyn_cast<GlobalValue>(CE->getOperand(0));
++  return cast<GlobalValue>(CE->getOperand(0));
+ }
+ 
+ const GlobalValue *GlobalAlias::resolveAliasedGlobal(bool stopOnWeak) const {

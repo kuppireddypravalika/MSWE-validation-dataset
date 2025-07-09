@@ -1,0 +1,24 @@
+From b7e198667a64c7f37b5bf8f68861bc21fb5d56ea Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Mon, 10 Jan 2022 12:59:58 +0100
+Subject: [PATCH] [TCling] callfunc: O1, no ptrchecks:
+
+As these are generally calls from Python and GUI these days,
+we generally need fast code rather than helpful user messages
+on invalid pointers. Addresses part of https://github.com/root-project/root/issues/9112
+---
+ core/metacling/src/TClingCallFunc.cxx | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/core/metacling/src/TClingCallFunc.cxx b/core/metacling/src/TClingCallFunc.cxx
+index 5e2135246964f..892112bb323ba 100644
+--- a/core/metacling/src/TClingCallFunc.cxx
++++ b/core/metacling/src/TClingCallFunc.cxx
+@@ -941,6 +941,7 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
+    buf << "#pragma clang diagnostic push\n"
+           "#pragma clang diagnostic ignored \"-Wformat-security\"\n"
+           "__attribute__((used)) "
++          "__attribute__((annotate(\"__cling__ptrcheck(off)\")))\n"
+           "extern \"C\" void ";
+    buf << wrapper_name;
+    buf << "(void* obj, int nargs, void** args, void* ret)\n"

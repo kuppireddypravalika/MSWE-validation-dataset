@@ -1,0 +1,39 @@
+From e14e205fda91b6e30cae39cbf66a465209d3c6bc Mon Sep 17 00:00:00 2001
+From: Philippe Canal <pcanal@fnal.gov>
+Date: Mon, 12 Aug 2013 11:21:36 -0500
+Subject: [PATCH] Avoid unnecessary lookup in Execute when we already have a
+ TMethod
+
+---
+ core/meta/src/TCling.cxx | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/core/meta/src/TCling.cxx b/core/meta/src/TCling.cxx
+index 2c76158d6200f..d40a46cebed1e 100644
+--- a/core/meta/src/TCling.cxx
++++ b/core/meta/src/TCling.cxx
+@@ -2835,7 +2835,23 @@ void TCling::Execute(TObject* obj, TClass* cl, TMethod* method,
+       }
+       listpar = complete.Data();
+    }
+-   Execute(obj, cl, const_cast<char*>(method->GetName()), const_cast<char*>(listpar), error);
++
++   // And now execute it.
++   R__LOCKGUARD2(gClingMutex);
++   if (error) {
++      *error = TInterpreter::kNoError;
++   }
++   // If the actual class of this object inherits 2nd (or more) from TObject,
++   // 'obj' is unlikely to be the start of the object (as described by IsA()),
++   // hence gInterpreter->Execute will improperly correct the offset.
++   void* addr = cl->DynamicCast(TObject::Class(), obj, kFALSE);
++   Long_t offset = 0L;
++   TClingCallFunc func(fInterpreter);
++   TClingMethodInfo *minfo = (TClingMethodInfo*)method->fInfo;
++   func.Init(minfo->GetMethodDecl());
++   func.SetArgs(listpar);
++   void* address = (void*)((Long_t)addr + offset);
++   func.Exec(address);
+ }
+ 
+ //______________________________________________________________________________

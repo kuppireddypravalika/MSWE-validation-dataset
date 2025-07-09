@@ -1,0 +1,22 @@
+From 359258c3d3164abd861869b5d04ba6c72a3eb013 Mon Sep 17 00:00:00 2001
+From: Vincent Lejeune <vljn.ovi@gmail.com>
+Date: Sat, 5 Sep 2015 00:25:26 +0200
+Subject: [PATCH] PPU/LLVM: Increase recompiler thread responsiveness.
+
+---
+ rpcs3/Emu/Cell/PPULLVMRecompiler.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/rpcs3/Emu/Cell/PPULLVMRecompiler.cpp b/rpcs3/Emu/Cell/PPULLVMRecompiler.cpp
+index e372cf8228037..e4e455821ba17 100644
+--- a/rpcs3/Emu/Cell/PPULLVMRecompiler.cpp
++++ b/rpcs3/Emu/Cell/PPULLVMRecompiler.cpp
+@@ -351,7 +351,7 @@ void RecompilationEngine::Task() {
+ 			// Wait a few ms for something to happen
+ 			auto idling_start = std::chrono::high_resolution_clock::now();
+ 			std::unique_lock<std::mutex> lock(mutex);
+-			cv.wait_for(lock, std::chrono::milliseconds(250));
++			cv.wait_for(lock, std::chrono::milliseconds(10));
+ 			auto idling_end = std::chrono::high_resolution_clock::now();
+ 			idling_time += std::chrono::duration_cast<std::chrono::nanoseconds>(idling_end - idling_start);
+ 		}

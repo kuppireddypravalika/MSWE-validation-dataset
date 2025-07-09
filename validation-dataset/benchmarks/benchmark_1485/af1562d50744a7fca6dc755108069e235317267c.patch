@@ -1,0 +1,22 @@
+From af1562d50744a7fca6dc755108069e235317267c Mon Sep 17 00:00:00 2001
+From: Robert Smith <robert.smith@florey.edu.au>
+Date: Wed, 7 Dec 2016 21:52:11 +1100
+Subject: [PATCH] amp2response: Use HouseHolderQR for non-constrained fit
+
+---
+ cmd/amp2response.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/cmd/amp2response.cpp b/cmd/amp2response.cpp
+index 2413e5c8b8..41ef1136ba 100644
+--- a/cmd/amp2response.cpp
++++ b/cmd/amp2response.cpp
+@@ -308,7 +308,7 @@ void run ()
+       if (get_options("noconstraint").size()) {
+ 
+         // Get an ordinary least squares solution
+-        Eigen::FullPivLU<Eigen::MatrixXd> solver (cat_transforms);
++        Eigen::HouseholderQR<Eigen::MatrixXd> solver (cat_transforms);
+         rf = solver.solve (cat_data);
+ 
+         CONSOLE (shell_desc + "Response function [" + str(rf.transpose().cast<float>()) + "] solved via ordinary least-squares from " + str(sf_counter) + " voxels");

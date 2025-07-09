@@ -1,0 +1,33 @@
+From 552d1c91669ac22006a9ccc3146efb4c4f2c49d6 Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@qt.io>
+Date: Wed, 19 Jan 2022 07:52:58 +0100
+Subject: [PATCH] QVersionNumber: don't detach() in rvalue QList/QVector ctor
+
+Qt 5 uses begin() so the fix there will be to use cbegin().
+
+Found by Clang -ftime-trace pin-pointing repeated instantiations
+of QList<int>::data().
+
+Pick-to: 6.3 6.2 5.15
+Task-number: QTBUG-97601
+Change-Id: I6410e5b303766fdbc7e158a9ac1263adec973099
+Reviewed-by: Fabian Kosmale <fabian.kosmale@qt.io>
+---
+ src/corelib/tools/qversionnumber.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/corelib/tools/qversionnumber.h b/src/corelib/tools/qversionnumber.h
+index f00ce36437a..7b3e0995a05 100644
+--- a/src/corelib/tools/qversionnumber.h
++++ b/src/corelib/tools/qversionnumber.h
+@@ -136,8 +136,8 @@ class QVersionNumber
+ 
+         explicit SegmentStorage(QList<int> &&seg)
+         {
+-            if (dataFitsInline(seg.data(), seg.size()))
+-                setInlineData(seg.data(), seg.size());
++            if (dataFitsInline(std::as_const(seg).data(), seg.size()))
++                setInlineData(std::as_const(seg).data(), seg.size());
+             else
+                 pointer_segments = new QList<int>(std::move(seg));
+         }

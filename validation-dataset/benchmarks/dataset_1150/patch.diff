@@ -1,0 +1,38 @@
+From 45a561f3749c80fbce2f35e08d3d8be4ed562896 Mon Sep 17 00:00:00 2001
+From: Frank Warmerdam <warmerdam@pobox.com>
+Date: Fri, 30 Jun 2006 04:29:07 +0000
+Subject: [PATCH] Use 2048x128 blocking by default instead of 512x128.
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@9873 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ frmts/jp2kak/jp2kakdataset.cpp | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/frmts/jp2kak/jp2kakdataset.cpp b/frmts/jp2kak/jp2kakdataset.cpp
+index 8e8b956f86a5..b465264a8a59 100644
+--- a/frmts/jp2kak/jp2kakdataset.cpp
++++ b/frmts/jp2kak/jp2kakdataset.cpp
+@@ -28,6 +28,9 @@
+  ******************************************************************************
+  * 
+  * $Log$
++ * Revision 1.44  2006/06/30 04:29:07  fwarmerdam
++ * Use 2048x128 blocking by default instead of 512x128.
++ *
+  * Revision 1.43  2006/06/30 04:20:47  fwarmerdam
+  * Added special case for YCbCr processing, to push the other band
+  * results into the block cache to speed up performance.
+@@ -365,10 +368,10 @@ JP2KAKRasterBand::JP2KAKRasterBand( int nBand, int nDiscardLevels,
+     this->nRasterYSize = band_dims.size.y;
+ 
+ /* -------------------------------------------------------------------- */
+-/*      Use a 512x128 "virtual" block size unless the file is small.    */
++/*      Use a 2048x128 "virtual" block size unless the file is small.    */
+ /* -------------------------------------------------------------------- */
+-    if( nRasterXSize >= 1024 )
+-        nBlockXSize = 512;
++    if( nRasterXSize >= 2048 )
++        nBlockXSize = 2048;
+     else
+         nBlockXSize = nRasterXSize;
+     

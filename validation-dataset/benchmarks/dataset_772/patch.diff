@@ -1,0 +1,23 @@
+From 4d18bda7bc4be01423d2441366b7a78ab30ebf7d Mon Sep 17 00:00:00 2001
+From: fuzzelhjb <chschmidt9@gmail.com>
+Date: Thu, 19 Feb 2015 20:47:05 +0000
+Subject: [PATCH] animation limit for triggers optimized
+
+git-svn-id: https://svn.code.sf.net/p/vpinball/code/trunk@1719 14438d79-0ffd-4333-8ae7-ea2bdd901387
+---
+ trigger.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/trigger.cpp b/trigger.cpp
+index 299ea5f38e..8464ac823a 100644
+--- a/trigger.cpp
++++ b/trigger.cpp
+@@ -528,7 +528,7 @@ void Trigger::PostRenderStatic(RenderDevice* pd3dDevice)
+ 	if (!m_d.m_fVisible || m_d.m_shape==TriggerNone)
+         return;
+     
+-	const float animLimit = ( m_d.m_shape==TriggerStar ) ? 13.0f : 38.0f;
++	const float animLimit = ( m_d.m_shape==TriggerStar ) ? m_d.m_radius/4.7f : 29.0f;
+ 	const float limit = animLimit*m_ptable->m_BG_scalez[m_ptable->m_BG_current_set];
+ 
+     pd3dDevice->basicShader->SetTechnique("basic_without_texture");

@@ -1,0 +1,24 @@
+From 7bd1fc6e5acd6ae81e779136ebfd2234271057ad Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Andreas=20Sch=C3=A4fer?= <gentryx@gmx.de>
+Date: Wed, 15 Feb 2017 07:18:41 +0100
+Subject: [PATCH] swap RHS and result pointers in 'pepper' implementation to
+ better match other SPMVM perf tests
+
+---
+ src/testbed/performancetests/main.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/testbed/performancetests/main.cpp b/src/testbed/performancetests/main.cpp
+index bdeb2c27e..d54fd4ef4 100644
+--- a/src/testbed/performancetests/main.cpp
++++ b/src/testbed/performancetests/main.cpp
+@@ -3266,6 +3266,9 @@ class SparseMatrixVectorMultiplicationNative : public CPUBenchmark
+                     }
+                     _mm256_store_pd(resPtr + i*C, tmp);
+                 }
++
++                using std::swap;
++                swap(rhsPtr, resPtr);
+             }
+         }
+ 

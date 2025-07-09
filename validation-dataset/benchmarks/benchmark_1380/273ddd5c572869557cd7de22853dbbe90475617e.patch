@@ -1,0 +1,27 @@
+From 273ddd5c572869557cd7de22853dbbe90475617e Mon Sep 17 00:00:00 2001
+From: Chris Lattner <sabre@nondot.org>
+Date: Sat, 29 Jul 2006 07:33:01 +0000
+Subject: [PATCH] The optimized case has to treat __VA_ARGS__ as an argument. 
+ This fixes test/Preprocessor/macro_rescan_varargs.c
+
+llvm-svn: 38795
+---
+ clang/Lex/Preprocessor.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/clang/Lex/Preprocessor.cpp b/clang/Lex/Preprocessor.cpp
+index 87bf9fba73f..5dc2c925a9a 100644
+--- a/clang/Lex/Preprocessor.cpp
++++ b/clang/Lex/Preprocessor.cpp
+@@ -542,6 +542,11 @@ static bool isTrivialSingleTokenExpansion(const MacroInfo *MI,
+        I != E; ++I)
+     if (*I == II)
+       return false;   // Identifier is a macro argument.
++  
++  // If the argument is the __VA_ARGS__ token, we can't fast expand it.
++  if (!strcmp(II->getName(), "__VA_ARGS__"))
++    return false;     // Identifier is macro argument.
++  
+   return true;
+ }
+ 

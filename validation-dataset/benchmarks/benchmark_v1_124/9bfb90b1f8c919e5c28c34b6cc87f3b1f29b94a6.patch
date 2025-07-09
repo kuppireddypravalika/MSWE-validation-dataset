@@ -1,0 +1,31 @@
+From 9bfb90b1f8c919e5c28c34b6cc87f3b1f29b94a6 Mon Sep 17 00:00:00 2001
+From: Vedant Kumar <vsk@apple.com>
+Date: Thu, 22 Feb 2018 01:29:41 +0000
+Subject: [PATCH] [Utils] Avoid a hash table lookup in salvageDI, NFC
+
+According to the current coverage report salvageDebugInfo() is called
+5.12 million times during testing and almost always returns early.
+
+The early return depends on LocalAsMetadata::getIfExists returning null,
+which involves a DenseMap lookup in an LLVMContextImpl. We can probably
+speed this up by simply checking the IsUsedByMD bit in Value.
+---
+ llvm/lib/Transforms/Utils/Local.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/llvm/lib/Transforms/Utils/Local.cpp b/llvm/lib/Transforms/Utils/Local.cpp
+index e75127f77e8c..7573fc39b9d8 100644
+--- a/llvm/lib/Transforms/Utils/Local.cpp
++++ b/llvm/lib/Transforms/Utils/Local.cpp
+@@ -1486,6 +1486,11 @@ void llvm::replaceDbgValueForAlloca(AllocaInst *AI, Value *NewAllocaAddress,
+ }
+ 
+ void llvm::salvageDebugInfo(Instruction &I) {
++  // This function is hot. An early check to determine whether the instruction
++  // has any metadata to save allows it to return earlier on average.
++  if (!I.isUsedByMetadata())
++    return;
++
+   SmallVector<DbgInfoIntrinsic *, 1> DbgUsers;
+   findDbgUsers(DbgUsers, &I);
+   if (DbgUsers.empty())

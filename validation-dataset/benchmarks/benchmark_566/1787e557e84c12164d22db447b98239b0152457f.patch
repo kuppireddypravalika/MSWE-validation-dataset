@@ -1,0 +1,29 @@
+From 1787e557e84c12164d22db447b98239b0152457f Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Jo=C3=A3o=20Abecasis?= <joao.abecasis@nokia.com>
+Date: Mon, 2 May 2011 13:49:36 +0200
+Subject: [PATCH] Don't rely on uninitialized data
+
+HB_GetCharAttributes used to require a zero-initialized array for
+attributes, as it selectively sets relevant bits for each character. We
+ease that requirement by always initializing the attributes buffer
+explicitly with memset.
+
+Task-number: QT-4911
+Reviewed-by: Ritt Konstantin
+(cherry picked from commit 4cb9db404224c55859713c282aa90409e375c372)
+---
+ src/3rdparty/harfbuzz/src/harfbuzz-shaper.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/3rdparty/harfbuzz/src/harfbuzz-shaper.cpp b/src/3rdparty/harfbuzz/src/harfbuzz-shaper.cpp
+index c202e1f52b..3410782453 100644
+--- a/src/3rdparty/harfbuzz/src/harfbuzz-shaper.cpp
++++ b/src/3rdparty/harfbuzz/src/harfbuzz-shaper.cpp
+@@ -655,6 +655,7 @@ void HB_GetCharAttributes(const HB_UChar16 *string, hb_uint32 stringLength,
+                           const HB_ScriptItem *items, hb_uint32 numItems,
+                           HB_CharAttributes *attributes)
+ {
++    memset(attributes, 0, stringLength * sizeof(HB_CharAttributes));
+     calcLineBreaks(string, stringLength, attributes);
+ 
+     for (hb_uint32 i = 0; i < numItems; ++i) {

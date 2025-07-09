@@ -1,0 +1,24 @@
+From ddd4f3f3470e5449fb0e0dc24c90ef4fb7d7a627 Mon Sep 17 00:00:00 2001
+From: Ryan Pavlik <ryan@sensics.com>
+Date: Mon, 8 Feb 2016 18:24:32 -0600
+Subject: [PATCH] Zero things we don't compute with RANSAC
+
+---
+ plugins/unifiedvideoinertialtracker/PoseEstimator_RANSAC.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/plugins/unifiedvideoinertialtracker/PoseEstimator_RANSAC.cpp b/plugins/unifiedvideoinertialtracker/PoseEstimator_RANSAC.cpp
+index ea8793149..c42264436 100644
+--- a/plugins/unifiedvideoinertialtracker/PoseEstimator_RANSAC.cpp
++++ b/plugins/unifiedvideoinertialtracker/PoseEstimator_RANSAC.cpp
+@@ -231,6 +231,10 @@ namespace vbtracker {
+         /// xlate and quat.
+         p.state.position() = xlate;
+         p.state.setQuaternion(quat);
++        /// Zero things we can't measure.
++        p.state.incrementalOrientation() = Eigen::Vector3d::Zero();
++        p.state.velocity() = Eigen::Vector3d::Zero();
++        p.state.angularVelocity() = Eigen::Vector3d::Zero();
+ 
+         using StateVec = kalman::types::DimVector<BodyState>;
+         using StateSquareMatrix = kalman::types::DimSquareMatrix<BodyState>;

@@ -1,0 +1,23 @@
+From 85a3416fef04ef8d045a84218138d73a14caab1c Mon Sep 17 00:00:00 2001
+From: Ivo Wolf <i.wolf@dkfz-heidelberg.de>
+Date: Thu, 8 Jul 2004 08:48:52 +0000
+Subject: [PATCH] replaced dynamic_->static_cast in case where result is
+ obvious.
+
+---
+ Core/DataStructures/mitkTimeSlicedGeometry.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Core/DataStructures/mitkTimeSlicedGeometry.cpp b/Core/DataStructures/mitkTimeSlicedGeometry.cpp
+index 2cb40a70a9b..7b72b3b6433 100644
+--- a/Core/DataStructures/mitkTimeSlicedGeometry.cpp
++++ b/Core/DataStructures/mitkTimeSlicedGeometry.cpp
+@@ -17,7 +17,7 @@ mitk::Geometry3D* mitk::TimeSlicedGeometry::GetGeometry3D(int t) const
+       assert(firstgeometry != NULL);
+ 
+       mitk::Geometry3D::Pointer requestedgeometry;
+-      requestedgeometry = dynamic_cast<Geometry3D*>(firstgeometry->Clone().GetPointer());
++      requestedgeometry = static_cast<Geometry3D*>(firstgeometry->Clone().GetPointer());
+ 
+       TimeBounds timebounds = requestedgeometry->GetTimeBoundsInMS();
+       if(timebounds[1]<ScalarTypeNumericTraits::max())

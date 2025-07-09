@@ -1,0 +1,35 @@
+From 45af0d1c1cff3610dc3120cf9484885d65178a51 Mon Sep 17 00:00:00 2001
+From: Daniel Kroening <kroening@cs.ox.ac.uk>
+Date: Sat, 27 Jun 2015 16:27:40 +0000
+Subject: [PATCH] use binary for up to 7 bits
+
+---
+ src/verilog/expr2verilog.cpp | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/src/verilog/expr2verilog.cpp b/src/verilog/expr2verilog.cpp
+index 2a1b69d05..78dcb3ba9 100644
+--- a/src/verilog/expr2verilog.cpp
++++ b/src/verilog/expr2verilog.cpp
+@@ -526,11 +526,21 @@ std::string expr2verilogt::convert_constant(
+   else if(type.id()==ID_unsignedbv ||
+           type.id()==ID_signedbv)
+   {
++    unsigned width=to_bitvector_type(type).get_width();
++  
+     mp_integer i;
+     to_integer(src, i);
+ 
+     if(i>=256)
+       dest="'h"+integer2string(i, 16);
++    else if(width<=7)
++    {
++      dest=i2string(width);
++      dest+="'";
++      if(type.id()==ID_signedbv) dest+='s';
++      dest+='b';
++      dest+=integer2string(i, 2);
++    }
+     else
+       dest=integer2string(i);
+   }

@@ -1,0 +1,24 @@
+From 52e3d2f39d4c6aa0526b4d1c026c9a2dfd3190b4 Mon Sep 17 00:00:00 2001
+From: Brandon Mayer <bmayer1@users.sourceforge.net>
+Date: Fri, 6 Apr 2012 15:54:37 -0400
+Subject: [PATCH] replaced bit shift with vcl_pow(2,octave-1) b/c octave-1 may
+ be negative.
+
+SVN-Revision: 34728
+---
+ contrib/brl/bseg/bapl/bapl_lowe_pyramid_set.cxx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/contrib/brl/bseg/bapl/bapl_lowe_pyramid_set.cxx b/contrib/brl/bseg/bapl/bapl_lowe_pyramid_set.cxx
+index 9ebf3f91085..0f608be75a6 100644
+--- a/contrib/brl/bseg/bapl/bapl_lowe_pyramid_set.cxx
++++ b/contrib/brl/bseg/bapl/bapl_lowe_pyramid_set.cxx
+@@ -148,7 +148,7 @@ bapl_lowe_pyramid_set::pyramid_at( const bapl_lowe_pyramid<float> & pyramid,
+     sub_index = octave_size_-1;
+   }
+ 
+-  if ( actual_scale ) *actual_scale = 1 << (octave-1);
++  if ( actual_scale ) *actual_scale = vcl_pow(2.0f, octave-1);
+   if ( rel_scale ) *rel_scale = vcl_pow(2.0f, float(sub_index)/octave_size_);
+ 
+   return pyramid(octave, sub_index);

@@ -1,0 +1,23 @@
+From b6acf2292c0d232001334f5e5d629344d6c77381 Mon Sep 17 00:00:00 2001
+From: Matt Witherspoon <32485495+spoonincode@users.noreply.github.com>
+Date: Fri, 8 May 2020 14:32:09 -0400
+Subject: [PATCH] slight more optimial handling of
+ signature_provider_for_specification return
+
+---
+ plugins/producer_plugin/producer_plugin.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/plugins/producer_plugin/producer_plugin.cpp b/plugins/producer_plugin/producer_plugin.cpp
+index 183aee0d56b..6434c1de241 100644
+--- a/plugins/producer_plugin/producer_plugin.cpp
++++ b/plugins/producer_plugin/producer_plugin.cpp
+@@ -720,7 +720,7 @@ void producer_plugin::plugin_initialize(const boost::program_options::variables_
+       const std::vector<std::string> key_spec_pairs = options["signature-provider"].as<std::vector<std::string>>();
+       for (const auto& key_spec_pair : key_spec_pairs) {
+          try {
+-            auto [pubkey, provider] = app().get_plugin<signature_provider_plugin>().signature_provider_for_specification(key_spec_pair);
++            const auto& [pubkey, provider] = app().get_plugin<signature_provider_plugin>().signature_provider_for_specification(key_spec_pair);
+             my->_signature_providers[pubkey] = provider;
+          } catch(secure_enclave_exception& e) {
+             elog("Error with Secure Enclave signature provider: ${e}; ignoring ${val}", ("e", e.top_message())("val", key_spec_pair));

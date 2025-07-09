@@ -1,0 +1,41 @@
+From ee2f6d4a44f6518f5f0fd98753b0439b2131b2a2 Mon Sep 17 00:00:00 2001
+From: Peter Vanroose <peter_vanroose@users.sourceforge.net>
+Date: Sat, 27 Oct 2001 17:42:57 -0400
+Subject: [PATCH] do computations with float, not double
+
+---
+ v3p/netlib/c_div.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/v3p/netlib/c_div.c b/v3p/netlib/c_div.c
+index ae67df21cc7..d56d174b5e1 100644
+--- a/v3p/netlib/c_div.c
++++ b/v3p/netlib/c_div.c
+@@ -10,8 +10,8 @@ extern void sig_die(char*, int);
+ void c_div(complex       *c, complex       *a, complex       *b)
+ #endif
+ {
+-  double ratio, den;
+-  double abr, abi;
++  float ratio, den;
++  float abr, abi;
+   float ar = a->r, ai = a->i;
+ 
+   if( (abr = b->r) < 0.)
+@@ -31,14 +31,14 @@ void c_div(complex       *c, complex       *a, complex       *b)
+       sig_die("complex division by zero", 1);
+ #endif
+     }
+-    ratio = (double)b->r / b->i ;
++    ratio = b->r / b->i ;
+     den = b->i * (1 + ratio*ratio);
+     c->r = (ar*ratio + ai) / den;
+     c->i = (ai*ratio - ar) / den;
+   }
+ 
+   else {
+-    ratio = (double)b->i / b->r ;
++    ratio = b->i / b->r ;
+     den = b->r * (1 + ratio*ratio);
+     c->r = (ar + ai*ratio) / den;
+     c->i = (ai - ar*ratio) / den;

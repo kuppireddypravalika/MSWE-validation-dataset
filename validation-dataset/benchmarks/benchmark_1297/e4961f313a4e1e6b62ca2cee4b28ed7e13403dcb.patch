@@ -1,0 +1,24 @@
+From e4961f313a4e1e6b62ca2cee4b28ed7e13403dcb Mon Sep 17 00:00:00 2001
+From: Vedant Kumar <vsk@apple.com>
+Date: Fri, 2 Mar 2018 23:22:49 +0000
+Subject: [PATCH] [AggressiveInstCombine] Use use_empty() instead of
+ !getNumUses(), NFC
+
+use_empty() runs in O(1), whereas getNumUses() runs in O(# uses).
+---
+ llvm/lib/Transforms/AggressiveInstCombine/TruncInstCombine.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/llvm/lib/Transforms/AggressiveInstCombine/TruncInstCombine.cpp b/llvm/lib/Transforms/AggressiveInstCombine/TruncInstCombine.cpp
+index d62b6434f002..c72df2d70a46 100644
+--- a/llvm/lib/Transforms/AggressiveInstCombine/TruncInstCombine.cpp
++++ b/llvm/lib/Transforms/AggressiveInstCombine/TruncInstCombine.cpp
+@@ -380,7 +380,7 @@ void TruncInstCombine::ReduceExpressionDag(Type *SclTy) {
+     // We still need to check that the instruction has no users before we erase
+     // it, because {SExt, ZExt}Inst Instruction might have other users that was
+     // not reduced, in such case, we need to keep that instruction.
+-    if (!I->first->getNumUses())
++    if (I->first->use_empty())
+       I->first->eraseFromParent();
+   }
+ }

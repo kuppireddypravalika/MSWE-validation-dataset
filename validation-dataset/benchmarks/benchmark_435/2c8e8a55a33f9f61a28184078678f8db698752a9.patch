@@ -1,0 +1,26 @@
+From 2c8e8a55a33f9f61a28184078678f8db698752a9 Mon Sep 17 00:00:00 2001
+From: Thien Nguyen <thien.nguyen@kitware.com>
+Date: Tue, 24 May 2016 14:21:12 -0400
+Subject: [PATCH] PERF: SmapsFileParser unnecessary dynamic_cast
+
+as identified by coverity CID 1080934, this dynamic_cast is unnecessary and
+can be replaced by static_cast
+
+Change-Id: If926e9fc234b842fdfbc11d2b2a2dc273a93b264
+---
+ Modules/Core/Common/src/itkSmapsFileParser.cxx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Modules/Core/Common/src/itkSmapsFileParser.cxx b/Modules/Core/Common/src/itkSmapsFileParser.cxx
+index 08e532f6a8d..86042e9c614 100644
+--- a/Modules/Core/Common/src/itkSmapsFileParser.cxx
++++ b/Modules/Core/Common/src/itkSmapsFileParser.cxx
+@@ -482,7 +482,7 @@ std::istream & operator>>(std::istream & stream, VMMapData_10_2 & data)
+       {
+       record = new VMMapSummaryRecord;
+       // parse each line of the Smaps file and fill the record vector.
+-      while ( stream >> *dynamic_cast< VMMapSummaryRecord * >( record ) )
++      while ( stream >> *static_cast< VMMapSummaryRecord * >( record ) )
+         {
+         if ( record->m_RecordName.empty() )
+           {

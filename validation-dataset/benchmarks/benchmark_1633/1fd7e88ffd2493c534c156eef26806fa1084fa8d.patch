@@ -1,0 +1,34 @@
+From 1fd7e88ffd2493c534c156eef26806fa1084fa8d Mon Sep 17 00:00:00 2001
+From: Alyssa Rosenzweig <alyssa@rosenzweig.io>
+Date: Mon, 21 Oct 2024 10:59:38 -0400
+Subject: [PATCH] OpcodeDispatcher: optimize cmp in cmpxchg
+
+Signed-off-by: Alyssa Rosenzweig <alyssa@rosenzweig.io>
+---
+ FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp b/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp
+index db0f2d8899..c91b7ff154 100644
+--- a/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp
++++ b/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp
+@@ -3847,15 +3847,15 @@ void OpDispatchBuilder::CMPXCHGOp(OpcodeArgs) {
+     Ref CASResult = _CAS(IR::SizeToOpSize(Size), Src3Lower, Src2, Src1);
+     Ref RAXResult = CASResult;
+ 
++    CalculateFlags_SUB(GetSrcSize(Op), Src3Lower, CASResult);
++    CalculateDeferredFlags();
++
+     if (GPRSize == 8 && Size == 4) {
+       // This allows us to only hit the ZEXT case on failure
+-      RAXResult = _Select(FEXCore::IR::COND_EQ, CASResult, Src3Lower, Src3, CASResult);
++      RAXResult = _NZCVSelect(IR::i64Bit, {COND_EQ}, Src3, CASResult);
+       Size = 8;
+     }
+ 
+-    CalculateFlags_SUB(GetSrcSize(Op), Src3Lower, CASResult);
+-    CalculateDeferredFlags();
+-
+     // RAX gets the result of the CAS op
+     StoreGPRRegister(X86State::REG_RAX, RAXResult, Size);
+   }

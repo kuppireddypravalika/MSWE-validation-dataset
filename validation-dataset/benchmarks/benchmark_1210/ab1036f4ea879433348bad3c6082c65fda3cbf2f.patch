@@ -1,0 +1,36 @@
+From ab1036f4ea879433348bad3c6082c65fda3cbf2f Mon Sep 17 00:00:00 2001
+From: Rui Ueyama <ruiu@google.com>
+Date: Fri, 18 Sep 2015 23:17:34 +0000
+Subject: [PATCH] COFF: Use parallel_sort in Writer::sortExceptionTable().
+
+This patch saves 4 ms out of 5 ms. Very small improvement,
+but maybe better than nothing.
+---
+ lld/COFF/Writer.cpp | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/lld/COFF/Writer.cpp b/lld/COFF/Writer.cpp
+index 964531794a5b..1c4ca57f9f92 100644
+--- a/lld/COFF/Writer.cpp
++++ b/lld/COFF/Writer.cpp
+@@ -724,14 +724,16 @@ void Writer::sortExceptionTable() {
+   uint8_t *End = Begin + Sec->getVirtualSize();
+   if (Config->Machine == AMD64) {
+     struct Entry { ulittle32_t Begin, End, Unwind; };
+-    std::sort((Entry *)Begin, (Entry *)End,
+-              [](const Entry &A, const Entry &B) { return A.Begin < B.Begin; });
++    parallel_sort(
++        (Entry *)Begin, (Entry *)End,
++        [](const Entry &A, const Entry &B) { return A.Begin < B.Begin; });
+     return;
+   }
+   if (Config->Machine == ARMNT) {
+     struct Entry { ulittle32_t Begin, Unwind; };
+-    std::sort((Entry *)Begin, (Entry *)End,
+-              [](const Entry &A, const Entry &B) { return A.Begin < B.Begin; });
++    parallel_sort(
++        (Entry *)Begin, (Entry *)End,
++        [](const Entry &A, const Entry &B) { return A.Begin < B.Begin; });
+     return;
+   }
+   errs() << "warning: don't know how to handle .pdata.\n";

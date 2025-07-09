@@ -1,0 +1,23 @@
+From 91bbf89538f0c6156f565da87f933b29c5d81df7 Mon Sep 17 00:00:00 2001
+From: Johnny Willemsen <jwillemsen@remedy.nl>
+Date: Thu, 17 Nov 2016 19:47:16 +0100
+Subject: [PATCH] Revert const change
+
+    * performance-tests/DCPS/TCPProfilingTest/DataReaderListener.cpp:
+---
+ performance-tests/DCPS/TCPProfilingTest/DataReaderListener.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/performance-tests/DCPS/TCPProfilingTest/DataReaderListener.cpp b/performance-tests/DCPS/TCPProfilingTest/DataReaderListener.cpp
+index b5dd24e8e1b..d46b8762945 100644
+--- a/performance-tests/DCPS/TCPProfilingTest/DataReaderListener.cpp
++++ b/performance-tests/DCPS/TCPProfilingTest/DataReaderListener.cpp
+@@ -20,7 +20,7 @@ int read (::DDS::DataReader_ptr reader, bool useZeroCopy)
+       ACE_OS::sleep (delay);
+     }
+ 
+-   ::CORBA::Long const max_read_samples = 100;
++  const ::CORBA::Long max_read_samples = 100;
+   int samples_recvd = 0;
+   // initialize to zero.
+ 

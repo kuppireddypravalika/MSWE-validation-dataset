@@ -1,0 +1,44 @@
+From eb8b28d4529cdda58ee4bc13fd2ea9e3a494ec96 Mon Sep 17 00:00:00 2001
+From: "J.W. Jagersma" <jwjagersma@gmail.com>
+Date: Fri, 7 Oct 2022 20:13:47 +0200
+Subject: [PATCH] avoid int 0x31 call in interrupt_flag::restore()
+
+It's very slow, especially on cwsdpmi.
+---
+ include/jw/dpmi/irq_mask.h | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/include/jw/dpmi/irq_mask.h b/include/jw/dpmi/irq_mask.h
+index a25b0dd8..8a3c14ce 100644
+--- a/include/jw/dpmi/irq_mask.h
++++ b/include/jw/dpmi/irq_mask.h
+@@ -15,8 +15,6 @@
+ 
+ namespace jw::dpmi::detail
+ {
+-
+-
+     template<bool enable>
+     struct interrupt_flag
+     {
+@@ -52,10 +50,18 @@ namespace jw::dpmi::detail
+ 
+         void restore()
+         {
+-            if constexpr (use_dpmi)
+-                asm volatile ("int 0x31" :: "a" (prev_state) : "cc");
++            if constexpr (use_dpmi and enable)
++            {
++                if (not (prev_state & 1)) [[likely]] { asm ("cli"); }
++            }
++            else if constexpr (use_dpmi and not enable)
++            {
++                if (prev_state & 1) [[likely]] { asm ("sti"); }
++            }
+             else
++            {
+                 asm volatile ("push %0; popfd" :: "rm" (prev_state) : "cc");
++            }
+         }
+ 
+         const std::uint32_t prev_state;

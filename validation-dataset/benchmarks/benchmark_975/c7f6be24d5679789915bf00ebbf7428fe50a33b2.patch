@@ -1,0 +1,34 @@
+From c7f6be24d5679789915bf00ebbf7428fe50a33b2 Mon Sep 17 00:00:00 2001
+From: Rui Ueyama <ruiu@google.com>
+Date: Thu, 17 Nov 2016 19:57:43 +0000
+Subject: [PATCH] Use llvm::reverse to get a reverse range.
+
+---
+ lld/ELF/SymbolTable.cpp | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/lld/ELF/SymbolTable.cpp b/lld/ELF/SymbolTable.cpp
+index d7e7a94a848b..f8b8a6326855 100644
+--- a/lld/ELF/SymbolTable.cpp
++++ b/lld/ELF/SymbolTable.cpp
+@@ -21,6 +21,7 @@
+ #include "Memory.h"
+ #include "SymbolListFile.h"
+ #include "Symbols.h"
++#include "llvm/ADT/STLExtras.h"
+ 
+ using namespace llvm;
+ using namespace llvm::object;
+@@ -723,9 +724,9 @@ template <class ELFT> void SymbolTable<ELFT>::scanVersionScript() {
+   // we iterate over the definitions in the reverse order.
+   for (SymbolVersion &Ver : Config->VersionScriptLocals)
+     assignWildcardVersion(Ver, VER_NDX_LOCAL);
+-  for (size_t I = Config->VersionDefinitions.size() - 1; I != (size_t)-1; --I)
+-    for (SymbolVersion &Ver : Config->VersionDefinitions[I].Globals)
+-      assignWildcardVersion(Ver, Config->VersionDefinitions[I].Id);
++  for (VersionDefinition &V : llvm::reverse(Config->VersionDefinitions))
++    for (SymbolVersion &Ver : V.Globals)
++      assignWildcardVersion(Ver, V.Id);
+ }
+ 
+ template class elf::SymbolTable<ELF32LE>;

@@ -1,0 +1,23 @@
+From 4fa6e8b74b3f26a04dde1b39b0254844c0a8867e Mon Sep 17 00:00:00 2001
+From: panquez <pierre.anquez@geode-solutions.com>
+Date: Mon, 13 Apr 2020 16:05:56 +0200
+Subject: [PATCH] perf(PolygonalSurface): speed up computation of polygon
+ adjacencies
+
+---
+ src/geode/mesh/core/polygonal_surface.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/geode/mesh/core/polygonal_surface.cpp b/src/geode/mesh/core/polygonal_surface.cpp
+index 878dc356c..ce50dc81f 100644
+--- a/src/geode/mesh/core/polygonal_surface.cpp
++++ b/src/geode/mesh/core/polygonal_surface.cpp
+@@ -256,7 +256,7 @@ namespace geode
+         check_polygon_id( *this, polygon_edge.polygon_id );
+         check_polygon_edge_id(
+             *this, polygon_edge.polygon_id, polygon_edge.edge_id );
+-        return impl_->find_edge( { polygon_edge_vertex( polygon_edge, 0 ),
++        return impl_->find_edge( { polygon_vertex( polygon_edge ),
+             polygon_edge_vertex( polygon_edge, 1 ) } );
+     }
+ 

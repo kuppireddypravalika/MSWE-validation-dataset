@@ -1,0 +1,22 @@
+From e8dda804de2e5c87a8a95dc9e7c0bb0cbff32df5 Mon Sep 17 00:00:00 2001
+From: Jeffrey Walton <noloader@gmail.com>
+Date: Tue, 13 Dec 2016 20:31:28 -0500
+Subject: [PATCH] Switch ECGDSA equation to slightly speed-up signing
+
+---
+ gfpcrypt.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gfpcrypt.h b/gfpcrypt.h
+index 0d3c8393e..f21363f51 100644
+--- a/gfpcrypt.h
++++ b/gfpcrypt.h
+@@ -412,7 +412,7 @@ class DL_Algorithm_GDSA_ISO15946 : public DL_ElgamalLikeSignatureAlgorithm<T>
+ 		// r = x(k * G) mod q
+ 		r = params.ConvertElementToInteger(params.ExponentiateBase(k)) % q;
+ 		// s = (k * r − h(m)) * d_A mod q
+-		s = a_times_b_mod_c(k * r - e, x, q);
++		s = (k * r - e) * x % q;
+ 		CRYPTOPP_ASSERT(!!r && !!s);
+ 	}
+ 

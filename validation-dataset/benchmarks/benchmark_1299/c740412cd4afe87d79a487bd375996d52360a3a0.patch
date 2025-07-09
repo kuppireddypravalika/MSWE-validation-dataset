@@ -1,0 +1,37 @@
+From c740412cd4afe87d79a487bd375996d52360a3a0 Mon Sep 17 00:00:00 2001
+From: Tim Corringham <tcorring@amd.com>
+Date: Thu, 25 Jul 2019 19:48:20 +0100
+Subject: [PATCH] Tune unrolling options
+
+Use a higher unrolling threshold for two apps that lost performance
+due to the previous unrolling changes.
+---
+ icd/api/compiler_solution_llpc.cpp | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/icd/api/compiler_solution_llpc.cpp b/icd/api/compiler_solution_llpc.cpp
+index d8f026d5..1d97aa44 100644
+--- a/icd/api/compiler_solution_llpc.cpp
++++ b/icd/api/compiler_solution_llpc.cpp
+@@ -428,7 +428,6 @@ VkResult CompilerSolutionLlpc::CreateLlpcCompiler()
+     // NOTE: For testing consistency, these options should be kept the same as those of
+     // "amdllpc" (Init()).
+     llpcOptions[numOptions++] = "-unroll-max-percent-threshold-boost=1000";
+-    llpcOptions[numOptions++] = "-unroll-threshold=700";
+     llpcOptions[numOptions++] = "-unroll-partial-threshold=700";
+     llpcOptions[numOptions++] = "-pragma-unroll-threshold=1000";
+     llpcOptions[numOptions++] = "-unroll-allow-partial";
+@@ -440,6 +439,13 @@ VkResult CompilerSolutionLlpc::CreateLlpcCompiler()
+         llpcOptions[numOptions++] = "-amdgpu-atomic-optimizations";
+     }
+ 
++    if ((appProfile == AppProfile::Talos) ||
++        (appProfile == AppProfile::WolfensteinII)) {
++        llpcOptions[numOptions++] = "-unroll-threshold=2150";
++    } else {
++        llpcOptions[numOptions++] = "-unroll-threshold=700";
++    }
++
+     ShaderCacheMode shaderCacheMode = settings.shaderCacheMode;
+     if ((appProfile == AppProfile::Talos) ||
+         (appProfile == AppProfile::MadMax) ||

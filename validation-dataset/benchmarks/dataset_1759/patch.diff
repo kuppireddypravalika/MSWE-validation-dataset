@@ -1,0 +1,28 @@
+From d3ee6be6a2e72752697b3b7d1af009770dbc01d6 Mon Sep 17 00:00:00 2001
+From: Ivan Komissarov <abbapoh@gmail.com>
+Date: Tue, 5 Oct 2021 14:41:24 +0300
+Subject: [PATCH] Another micro optimization
+
+Remember the end iterator of the map to avoid repetitive calls
+to end().
+
+Change-Id: I7f5957ca793432a8a1fde8a0ae23d7fc43ed42cf
+Reviewed-by: Christian Kandeler <christian.kandeler@qt.io>
+---
+ src/lib/corelib/language/moduleloader.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/lib/corelib/language/moduleloader.cpp b/src/lib/corelib/language/moduleloader.cpp
+index f8e8fb36a2..72e2484336 100644
+--- a/src/lib/corelib/language/moduleloader.cpp
++++ b/src/lib/corelib/language/moduleloader.cpp
+@@ -3395,7 +3395,8 @@ static std::vector<std::pair<QualifiedId, ItemValuePtr>> instanceItemProperties(
+     std::vector<std::pair<QualifiedId, ItemValuePtr>> result;
+     QualifiedId name;
+     std::function<void(Item *)> f = [&] (Item *item) {
+-        for (auto it = item->properties().begin(); it != item->properties().end(); ++it) {
++        for (auto it = item->properties().begin(), end = item->properties().end();
++                it != end; ++it) {
+             if (it.value()->type() != Value::ItemValueType)
+                 continue;
+             ItemValuePtr itemValue = std::static_pointer_cast<ItemValue>(it.value());

@@ -1,0 +1,38 @@
+From c26eee2b96130e6e34c27c888f85b4bb0f17ddc3 Mon Sep 17 00:00:00 2001
+From: Junda Liu <Junda.Liu@amd.com>
+Date: Thu, 24 Aug 2023 09:00:48 +0800
+Subject: [PATCH] Fix perf drop in SaschaWillems rayquery sample (#2650)
+
+Caused by https://github.com/GPUOpen-Drivers/llpc/commit/9d3ae8a568b0114bb6cc8d311b468d76e34231a3.
+
+Root cause:
+After the dialectification of some GPURT intrinsic functions that returns a
+constant value (specifically, GetBoxSortHeuristicMode, GetStaticFlags and
+GetTriangleCompressionMode), unused `@lgc.create.load.buffer.desc` can no
+longer be eliminated before the module gets into LGC, as LowerGpuRt is the
+last lowering pass. This results in unnecessary `writes_uavs` and `uses_uav`
+being set, and different field of `DB_SHADER_CONTROL` register being set,
+which will prevent some optimization in PAL being made.
+
+Solution:
+Add an InstCombine pass after dialect ops have been processed.
+---
+ llpc/lower/llpcSpirvLower.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/llpc/lower/llpcSpirvLower.cpp b/llpc/lower/llpcSpirvLower.cpp
+index 282d11d84c..dc9e6acd24 100644
+--- a/llpc/lower/llpcSpirvLower.cpp
++++ b/llpc/lower/llpcSpirvLower.cpp
+@@ -252,8 +252,10 @@ void SpirvLower::addPasses(Context *context, ShaderStage stage, lgc::PassManager
+     passMgr.addPass(AlwaysInlinerPass());
+   }
+ 
+-  if (rayTracing || rayQuery)
++  if (rayTracing || rayQuery) {
+     passMgr.addPass(LowerGpuRt());
++    passMgr.addPass(createModuleToFunctionPassAdaptor(InstCombinePass(instCombineOpt)));
++  }
+ 
+   // Stop timer for lowering passes.
+   if (lowerTimer)

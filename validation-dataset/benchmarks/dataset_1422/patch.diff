@@ -1,0 +1,26 @@
+From 0a317631ca3d89f328dc6d07097982a94fe89b8c Mon Sep 17 00:00:00 2001
+From: Avi Bahra <Avi.Bahra@ecmwf.int>
+Date: Mon, 15 Oct 2018 15:21:02 +0100
+Subject: [PATCH] ECFLOW-1317  avoid add child ok commands to server -> client
+ groupd command. Should Improve performance
+
+Former-commit-id: 2bcefc0bd819673739a89e65f29a890187ad1986
+---
+ Base/src/stc/StcCmd.hpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/Base/src/stc/StcCmd.hpp b/Base/src/stc/StcCmd.hpp
+index f80dd0dba..f077db1b3 100644
+--- a/Base/src/stc/StcCmd.hpp
++++ b/Base/src/stc/StcCmd.hpp
+@@ -40,7 +40,9 @@ class StcCmd : public ServerToClientCmd {
+ 
+    /// Other legitimate ServerToClientCmd commands also return ok() as true
+    bool ok() const override { return api_ == OK; }      // used by group command
+-   bool is_returnable_in_group_cmd() const override { return api_ == OK || api_ == DELETE_ALL; }
++
++   // avoid adding OK to group command. Since groupCmd will return true from GroupSTCCmd::ok() *IF* there are no errors
++   bool is_returnable_in_group_cmd() const override { return api_ == DELETE_ALL; }
+ 
+ private:
+    Api api_{OK};

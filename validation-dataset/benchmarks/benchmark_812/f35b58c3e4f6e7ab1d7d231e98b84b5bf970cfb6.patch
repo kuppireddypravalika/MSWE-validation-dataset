@@ -1,0 +1,24 @@
+From f35b58c3e4f6e7ab1d7d231e98b84b5bf970cfb6 Mon Sep 17 00:00:00 2001
+From: Stephen Yang <syang0@stanford.edu>
+Date: Thu, 26 Jan 2017 01:44:42 -0800
+Subject: [PATCH] Changed Cycles::rdtsc() to use rdtscp
+
+rdtscp is the serializing version of rdtsc, which will give us a better
+representation of runtime performance when run in a tight loop.
+---
+ runtime/Cycles.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/runtime/Cycles.h b/runtime/Cycles.h
+index 80aa2bd..1f74ce4 100644
+--- a/runtime/Cycles.h
++++ b/runtime/Cycles.h
+@@ -43,7 +43,7 @@ class Cycles {
+             return mockTscValue;
+ #endif
+         uint32_t lo, hi;
+-        __asm__ __volatile__("rdtsc" : "=a" (lo), "=d" (hi));
++        __asm__ __volatile__("rdtscp" : "=a" (lo), "=d" (hi));
+         return (((uint64_t)hi << 32) | lo);
+     }
+ 

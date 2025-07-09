@@ -1,0 +1,39 @@
+From 0933c77494bbda1e8bc6f7bd1128d18c56b1fdff Mon Sep 17 00:00:00 2001
+From: "Matthew \"strager\" Glazar" <strager.nds@gmail.com>
+Date: Thu, 18 Feb 2021 16:55:30 -0800
+Subject: [PATCH] Reduce template bloat; shrink binary size ~12KB
+
+In the CLI, we have three instantiations many function templates in the
+parser:
+
+* Visitor=linter
+* Visitor=buffering_visitor
+* Visitor=multi_visitor<debug_visitor, linter>
+
+Reduce the number of instantiations by using buffering_visitor in front
+of multi_visitor.
+
+On my machine, for a size-optimized build, this reduces the binary size
+by 12288 bytes.
+---
+ src/main.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/main.cpp b/src/main.cpp
+index 26fc5afd82..f980e9596f 100644
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -355,9 +355,12 @@ void process_file(padded_string_view input, error_reporter *error_reporter,
+   parser p(input, error_reporter);
+   linter l(error_reporter);
+   if (print_parser_visits) {
++    buffering_visitor v;
++    p.parse_and_visit_module(v);
++
+     debug_visitor logger;
+     multi_visitor visitor(&logger, &l);
+-    p.parse_and_visit_module(visitor);
++    v.move_into(visitor);
+   } else {
+     p.parse_and_visit_module(l);
+   }

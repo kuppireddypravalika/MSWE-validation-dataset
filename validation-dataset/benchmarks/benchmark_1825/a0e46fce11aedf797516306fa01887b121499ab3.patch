@@ -1,0 +1,27 @@
+From a0e46fce11aedf797516306fa01887b121499ab3 Mon Sep 17 00:00:00 2001
+From: albertodemichelis <alberto@demichelis.net>
+Date: Sun, 23 Apr 2017 03:54:12 +0800
+Subject: [PATCH] improved stack cleanup for tailcalls
+
+---
+ squirrel/sqvm.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/squirrel/sqvm.cpp b/squirrel/sqvm.cpp
+index 5a8a6e82..b20df9a1 100644
+--- a/squirrel/sqvm.cpp
++++ b/squirrel/sqvm.cpp
+@@ -726,9 +726,13 @@ bool SQVM::Execute(SQObjectPtr &closure, SQInteger nargs, SQInteger stackbase,SQ
+                 if (type(t) == OT_CLOSURE
+                     && (!_closure(t)->_function->_bgenerator)){
+                     SQObjectPtr clo = t;
++					SQInteger last_top = _top;
+                     if(_openouters) CloseOuters(&(_stack._vals[_stackbase]));
+                     for (SQInteger i = 0; i < arg3; i++) STK(i) = STK(arg2 + i);
+                     _GUARD(StartCall(_closure(clo), ci->_target, arg3, _stackbase, true));
++					if (last_top >= _top) {
++						_top = last_top;
++					}
+                     continue;
+                 }
+                               }

@@ -1,0 +1,48 @@
+From dd842e34c8e133e3d36418c0d351034db52a05a7 Mon Sep 17 00:00:00 2001
+From: Dan Gohman <gohman@apple.com>
+Date: Mon, 12 Apr 2010 07:29:15 +0000
+Subject: [PATCH] Use RecursivelyDeleteTriviallyDeadInstructions in
+ EliminateIVComparisons, instead of deleting just the user. This makes it more
+ consistent with other code in IndVarSimplify, and theoretically can eliminate
+ more users earlier.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@101027 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Transforms/Scalar/IndVarSimplify.cpp | 15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/lib/Transforms/Scalar/IndVarSimplify.cpp b/lib/Transforms/Scalar/IndVarSimplify.cpp
+index 5dbde99baa2..e6e0129fa44 100644
+--- a/lib/Transforms/Scalar/IndVarSimplify.cpp
++++ b/lib/Transforms/Scalar/IndVarSimplify.cpp
+@@ -338,9 +338,11 @@ void IndVarSimplify::RewriteNonIntegerIVs(Loop *L) {
+ }
+ 
+ void IndVarSimplify::EliminateIVComparisons() {
++  SmallVector<WeakVH, 16> DeadInsts;
++
+   // Look for ICmp users.
+-  for (IVUsers::iterator I = IU->begin(), E = IU->end(); I != E;) {
+-    IVStrideUse &UI = *I++;
++  for (IVUsers::iterator I = IU->begin(), E = IU->end(); I != E; ++I) {
++    IVStrideUse &UI = *I;
+     ICmpInst *ICmp = dyn_cast<ICmpInst>(UI.getUser());
+     if (!ICmp) continue;
+ 
+@@ -367,8 +369,15 @@ void IndVarSimplify::EliminateIVComparisons() {
+       continue;
+ 
+     DEBUG(dbgs() << "INDVARS: Eliminated comparison: " << *ICmp << '\n');
+-    ICmp->eraseFromParent();
++    DeadInsts.push_back(ICmp);
+   }
++
++  // Now that we're done iterating through lists, clean up any instructions
++  // which are now dead.
++  while (!DeadInsts.empty())
++    if (Instruction *Inst =
++          dyn_cast_or_null<Instruction>(DeadInsts.pop_back_val()))
++      RecursivelyDeleteTriviallyDeadInstructions(Inst);
+ }
+ 
+ bool IndVarSimplify::runOnLoop(Loop *L, LPPassManager &LPM) {

@@ -1,0 +1,34 @@
+From 5b596aadf2d442453821e3b796f3f4b38bbcb2a6 Mon Sep 17 00:00:00 2001
+From: jmmartinez <jmmartinez@quarkslab.com>
+Date: Mon, 15 Jan 2018 20:40:49 +0100
+Subject: [PATCH] Do the appropiate cast when inlining global variables
+ (important when inlining arrays)
+
+---
+ runtime/pass/InlineParameters.cpp | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/runtime/pass/InlineParameters.cpp b/runtime/pass/InlineParameters.cpp
+index 77b7ddf..d398d8f 100644
+--- a/runtime/pass/InlineParameters.cpp
++++ b/runtime/pass/InlineParameters.cpp
+@@ -64,7 +64,7 @@ void GetInlineArgs(Context const &C, FunctionType& OldTy, Function &Wrapper, Sma
+     } else if(auto const *Float = Arg.as<FloatArgument>()) {
+       Args.push_back(ConstantFP::get(ParamTy, Float->get()));
+     } else if(auto const *Ptr = Arg.as<PtrArgument>()) {
+-      Value* Repl = nullptr;
++      Constant* Repl = nullptr;
+       auto &BT = BitcodeTracker::GetTracker();
+       void* PtrValue = const_cast<void*>(Ptr->get());
+       if(BT.hasGlobalMapping(PtrValue)) {
+@@ -79,6 +79,10 @@ void GetInlineArgs(Context const &C, FunctionType& OldTy, Function &Wrapper, Sma
+           if(GlobalVariable* G = dyn_cast<GlobalVariable>(GV)) {
+             GV->setLinkage(Function::PrivateLinkage);
+             Repl = GV;
++
++            if(Repl->getType() != ParamTy) {
++              Repl = ConstantExpr::getPointerCast(Repl, ParamTy);
++            }
+           }
+           else if(Function* F = dyn_cast<Function>(GV)) {
+             F->setLinkage(Function::PrivateLinkage);

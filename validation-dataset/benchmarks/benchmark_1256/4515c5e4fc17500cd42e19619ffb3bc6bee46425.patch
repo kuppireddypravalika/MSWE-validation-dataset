@@ -1,0 +1,38 @@
+From 4515c5e4fc17500cd42e19619ffb3bc6bee46425 Mon Sep 17 00:00:00 2001
+From: Edward Welbourne <edward.welbourne@qt.io>
+Date: Tue, 16 Nov 2021 19:26:05 +0100
+Subject: [PATCH] Use a QVarLengthArray for FatalSignalHandler's alternate
+ stack
+
+The stack needs to be at least SIGSTKSZ, which isn't constexpr, so we
+can't allocate it at compile time. However, we can resize(SIGSTKSZ) a
+QVarLengthArray that's probably big enough anyway. At the same time,
+increase the compile-time size to 32k, to match what our Catch2
+harness for the self-test uses.
+
+Change-Id: I3a34ece73901dd402672cd6fe4da66923f1932c8
+Reviewed-by: Thiago Macieira <thiago.macieira@intel.com>
+---
+ src/testlib/qtestcase.cpp | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/src/testlib/qtestcase.cpp b/src/testlib/qtestcase.cpp
+index 4cb9067c695..239b2ed2ddc 100644
+--- a/src/testlib/qtestcase.cpp
++++ b/src/testlib/qtestcase.cpp
+@@ -1691,11 +1691,12 @@ class FatalSignalHandler
+         // interfere with normal .bss symbols
+         __attribute__((section(".lbss.altstack"), aligned(4096)))
+ #    endif
+-        static char alternate_stack[16 * 1024];
++        static QVarLengthArray<char, 32 * 1024> alternateStack;
++        alternateStack.resize(qMax(SIGSTKSZ, alternateStack.size()));
+         stack_t stack;
+         stack.ss_flags = 0;
+-        stack.ss_size = sizeof alternate_stack;
+-        stack.ss_sp = alternate_stack;
++        stack.ss_size = alternateStack.size();
++        stack.ss_sp = alternateStack.data();
+         sigaltstack(&stack, nullptr);
+         act.sa_flags |= SA_ONSTACK;
+ #  endif

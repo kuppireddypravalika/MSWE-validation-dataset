@@ -1,0 +1,27 @@
+From 4d62bc9134653c3c8c7e890fbe630c9f83ddbcfa Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Sat, 20 Aug 2022 03:00:50 -0600
+Subject: [PATCH] Cache the `structureState` value that is actually used
+
+---
+ OPHD/UI/StructureListBox.cpp | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/OPHD/UI/StructureListBox.cpp b/OPHD/UI/StructureListBox.cpp
+index e3f012746..9b3f2335c 100644
+--- a/OPHD/UI/StructureListBox.cpp
++++ b/OPHD/UI/StructureListBox.cpp
+@@ -20,10 +20,9 @@ static const Font* MAIN_FONT_BOLD = nullptr;
+ 
+ static void drawItem(Renderer& renderer, StructureListBox::StructureListBoxItem& item, NAS2D::Rectangle<int> rect, bool highlight)
+ {
+-	Structure* structure = item.structure;
+-
+-	const auto& structureColor = structureColorFromIndex(structure->state());
+-	const auto& structureTextColor = structureTextColorFromIndex(structure->state());
++	const auto structureState = item.structure->state();
++	const auto& structureColor = structureColorFromIndex(structureState);
++	const auto& structureTextColor = structureTextColorFromIndex(structureState);
+ 	const auto highlightColor = NAS2D::Color{structureColor.red, structureColor.green, structureColor.blue, 75};
+ 
+ 	// draw highlight rect so as not to tint/hue colors of everything else

@@ -1,0 +1,24 @@
+From 40b9ecb0bde3a9c4d154280b1926b27fc111ea06 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bj=C3=B8rn=20Erik=20Jensen?= <bjorn.erik.jensen@acando.no>
+Date: Wed, 22 Aug 2018 10:17:58 +0200
+Subject: [PATCH] #3114 Performance. Temporarily commented out parallel loop
+ due to sync problems
+
+---
+ .../RicExportFractureCompletionsImpl.cpp                       | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/ApplicationCode/Commands/CompletionExportCommands/RicExportFractureCompletionsImpl.cpp b/ApplicationCode/Commands/CompletionExportCommands/RicExportFractureCompletionsImpl.cpp
+index 78a30a6c2fa..a4071754fd7 100644
+--- a/ApplicationCode/Commands/CompletionExportCommands/RicExportFractureCompletionsImpl.cpp
++++ b/ApplicationCode/Commands/CompletionExportCommands/RicExportFractureCompletionsImpl.cpp
+@@ -146,7 +146,8 @@ std::vector<RigCompletionData>
+ 
+     std::vector<std::vector<RigCompletionData>> sharedComplForFracture(fractures.size());
+ 
+-#pragma omp parallel for
++// Temporarily commented out due to sync problems. Needs more analysis
++//#pragma omp parallel for
+     for (int i = 0; i < (int)fractures.size(); i++)
+     {
+         RimFracture* fracture = fractures[i];

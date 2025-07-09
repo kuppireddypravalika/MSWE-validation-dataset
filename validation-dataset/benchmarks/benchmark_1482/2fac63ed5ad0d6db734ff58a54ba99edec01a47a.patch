@@ -1,0 +1,24 @@
+From 2fac63ed5ad0d6db734ff58a54ba99edec01a47a Mon Sep 17 00:00:00 2001
+From: kornstae <none@none>
+Date: Sun, 22 Sep 2002 07:09:01 +0100
+Subject: [PATCH] Preload java/lang/String instead of lazily resolving it.
+
+---
+ vm-stockwerk/java/Data.cc | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/vm-stockwerk/java/Data.cc b/vm-stockwerk/java/Data.cc
+index c3efc9bb8..bcf483aca 100644
+--- a/vm-stockwerk/java/Data.cc
++++ b/vm-stockwerk/java/Data.cc
+@@ -332,9 +332,7 @@ static word wInternTable;
+ static const u_int initialInternTableSize = 19; //--** to be determined
+ 
+ void JavaString::Init() {
+-  //--** not nice: this creates a JavaString before wClass is initialized
+-  ClassLoader *classLoader = ClassLoader::GetBootstrapClassLoader();
+-  wClass = classLoader->ResolveClass(JavaString::New("java/lang/String"));
++  wClass = ClassLoader::PreloadClass("java/lang/String");
+   RootSet::Add(wClass);
+   wInternTable =
+     HashTable::New(HashTable::BLOCK_KEY, initialInternTableSize)->ToWord();

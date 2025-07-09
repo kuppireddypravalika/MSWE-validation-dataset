@@ -1,0 +1,36 @@
+From 16db1d21659793909bd1719805d7ff8de6906f88 Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Mon, 12 Jul 2021 08:17:07 +0200
+Subject: [PATCH] QDuplicateTracker: reserve() for at least Prealloc elements
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+We have space for so many elements, so reserve()ing anything less
+makes no sense.
+
+Pick-to: 6.2 6.1 5.15
+Change-Id: I84d692b10a6a491c37661f84aa3fdd9af43d71e5
+Reviewed-by: Qt CI Bot <qt_ci_bot@qt-project.org>
+Reviewed-by: Mårten Nordheim <marten.nordheim@qt.io>
+---
+ src/corelib/tools/qduplicatetracker_p.h | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/corelib/tools/qduplicatetracker_p.h b/src/corelib/tools/qduplicatetracker_p.h
+index 47c97100f9f..5cfa19e03bf 100644
+--- a/src/corelib/tools/qduplicatetracker_p.h
++++ b/src/corelib/tools/qduplicatetracker_p.h
+@@ -81,9 +81,10 @@ class QDuplicateTracker {
+ 
+     char buffer[bufferSize(Prealloc)];
+     std::pmr::monotonic_buffer_resource res{buffer, sizeof buffer};
+-    std::pmr::unordered_set<T, QHasher<T>> set{&res};
++    std::pmr::unordered_set<T, QHasher<T>> set{Prealloc, &res};
+ #else
+-    QSet<T> set;
++    static QSet<T> makeQSet() { QSet<T> r; r.reserve(Prealloc); return r; }
++    QSet<T> set = makeQSet();
+     int setSize = 0;
+ #endif
+     Q_DISABLE_COPY_MOVE(QDuplicateTracker);

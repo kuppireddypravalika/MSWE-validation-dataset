@@ -1,0 +1,29 @@
+From 203f29a91f99a729fe098bea8f1d44bbc12cf037 Mon Sep 17 00:00:00 2001
+From: Lioncache <mai.iam2048@gmail.com>
+Date: Wed, 15 Feb 2023 09:31:36 -0500
+Subject: [PATCH] OpcodeDispatcher: Use VectorZero over VectorImm in
+ InsertPSOpImpl
+
+A little more straightforward than using VectorImm for the same purpose.
+---
+ .../FEXCore/Source/Interface/Core/OpcodeDispatcher/Vector.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/External/FEXCore/Source/Interface/Core/OpcodeDispatcher/Vector.cpp b/External/FEXCore/Source/Interface/Core/OpcodeDispatcher/Vector.cpp
+index f0fec2db68..c764a1bdc5 100644
+--- a/External/FEXCore/Source/Interface/Core/OpcodeDispatcher/Vector.cpp
++++ b/External/FEXCore/Source/Interface/Core/OpcodeDispatcher/Vector.cpp
+@@ -1349,11 +1349,11 @@ OrderedNode* OpDispatchBuilder::InsertPSOpImpl(OpcodeArgs, const X86Tables::Deco
+ 
+   // ZMask happens after insert
+   if (ZMask == 0xF) {
+-    return _VectorImm(16, 4, 0);
++    return _VectorZero(DstSize);
+   }
+ 
+   if (ZMask) {
+-    auto Zero = _VectorImm(16, 4, 0);
++    auto Zero = _VectorZero(DstSize);
+     for (size_t i = 0; i < 4; ++i) {
+       if ((ZMask & (1 << i)) != 0) {
+         Dest = _VInsElement(DstSize, 4, i, 0, Dest, Zero);

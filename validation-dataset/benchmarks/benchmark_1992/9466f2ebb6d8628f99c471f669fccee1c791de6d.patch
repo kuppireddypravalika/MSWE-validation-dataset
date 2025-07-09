@@ -1,0 +1,29 @@
+From 9466f2ebb6d8628f99c471f669fccee1c791de6d Mon Sep 17 00:00:00 2001
+From: Xiaoxi Chen <xiaoxchen@ebay.com>
+Date: Wed, 15 Feb 2017 20:28:03 -0700
+Subject: [PATCH] mds/MDLog.cc Fix perf counter type for jlat
+
+jlat (journal latency) should be PERFCOUNTER_TIME | PERFCOUNTER_LONGRUNAVG
+instead of PERFCOUNTER_U64
+
+Current code with PERFCOUNTER_U64 make PerfCounters::tinc return
+directly thus jlat will always be zero.
+
+Signed-off-by: Xiaoxi Chen <xiaoxchen@ebay.com>
+---
+ src/mds/MDLog.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/mds/MDLog.cc b/src/mds/MDLog.cc
+index 87fe65c03fc..3a864a7a7b5 100644
+--- a/src/mds/MDLog.cc
++++ b/src/mds/MDLog.cc
+@@ -74,7 +74,7 @@ void MDLog::create_logger()
+   plb.add_u64(l_mdl_expos, "expos", "Journaler xpire position");
+   plb.add_u64(l_mdl_wrpos, "wrpos", "Journaler  write position");
+   plb.add_u64(l_mdl_rdpos, "rdpos", "Journaler  read position");
+-  plb.add_u64(l_mdl_jlat, "jlat", "Journaler flush latency");
++  plb.add_time_avg(l_mdl_jlat, "jlat", "Journaler flush latency");
+ 
+   plb.add_u64_counter(l_mdl_replayed, "replayed", "Events replayed");
+ 

@@ -1,0 +1,28 @@
+From 8c351f33aaff7d84d78cf985c472aecf731f22a2 Mon Sep 17 00:00:00 2001
+From: Kurt Schwehr <schwehr@gmail.com>
+Date: Fri, 4 Sep 2015 05:23:18 +0000
+Subject: [PATCH] Cast nBlockYSize to 64-bit to avoid overflow with 32-bit
+ overflow.
+
+CID 1243282
+
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@30081 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/frmts/hfa/hfaband.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/gdal/frmts/hfa/hfaband.cpp b/gdal/frmts/hfa/hfaband.cpp
+index fdc1a583467d..f9924dcc43c4 100644
+--- a/gdal/frmts/hfa/hfaband.cpp
++++ b/gdal/frmts/hfa/hfaband.cpp
+@@ -511,7 +511,8 @@ CPLErr	HFABand::LoadExternalBlockInfo()
+ /*      Validity is determined from the validity bitmap.                */
+ /* -------------------------------------------------------------------- */
+     nBlockStart = poDMS->GetBigIntField( "layerStackDataOffset" );
+-    nBlockSize = (nBlockXSize*nBlockYSize*HFAGetDataTypeBits(nDataType)+7) / 8;
++    nBlockSize = (nBlockXSize*static_cast<vsi_l_offset>(nBlockYSize)
++                  *HFAGetDataTypeBits(nDataType)+7) / 8;
+ 
+     for( iBlock = 0; iBlock < nBlocks; iBlock++ )
+     {

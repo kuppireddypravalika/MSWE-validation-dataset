@@ -1,0 +1,29 @@
+From ede82053b0a94c64024a56af6e95e60918a4a298 Mon Sep 17 00:00:00 2001
+From: Daniele Di Proietto <ddp@nefeli.io>
+Date: Wed, 6 Jun 2018 10:25:55 -0700
+Subject: [PATCH] port: Return const reference from conf() accessor
+
+According to Google C++ Style Guide we should return a const reference here
+instead of making a copy.
+
+I fixed this because I noticed that the accessor is used very often in the
+fastpath ({Port,Queue}{Inc,Out}::RunTask call that once per batch). I haven't
+noticed any performance impact, I suspect the compiler is smart enough to avoid
+the copy, but I think it's better to change it.
+---
+ core/port.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/core/port.h b/core/port.h
+index 60d9dc82a..da6a9dab8 100644
+--- a/core/port.h
++++ b/core/port.h
+@@ -278,7 +278,7 @@ class Port {
+                      const queue_t *queues, int num);
+ 
+   const std::string &name() const { return name_; }
+-  Conf conf() const { return conf_; }
++  const Conf &conf() const { return conf_; }
+ 
+   const PortBuilder *port_builder() const { return port_builder_; }
+ 

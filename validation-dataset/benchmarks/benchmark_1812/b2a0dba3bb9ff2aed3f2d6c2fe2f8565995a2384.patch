@@ -1,0 +1,22 @@
+From b2a0dba3bb9ff2aed3f2d6c2fe2f8565995a2384 Mon Sep 17 00:00:00 2001
+From: Stenzek <stenzek@gmail.com>
+Date: Fri, 29 Dec 2023 22:20:23 +1000
+Subject: [PATCH] GS/SW: Replace non-constant shift immediate
+
+---
+ pcsx2/GS/Renderers/SW/GSDrawScanline.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/pcsx2/GS/Renderers/SW/GSDrawScanline.cpp b/pcsx2/GS/Renderers/SW/GSDrawScanline.cpp
+index a25a3e2ac12f2..05d6b40a077df 100644
+--- a/pcsx2/GS/Renderers/SW/GSDrawScanline.cpp
++++ b/pcsx2/GS/Renderers/SW/GSDrawScanline.cpp
+@@ -627,7 +627,7 @@ __ri void GSDrawScanline::CDrawScanline(int pixels, int left, int top, const GSV
+ 					}
+ 
+ 					if (sel.zclamp)
+-						zs = zs.min_u32(VectorI::xffffffff().srl32(sel.zpsm * 8));
++						zs = zs.min_u32(VectorI(static_cast<int>(0xFFFFFFFFu >> (sel.zpsm * 8))));
+ 				}
+ 				else
+ 				{

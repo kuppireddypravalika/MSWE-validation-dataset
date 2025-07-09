@@ -1,0 +1,27 @@
+From b5a20054dd150211c7ac3b2b0e37f89f1c225752 Mon Sep 17 00:00:00 2001
+From: Lewis Pringle <lewis@sophists.com>
+Date: Tue, 4 Jan 2022 17:28:49 +0000
+Subject: [PATCH] mostly cosmetic (I think) - but may have some performance
+ implications (some +, some -) - use much more for (const T& or for (const
+ auto& - replacing just for (T, or other things less clear / appropriate;
+ haven't found clear docs on web about universally what is best here, but I if
+ performance diff unclear (less a win for Stroika than other systems due to
+ COW and maybe more cost due to how iterators return by value not reference)
+
+---
+ .../SystemPerformanceClient/Sources/SystemPerformanceClient.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Samples/SystemPerformanceClient/Sources/SystemPerformanceClient.cpp b/Samples/SystemPerformanceClient/Sources/SystemPerformanceClient.cpp
+index 86916798b3..442ee59177 100644
+--- a/Samples/SystemPerformanceClient/Sources/SystemPerformanceClient.cpp
++++ b/Samples/SystemPerformanceClient/Sources/SystemPerformanceClient.cpp
+@@ -99,7 +99,7 @@ namespace {
+     void Demo_Using_Direct_Capture_On_Instrument_ (Set<InstrumentNameType> run, bool oneLineMode, Duration captureInterval)
+     {
+         cout << "Results for each instrument:" << endl;
+-        for (const Instrument& i : SystemPerformance::GetAllInstruments ()) {
++        for (Instrument i : SystemPerformance::GetAllInstruments ()) {
+             if (not run.empty ()) {
+                 if (not run.Contains (i.pInstrumentName)) {
+                     continue;

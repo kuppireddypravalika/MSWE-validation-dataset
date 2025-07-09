@@ -1,0 +1,26 @@
+From 47b398cb8927e2a454e24b9db0d6e3f1afd7cb92 Mon Sep 17 00:00:00 2001
+From: Jean-Philip Desjardins <jean-philip.desjardins@polymtl.ca>
+Date: Mon, 7 Aug 2023 13:30:48 -0400
+Subject: [PATCH] x86-32: Directly load immediate in memory.
+
+---
+ src/Jitter_CodeGen_x86_32.cpp | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/src/Jitter_CodeGen_x86_32.cpp b/src/Jitter_CodeGen_x86_32.cpp
+index 675042fc..c9a6b6bb 100644
+--- a/src/Jitter_CodeGen_x86_32.cpp
++++ b/src/Jitter_CodeGen_x86_32.cpp
+@@ -1477,10 +1477,8 @@ void CCodeGen_x86_32::Emit_StoreAtRef_64_VarCst(const STATEMENT& statement)
+ 
+ 	assert(src2->m_type == SYM_CONSTANT64);
+ 
+-	m_assembler.MovId(valueLoReg, src2->m_valueLow);
+-	m_assembler.MovId(valueHiReg, src2->m_valueHigh);
+-	m_assembler.MovGd(CX86Assembler::MakeIndRegAddress(addressReg), valueLoReg);
+-	m_assembler.MovGd(CX86Assembler::MakeIndRegOffAddress(addressReg, 4), valueHiReg);
++	m_assembler.MovId(CX86Assembler::MakeIndRegAddress(addressReg), src2->m_valueLow);
++	m_assembler.MovId(CX86Assembler::MakeIndRegOffAddress(addressReg, 4), src2->m_valueHigh);
+ }
+ 
+ void CCodeGen_x86_32::Emit_Store8AtRef_VarVar(const STATEMENT& statement)

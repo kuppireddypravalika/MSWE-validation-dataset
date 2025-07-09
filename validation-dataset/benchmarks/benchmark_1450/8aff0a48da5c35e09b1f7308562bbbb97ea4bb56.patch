@@ -1,0 +1,26 @@
+From 8aff0a48da5c35e09b1f7308562bbbb97ea4bb56 Mon Sep 17 00:00:00 2001
+From: Alexander van der Grinten <alexander.vandergrinten@gmail.com>
+Date: Thu, 20 Dec 2018 14:15:19 +0100
+Subject: [PATCH] string: Do not rely on strlen()
+
+---
+ include/frg/string.hpp | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/include/frg/string.hpp b/include/frg/string.hpp
+index 197b908..fdf306b 100644
+--- a/include/frg/string.hpp
++++ b/include/frg/string.hpp
+@@ -18,7 +18,11 @@ class basic_string_view {
+ 	: _pointer{nullptr}, _length{0} { }
+ 
+ 	basic_string_view(const Char *cs)
+-	: _pointer{cs}, _length{strlen(cs)} { }
++	: _pointer{cs}, _length{0} {
++		// We cannot call strlen() as Char might not be the usual char.
++		while(cs[_length])
++			_length++;
++	}
+ 
+ 	basic_string_view(const Char *s, size_t length)
+ 	: _pointer{s}, _length{length} { }

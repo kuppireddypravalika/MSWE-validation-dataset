@@ -1,0 +1,26 @@
+From 2fb810cae0bd8c092236fa865500c597421d7d68 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Wed, 24 Dec 2014 23:29:56 +0000
+Subject: [PATCH] JPEG: use optimized Huffman coding to reduce file size
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@28207 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/frmts/jpeg/jpgdataset.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/gdal/frmts/jpeg/jpgdataset.cpp b/gdal/frmts/jpeg/jpgdataset.cpp
+index 3621c8c36e89..f494205adecd 100644
+--- a/gdal/frmts/jpeg/jpgdataset.cpp
++++ b/gdal/frmts/jpeg/jpgdataset.cpp
+@@ -3328,6 +3328,11 @@ JPGDataset::CreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
+     if( pszVal )
+         sCInfo.arith_code = CSLTestBoolean(pszVal);
+ 
++    /* Optimized Huffman coding. Supposedly slower according to libjpeg doc */
++    /* but no longer significant with today computer standards */
++    if( !sCInfo.arith_code )
++        sCInfo.optimize_coding = TRUE;
++
+ #if JPEG_LIB_VERSION_MAJOR >= 8 && \
+       (JPEG_LIB_VERSION_MAJOR > 8 || JPEG_LIB_VERSION_MINOR >= 3)
+     pszVal = CSLFetchNameValue(papszOptions, "BLOCK");

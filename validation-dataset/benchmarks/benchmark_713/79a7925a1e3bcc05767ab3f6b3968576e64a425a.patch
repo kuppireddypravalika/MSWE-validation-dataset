@@ -1,0 +1,31 @@
+From 79a7925a1e3bcc05767ab3f6b3968576e64a425a Mon Sep 17 00:00:00 2001
+From: Kevin Leo <kevin.kevinleo@gmail.com>
+Date: Mon, 24 Apr 2017 15:22:50 +1000
+Subject: [PATCH] Change coercion of Comprehensions [bool2int(e) | g] instead
+ of bool2int([e | g])
+
+---
+ lib/typecheck.cpp | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/lib/typecheck.cpp b/lib/typecheck.cpp
+index 87e64153e..0f4858a79 100644
+--- a/lib/typecheck.cpp
++++ b/lib/typecheck.cpp
+@@ -1087,8 +1087,14 @@ namespace MiniZinc {
+       if (FunctionI* fi = _model->matchFn(_env,call.id(),args,true)) {
+         bool cv = false;
+         for (unsigned int i=0; i<args.size(); i++) {
+-          args[i] = addCoercion(_env, _model,call.args()[i],fi->argtype(_env,args,i))();
+-          call.args()[i] = args[i];
++          if(Comprehension* c = call.args()[i]->dyn_cast<Comprehension>()) {
++            Type t = fi->argtype(_env,args,i);
++            t.dim(0);
++            c->e(addCoercion(_env, _model, c->e(), t)());
++          } else {
++            args[i] = addCoercion(_env, _model,call.args()[i],fi->argtype(_env,args,i))();
++            call.args()[i] = args[i];
++          }
+           cv = cv || args[i]->type().cv();
+         }
+         Type ty = fi->rtype(_env,args,true);

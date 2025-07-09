@@ -1,0 +1,28 @@
+From a858296ecd3379233179a240506f2ef2f9ac479d Mon Sep 17 00:00:00 2001
+From: Ryan Houdek <Sonicadvance1@gmail.com>
+Date: Sun, 24 Nov 2019 17:34:32 -0800
+Subject: [PATCH] Removes SSE41, SSE42, and AVX support from CPUID
+
+---
+ Source/Interface/Core/CPUID.cpp | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/Source/Interface/Core/CPUID.cpp b/Source/Interface/Core/CPUID.cpp
+index 2867775e40..c5a01b7878 100644
+--- a/Source/Interface/Core/CPUID.cpp
++++ b/Source/Interface/Core/CPUID.cpp
+@@ -30,7 +30,13 @@ CPUIDEmu::FunctionResults CPUIDEmu::Function_01h() {
+   Res.Res[2] = ~0U; // Let's say we support every feature for fun
+   Res.Res[3] = ~0U; // Let's say we support every feature for fun
+ 
+-  Res.Res[3]  &= ~(3 << 26); // Let's say that XSAVE isn't enabled by the OS. Prevents glibc from using XSAVE/XGETBV
++  Res.Res[3]  &= ~(
++      (3 << 26) | // Let's say that XSAVE isn't enabled by the OS. Prevents glibc from using XSAVE/XGETBV
++      (1 << 19) | // Remove SSE4.1
++      (1 << 20) | // Remove SSE4.2
++      (1 << 28)   // Remove AVX
++      );
++
+   return Res;
+ }
+ 

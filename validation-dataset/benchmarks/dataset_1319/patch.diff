@@ -1,0 +1,22 @@
+From e08833a88cfc21fc8b7df258a680141e925e4142 Mon Sep 17 00:00:00 2001
+From: bruni <none@none>
+Date: Fri, 6 Oct 2000 13:01:07 +0100
+Subject: [PATCH] Changed strncmp to memcmp
+
+---
+ vm-stockwerk/adt/HashTable.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/vm-stockwerk/adt/HashTable.cc b/vm-stockwerk/adt/HashTable.cc
+index 4b987da5c..570ea6516 100644
+--- a/vm-stockwerk/adt/HashTable.cc
++++ b/vm-stockwerk/adt/HashTable.cc
+@@ -60,7 +60,7 @@ static inline int CompareBlocks(Block *a, Block *b) {
+   u_int bl = (b->GetSize() * sizeof(word));
+ 
+   if (al == bl) {
+-    return std::strncmp((char *) a->GetBase(), (char *) b->GetBase(), al);
++    return std::memcmp((char *) a->GetBase(), (char *) b->GetBase(), al);
+   }
+ 
+   return 1;

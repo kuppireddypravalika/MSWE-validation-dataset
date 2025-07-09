@@ -1,0 +1,25 @@
+From aec68a72d7d37e449f062e5946ef526a89217a6e Mon Sep 17 00:00:00 2001
+From: Robert Jordan <jrob698@gmail.com>
+Date: Sun, 14 Jun 2015 14:52:24 -0400
+Subject: [PATCH] Excess space no longer created in filter list
+
+---
+ src/object_list.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/object_list.c b/src/object_list.c
+index add6b6655402..7c11b55a7b7b 100644
+--- a/src/object_list.c
++++ b/src/object_list.c
+@@ -310,9 +310,9 @@ void object_list_load()
+ 				continue;
+ 
+ 			if (_installedObjectFilters)
+-				_installedObjectFilters = realloc(_installedObjectFilters, sizeof(rct_object_filters) * fileCount);
++				_installedObjectFilters = realloc(_installedObjectFilters, sizeof(rct_object_filters) * (objectCount + 1));
+ 			else
+-				_installedObjectFilters = malloc(sizeof(rct_object_filters) * fileCount);
++				_installedObjectFilters = malloc(sizeof(rct_object_filters) * (objectCount + 1));
+ 
+ 			rct_object_entry* installed_entry = (rct_object_entry*)(RCT2_GLOBAL(RCT2_ADDRESS_INSTALLED_OBJECT_LIST, uint8*) + current_item_offset);
+ 			rct_object_filters filter;

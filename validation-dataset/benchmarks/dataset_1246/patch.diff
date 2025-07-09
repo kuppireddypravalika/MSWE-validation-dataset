@@ -1,0 +1,23 @@
+From def84960c356cafeec9131e16681bab39ad53a7b Mon Sep 17 00:00:00 2001
+From: MrKepzie <alexandre230@msn.com>
+Date: Thu, 15 Aug 2013 12:45:58 +0200
+Subject: [PATCH] improved algorithm that determines the position of a new node
+ in the graph editor
+
+---
+ Gui/DAG.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Gui/DAG.cpp b/Gui/DAG.cpp
+index 6ed3ffa2b7..2510e29528 100644
+--- a/Gui/DAG.cpp
++++ b/Gui/DAG.cpp
+@@ -385,7 +385,7 @@ void NodeGraph::autoConnect(NodeGui* selected,NodeGui* created){
+     Edge* first = 0;
+     if(!selected) return;
+     bool cont = false;
+-    if(!selected->getNode()->isOutputNode()){
++    if(!selected->getNode()->isOutputNode() && !created->getNode()->isInputNode()){
+         /*dst is not outputnode*/
+         
+         /*check first if it has a child and connect the child to the new node*/

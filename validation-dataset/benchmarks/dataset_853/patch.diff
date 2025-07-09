@@ -1,0 +1,41 @@
+From 4f97964803be4f2a82dda83015acb092102506d2 Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Sat, 22 Jul 2017 21:12:33 -0400
+Subject: [PATCH] [librpbase] ImageDecoder::fromLinear32(): Minor optimization
+ for PXF_HOST_ARGB32.
+
+If stride == img->stride(), we can copy the entire image directly with
+a single memcpy(). Otherwise, we have to memcpy() one row at a time.
+---
+ src/librpbase/img/ImageDecoder_Linear.cpp | 18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
+
+diff --git a/src/librpbase/img/ImageDecoder_Linear.cpp b/src/librpbase/img/ImageDecoder_Linear.cpp
+index 6f22b83365..0263b65984 100644
+--- a/src/librpbase/img/ImageDecoder_Linear.cpp
++++ b/src/librpbase/img/ImageDecoder_Linear.cpp
+@@ -594,12 +594,18 @@ rp_image *ImageDecoder::fromLinear32(PixelFormat px_format,
+ 	switch (px_format) {
+ 		case PXF_HOST_ARGB32: {
+ 			// Host-endian ARGB32.
+-			// We can directly copy the entire row.
+-			const unsigned int copy_len = (unsigned int)width * bytespp;
+-			for (int y = 0; y < height; y++) {
+-				uint32_t *px_dest = static_cast<uint32_t*>(img->scanLine(y));
+-				memcpy(px_dest, img_buf, copy_len);
+-				img_buf += (stride / bytespp);
++			// We can directly copy the image data without conversions.
++			if (stride == img->stride()) {
++				// Stride is identical. Copy the whole image all at once.
++				memcpy(img->bits(), img_buf, stride * height);
++			} else {
++				// Stride is not identical. Copy each scanline.
++				const unsigned int copy_len = (unsigned int)width * bytespp;
++				for (int y = 0; y < height; y++) {
++					uint32_t *px_dest = static_cast<uint32_t*>(img->scanLine(y));
++					memcpy(px_dest, img_buf, copy_len);
++					img_buf += (stride / bytespp);
++				}
+ 			}
+ 			break;
+ 		}

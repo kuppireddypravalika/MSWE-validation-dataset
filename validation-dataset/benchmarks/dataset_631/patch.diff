@@ -1,0 +1,25 @@
+From 306e938129f4d99c3b12f9762ec32df5aa5bf080 Mon Sep 17 00:00:00 2001
+From: Juli Mallett <juli@clockworksquid.com>
+Date: Mon, 25 Mar 2013 03:50:26 +0000
+Subject: [PATCH] Use moveout(dst, off, len) rather than skip(off)+moveout(dst,
+ len).
+
+---
+ programs/wanproxy/ssh_stream.cc | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/programs/wanproxy/ssh_stream.cc b/programs/wanproxy/ssh_stream.cc
+index 06cacee..3568204 100644
+--- a/programs/wanproxy/ssh_stream.cc
++++ b/programs/wanproxy/ssh_stream.cc
+@@ -338,9 +338,8 @@ SSHStream::write_do(void)
+ 				break;
+ 			}
+ 
+-			input_buffer_.skip(sizeof length);
+ 			Buffer packet;
+-			input_buffer_.moveout(&packet, length);
++			input_buffer_.moveout(&packet, sizeof length, length);
+ 
+ 			pipe_->send(&packet);
+ 		}

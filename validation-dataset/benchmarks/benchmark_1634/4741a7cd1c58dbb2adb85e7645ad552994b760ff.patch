@@ -1,0 +1,32 @@
+From 4741a7cd1c58dbb2adb85e7645ad552994b760ff Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@qt.io>
+Date: Mon, 7 Aug 2023 14:42:55 +0200
+Subject: [PATCH] tst_QWizard: port away from Q_FOREACH[4/5]: TestWizard dtor
+
+This is iterating over a data member container that's otherwise only
+touched in the constructor of the same object. The only reason why
+it's not a const is that the initialization from QWizard::addPage()
+makes that very cumbersome. So port to a ranged for-loop and apply
+std::as_const().
+
+Task-number: QTBUG-115803
+Pick-to: 6.6 6.5
+Change-Id: I033e3725df95b29a8ef295c4e74d746d83234835
+Reviewed-by: Fabian Kosmale <fabian.kosmale@qt.io>
+---
+ tests/auto/widgets/dialogs/qwizard/tst_qwizard.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tests/auto/widgets/dialogs/qwizard/tst_qwizard.cpp b/tests/auto/widgets/dialogs/qwizard/tst_qwizard.cpp
+index 977d46fbe03..d4d36bb84f6 100644
+--- a/tests/auto/widgets/dialogs/qwizard/tst_qwizard.cpp
++++ b/tests/auto/widgets/dialogs/qwizard/tst_qwizard.cpp
+@@ -1785,7 +1785,7 @@ class TestWizard : public QWizard
+ 
+     ~TestWizard()
+     {
+-        foreach (int id, pageIds) {
++        for (int id : std::as_const(pageIds)) {
+             QWizardPage *page_to_delete = page(id);
+             removePage(id);
+             delete page_to_delete;

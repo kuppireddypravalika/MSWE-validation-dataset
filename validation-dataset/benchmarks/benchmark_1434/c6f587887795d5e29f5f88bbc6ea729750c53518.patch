@@ -1,0 +1,22 @@
+From c6f587887795d5e29f5f88bbc6ea729750c53518 Mon Sep 17 00:00:00 2001
+From: Sameer Kumar <skumar2@uiuc.edu>
+Date: Fri, 26 Mar 2004 23:50:48 +0000
+Subject: [PATCH] inlining to get rid of the if in ComlibPrintf
+
+---
+ src/libs/conv-libs/commlib/commlib.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/libs/conv-libs/commlib/commlib.h b/src/libs/conv-libs/commlib/commlib.h
+index 3a7f549b08..6661c2de5c 100644
+--- a/src/libs/conv-libs/commlib/commlib.h
++++ b/src/libs/conv-libs/commlib/commlib.h
+@@ -18,7 +18,7 @@
+ 
+ extern int comm_debug;
+ #if CMK_OPTIMIZE
+-#define ComlibPrintf  (void)
++inline void ComlibPrintf(...) {}
+ #else
+ #define ComlibPrintf if(comm_debug) CmiPrintf
+ #endif

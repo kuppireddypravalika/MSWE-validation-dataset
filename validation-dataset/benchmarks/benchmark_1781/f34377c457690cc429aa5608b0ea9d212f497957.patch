@@ -1,0 +1,41 @@
+From f34377c457690cc429aa5608b0ea9d212f497957 Mon Sep 17 00:00:00 2001
+From: Davide Italiano <davide@freebsd.org>
+Date: Thu, 11 May 2017 19:37:43 +0000
+Subject: [PATCH] [LiveVariables] Switch Kill/Defs sets to be DenseSet(s).
+
+The testcase in PR32984 shows a non linear compile time increase
+after a change that made the LoopUnroll pass more aggressive
+(increasing the threshold).
+
+My profiling shows all the time of PHI elimination goes to
+llvm::LiveVariables::addNewBlock. This is because we keep
+Defs/Kills registers in a SmallSet and vfind(const T &V); is O(N).
+
+Switching to a DenseSet reduces the time spent in the pass from
+297 seconds to 97 seconds. Profiling still shows a lot of time is
+spent iterating the data structure, so I guess there's room for
+improvement.
+
+Dan tells me GCC uses real set operations for live registers and
+it takes no-time on this testcase. Matthias points out we might
+want to switch all this to LiveIntervalAnalysis so it's not entirely
+sure if a rewrite is worth it.
+
+Differential Revision:  https://reviews.llvm.org/D33088
+---
+ llvm/lib/CodeGen/LiveVariables.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/llvm/lib/CodeGen/LiveVariables.cpp b/llvm/lib/CodeGen/LiveVariables.cpp
+index 3568b0294ad9..a9aec926115a 100644
+--- a/llvm/lib/CodeGen/LiveVariables.cpp
++++ b/llvm/lib/CodeGen/LiveVariables.cpp
+@@ -767,7 +767,7 @@ void LiveVariables::addNewBlock(MachineBasicBlock *BB,
+                                 MachineBasicBlock *SuccBB) {
+   const unsigned NumNew = BB->getNumber();
+ 
+-  SmallSet<unsigned, 16> Defs, Kills;
++  DenseSet<unsigned> Defs, Kills;
+ 
+   MachineBasicBlock::iterator BBI = SuccBB->begin(), BBE = SuccBB->end();
+   for (; BBI != BBE && BBI->isPHI(); ++BBI) {

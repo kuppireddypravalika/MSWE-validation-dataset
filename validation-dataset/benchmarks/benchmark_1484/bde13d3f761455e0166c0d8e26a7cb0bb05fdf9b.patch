@@ -1,0 +1,26 @@
+From bde13d3f761455e0166c0d8e26a7cb0bb05fdf9b Mon Sep 17 00:00:00 2001
+From: Chad Rosier <mcrosier@apple.com>
+Date: Sat, 25 Jun 2011 02:04:56 +0000
+Subject: [PATCH] Enable tail call optimization in the presence of a byval
+ (x86-32 and x86-64). <rdar://problem/9483883>
+
+llvm-svn: 133858
+---
+ llvm/lib/Target/X86/X86ISelLowering.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/llvm/lib/Target/X86/X86ISelLowering.cpp b/llvm/lib/Target/X86/X86ISelLowering.cpp
+index 6c606be5912..bab15e62a27 100644
+--- a/llvm/lib/Target/X86/X86ISelLowering.cpp
++++ b/llvm/lib/Target/X86/X86ISelLowering.cpp
+@@ -2505,6 +2505,10 @@ bool MatchingStackOffset(SDValue Arg, unsigned Offset, ISD::ArgFlagsTy Flags,
+     if (!FINode)
+       return false;
+     FI = FINode->getIndex();
++  } else if (Arg.getOpcode() == ISD::FrameIndex && Flags.isByVal()) {
++    FrameIndexSDNode *FINode = dyn_cast<FrameIndexSDNode>(Arg);
++    FI = FINode->getIndex();
++    Bytes = Flags.getByValSize();
+   } else
+     return false;
+ 

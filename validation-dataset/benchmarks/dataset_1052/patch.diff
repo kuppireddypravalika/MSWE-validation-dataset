@@ -1,0 +1,38 @@
+From 13f471d1555edd756e407730efd78aa4ade5f5f2 Mon Sep 17 00:00:00 2001
+From: Tim Pollock <pollockt@objectcomputing.com>
+Date: Thu, 22 Oct 2020 12:14:02 -0500
+Subject: [PATCH] Fixed be_produce compile warning
+
+Replaced existing code to produce random characters with something more efficient.
+---
+ dds/idl/be_produce.cpp | 14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
+
+diff --git a/dds/idl/be_produce.cpp b/dds/idl/be_produce.cpp
+index eae0e0ce79a..211f8417530 100644
+--- a/dds/idl/be_produce.cpp
++++ b/dds/idl/be_produce.cpp
+@@ -138,18 +138,14 @@ string to_macro(const char* fn)
+ #ifdef max
+ #undef max
+ #endif
+-  const float MAX_VAL = static_cast<float>(numeric_limits<char>::max());
+-  const float coefficient = static_cast<float>(MAX_VAL / (RAND_MAX + 1.0f));
+-
+   if (ret[ret.size() - 1] != '_') ret += '_';
++  
++  static const char alphanum[] =
++    "0123456789"
++    "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+ 
+   for (unsigned int n = 0; n < NUM_CHARS; ++n) {
+-    char r;
+-    do {
+-      r = static_cast<char>(coefficient * ACE_OS::rand_r(&seed));
+-    } while (!isalnum(r));
+-
+-    ret += static_cast<char>(toupper(r));
++    ret += alphanum[ACE_OS::rand_r(&seed) % (sizeof(alphanum) - 1)];
+   }
+ 
+   return ret;

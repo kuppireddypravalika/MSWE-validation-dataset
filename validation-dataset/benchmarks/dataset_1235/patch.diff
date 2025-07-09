@@ -1,0 +1,37 @@
+From cfa2ec9cfb6661fa843c2cdc52c882befd100bac Mon Sep 17 00:00:00 2001
+From: Takashiro <takashiro@qq.com>
+Date: Tue, 2 Sep 2014 02:10:31 +0800
+Subject: [PATCH] refine RoomState::reset() 1. iterate QHash directly. Avoid a
+ duplicated iteration and a QList construction 2. fix a memory leak
+
+---
+ src/core/RoomState.cpp | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
+
+diff --git a/src/core/RoomState.cpp b/src/core/RoomState.cpp
+index 4cdeb3b59c..d568b9fede 100644
+--- a/src/core/RoomState.cpp
++++ b/src/core/RoomState.cpp
+@@ -45,15 +45,17 @@ void RoomState::resetCard(int cardId) {
+ 
+ // Reset all cards, generals' states of the room instance
+ void RoomState::reset() {
+-    foreach(WrappedCard *card, m_cards.values())
+-        delete card;
++    QHashIterator<int, WrappedCard *> iter(m_cards);
++    while (iter.hasNext()) {
++        iter.next();
++        delete iter.value();
++    }
+     m_cards.clear();
+ 
+     int n = Sanguosha->getCardCount();
+     for (int i = 0; i < n; i++) {
+-        const Card *card = Sanguosha->getEngineCard(i);
+-        Card *clonedCard = Card::Clone(card);
+-        m_cards[i] = new WrappedCard(Card::Clone(clonedCard));
++        Card *newCard = Card::Clone(Sanguosha->getEngineCard(i));
++        m_cards[i] = new WrappedCard(newCard);
+     }
+ }
+ 

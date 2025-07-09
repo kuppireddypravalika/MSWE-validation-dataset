@@ -1,0 +1,32 @@
+From 7375e7a9ad0c3a1efab5d5fd729ec6c2ce041d61 Mon Sep 17 00:00:00 2001
+From: Dmitry Bogdanov <dmitry.bogdanov@upf.edu>
+Date: Thu, 25 Jul 2019 20:22:18 +0200
+Subject: [PATCH] Replace depricated std::bind2nd with lambdas
+
+Time to use C++11 lambdas
+---
+ src/algorithms/standard/nsgiconstantq.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/algorithms/standard/nsgiconstantq.cpp b/src/algorithms/standard/nsgiconstantq.cpp
+index e4ce732c2..02ffac409 100644
+--- a/src/algorithms/standard/nsgiconstantq.cpp
++++ b/src/algorithms/standard/nsgiconstantq.cpp
+@@ -338,7 +338,7 @@ void NSGIConstantQ::compute() {
+     _fft->compute();
+ 
+     std::transform(temp.begin(), temp.end(), temp.begin(),
+-                    std::bind2nd(std::multiplies<complex<Real> >(), winsLen[j]));
++                    [&winsLen,j](complex<Real> temp){ return (complex<Real>) winsLen[j] * temp; });
+ 
+     // Phase shift
+     if (_phaseMode == "global") {
+@@ -374,7 +374,7 @@ void NSGIConstantQ::compute() {
+   std::reverse(output.begin()+1, output.end());
+ 
+   std::transform(output.begin(), output.end(), output.begin(),
+-                  std::bind2nd(std::divides<complex<Real> >(), _NN));
++                  [&](complex<Real> output){ return output / (complex<Real>)_NN; });
+ 
+   signal.resize(_NN);
+   for (int i=0; i<_NN; i++){

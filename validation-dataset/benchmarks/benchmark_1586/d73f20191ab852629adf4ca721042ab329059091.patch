@@ -1,0 +1,33 @@
+From d73f20191ab852629adf4ca721042ab329059091 Mon Sep 17 00:00:00 2001
+From: Michael Clark <michaeljclark@mac.com>
+Date: Mon, 18 Nov 2019 17:36:03 +1300
+Subject: [PATCH] Perform arithmetic shift on the highest word for signed right
+ shifts
+
+---
+ src/wideint.h | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/wideint.h b/src/wideint.h
+index a7f0bbc..b738a7d 100644
+--- a/src/wideint.h
++++ b/src/wideint.h
+@@ -36,6 +36,7 @@ struct wideint
+ 
+     /*! limb type */
+     typedef typename hostint<lb, false>::type limb_t;
++    typedef typename hostint<lb, true>::type slimb_t;
+     typedef typename hostint<lb*2, false>::type limb2_t;
+     typedef wideint<bits,is_signed> value_type;
+ 
+@@ -197,7 +198,9 @@ struct wideint
+                 limbs[i] = (n >> shamt | m << (-shamt & lsm));
+                 n = m;
+             }
+-            limbs[i] = (n >> shamt | -s << (nb-shamt-1));
++            /* arithmetic shift if signed and this word is the last word */
++            limb_t lw = s && (i == lc-1) ? slimb_t(n) >> shamt : n >> shamt;
++            limbs[i] = lw | -s << ((nb-shamt-1) & lsm);
+         }
+         for (size_t i = lc-ls; i < lc; i++) {
+             limbs[i] = -s;

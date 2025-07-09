@@ -1,0 +1,30 @@
+From 969d688d4de7a5a3e21bf2c39081c310f7f1ceaf Mon Sep 17 00:00:00 2001
+From: Johannes Hofmann <Johannes.Hofmann@gmx.de>
+Date: Tue, 14 Jul 2009 22:41:40 +0200
+Subject: [PATCH] optimize Textblock::drawLine()
+
+Skip words that are left of the area to be drawn and stop
+drawing once we reach a word that is completely to the right of
+the drawing area.
+---
+ dw/textblock.cc | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/dw/textblock.cc b/dw/textblock.cc
+index 3bebc4b01..c24e14440 100644
+--- a/dw/textblock.cc
++++ b/dw/textblock.cc
+@@ -1253,6 +1253,13 @@ void Textblock::drawLine (Line *line, core::View *view, core::Rectangle *area)
+       int xWorld = allocation.x + xWidget;
+       Word *word = words->getRef(wordIndex);
+ 
++      if (xWidget + word->size.width < area->x) {
++         xWidget += word->size.width + word->effSpace;
++         continue;
++      } else if (xWidget > area->x + area->width) {
++         break;
++      }
++
+       //DBG_OBJ_ARRSET_NUM (page, "words.%d.<i>drawn at</i>.x", wordIndex,
+       //                    xWidget);
+       //DBG_OBJ_ARRSET_NUM (page, "words.%d.<i>drawn at</i>.y", wordIndex,

@@ -1,0 +1,31 @@
+From 9d624e49ea6845f1461ee623f898ef8ab49d23ef Mon Sep 17 00:00:00 2001
+From: cbenthin <carsten.benthin@intel.com>
+Date: Wed, 10 May 2017 17:51:46 +0200
+Subject: [PATCH] fast AVX512 sorting also for bvh4 on KNL
+
+---
+ kernels/bvh/bvh_traverser1.h | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/kernels/bvh/bvh_traverser1.h b/kernels/bvh/bvh_traverser1.h
+index 8cd55d9d8..4e3a95547 100644
+--- a/kernels/bvh/bvh_traverser1.h
++++ b/kernels/bvh/bvh_traverser1.h
+@@ -239,6 +239,9 @@ namespace embree
+                                                    StackItemT<NodeRef>* stackEnd)
+       {
+         assert(mask != 0);
++#if defined(__AVX512ER__)
++        traverseClosestHitAVX512<4,Nx,types,NodeRef,BaseNode>(cur,mask,tNear,stackPtr,stackEnd);
++#else
+         const BaseNode* node = cur.baseNode(types);
+ 
+         /*! one child is hit, continue with that child */
+@@ -290,6 +293,7 @@ namespace embree
+         assert(c != BVH::emptyNode);
+         sort(stackPtr[-1],stackPtr[-2],stackPtr[-3],stackPtr[-4]);
+         cur = (NodeRef) stackPtr[-1].ptr; stackPtr--;
++#endif
+       }
+ 
+       /* Traverses a node with at least one hit child. Optimized for finding any hit (occlusion). */

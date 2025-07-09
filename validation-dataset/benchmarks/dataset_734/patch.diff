@@ -1,0 +1,45 @@
+From 2039d864ba312a74ee504c3794ba848c0bedd492 Mon Sep 17 00:00:00 2001
+From: Vadim Zeitlin <vadim@wxwidgets.org>
+Date: Thu, 16 May 2019 22:26:13 +0200
+Subject: [PATCH] Avoid updating wxStaticBitmap unnecessarily
+
+If the kind of the bitmap/icon used by the control didn't change (which
+will be most often the case, as using both an icon and a bitmap with the
+same control is vanishingly rare), there is no need to update the window
+style.
+
+No real changes, this is just a micro-optimization.
+---
+ src/msw/statbmp.cpp | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/src/msw/statbmp.cpp b/src/msw/statbmp.cpp
+index f19dc32f81eb..46b7ee876cb6 100644
+--- a/src/msw/statbmp.cpp
++++ b/src/msw/statbmp.cpp
+@@ -289,6 +289,8 @@ void wxStaticBitmap::SetImageNoCopy( wxGDIImage* image)
+     if ( image )
+         sizeNew = image->GetSize();
+ 
++    const bool wasIcon = m_isIcon;
++
+     Free();
+ 
+     if ( sizeNew != sizeOld )
+@@ -326,9 +328,13 @@ void wxStaticBitmap::SetImageNoCopy( wxGDIImage* image)
+         }
+     }
+ #endif // wxUSE_WXDIB
+-    wxMSWWinStyleUpdater(GetHwnd())
+-        .TurnOff(SS_BITMAP | SS_ICON)
+-        .TurnOn(m_isIcon ? SS_ICON : SS_BITMAP);
++
++    if ( m_isIcon != wasIcon )
++    {
++        wxMSWWinStyleUpdater(GetHwnd())
++            .TurnOff(SS_BITMAP | SS_ICON)
++            .TurnOn(m_isIcon ? SS_ICON : SS_BITMAP);
++    }
+ 
+     MSWReplaceImageHandle((WXLPARAM)handle);
+ 

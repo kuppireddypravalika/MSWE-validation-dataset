@@ -1,0 +1,33 @@
+From c7e2ff298011dc889628c268e4571e84af898aac Mon Sep 17 00:00:00 2001
+From: Chris Lattner <sabre@nondot.org>
+Date: Fri, 28 May 2004 05:30:51 +0000
+Subject: [PATCH] Minor changes.  Switch to a SymbolTable remove that does not
+ take linear time
+
+llvm-svn: 13874
+---
+ llvm/lib/Target/CBackend/Writer.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/llvm/lib/Target/CBackend/Writer.cpp b/llvm/lib/Target/CBackend/Writer.cpp
+index 491b3484119..4284dcc8c0d 100644
+--- a/llvm/lib/Target/CBackend/Writer.cpp
++++ b/llvm/lib/Target/CBackend/Writer.cpp
+@@ -226,7 +226,7 @@ bool CBackendNameAllUsedStructs::run(Module &M) {
+       // If this is not used, remove it from the symbol table.
+       std::set<const Type *>::iterator UTI = UT.find(STy);
+       if (UTI == UT.end())
+-        MST.remove(I->first, (Type*)I->second);
++        MST.remove(I);
+       else
+         UT.erase(UTI);
+     }
+@@ -239,7 +239,7 @@ bool CBackendNameAllUsedStructs::run(Module &M) {
+   for (std::set<const Type *>::const_iterator I = UT.begin(), E = UT.end();
+        I != E; ++I)
+     if (const StructType *ST = dyn_cast<StructType>(*I)) {
+-      ((Value*)ST)->setName("unnamed", &MST);
++      const_cast<StructType*>(ST)->setName("unnamed", &MST);
+       Changed = true;
+     }
+   return Changed;

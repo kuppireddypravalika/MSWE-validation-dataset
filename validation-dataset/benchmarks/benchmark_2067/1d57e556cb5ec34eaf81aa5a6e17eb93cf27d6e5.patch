@@ -1,0 +1,40 @@
+From 1d57e556cb5ec34eaf81aa5a6e17eb93cf27d6e5 Mon Sep 17 00:00:00 2001
+From: Ilya Biryukov <ibiryukov@google.com>
+Date: Tue, 12 Jun 2018 11:56:21 +0000
+Subject: [PATCH] [clangd] Trace time the operations wait on Semaphore.
+
+The Semaphore is currently used to limit the number of concurrently
+running tasks. Tracing the wait times will allow to find out how much
+time is wasted waiting on other operations to complete.
+---
+ clang-tools-extra/clangd/Threading.cpp | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/clang-tools-extra/clangd/Threading.cpp b/clang-tools-extra/clangd/Threading.cpp
+index 22206114ff86..dfd0d2eec280 100644
+--- a/clang-tools-extra/clangd/Threading.cpp
++++ b/clang-tools-extra/clangd/Threading.cpp
+@@ -1,4 +1,5 @@
+ #include "Threading.h"
++#include "Trace.h"
+ #include "llvm/ADT/ScopeExit.h"
+ #include "llvm/Support/FormatVariadic.h"
+ #include "llvm/Support/Threading.h"
+@@ -23,9 +24,14 @@ void Notification::wait() const {
+ Semaphore::Semaphore(std::size_t MaxLocks) : FreeSlots(MaxLocks) {}
+ 
+ void Semaphore::lock() {
+-  std::unique_lock<std::mutex> Lock(Mutex);
+-  SlotsChanged.wait(Lock, [&]() { return FreeSlots > 0; });
+-  --FreeSlots;
++  trace::Span Span("WaitForFreeSemaphoreSlot");
++  // trace::Span can also acquire locks in ctor and dtor, we make sure it
++  // happens when Semaphore's own lock is not held.
++  {
++    std::unique_lock<std::mutex> Lock(Mutex);
++    SlotsChanged.wait(Lock, [&]() { return FreeSlots > 0; });
++    --FreeSlots;
++  }
+ }
+ 
+ void Semaphore::unlock() {

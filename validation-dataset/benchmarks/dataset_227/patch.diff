@@ -1,0 +1,51 @@
+From 389353c243f41bdecd2b413c44403fcbce25cc03 Mon Sep 17 00:00:00 2001
+From: Antonio Quartulli <antonio@openvpn.net>
+Date: Mon, 4 Sep 2017 19:18:16 +0800
+Subject: [PATCH] proto.cpp: uninit process at the end of the execution
+
+Not really important, but worth fixing to avoid polluting
+any memchecker output with unreleased (leaked) resources.
+
+Release process resources before exiting the main function.
+
+Signed-off-by: Antonio Quartulli <antonio@openvpn.net>
+---
+ test/ssl/proto.cpp | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/test/ssl/proto.cpp b/test/ssl/proto.cpp
+index f154e4b36..29bf5d33a 100644
+--- a/test/ssl/proto.cpp
++++ b/test/ssl/proto.cpp
+@@ -1066,6 +1066,7 @@ int test(const int thread_num)
+ 
+ int main(int argc, char* argv[])
+ {
++  int ret = 0;
+   // process-wide initialization
+   InitProcess::init();
+ 
+@@ -1078,7 +1079,7 @@ int main(int argc, char* argv[])
+     {
+       const std::string out = SelfTest::crypto_self_test();
+       OPENVPN_LOG(out);
+-      return 0;
++      goto out;
+     }
+ 
+ #if N_THREADS >= 2
+@@ -1095,8 +1096,12 @@ int main(int argc, char* argv[])
+       threads[i]->join();
+       delete threads[i];
+     }
+-  return 0;
+ #else
+-  return test(1);
++  ret = test(1);
+ #endif
++
++out:
++  InitProcess::uninit();
++
++  return ret;
+ }

@@ -1,0 +1,22 @@
+From a896ba13ca6197f432498c4f9614a1529ecbd43f Mon Sep 17 00:00:00 2001
+From: Ricardo Martins <rasm@lsts.pt>
+Date: Sun, 8 Jun 2014 01:49:20 +0100
+Subject: [PATCH] Simulators/MVS: Replaced dynamic_cast with static_cast.
+
+---
+ src/Simulators/VSIM/Task.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/Simulators/VSIM/Task.cpp b/src/Simulators/VSIM/Task.cpp
+index 7adc7cc006..8a3fd74a61 100644
+--- a/src/Simulators/VSIM/Task.cpp
++++ b/src/Simulators/VSIM/Task.cpp
+@@ -173,7 +173,7 @@ namespace Simulators
+       consume(const IMC::ServoPosition* msg)
+       {
+         using Simulators::VSIM::UUV;
+-        UUV* v = dynamic_cast<UUV*>(m_vehicle);
++        UUV* v = static_cast<UUV*>(m_vehicle);
+         v->updateFin(msg->id, msg->value);
+       }
+ 

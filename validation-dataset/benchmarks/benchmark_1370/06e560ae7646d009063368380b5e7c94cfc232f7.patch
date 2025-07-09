@@ -1,0 +1,44 @@
+From 06e560ae7646d009063368380b5e7c94cfc232f7 Mon Sep 17 00:00:00 2001
+From: Goober5000 <ipw47@mailbox.org>
+Date: Sat, 9 Apr 2022 14:07:56 -0400
+Subject: [PATCH] use move assignment when possible
+
+---
+ code/globalincs/systemvars.h | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/code/globalincs/systemvars.h b/code/globalincs/systemvars.h
+index 3d2a11949e5..afad0303b8b 100644
+--- a/code/globalincs/systemvars.h
++++ b/code/globalincs/systemvars.h
+@@ -234,7 +234,7 @@ void insertion_sort(T* array_base, int array_size, int (*fncompare)(const T*, co
+ 	for (i = 1; i < array_size; i++)
+ 	{
+ 		// grab the current element
+-		// this does a lazy copy because if the array is mostly sorted,
++		// this does a lazy move/copy because if the array is mostly sorted,
+ 		// there's no sense copying sorted items to their own places
+ 		bool lazily_copied = false;
+ 		current = &array_base[i];
+@@ -246,18 +246,18 @@ void insertion_sort(T* array_base, int array_size, int (*fncompare)(const T*, co
+ 			{
+ 				// this may look strange but it is just copying the data
+ 				// into the buffer, then pointing to the buffer
+-				*current_buf = *current;
++				*current_buf = std::move(*current);
+ 				current = current_buf;
+ 				lazily_copied = true;
+ 			}
+ 
+-			array_base[j + 1] = array_base[j];
++			array_base[j + 1] = std::move(array_base[j]);
+ 		}
+ 
+ 		if (lazily_copied)
+ 		{
+ 			// insert the current element at the correct place
+-			array_base[j + 1] = *current;
++			array_base[j + 1] = std::move(*current);
+ 		}
+ 	}
+ 

@@ -1,0 +1,29 @@
+From ae742e990039fe71c00c77078acfd706622dbeca Mon Sep 17 00:00:00 2001
+From: Wannes Van Loock <wannes@intermodalics.eu>
+Date: Mon, 29 Jan 2018 09:44:15 +0100
+Subject: [PATCH] testPoint: also return true when adding k-th neighbor
+
+I was perceiving occasional spikes in the computation time for
+kNN search. This is due to the search box not being updated when
+adding the k-th neighbor and subsequent iterations of the do-while
+loop in kNN search never trigger the else case in testPoint. This
+way we iterate over way too many points during search.
+---
+ search/include/pcl/search/organized.h | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/search/include/pcl/search/organized.h b/search/include/pcl/search/organized.h
+index de66098ba43..2f128bd815a 100644
+--- a/search/include/pcl/search/organized.h
++++ b/search/include/pcl/search/organized.h
+@@ -224,7 +224,10 @@ namespace pcl
+             float dist_z = point.z - query.z;
+             float squared_distance = dist_x * dist_x + dist_y * dist_y + dist_z * dist_z;
+             if (queue.size () < k)
++            {
+               queue.push (Entry (index, squared_distance));
++              return queue.size () == k;
++            }
+             else if (queue.top ().distance > squared_distance)
+             {
+               queue.pop ();

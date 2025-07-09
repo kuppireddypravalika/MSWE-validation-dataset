@@ -1,0 +1,23 @@
+From b49620ba097fd376443c5e6e4531a0aea12159bc Mon Sep 17 00:00:00 2001
+From: ntonci <tonci.novkovic@gmail.com>
+Date: Wed, 23 Jan 2019 12:53:03 +0100
+Subject: [PATCH] Preallocate only 1 element also for the other templated
+ method
+
+---
+ io/src/ply_io.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/io/src/ply_io.cpp b/io/src/ply_io.cpp
+index 53182eef079..d76e4f64549 100644
+--- a/io/src/ply_io.cpp
++++ b/io/src/ply_io.cpp
+@@ -330,7 +330,7 @@ namespace pcl
+       current_field.name = property_name;
+       current_field.offset = cloud_->point_step;
+       current_field.datatype = pcl::traits::asEnum<pcl::io::ply::int32>::value;
+-      current_field.count = std::numeric_limits<pcl::io::ply::uint8>::max ();
++      current_field.count = 1u;
+       if (current_field.count * sizeof (pcl::io::ply::int32) + cloud_->point_step < std::numeric_limits<uint32_t>::max ())
+           cloud_->point_step += static_cast<uint32_t> (current_field.count * sizeof (pcl::io::ply::int32));
+       else

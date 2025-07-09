@@ -1,0 +1,25 @@
+From 9a5bc1330ff953b86895317993d142c980bdcc51 Mon Sep 17 00:00:00 2001
+From: s0237326 <3159692+crobarcro@users.noreply.github.com>
+Date: Fri, 9 Aug 2013 11:10:45 +0000
+Subject: [PATCH] made cast to Complex via int explicit for VC++ 64 bit
+ compilation
+
+---
+ pfemm/liblua/lstrlib.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/pfemm/liblua/lstrlib.cpp b/pfemm/liblua/lstrlib.cpp
+index c23d1973..d4dd95b0 100644
+--- a/pfemm/liblua/lstrlib.cpp
++++ b/pfemm/liblua/lstrlib.cpp
+@@ -509,8 +509,8 @@ static int str_find (lua_State *L)
+             cap.level = 0;
+             if ((res=match(L, s1, p, &cap)) != NULL)
+             {
+-                lua_pushnumber(L, s1-s+1);  /* start */
+-                lua_pushnumber(L, res-s);   /* end */
++                lua_pushnumber(L, CComplex(int(s1-s+1)));  /* start */
++                lua_pushnumber(L, CComplex(int(res-s)));   /* end */
+                 return push_captures(L, &cap) + 2;
+             }
+         }

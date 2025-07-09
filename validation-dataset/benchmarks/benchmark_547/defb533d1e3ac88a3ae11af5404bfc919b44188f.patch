@@ -1,0 +1,43 @@
+From defb533d1e3ac88a3ae11af5404bfc919b44188f Mon Sep 17 00:00:00 2001
+From: Alexander <alex220486@gmail.com>
+Date: Sun, 24 Jul 2011 07:21:43 +0800
+Subject: [PATCH] ASYLUM: Pipes puzzle: replace log(x)/log(2) with
+ Common::intLog2(x)
+
+---
+ engines/asylum/puzzles/pipes.cpp | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/engines/asylum/puzzles/pipes.cpp b/engines/asylum/puzzles/pipes.cpp
+index 3d19cc2f03ae..92497f8f45c3 100644
+--- a/engines/asylum/puzzles/pipes.cpp
++++ b/engines/asylum/puzzles/pipes.cpp
+@@ -32,7 +32,7 @@
+ 
+ #include "asylum/asylum.h"
+ 
+-#include <math.h>
++#include <common/math.h>
+ 
+ namespace Asylum {
+ 
+@@ -103,8 +103,6 @@ const Common::Point peepholePoints[] = {
+ const uint32 peepholeResources[] = {15, 15, 15, 15, 32, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 32, 32, 15,
+                                     15, 32, 32, 15, 15, 15, 15,15, 15, 15, 15, 32, 15, 15, 15, 15, 15, 15, 15};
+ 
+-const double LOG2 = 0.6931471;
+-
+ //////////////////////////////////////////////////////////////////////////
+ // Peephole
+ //////////////////////////////////////////////////////////////////////////
+@@ -177,8 +175,8 @@ void Connector::turn() {
+ 			oldIndex[1] = 2;
+ 		}
+ 	} else {
+-		newIndex[0] = log((double)(newState & delta)) / LOG2;
+-		oldIndex[0] = log((double)(_state & delta)) / LOG2;
++		newIndex[0] = Common::intLog2(newState & delta);
++		oldIndex[0] = Common::intLog2(_state & delta);
+ 	}
+ 
+ 	for (uint32 i = 0; i < (uint32)(delta == kBinNum1111 ? 2 : 1); ++i) {

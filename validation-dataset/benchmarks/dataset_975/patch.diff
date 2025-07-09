@@ -1,0 +1,24 @@
+From c9211ae77a611705be89b5199ff4b0246a05dec8 Mon Sep 17 00:00:00 2001
+From: Ryan Houdek <Sonicadvance1@gmail.com>
+Date: Sun, 20 Jun 2021 17:24:36 -0700
+Subject: [PATCH] Lower priority of AOT compilation threads.
+
+Set these threads to minimum priority to not complete starve the system if there are other tasks running.
+Fixes #1075
+---
+ Source/Tests/FEXLoader.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/Source/Tests/FEXLoader.cpp b/Source/Tests/FEXLoader.cpp
+index 0e5071a31a..e58d65c911 100644
+--- a/Source/Tests/FEXLoader.cpp
++++ b/Source/Tests/FEXLoader.cpp
+@@ -252,6 +252,8 @@ void AOTGenSection(FEXCore::Context::Context *CTX, ELFCodeLoader2::LoadedSection
+ 
+   for (int i = 0; i < get_nprocs_conf(); i++) {
+     std::thread thd([&BranchTargets, CTX, &counter, &Compiled, &Section, &QueueMutex, SectionMaxAddress]() {
++      // Set the priority of the thread so it doesn't overwhelm the system when running in the background
++      setpriority(PRIO_PROCESS, ::gettid(), 19);
+ 
+       // Setup thread - Each compilation thread uses its own backing FEX thread
+       FEXCore::Core::CPUState state;

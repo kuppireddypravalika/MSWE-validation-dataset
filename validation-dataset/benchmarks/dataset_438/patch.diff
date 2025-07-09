@@ -1,0 +1,54 @@
+From a84fbbe32716ecee9c8a02b50251097fc35709ec Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@duempel.org>
+Date: Mon, 26 Oct 2015 17:15:24 +0100
+Subject: [PATCH] decoder/gme: free the gme_info_t as early as possible
+
+---
+ src/decoder/plugins/GmeDecoderPlugin.cxx | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/src/decoder/plugins/GmeDecoderPlugin.cxx b/src/decoder/plugins/GmeDecoderPlugin.cxx
+index eab655c914..bbe2596c93 100644
+--- a/src/decoder/plugins/GmeDecoderPlugin.cxx
++++ b/src/decoder/plugins/GmeDecoderPlugin.cxx
+@@ -156,8 +156,11 @@ gme_file_decode(Decoder &decoder, Path path_fs)
+ 		return;
+ 	}
+ 
+-	const SignedSongTime song_len = ti->length > 0
+-		? SignedSongTime::FromMS(ti->length)
++	const int length = ti->length;
++	gme_free_info(ti);
++
++	const SignedSongTime song_len = length > 0
++		? SignedSongTime::FromMS(length)
+ 		: SignedSongTime::Negative();
+ 
+ 	/* initialize the MPD decoder */
+@@ -168,7 +171,6 @@ gme_file_decode(Decoder &decoder, Path path_fs)
+ 				       SampleFormat::S16, GME_CHANNELS,
+ 				       error)) {
+ 		LogError(error);
+-		gme_free_info(ti);
+ 		gme_delete(emu);
+ 		return;
+ 	}
+@@ -179,8 +181,8 @@ gme_file_decode(Decoder &decoder, Path path_fs)
+ 	if (gme_err != nullptr)
+ 		LogWarning(gme_domain, gme_err);
+ 
+-	if (ti->length > 0)
+-		gme_set_fade(emu, ti->length);
++	if (length > 0)
++		gme_set_fade(emu, length);
+ 
+ 	/* play */
+ 	DecoderCommand cmd;
+@@ -207,7 +209,6 @@ gme_file_decode(Decoder &decoder, Path path_fs)
+ 			break;
+ 	} while (cmd != DecoderCommand::STOP);
+ 
+-	gme_free_info(ti);
+ 	gme_delete(emu);
+ }
+ 

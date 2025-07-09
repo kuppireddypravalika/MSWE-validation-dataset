@@ -1,0 +1,28 @@
+From 1888e8bf108d4fd093f9d6de6db343c5d899b46d Mon Sep 17 00:00:00 2001
+From: fritsch <Peter.Fruehberger@gmail.com>
+Date: Wed, 16 Sep 2020 12:45:53 +0200
+Subject: [PATCH] Video-RefClock: Fix computation
+
+The given computation of the speed up results in 1.0 when speed up was larger
+than 2.5%. This broke some former working usecases, e.g. max 5% speed up.
+
+Tested with playback of 23.976 fps on 50 hz Display, e.g. speed up of 4%.
+---
+ xbmc/cores/VideoPlayer/DVDClock.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/xbmc/cores/VideoPlayer/DVDClock.cpp b/xbmc/cores/VideoPlayer/DVDClock.cpp
+index c4ed3b0b1ad17..ceaa88553a7de 100644
+--- a/xbmc/cores/VideoPlayer/DVDClock.cpp
++++ b/xbmc/cores/VideoPlayer/DVDClock.cpp
+@@ -248,8 +248,8 @@ int CDVDClock::UpdateFramerate(double fps, double* interval /*= NULL*/)
+   //set the speed of the videoreferenceclock based on fps, refreshrate and maximum speed adjust set by user
+   if (m_maxspeedadjust > 0.05)
+   {
+-    if (weight / MathUtils::round_int(weight) < 1.0 + m_maxspeedadjust / 200.0
+-    &&  weight / MathUtils::round_int(weight) > 1.0 - m_maxspeedadjust / 200.0)
++    if (weight / MathUtils::round_int(weight) < 1.0 + m_maxspeedadjust / 100.0 &&
++      weight / MathUtils::round_int(weight) > 1.0 - m_maxspeedadjust / 100.0)
+       weight = MathUtils::round_int(weight);
+   }
+   double speed = (rate * 2.0 ) / (fps * weight);

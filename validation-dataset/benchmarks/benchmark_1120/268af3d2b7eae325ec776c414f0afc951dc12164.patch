@@ -1,0 +1,23 @@
+From 268af3d2b7eae325ec776c414f0afc951dc12164 Mon Sep 17 00:00:00 2001
+From: Dominik Haumann <dhaumann@kde.org>
+Date: Sun, 12 Feb 2017 19:06:32 +0100
+Subject: [PATCH] Use C++11 log2() instead of log() / log(2)
+
+Differential Revision: D4300
+---
+ src/document/katedocument.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/document/katedocument.cpp b/src/document/katedocument.cpp
+index 51fe89e1c..c3a9b9510 100644
+--- a/src/document/katedocument.cpp
++++ b/src/document/katedocument.cpp
+@@ -2175,7 +2175,7 @@ void KTextEditor::DocumentPrivate::openWithLineLengthLimitOverride()
+ {
+     // raise line length limit to the next power of 2
+     const int longestLine = m_buffer->longestLineLoaded();
+-    int newLimit = pow(2, ceil(log(longestLine) / log(2))); // TODO: C++11: use log2(x)
++    int newLimit = pow(2, ceil(log2(longestLine)));
+     if (newLimit <= longestLine) {
+         newLimit *= 2;
+     }

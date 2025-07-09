@@ -1,0 +1,22 @@
+From 31e0f293d22838f16b31a4061a9de5e5dc313d20 Mon Sep 17 00:00:00 2001
+From: Guido Tack <guido.tack@monash.edu>
+Date: Wed, 1 Oct 2014 11:11:46 +1000
+Subject: [PATCH] Only compute bounds for int-valued if-then-else expressions
+
+---
+ lib/flatten.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/flatten.cpp b/lib/flatten.cpp
+index fd51fb1db..5b948bb17 100644
+--- a/lib/flatten.cpp
++++ b/lib/flatten.cpp
+@@ -1656,7 +1656,7 @@ namespace MiniZinc {
+     GC::lock();
+     
+     IntBounds r_bounds(IntVal::infinity,-IntVal::infinity,true);
+-    if (r) {
++    if (r && r->type().isint()) {
+       r_bounds = compute_int_bounds(r);
+     }
+     

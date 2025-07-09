@@ -1,0 +1,22 @@
+From a7396d660e51830b5ae44ed0d5f4371cf1a2ae98 Mon Sep 17 00:00:00 2001
+From: Jack Hill <jackhill3103@gmail.com>
+Date: Sun, 2 Jun 2024 16:24:04 +0100
+Subject: [PATCH] Clazy: use QLatin1String("") instead of empty QStringLiteral
+
+---
+ src/colorschemepreviewimageprovider.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/colorschemepreviewimageprovider.cpp b/src/colorschemepreviewimageprovider.cpp
+index af7c04077..2f84c09a0 100644
+--- a/src/colorschemepreviewimageprovider.cpp
++++ b/src/colorschemepreviewimageprovider.cpp
+@@ -24,7 +24,7 @@ QPixmap ColorSchemePreviewImageProvider::requestPixmap(const QString &id, QSize
+ 
+     // the id of the default entry must be set to an empty string
+     if (!index.isValid()) {
+-        index = schemes.indexForScheme(QStringLiteral(""));
++        index = schemes.indexForScheme(QLatin1String(""));
+     }
+     const auto pixmap = schemes.model()->data(index, Qt::DecorationRole).value<QIcon>().pixmap(requestedSize);
+     *size = pixmap.size();

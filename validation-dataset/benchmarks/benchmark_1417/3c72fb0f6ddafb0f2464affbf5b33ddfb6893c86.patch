@@ -1,0 +1,23 @@
+From 3c72fb0f6ddafb0f2464affbf5b33ddfb6893c86 Mon Sep 17 00:00:00 2001
+From: Marco Tazzari <mtazzari@ast.cam.ac.uk>
+Date: Tue, 19 Sep 2017 11:14:29 +0100
+Subject: [PATCH] [cpp] Use fftw threads only if _OPENMP is defined. Fix #92
+
+---
+ src/galario.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/galario.cpp b/src/galario.cpp
+index e973ecc..2a040b3 100644
+--- a/src/galario.cpp
++++ b/src/galario.cpp
+@@ -384,7 +384,9 @@ void fft_d(int nx, int ny, dcomplex* data_d) {
+ void fft_h(int nx, int ny, dcomplex* data) {
+     dreal* input = reinterpret_cast<dreal*>(data);
+     FFTW(complex)* output = reinterpret_cast<FFTW(complex)*>(data);
++#ifdef _OPENMP
+     fftw_plan_with_nthreads(galario_threads());
++#endif
+     FFTW(plan) p = FFTW(plan_dft_r2c_2d)(nx, ny, input, output, FFTW_ESTIMATE);
+     FFTW(execute)(p);
+ 

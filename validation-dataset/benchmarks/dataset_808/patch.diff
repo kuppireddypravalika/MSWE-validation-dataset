@@ -1,0 +1,29 @@
+From 8b807412a5a9bcbdebe7049576ccbb4085e9bc39 Mon Sep 17 00:00:00 2001
+From: Jason Luu <jasonkailuu@gmail.com>
+Date: Fri, 13 Sep 2013 03:57:56 +0000
+Subject: [PATCH] Fix runtime slowdown introduced from previous commit
+
+git-svn-id: https://vtr-verilog-to-routing.googlecode.com/svn/trunk@4117 8e3573b8-cf2c-4f14-ef6d-137439e28b8b
+---
+ vpr/SRC/route/route_timing.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/vpr/SRC/route/route_timing.c b/vpr/SRC/route/route_timing.c
+index 62b350a6bb2..4a1fd55024b 100755
+--- a/vpr/SRC/route/route_timing.c
++++ b/vpr/SRC/route/route_timing.c
+@@ -478,6 +478,14 @@ boolean timing_driven_route_net(int inet, int itry, float pres_fac, float max_cr
+ 		highfanout_rlim = mark_node_expansion_by_bin(inet, target_node,
+ 				rt_root);
+ 
++		if(itarget > 1 && itry > 1) {
++			/* opin already determined, do not use another opin 
++			   itry > 1 is an optimization to speed up routing difficult routing problems
++			*/
++			assert(rr_node[rt_root->inode].type == SOURCE);
++			rt_root->re_expand = FALSE;
++		}
++
+ 		add_route_tree_to_heap(rt_root, target_node, target_criticality,
+ 				astar_fac);
+ 

@@ -1,0 +1,29 @@
+From b5daf4dbf11d055babea61d63213189a3654d02a Mon Sep 17 00:00:00 2001
+From: Tobias Junghans <tobydox@veyon.io>
+Date: Tue, 7 Aug 2018 15:59:08 +0200
+Subject: [PATCH] Master: NetworkObjectOverlayDataModel: check for data changes
+
+Only emit dataChanged() signal when data actually has changed.
+---
+ master/src/NetworkObjectOverlayDataModel.cpp | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/master/src/NetworkObjectOverlayDataModel.cpp b/master/src/NetworkObjectOverlayDataModel.cpp
+index f75d5d302..ee089f8d0 100644
+--- a/master/src/NetworkObjectOverlayDataModel.cpp
++++ b/master/src/NetworkObjectOverlayDataModel.cpp
+@@ -86,9 +86,11 @@ bool NetworkObjectOverlayDataModel::setData( const QModelIndex& index, const QVa
+ 
+ 	NetworkObject::Uid networkObjectUid = data( index, NetworkObjectModel::UidRole ).toUuid();
+ 
+-	m_overlayData[networkObjectUid] = value;
+-
+-	emit dataChanged( index, index, QVector<int>( { m_overlayDataRole } ) );
++	if( m_overlayData[networkObjectUid] != value )
++	{
++		m_overlayData[networkObjectUid] = value;
++		emit dataChanged( index, index, QVector<int>( { m_overlayDataRole } ) );
++	}
+ 
+ 	return true;
+ }

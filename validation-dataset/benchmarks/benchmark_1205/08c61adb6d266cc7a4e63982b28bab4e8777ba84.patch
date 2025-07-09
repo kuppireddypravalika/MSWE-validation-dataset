@@ -1,0 +1,24 @@
+From 08c61adb6d266cc7a4e63982b28bab4e8777ba84 Mon Sep 17 00:00:00 2001
+From: David Stone <davidfromonline@gmail.com>
+Date: Mon, 16 Jan 2023 13:57:18 -0700
+Subject: [PATCH] Compile benchmark slightly faster
+
+---
+ source/concurrent/benchmark.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/source/concurrent/benchmark.cpp b/source/concurrent/benchmark.cpp
+index 8c5ffc8..22601d5 100644
+--- a/source/concurrent/benchmark.cpp
++++ b/source/concurrent/benchmark.cpp
+@@ -127,8 +127,8 @@ void test_ordering(std::size_t number_of_readers, std::size_t number_of_writers,
+ 			auto process_data = [&] {
+ 				auto const count = size(data);
+ 				local_largest_read = std::max(local_largest_read, static_cast<std::size_t>(count));
+-				local_items_read += count;
+-				CONCURRENT_TEST(count % bulk_size == 0_bi);
++				local_items_read += static_cast<std::uint64_t>(count);
++				CONCURRENT_TEST(static_cast<std::size_t>(count) % bulk_size == 0);
+ 				for (auto it = begin(data); it != end(data); it += bounded::assume_in_range(bulk_size, 0_bi, bounded::constant<reserved_size>)) {
+ 					CONCURRENT_TEST(containers::equal(bulk_data_begin, bulk_data_end, it));
+ 				}

@@ -1,0 +1,22 @@
+From 04a02271543060139be1d675d477956788bd32f9 Mon Sep 17 00:00:00 2001
+From: Jakob Riedle <jakob.riedle@gmx.de>
+Date: Tue, 11 Sep 2018 09:09:15 +0200
+Subject: [PATCH] Made cpp_str a little more efficient
+
+---
+ include/tinyutf8.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/tinyutf8.h b/include/tinyutf8.h
+index 9910573..ba311d8 100644
+--- a/include/tinyutf8.h
++++ b/include/tinyutf8.h
+@@ -1076,7 +1076,7 @@ class utf8_string
+ 	 * @note	Returns the UTF-8 formatted content of this utf8_string
+ 	 * @return	UTF-8 formatted data, wrapped inside an std::string
+ 	 */
+-	inline std::string cpp_str( bool prepend_bom = false ) const { return prepend_bom ? cpp_str_bom() : std::string( c_str() ); }
++	inline std::string cpp_str( bool prepend_bom = false ) const { return prepend_bom ? cpp_str_bom() : std::string( c_str() , size() ); }
+ 	
+ 	
+ 	/**

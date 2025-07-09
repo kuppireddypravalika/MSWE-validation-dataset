@@ -1,0 +1,32 @@
+From 89affbbf5f5c4778caab0af516a7e9040208076e Mon Sep 17 00:00:00 2001
+From: "Frank B. Brokken" <f.b.brokken@rug.nl>
+Date: Sun, 19 Jan 2014 14:00:45 +0100
+Subject: [PATCH] fine tuning: avoiding a '- 1' computation
+
+---
+ flexc++/rules/add.cc | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/flexc++/rules/add.cc b/flexc++/rules/add.cc
+index e8aba95..e5fb63a 100644
+--- a/flexc++/rules/add.cc
++++ b/flexc++/rules/add.cc
+@@ -3,13 +3,14 @@
+ void Rules::add(bool bol, Pattern const &pattern, Block const &block,
+                 RuleType type) 
+ {
+-    d_rules.push_back( { d_states, bol, pattern, block, type } );
++    size_t ruleIdx = d_rules.size();        // the index of the rule to add
+ 
+-    Pair const &pair = d_rules.back().pair();
++                                            // now add the rule
++    d_rules.push_back( { d_states, bol, pattern, block, type } );
+ 
+-    size_t ruleIdx = d_rules.size() - 1;
++    Pair const &pair = d_rules.back().pair();   // the rule's begin/end states
+ 
+-    d_finalToRule[pair.second] = ruleIdx;
++    d_finalToRule[pair.second] = ruleIdx;   // associate end-state to rule
+ 
+     setRule(pair.first, ruleIdx);
+ 

@@ -1,0 +1,23 @@
+From 7834bc666d99ad9b21aff40c6d94ac6ff7776c06 Mon Sep 17 00:00:00 2001
+From: Denis Corbin <dar.linux@free.fr>
+Date: Sun, 9 Feb 2014 21:02:41 +0100
+Subject: [PATCH] removing useless boolean expression that always succeeds in
+ logical AND expression
+
+---
+ src/libdar/elastic.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/libdar/elastic.cpp b/src/libdar/elastic.cpp
+index 4de31c36e..6da750de6 100644
+--- a/src/libdar/elastic.cpp
++++ b/src/libdar/elastic.cpp
+@@ -85,7 +85,7 @@ namespace libdar
+ 	unsigned char first_mark = (dir == elastic_forward ? get_low_mark(reading_ver) : get_high_mark(reading_ver));
+ 	unsigned char last_mark  = (dir == elastic_forward ? get_high_mark(reading_ver) : get_low_mark(reading_ver));
+ 
+-	while(pos >= 0 && pos < size && buffer[pos] != SINGLE_MARK && buffer[pos] != first_mark)
++	while(pos < size && buffer[pos] != SINGLE_MARK && buffer[pos] != first_mark)
+ 	    pos += step;
+ 
+ 	if(pos >= size)

@@ -1,0 +1,31 @@
+From 33d71af84e64d28be278234bf5a152aee67c9013 Mon Sep 17 00:00:00 2001
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Date: Mon, 8 Jun 2020 05:30:20 +0300
+Subject: [PATCH] libcamera: pipeline: rkisp1: Avoid usage of dynamic_cast<>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The logic of the code guarantees that the PipelineHandler pointer passed
+to the RkISP1Frames constructor is an instance of PipelineHandlerRkISP1.
+We can thus use static_cast<> instead of dynamic_cast<>.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Niklas Söderlund <niklas.soderlund@ragnatech.se>
+---
+ src/libcamera/pipeline/rkisp1/rkisp1.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/libcamera/pipeline/rkisp1/rkisp1.cpp b/src/libcamera/pipeline/rkisp1/rkisp1.cpp
+index 900f873ab..f3e2f30ce 100644
+--- a/src/libcamera/pipeline/rkisp1/rkisp1.cpp
++++ b/src/libcamera/pipeline/rkisp1/rkisp1.cpp
+@@ -221,7 +221,7 @@ class PipelineHandlerRkISP1 : public PipelineHandler
+ };
+ 
+ RkISP1Frames::RkISP1Frames(PipelineHandler *pipe)
+-	: pipe_(dynamic_cast<PipelineHandlerRkISP1 *>(pipe))
++	: pipe_(static_cast<PipelineHandlerRkISP1 *>(pipe))
+ {
+ }
+ 

@@ -1,0 +1,27 @@
+From fb42a3db83af3b4dc780534d2fb697bb73360aca Mon Sep 17 00:00:00 2001
+From: Davide Pesavento <davide.pesavento@lip6.fr>
+Date: Thu, 26 Jul 2018 12:33:14 -0400
+Subject: [PATCH] dump: enable optimizations in pcap_compile
+
+Change-Id: Ide7b7fb262af741cccbbaf2faf7cbd92c50eb6af
+---
+ tools/dump/ndndump.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/tools/dump/ndndump.cpp b/tools/dump/ndndump.cpp
+index fda16f0..4c6d814 100644
+--- a/tools/dump/ndndump.cpp
++++ b/tools/dump/ndndump.cpp
+@@ -122,10 +122,9 @@ NdnDump::run()
+     }
+ 
+     bpf_program program;
+-    int res = pcap_compile(m_pcap, &program, pcapFilter.data(), 0, PCAP_NETMASK_UNKNOWN);
++    int res = pcap_compile(m_pcap, &program, pcapFilter.data(), 1, PCAP_NETMASK_UNKNOWN);
+     if (res < 0) {
+-      BOOST_THROW_EXCEPTION(Error("Cannot parse pcap filter expression '" + pcapFilter + "': " +
+-                                  pcap_geterr(m_pcap)));
++      BOOST_THROW_EXCEPTION(Error("Cannot compile pcap filter '" + pcapFilter + "': " + pcap_geterr(m_pcap)));
+     }
+ 
+     res = pcap_setfilter(m_pcap, &program);

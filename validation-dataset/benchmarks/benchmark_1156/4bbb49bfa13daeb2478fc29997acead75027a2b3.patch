@@ -1,0 +1,27 @@
+From 4bbb49bfa13daeb2478fc29997acead75027a2b3 Mon Sep 17 00:00:00 2001
+From: justusc <justusc@vt.edu>
+Date: Tue, 6 Aug 2013 11:32:08 -0400
+Subject: [PATCH] DistributedStorage now uses the process map function
+ is_local(), which should allow optimizations for some process maps.
+
+---
+ src/TiledArray/distributed_storage.h | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/TiledArray/distributed_storage.h b/src/TiledArray/distributed_storage.h
+index aab19f7ed9..39121d5766 100644
+--- a/src/TiledArray/distributed_storage.h
++++ b/src/TiledArray/distributed_storage.h
+@@ -137,7 +137,11 @@ namespace TiledArray {
+       /// be stored. Use \c find to determine if an element is present.
+       /// \param i The element to check.
+       /// \return \c true when the element is stored locally, otherwise \c false.
+-      bool is_local(size_type i) const { return owner(i) == get_world().rank(); }
++      bool is_local(size_type i) const {
++        TA_ASSERT(i < max_size_);
++        TA_ASSERT(pmap_);
++        return pmap_->is_local(i);
++      }
+ 
+       /// Clear local data
+ 

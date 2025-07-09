@@ -1,0 +1,25 @@
+From 6cc3521ec9b3f56b59b0976460ae1c4a66a188ee Mon Sep 17 00:00:00 2001
+From: Daniel Stenberg <daniel@haxx.se>
+Date: Tue, 5 Oct 2010 19:42:39 +0200
+Subject: [PATCH] ares_save_options: assignments instead of memcpy
+
+---
+ ares_init.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/ares_init.c b/ares_init.c
+index c146f96..21229ad 100644
+--- a/ares_init.c
++++ b/ares_init.c
+@@ -401,10 +401,7 @@ int ares_save_options(ares_channel channel, struct ares_options *options,
+     if (!options->sortlist)
+       return ARES_ENOMEM;
+     for (i = 0; i < channel->nsort; i++)
+-    {
+-      memcpy(&(options->sortlist[i]), &(channel->sortlist[i]),
+-             sizeof(struct apattern));
+-    }
++      options->sortlist[i] = channel->sortlist[i];
+   }
+   options->nsort = channel->nsort;
+ 

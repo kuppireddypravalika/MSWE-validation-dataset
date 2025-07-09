@@ -1,0 +1,34 @@
+From 9ac4cd4e4a9f2411aba3aedf3fb1c56303c676ca Mon Sep 17 00:00:00 2001
+From: Thomas Hartmann <thomas.hartmann@qt.io>
+Date: Wed, 5 Apr 2023 19:37:59 +0200
+Subject: [PATCH] QmlDesigner: Add more checks for kit when adding import paths
+
+Especially if developing we do not want to parse all kits to slow down
+startup time.
+
+Change-Id: If49624941b611b7e8b19864bdd3f31b884c04514
+Reviewed-by: Qt CI Bot <qt_ci_bot@qt-project.org>
+Reviewed-by: Tim Jenssen <tim.jenssen@qt.io>
+Reviewed-by: <github-actions-qt-creator@cristianadam.eu>
+---
+ src/plugins/studiowelcome/studiowelcomeplugin.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/plugins/studiowelcome/studiowelcomeplugin.cpp b/src/plugins/studiowelcome/studiowelcomeplugin.cpp
+index a3a5421cf0d..5fc4dd7875d 100644
+--- a/src/plugins/studiowelcome/studiowelcomeplugin.cpp
++++ b/src/plugins/studiowelcome/studiowelcomeplugin.cpp
+@@ -651,9 +651,11 @@ bool StudioWelcomePlugin::delayedInitialize()
+ 
+         const QList<Kit *> kits = Utils::filtered(KitManager::kits(), [](const Kit *k) {
+             const QtSupport::QtVersion *version = QtSupport::QtKitAspect::qtVersion(k);
+-            const bool isQt6 = version && version->qtVersion().majorVersion() == 6;
++            const bool valid = version && version->isValid();
++            const bool isQt6 = valid && version->qtVersion().majorVersion() == 6;
++            const bool autoDetected = valid && version->isAutodetected();
+ 
+-            return isQt6
++            return isQt6 && autoDetected
+                    && ProjectExplorer::DeviceTypeKitAspect::deviceTypeId(k)
+                           == ProjectExplorer::Constants::DESKTOP_DEVICE_TYPE;
+         });

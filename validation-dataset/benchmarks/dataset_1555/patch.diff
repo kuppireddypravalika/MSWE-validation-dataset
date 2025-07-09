@@ -1,0 +1,39 @@
+From aa26ce52eab37e221b7bb9160ca0ddd2b77adea6 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Andreas=20Sch=C3=A4fer?= <gentryx@gmx.de>
+Date: Sat, 27 Feb 2016 02:02:10 +0100
+Subject: [PATCH] another speedup for ConvexPolytope: only filter out limits if
+ necessary
+
+---
+ src/geometry/convexpolytope.h | 16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
+
+diff --git a/src/geometry/convexpolytope.h b/src/geometry/convexpolytope.h
+index ad81eb568..965a86249 100644
+--- a/src/geometry/convexpolytope.h
++++ b/src/geometry/convexpolytope.h
+@@ -65,15 +65,17 @@ class ConvexPolytope
+             }
+         }
+ 
+-        std::vector<EquationType> newLimits;
+-        for (std::size_t i = 0; i < limits.size(); ++i) {
+-            if (!deleteSet.count(i)) {
+-                newLimits << limits[i];
++        if (!deleteSet.empty()) {
++            std::vector<EquationType> newLimits;
++            for (std::size_t i = 0; i < limits.size(); ++i) {
++                if (!deleteSet.count(i)) {
++                    newLimits << limits[i];
++                }
+             }
+-        }
+ 
+-        using std::swap;
+-        swap(limits, newLimits);
++            using std::swap;
++            swap(limits, newLimits);
++        }
+ 
+         if (!newLimitIsSuperfluous) {
+             limits << eq;

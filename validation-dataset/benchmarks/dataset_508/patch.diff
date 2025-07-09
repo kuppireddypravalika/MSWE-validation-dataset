@@ -1,0 +1,30 @@
+From c72cab6f5ee4e0007dd8ed1f1e986b71cb2ed235 Mon Sep 17 00:00:00 2001
+From: Xottab-DUTY <xottab-duty@yandex.ru>
+Date: Sun, 5 Dec 2021 20:10:07 +0300
+Subject: [PATCH] Log Device precaching time and memory usage once, not each
+ frame
+
+---
+ src/xrEngine/x_ray.cpp | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/src/xrEngine/x_ray.cpp b/src/xrEngine/x_ray.cpp
+index 8ddc84e5bd5..ce4f43c4865 100644
+--- a/src/xrEngine/x_ray.cpp
++++ b/src/xrEngine/x_ray.cpp
+@@ -264,9 +264,12 @@ void CApplication::LoadTitleInt(pcstr str1, pcstr str2, pcstr str3)
+ void CApplication::LoadStage(bool draw /*= true*/)
+ {
+     VERIFY(ll_dwReference);
+-    Msg("* phase time: %d ms", phase_timer.GetElapsed_ms());
+-    phase_timer.Start();
+-    Msg("* phase cmem: %d K", Memory.mem_usage() / 1024);
++    if (!load_screen_renderer.IsActive())
++    {
++        Msg("* phase time: %d ms", phase_timer.GetElapsed_ms());
++        Msg("* phase cmem: %d K", Memory.mem_usage() / 1024);
++        phase_timer.Start();
++    }
+ 
+     if (g_pGamePersistent->GameType() == 1 && !xr_strcmp(g_pGamePersistent->m_game_params.m_alife, "alife"))
+         max_load_stage = 18;

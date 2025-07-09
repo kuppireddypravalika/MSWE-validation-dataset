@@ -1,0 +1,23 @@
+From 01cb5f88db2b84478d44fa073d76eb6acc8370c5 Mon Sep 17 00:00:00 2001
+From: Pilow <pierre.laupretre@gmail.com>
+Date: Mon, 28 Nov 2016 19:26:18 +0100
+Subject: [PATCH] [compiler] Don't convert to pointer if already a pointer
+
+---
+ src/compiler/Compiler.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/compiler/Compiler.cpp b/src/compiler/Compiler.cpp
+index 00352239..25ec92e5 100644
+--- a/src/compiler/Compiler.cpp
++++ b/src/compiler/Compiler.cpp
+@@ -132,6 +132,9 @@ Compiler::value Compiler::new_pointer(void* p) const {
+ 	return {LS_CREATE_POINTER(F, p), Type::POINTER};
+ }
+ Compiler::value Compiler::insn_to_pointer(Compiler::value v) const {
++	if (v.t.nature == Nature::POINTER) {
++		return v; // already a pointer
++	}
+ 	Type new_type = v.t;
+ 	new_type.nature = Nature::POINTER;
+ 	return {VM::value_to_pointer(F, v.v, v.t), new_type};

@@ -1,0 +1,569 @@
+You are an expert C++ performance engineer. Optimize the provided code for high compute and resource performance while preserving behavior. The optimized function must keep the exact same signature as the hand-written implementation. If the original file contains explicit template instantiations, reproduce them unchanged at the end of the optimized file. This prompt may include compilation errors, runtime errors or timing data from the previous step. Use it to refine the code. If it is empty, produce an initial optimization based solely on the original source. When refining the code, explore potentially high-reward optimization paths that have not yet been tried and that could yield superior computational performance. Respond only with a JSON object using the keys "optimized_code" and "analysis". The "analysis" field should briefly explain the intent behind your modifications. Additional source files may be provided for context. Here are the files:
+
+// original.cpp
+#include <algorithm>
+#include <vector>
+#include <utility>
+
+// Original top-k implementation without preallocation
+
+void topk(const std::vector<float>& input, size_t row, size_t col, size_t k,
+          std::vector<float>& output, std::vector<size_t>& indices) {
+    output.resize(row * k);
+    indices.resize(row * k);
+    for (size_t i = 0; i < row; ++i) {
+        std::vector<std::pair<float, size_t>> vec; // no reserve
+        for (size_t j = 0; j < col; ++j) {
+            vec.push_back(std::pair<float, size_t>(input[i * col + j], j));
+        }
+        std::partial_sort(vec.begin(), vec.begin() + k, vec.end(),
+                          [](const std::pair<float, size_t>& l,
+                             const std::pair<float, size_t>& r) {
+                              return l.first > r.first;
+                          });
+        for (size_t j = 0; j < k; ++j) {
+            output[i * k + j] = vec[j].first;
+            indices[i * k + j] = vec[j].second;
+        }
+    }
+}
+
+
+
+The following files are provided for context. Do NOT modify them. Only update code in original.cpp.
+
+// harness.cpp
+#include <chrono>
+#include <iostream>
+#include <random>
+#include <string>
+#include <vector>
+
+// declaration
+void topk(const std::vector<float>& input, size_t row, size_t col, size_t k,
+          std::vector<float>& output, std::vector<size_t>& indices);
+
+int main(int argc, char* argv[]) {
+    std::string mode = "perf";
+    size_t row = 150;
+    size_t col = 1000;
+    size_t k = 100;
+    int repeat = 3000;  // ensure runtime >10s for original
+    std::string impl = "original"; // parsed for compatibility
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "--mode=correct")
+            mode = "correct";
+        else if (arg == "--mode=perf")
+            mode = "perf";
+        else if (arg.rfind("--row=", 0) == 0)
+            row = static_cast<size_t>(std::stoul(arg.substr(6)));
+        else if (arg.rfind("--col=", 0) == 0)
+            col = static_cast<size_t>(std::stoul(arg.substr(6)));
+        else if (arg.rfind("--k=", 0) == 0)
+            k = static_cast<size_t>(std::stoul(arg.substr(4)));
+        else if (arg.rfind("--repeat=", 0) == 0)
+            repeat = std::stoi(arg.substr(9));
+        else if (arg.rfind("--impl=", 0) == 0)
+            impl = arg.substr(7);
+    }
+
+    std::vector<float> base(row * col);
+    std::mt19937 gen(42);
+    std::uniform_real_distribution<float> dist(0.0f, 1000.0f);
+    for (size_t i = 0; i < base.size(); ++i) base[i] = dist(gen);
+
+    std::vector<float> output;
+    std::vector<size_t> indices;
+
+    if (mode == "correct") {
+        topk(base, row, col, k, output, indices);
+        double sum = 0.0;
+        for (float v : output) sum += v;
+        std::cout << sum << '\n';
+    } else {
+        using clock = std::chrono::high_resolution_clock;
+        auto t1 = clock::now();
+        for (int r = 0; r < repeat; ++r) {
+            topk(base, row, col, k, output, indices);
+        }
+        auto t2 = clock::now();
+        std::cout << "Time: "
+                  << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count()
+                  << " ms\n";
+    }
+    return 0;
+}
+
+
+Previous attempt info:
+Original execution time: mean = 8768.80 ms, std = 9.91 ms
+Diff from original code:
+--- original
++++ step_1
+@@ -1,24 +1,37 @@
+-// original.cpp
+ #include <algorithm>
+ #include <vector>
+ #include <utility>
+ 
+-// Original top-k implementation without preallocation
++// Optimized top-k implementation with preallocation and efficient data handling
+ 
+ void topk(const std::vector<float>& input, size_t row, size_t col, size_t k,
+           std::vector<float>& output, std::vector<size_t>& indices) {
+     output.resize(row * k);
+     indices.resize(row * k);
++
++    // Reserve space for the pairs to avoid multiple allocations
++    std::vector<std::pair<float, size_t>> vec(k);
++
+     for (size_t i = 0; i < row; ++i) {
+-        std::vector<std::pair<float, size_t>> vec; // no reserve
++        size_t current_size = 0;
++
++        // Collect only the top k elements using a min-heap
+         for (size_t j = 0; j < col; ++j) {
+-            vec.push_back(std::pair<float, size_t>(input[i * col + j], j));
++            float value = input[i * col + j];
++            if (current_size < k) {
++                vec[current_size++] = {value, j};
++                std::push_heap(vec.begin(), vec.begin() + current_size, std::greater<>());
++            } else if (value > vec.front().first) {
++                std::pop_heap(vec.begin(), vec.begin() + current_size, std::greater<>());
++                vec[current_size - 1] = {value, j};
++                std::push_heap(vec.begin(), vec.begin() + current_size, std::greater<>());
++            }
+         }
+-        std::partial_sort(vec.begin(), vec.begin() + k, vec.end(),
+-                          [](const std::pair<float, size_t>& l,
+-                             const std::pair<float, size_t>& r) {
+-                              return l.first > r.first;
+-                          });
++
++        // Sort the top-k in descending order
++        std::sort(vec.begin(), vec.begin() + k, std::greater<>());
++
++        // Transfer the results to the output arrays
+         for (size_t j = 0; j < k; ++j) {
+             output[i * k + j] = vec[j].first;
+             indices[i * k + j] = vec[j].second;
+@@ -26,3 +39,4 @@
+     }
+ }
+ 
++// Explicit template instantiations remain unchanged.
+Compilation succeeded. Execution time: mean = 6573.20 ms, std = 5.26 ms. Original execution time: mean = 8768.80 ms, std = 9.91 ms
+LLM analysis: The primary modifications include preallocating space for the pairs vector to avoid dynamic allocation costs during sorting, utilizing a min-heap to efficiently keep track of the top k elements, and improving the sorting step of the top k elements. This should significantly reduce the execution time and improve computational resource performance.
+Diff from original code:
+--- original
++++ step_2
+@@ -3,22 +3,36 @@
+ #include <vector>
+ #include <utility>
+ 
+-// Original top-k implementation without preallocation
++// Optimized top-k implementation with preallocation and efficient data handling
+ 
+ void topk(const std::vector<float>& input, size_t row, size_t col, size_t k,
+           std::vector<float>& output, std::vector<size_t>& indices) {
+     output.resize(row * k);
+     indices.resize(row * k);
++
++    // Reserve space for the pairs to avoid multiple allocations
++    std::vector<std::pair<float, size_t>> vec(k);
++
+     for (size_t i = 0; i < row; ++i) {
+-        std::vector<std::pair<float, size_t>> vec; // no reserve
++        size_t current_size = 0;
++
++        // Collect only the top k elements using a min-heap
+         for (size_t j = 0; j < col; ++j) {
+-            vec.push_back(std::pair<float, size_t>(input[i * col + j], j));
++            float value = input[i * col + j];
++            if (current_size < k) {
++                vec[current_size++] = {value, j};
++                std::push_heap(vec.begin(), vec.begin() + current_size, std::greater<>());
++            } else if (value > vec.front().first) {
++                std::pop_heap(vec.begin(), vec.begin() + current_size, std::greater<>());
++                vec[current_size - 1] = {value, j};
++                std::push_heap(vec.begin(), vec.begin() + current_size, std::greater<>());
++            }
+         }
+-        std::partial_sort(vec.begin(), vec.begin() + k, vec.end(),
+-                          [](const std::pair<float, size_t>& l,
+-                             const std::pair<float, size_t>& r) {
+-                              return l.first > r.first;
+-                          });
++
++        // Sort the top-k in descending order
++        std::sort(vec.begin(), vec.begin() + k, std::greater<>());
++
++        // Transfer the results to the output arrays
+         for (size_t j = 0; j < k; ++j) {
+             output[i * k + j] = vec[j].first;
+             indices[i * k + j] = vec[j].second;
+@@ -26,3 +40,4 @@
+     }
+ }
+ 
++// Explicit template instantiations remain unchanged.
+Compilation succeeded. Execution time: mean = 6592.00 ms, std = 33.74 ms. Original execution time: mean = 8768.80 ms, std = 9.91 ms
+LLM analysis: The optimizations further improve performance by utilizing a min-heap to dynamically track the top k elements, thus reducing unnecessary overhead from sorting the entire array. Additionally, preallocation of the result vector eliminates the need for repeated dynamic memory allocations. The use of heap functions keeps insertions efficient, which helps reduce the execution time significantly.
+Diff from original code:
+--- original
++++ step_3
+@@ -1,24 +1,39 @@
+-// original.cpp
+ #include <algorithm>
+ #include <vector>
+ #include <utility>
+ 
+-// Original top-k implementation without preallocation
++// Optimized top-k implementation with preallocation and efficient data handling
+ 
+ void topk(const std::vector<float>& input, size_t row, size_t col, size_t k,
+           std::vector<float>& output, std::vector<size_t>& indices) {
+     output.resize(row * k);
+     indices.resize(row * k);
++
++    // Reserve space for the pairs to avoid multiple allocations
++    std::vector<std::pair<float, size_t>> vec;
++
+     for (size_t i = 0; i < row; ++i) {
+-        std::vector<std::pair<float, size_t>> vec; // no reserve
++        vec.clear();
++        vec.reserve(k);
++        size_t current_size = 0;
++
++        // Collect only the top k elements using a min-heap
+         for (size_t j = 0; j < col; ++j) {
+-            vec.push_back(std::pair<float, size_t>(input[i * col + j], j));
++            float value = input[i * col + j];
++            if (current_size < k) {
++                vec.emplace_back(value, j);
++                std::push_heap(vec.begin(), vec.begin() + ++current_size, std::greater<>());
++            } else if (value > vec.front().first) {
++                std::pop_heap(vec.begin(), vec.begin() + current_size, std::greater<>());
++                vec[current_size - 1] = {value, j};
++                std::push_heap(vec.begin(), vec.begin() + current_size, std::greater<>());
++            }
+         }
+-        std::partial_sort(vec.begin(), vec.begin() + k, vec.end(),
+-                          [](const std::pair<float, size_t>& l,
+-                             const std::pair<float, size_t>& r) {
+-                              return l.first > r.first;
+-                          });
++
++        // Sort the top-k in descending order
++        std::sort(vec.begin(), vec.begin() + current_size, std::greater<>());
++
++        // Transfer the results to the output arrays
+         for (size_t j = 0; j < k; ++j) {
+             output[i * k + j] = vec[j].first;
+             indices[i * k + j] = vec[j].second;
+@@ -26,3 +41,4 @@
+     }
+ }
+ 
++// Explicit template instantiations remain unchanged.
+Compilation succeeded. Execution time: mean = 6844.80 ms, std = 33.09 ms. Original execution time: mean = 8768.80 ms, std = 9.91 ms
+LLM analysis: The optimized code improves memory management by clearing and reserving space for the pairs vector before each row iteration. This reduces overhead from vector resizing. The use of emplace_back instead of push_back further optimizes element construction. The min-heap approach is maintained to efficiently select top k elements, and the sorting step is streamlined to ensure only the relevant size is sorted. These changes collectively yield improved performance without altering the original behavior.
+Diff from original code:
+--- original
++++ step_4
+@@ -1,24 +1,39 @@
+-// original.cpp
+ #include <algorithm>
+ #include <vector>
+ #include <utility>
+ 
+-// Original top-k implementation without preallocation
++// Optimized top-k implementation with preallocation and efficient data handling
+ 
+ void topk(const std::vector<float>& input, size_t row, size_t col, size_t k,
+           std::vector<float>& output, std::vector<size_t>& indices) {
+     output.resize(row * k);
+     indices.resize(row * k);
+++
++    // Use a vector of pairs to hold the current top k elements
++    std::vector<std::pair<float, size_t>> vec;
++    vec.reserve(k);
++
+     for (size_t i = 0; i < row; ++i) {
+-        std::vector<std::pair<float, size_t>> vec; // no reserve
++        vec.clear();
++        size_t current_size = 0;
++
++        // Collect only the top k elements using a min-heap
+         for (size_t j = 0; j < col; ++j) {
+-            vec.push_back(std::pair<float, size_t>(input[i * col + j], j));
++            float value = input[i * col + j];
++            if (current_size < k) {
++                vec.emplace_back(value, j);
++                std::push_heap(vec.begin(), vec.begin() + ++current_size, std::greater<>());
++            } else if (value > vec.front().first) {
++                std::pop_heap(vec.begin(), vec.begin() + current_size, std::greater<>());
++                vec[current_size - 1] = {value, j};
++                std::push_heap(vec.begin(), vec.begin() + current_size, std::greater<>());
++            }
+         }
+-        std::partial_sort(vec.begin(), vec.begin() + k, vec.end(),
+-                          [](const std::pair<float, size_t>& l,
+-                             const std::pair<float, size_t>& r) {
+-                              return l.first > r.first;
+-                          });
++
++        // Sort the top-k in descending order
++        std::sort(vec.begin(), vec.begin() + current_size, std::greater<>());
++
++        // Transfer the results to the output arrays
+         for (size_t j = 0; j < k; ++j) {
+             output[i * k + j] = vec[j].first;
+             indices[i * k + j] = vec[j].second;
+@@ -26,3 +41,4 @@
+     }
+ }
+ 
++// Explicit template instantiations remain unchanged.
+Compilation failed. Output:
+cc1plus: warning: ignoring possibly conflicting option ‘-fopt-info-all’
+cc1plus: warning: ignoring possibly conflicting option ‘-fopt-info-all’
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/dataset_166/step_4.cpp: In function ‘void topk(const std::vector<float>&, size_t, size_t, size_t, std::vector<float>&, std::vector<long unsigned int>&)’:
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/dataset_166/step_4.cpp:13:43: error: expected primary-expression before ‘vec’
+   13 |     std::vector<std::pair<float, size_t>> vec;
+      |                                           ^~~
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/dataset_166/step_4.cpp:14:5: error: ‘vec’ was not declared in this scope
+   14 |     vec.reserve(k);
+      |     ^~~
+
+LLM analysis: The optimized function improves memory management and overall performance by pre-reserving space for the vector of pairs used to hold the top k elements. Each iteration now clears and reuses this vector, which reduces dynamic memory allocation overhead. The use of `emplace_back` instead of `push_back` streamlines the addition of new elements. The selection of top k elements continues to leverage a min-heap, enhancing efficiency when handling large datasets. The final sorting step ensures only the necessary elements are sorted, preserving the output's accuracy. This further reduces computation time and maximizes resource efficiency.
+Diff from original code:
+--- original
++++ step_5
+@@ -1,24 +1,39 @@
+-// original.cpp
+ #include <algorithm>
+ #include <vector>
+ #include <utility>
+ 
+-// Original top-k implementation without preallocation
++// Optimized top-k implementation with preallocation and efficient data handling
+ 
+ void topk(const std::vector<float>& input, size_t row, size_t col, size_t k,
+           std::vector<float>& output, std::vector<size_t>& indices) {
+     output.resize(row * k);
+     indices.resize(row * k);
++
++    // Use a vector of pairs to hold the current top k elements
++    std::vector<std::pair<float, size_t>> vec;
++
+     for (size_t i = 0; i < row; ++i) {
+-        std::vector<std::pair<float, size_t>> vec; // no reserve
++        vec.clear();
++        vec.reserve(k);
++        size_t current_size = 0;
++
++        // Collect only the top k elements using a min-heap
+         for (size_t j = 0; j < col; ++j) {
+-            vec.push_back(std::pair<float, size_t>(input[i * col + j], j));
++            float value = input[i * col + j];
++            if (current_size < k) {
++                vec.emplace_back(value, j);
++                std::push_heap(vec.begin(), vec.begin() + ++current_size, std::greater<>());
++            } else if (value > vec.front().first) {
++                std::pop_heap(vec.begin(), vec.begin() + current_size, std::greater<>());
++                vec[current_size - 1] = {value, j};
++                std::push_heap(vec.begin(), vec.begin() + current_size, std::greater<>());
++            }
+         }
+-        std::partial_sort(vec.begin(), vec.begin() + k, vec.end(),
+-                          [](const std::pair<float, size_t>& l,
+-                             const std::pair<float, size_t>& r) {
+-                              return l.first > r.first;
+-                          });
++
++        // Sort the top-k in descending order
++        std::sort(vec.begin(), vec.begin() + current_size, std::greater<>());
++
++        // Transfer the results to the output arrays
+         for (size_t j = 0; j < k; ++j) {
+             output[i * k + j] = vec[j].first;
+             indices[i * k + j] = vec[j].second;
+@@ -26,3 +41,4 @@
+     }
+ }
+ 
++// Explicit template instantiations remain unchanged.
+Compilation succeeded. Execution time: mean = 6823.40 ms, std = 6.80 ms. Original execution time: mean = 8768.80 ms, std = 9.91 ms
+LLM analysis: The optimized code addresses previous inefficiencies by managing memory more effectively through preallocating space for the vector of pairs once per row and using .clear() and .reserve() methods. This ensures dynamic allocations are minimized. The approach of utilizing a min-heap remains, enhancing the efficiency of retrieving the top k elements. Emplacing elements directly in the vector reduces overhead. This combination of improvements has led to reductions in execution time while keeping the original functionality intact.
+Diff from original code:
+--- original
++++ step_6
+@@ -1,24 +1,36 @@
+-// original.cpp
+ #include <algorithm>
+ #include <vector>
+ #include <utility>
+ 
+-// Original top-k implementation without preallocation
++// Optimized top-k implementation with preallocation and efficient data handling
+ 
+ void topk(const std::vector<float>& input, size_t row, size_t col, size_t k,
+           std::vector<float>& output, std::vector<size_t>& indices) {
+     output.resize(row * k);
+     indices.resize(row * k);
++
+     for (size_t i = 0; i < row; ++i) {
+-        std::vector<std::pair<float, size_t>> vec; // no reserve
++        std::vector<std::pair<float, size_t>> vec;
++        vec.reserve(k);
++        size_t current_size = 0;
++
++        // Collect only the top k elements using a min-heap
+         for (size_t j = 0; j < col; ++j) {
+-            vec.push_back(std::pair<float, size_t>(input[i * col + j], j));
++            float value = input[i * col + j];
++            if (current_size < k) {
++                vec.emplace_back(value, j);
++                std::push_heap(vec.begin(), vec.begin() + ++current_size, std::greater<>());
++            } else if (value > vec.front().first) {
++                std::pop_heap(vec.begin(), vec.begin() + current_size, std::greater<>());
++                vec[current_size - 1] = {value, j};
++                std::push_heap(vec.begin(), vec.begin() + current_size, std::greater<>());
++            }
+         }
+-        std::partial_sort(vec.begin(), vec.begin() + k, vec.end(),
+-                          [](const std::pair<float, size_t>& l,
+-                             const std::pair<float, size_t>& r) {
+-                              return l.first > r.first;
+-                          });
++
++        // Sort the top-k in descending order
++        std::sort(vec.begin(), vec.begin() + current_size, std::greater<>());
++
++        // Transfer the results to the output arrays
+         for (size_t j = 0; j < k; ++j) {
+             output[i * k + j] = vec[j].first;
+             indices[i * k + j] = vec[j].second;
+@@ -26,3 +38,4 @@
+     }
+ }
+ 
++// Explicit template instantiations remain unchanged.
+Compilation succeeded. Execution time: mean = 6838.00 ms, std = 8.92 ms. Original execution time: mean = 8768.80 ms, std = 9.91 ms
+LLM analysis: The optimized code improves performance by managing memory more effectively, using a single vector for pairs without frequent allocations. The use of min-heap ensures efficiency in tracking the top k elements, while emplacing elements directly reduces overhead from copying. This combination achieves significant reductions in execution time and resource usage, while preserving the original function's behavior.
+Diff from original code:
+--- original
++++ step_7
+@@ -3,22 +3,35 @@
+ #include <vector>
+ #include <utility>
+ 
+-// Original top-k implementation without preallocation
++// Optimized top-k implementation with preallocation and efficient data handling
+ 
+ void topk(const std::vector<float>& input, size_t row, size_t col, size_t k,
+           std::vector<float>& output, std::vector<size_t>& indices) {
+     output.resize(row * k);
+     indices.resize(row * k);
++
+     for (size_t i = 0; i < row; ++i) {
+-        std::vector<std::pair<float, size_t>> vec; // no reserve
++        std::vector<std::pair<float, size_t>> vec;
++        vec.reserve(k);
++        size_t current_size = 0;
++
++        // Collect only the top k elements using a min-heap
+         for (size_t j = 0; j < col; ++j) {
+-            vec.push_back(std::pair<float, size_t>(input[i * col + j], j));
++            float value = input[i * col + j];
++            if (current_size < k) {
++                vec.emplace_back(value, j);
++                std::push_heap(vec.begin(), vec.begin() + ++current_size, std::greater<>());
++            } else if (value > vec.front().first) {
++                std::pop_heap(vec.begin(), vec.begin() + current_size, std::greater<>());
++                vec[current_size - 1] = {value, j};
++                std::push_heap(vec.begin(), vec.begin() + current_size, std::greater<>());
++            }
+         }
+-        std::partial_sort(vec.begin(), vec.begin() + k, vec.end(),
+-                          [](const std::pair<float, size_t>& l,
+-                             const std::pair<float, size_t>& r) {
+-                              return l.first > r.first;
+-                          });
++
++        // Sort the top-k in descending order
++        std::sort(vec.begin(), vec.begin() + current_size, std::greater<>());
++
++        // Transfer the results to the output arrays
+         for (size_t j = 0; j < k; ++j) {
+             output[i * k + j] = vec[j].first;
+             indices[i * k + j] = vec[j].second;
+@@ -26,3 +39,4 @@
+     }
+ }
+ 
++// Explicit template instantiations remain unchanged.
+Compilation succeeded. Execution time: mean = 6843.40 ms, std = 15.34 ms. Original execution time: mean = 8768.80 ms, std = 9.91 ms
+LLM analysis: In the optimized code, I introduced preallocation of the vector of pairs for holding the top k elements, minimizing unnecessary dynamic allocations. The function utilizes a min-heap to efficiently track the top k elements. The use of `emplace_back` reduces overhead from copying. The final sorting step only sorts the necessary elements, ensuring correctness and maintaining the original functionality while improving performance significantly.
+Diff from original code:
+--- original
++++ step_8
+@@ -1,24 +1,39 @@
+-// original.cpp
+ #include <algorithm>
+ #include <vector>
+ #include <utility>
+ 
+-// Original top-k implementation without preallocation
++// Optimized top-k implementation with preallocation and efficient data handling
+ 
+ void topk(const std::vector<float>& input, size_t row, size_t col, size_t k,
+           std::vector<float>& output, std::vector<size_t>& indices) {
+     output.resize(row * k);
+     indices.resize(row * k);
++
++    // Use a vector of pairs to hold the current top k elements
++    std::vector<std::pair<float, size_t>> vec;
++
+     for (size_t i = 0; i < row; ++i) {
+-        std::vector<std::pair<float, size_t>> vec; // no reserve
++        vec.clear();
++        vec.reserve(k);
++        size_t current_size = 0;
++
++        // Collect only the top k elements using a min-heap
+         for (size_t j = 0; j < col; ++j) {
+-            vec.push_back(std::pair<float, size_t>(input[i * col + j], j));
++            float value = input[i * col + j];
++            if (current_size < k) {
++                vec.emplace_back(value, j);
++                std::push_heap(vec.begin(), vec.begin() + ++current_size, std::greater<>());
++            } else if (value > vec.front().first) {
++                std::pop_heap(vec.begin(), vec.begin() + current_size, std::greater<>());
++                vec[current_size - 1] = {value, j};
++                std::push_heap(vec.begin(), vec.begin() + current_size, std::greater<>());
++            }
+         }
+-        std::partial_sort(vec.begin(), vec.begin() + k, vec.end(),
+-                          [](const std::pair<float, size_t>& l,
+-                             const std::pair<float, size_t>& r) {
+-                              return l.first > r.first;
+-                          });
++
++        // Sort the top-k in descending order
++        std::sort(vec.begin(), vec.begin() + current_size, std::greater<>());
++
++        // Transfer the results to the output arrays
+         for (size_t j = 0; j < k; ++j) {
+             output[i * k + j] = vec[j].first;
+             indices[i * k + j] = vec[j].second;
+@@ -26,3 +41,4 @@
+     }
+ }
+ 
++// Explicit template instantiations remain unchanged.
+Compilation succeeded. Execution time: mean = 6834.00 ms, std = 15.64 ms. Original execution time: mean = 8768.80 ms, std = 9.91 ms
+LLM analysis: The optimized code significantly improves performance by preallocating the vector of pairs to hold the top k elements, minimizing dynamic memory allocations during each row's processing. The use of a min-heap allows efficient insertion and removal of elements, ensuring that only the top k elements are retained. Moreover, utilizing 'emplace_back' enhances performance by reducing construction overhead. The final sorting step only sorts the elements currently in the vector, which is of size k, maintaining output accuracy while boosting efficiency.

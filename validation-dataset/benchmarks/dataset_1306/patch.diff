@@ -1,0 +1,23 @@
+From 53162b4649bf947b9e6d2cdc0af1765122ef34da Mon Sep 17 00:00:00 2001
+From: Jason Xu <xxxnju@163.com>
+Date: Wed, 25 Aug 2021 17:12:48 +0800
+Subject: [PATCH] ingest perf tune (#149)
+
+Co-authored-by: xuxinxin1 <xuxinxin1@360.cn>
+---
+ src/DistributedWriteAheadLog/KafkaWAL.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/DistributedWriteAheadLog/KafkaWAL.cpp b/src/DistributedWriteAheadLog/KafkaWAL.cpp
+index 3ea9f2be1b..5c0d931eac 100644
+--- a/src/DistributedWriteAheadLog/KafkaWAL.cpp
++++ b/src/DistributedWriteAheadLog/KafkaWAL.cpp
+@@ -414,7 +414,7 @@ int32_t KafkaWAL::doAppend(const Record & record, DeliveryReport * dr, const Kaf
+         /// Use builtin partitioner which is consistent hashing to select partition
+         /// RD_KAFKA_V_PARTITION(RD_KAFKA_PARTITION_UA),
+         /// Return RD_KAFKA_RESP_ERR__QUEUE_FULL if internal queue is full
+-        RD_KAFKA_V_MSGFLAGS(RD_KAFKA_MSG_F_FREE),
++        RD_KAFKA_V_MSGFLAGS(RD_KAFKA_MSG_F_FREE | RD_KAFKA_MSG_F_BLOCK),
+         /// Message payload and length. Note we didn't copy the data so the ownership
+         /// of data will move moved to producev if it succeeds
+         RD_KAFKA_V_VALUE(data.data(), data.size()),

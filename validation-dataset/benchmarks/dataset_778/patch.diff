@@ -1,0 +1,36 @@
+From b5c987be806ff8b67f483a0040520a05c36a9a57 Mon Sep 17 00:00:00 2001
+From: Martin Suda <sudam@cs.man.ac.uk>
+Date: Thu, 18 Jun 2015 12:06:19 +0200
+Subject: [PATCH] better still, each addAssumption call first propagates,
+ before the addition attempt is made
+
+---
+ SAT/TWLSolver.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/SAT/TWLSolver.cpp b/SAT/TWLSolver.cpp
+index 24cdac7d07..17a461c578 100644
+--- a/SAT/TWLSolver.cpp
++++ b/SAT/TWLSolver.cpp
+@@ -315,11 +315,11 @@ void TWLSolver::addAssumption(SATLiteral lit)
+     return;
+   }
+ 
+-  ASS(!anythingToPropagate());
+-
+   try
+   {
+     backtrack(1);
++    doBaseLevelPropagation(); // this is to make sure we have fully propagated (after previous addClause and addAssumption calls)
++
+     if(isFalse(lit)) {
+       handleConflictingAssumption(lit);
+       ASSERTION_VIOLATION; //exception must be thrown in handleConflictingAssumption()
+@@ -329,7 +329,6 @@ void TWLSolver::addAssumption(SATLiteral lit)
+       return;
+     }
+     makeAssumptionAssignment(lit);  //increases _assumptionCnt
+-    doSolving(0); // do at least limited solving for each assumption added
+   } catch (const UnsatException& e)
+   {
+     _unsatisfiableAssumptions = true;

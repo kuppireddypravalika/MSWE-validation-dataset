@@ -1,0 +1,32 @@
+From 106fb663c754e1c7ecd87c89b98fd0b96736f08d Mon Sep 17 00:00:00 2001
+From: Thomas Goyne <plorkyeran@aegisub.org>
+Date: Thu, 8 Aug 2013 20:18:12 -0700
+Subject: [PATCH] Eliminate a pointless roundtrip through wxString when copying
+ styles to the clipboard
+
+---
+ aegisub/src/dialog_style_manager.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/aegisub/src/dialog_style_manager.cpp b/aegisub/src/dialog_style_manager.cpp
+index e2e39ac80..d0e190eb7 100644
+--- a/aegisub/src/dialog_style_manager.cpp
++++ b/aegisub/src/dialog_style_manager.cpp
+@@ -459,15 +459,15 @@ void DialogStyleManager::OnCopyToCurrent() {
+ 
+ template<class T>
+ void DialogStyleManager::CopyToClipboard(wxListBox *list, T const& v) {
+-	wxString data;
+ 	wxArrayInt selections;
+ 	list->GetSelections(selections);
+ 
++	std::string data;
+ 	for(size_t i = 0; i < selections.size(); ++i) {
+ 		if (i) data += "\r\n";
+ 		AssStyle *s = v[selections[i]];
+ 		s->UpdateData();
+-		data += to_wx(s->GetEntryData());
++		data += s->GetEntryData();
+ 	}
+ 
+ 	SetClipboard(data);

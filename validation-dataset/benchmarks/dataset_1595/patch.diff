@@ -1,0 +1,26 @@
+From 080f8f4cd464e1020019527709c3621565967e8e Mon Sep 17 00:00:00 2001
+From: Daniel Stenberg <daniel@haxx.se>
+Date: Thu, 27 May 2004 07:10:36 +0000
+Subject: [PATCH] free() allocated memory when the ares search can't be made
+
+---
+ ares_search.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/ares_search.c b/ares_search.c
+index dab4236..96a2f1f 100644
+--- a/ares_search.c
++++ b/ares_search.c
+@@ -124,7 +124,12 @@ void ares_search(ares_channel channel, const char *name, int dnsclass,
+ 	  free(s);
+ 	}
+       else
++      {
++        /* failed, free the malloc()ed memory */
++        free(squery->name);
++        free(squery);
+ 	callback(arg, status, NULL, 0);
++      }
+     }
+ }
+ 

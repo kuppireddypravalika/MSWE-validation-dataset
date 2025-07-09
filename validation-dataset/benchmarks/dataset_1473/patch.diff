@@ -1,0 +1,31 @@
+From 7fa27cff32d4142b99b8a748a969d866a8eef7ea Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?J=C3=B8rgen=20Kvalsvik?= <jokva@equinor.com>
+Date: Fri, 9 Jul 2021 12:02:41 +0200
+Subject: [PATCH] Prefer gvt.squeeze over squeezed ctor args
+
+---
+ core/src/process.cpp | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/core/src/process.cpp b/core/src/process.cpp
+index 89749cb57..3ab788d9b 100644
+--- a/core/src/process.cpp
++++ b/core/src/process.cpp
+@@ -124,16 +124,12 @@ void slice::init(const char* msg, int len) {
+ 
+     const auto g3 = gvt3(this->input);
+     const auto& fragment_shape = g3.fragment_shape();
+-    const auto& cube_shape     = g3.cube_shape();
+ 
+     this->set_prefix(this->input);
+     this->dim = g3.mkdim(this->input.dim);
+     this->idx = this->input.idx;
+     this->layout = fragment_shape.slice_stride(this->dim);
+-    this->gvt = one::gvt< 2 >(
+-        cube_shape.squeeze(this->dim),
+-        fragment_shape.squeeze(this->dim)
+-    );
++    this->gvt = g3.squeeze(this->dim);
+ 
+     const auto& cs = this->gvt.cube_shape();
+     this->output.shape.assign(cs.begin(), cs.end());

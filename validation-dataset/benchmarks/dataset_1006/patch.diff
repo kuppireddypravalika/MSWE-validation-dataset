@@ -1,0 +1,41 @@
+From cc59e7195ff3b167ba6c2550ca71a9eb1e8c3b1d Mon Sep 17 00:00:00 2001
+From: Ghabry <gabriel+github@mastergk.de>
+Date: Mon, 26 Aug 2024 14:08:26 +0200
+Subject: [PATCH] SpawnMapEvent: Directly insert sorted. Make FindEventById the
+ same as GetEvent but for lcf::rpg::Event.
+
+---
+ src/game_map.cpp | 20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
+
+diff --git a/src/game_map.cpp b/src/game_map.cpp
+index f5dfa40e94..ae9ecd4cc1 100644
+--- a/src/game_map.cpp
++++ b/src/game_map.cpp
+@@ -426,15 +426,17 @@ bool Game_Map::CloneMapEvent(int src_map_id, int src_event_id, int target_x, int
+ 		new_event.name = lcf::DBString(target_name);
+ 	}
+ 
+-	map->events.push_back(new_event);
+-	std::sort(map->events.begin(), map->events.end(), [](const auto& e, const auto& e2) {
+-		return e.ID < e2.ID;
+-	});
+-
+-	events.emplace_back(GetMapId(), &map->events.back());
+-	std::sort(events.begin(), events.end(), [](const auto& e, const auto& e2) {
+-		return e.GetId() < e2.GetId();
+-	});
++	// sorted insert
++	auto insert_it = map->events.insert(
++		std::upper_bound(map->events.begin(), map->events.end(), new_event, [](const auto& e, const auto& e2) {
++			return e.ID < e2.ID;
++		}), new_event);
++
++	auto game_event = Game_Event(GetMapId(), &*insert_it);
++	events.insert(
++		std::upper_bound(events.begin(), events.end(), game_event, [](const auto& e, const auto& e2) {
++			return e.GetId() < e2.GetId();
++		}), Game_Event(GetMapId(), &*insert_it));
+ 
+ 	UpdateUnderlyingEventReferences();
+ 

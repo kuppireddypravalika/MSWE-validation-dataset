@@ -1,0 +1,25 @@
+From e7fbf98c9ee2a7f82c02d31561079c4d85cb5d29 Mon Sep 17 00:00:00 2001
+From: Patrick Herbers <patrick.herbers@rub.de>
+Date: Thu, 20 Sep 2018 10:34:47 +0200
+Subject: [PATCH] Removed unnessecary string operations in obj parsing
+
+---
+ io/src/obj_io.cpp | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/io/src/obj_io.cpp b/io/src/obj_io.cpp
+index 382f1d50afb..934c6bb953b 100644
+--- a/io/src/obj_io.cpp
++++ b/io/src/obj_io.cpp
+@@ -384,10 +384,7 @@ pcl::OBJReader::readHeader (const std::string &file_name, pcl::PCLPointCloud2 &c
+       if (line == "")
+         continue;
+ 
+-      // Tokenize the line
+-      std::stringstream sstream (line);
+-      sstream.imbue (std::locale::classic ());
+-      line = sstream.str ();
++      // Trim the line
+       boost::trim (line);
+       
+       // Ignore comments

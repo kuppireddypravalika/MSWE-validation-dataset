@@ -1,0 +1,25 @@
+From 205683cda4a8597c13c784872783126ffa4cc9dc Mon Sep 17 00:00:00 2001
+From: John Criswell <criswell@uiuc.edu>
+Date: Thu, 10 Jul 2008 15:35:39 +0000
+Subject: [PATCH] Instead of merging all heap DSNodes, simply make them all
+ type-unknown. This should help reduce the number of incomplete/unknown nodes.
+
+git-svn-id: https://llvm.org/svn/llvm-project/poolalloc/trunk@53409 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/PoolAllocate/PASimple.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/lib/PoolAllocate/PASimple.cpp b/lib/PoolAllocate/PASimple.cpp
+index 9d77970f..d962b9fd 100644
+--- a/lib/PoolAllocate/PASimple.cpp
++++ b/lib/PoolAllocate/PASimple.cpp
+@@ -92,8 +92,7 @@ MergeNodesInDSGraph (DSGraph & Graph) {
+   }
+ 
+   for (unsigned i = 0; i < HeapNodes.size(); ++i)
+-    for (unsigned j = i+1; j < HeapNodes.size(); ++j)
+-      HeapNodes[i].mergeWith (HeapNodes[j]);
++    HeapNodes[i].getNode()->foldNodeCompletely();
+   return;
+ }
+ 

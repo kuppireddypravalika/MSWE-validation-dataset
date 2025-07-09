@@ -1,0 +1,24 @@
+From 1542a98e7b3d58c47a82dd22a4693d8d104df1f1 Mon Sep 17 00:00:00 2001
+From: Chris Lattner <sabre@nondot.org>
+Date: Sun, 9 May 2004 22:28:45 +0000
+Subject: [PATCH] Generate more efficient code for casting booleans to integers
+ (no sign extension required)
+
+llvm-svn: 13439
+---
+ llvm/lib/Target/X86/InstSelectSimple.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/llvm/lib/Target/X86/InstSelectSimple.cpp b/llvm/lib/Target/X86/InstSelectSimple.cpp
+index eb41077dc53..62002e7dc74 100644
+--- a/llvm/lib/Target/X86/InstSelectSimple.cpp
++++ b/llvm/lib/Target/X86/InstSelectSimple.cpp
+@@ -3051,7 +3051,7 @@ void ISel::emitCastOperation(MachineBasicBlock *BB,
+       { X86::MOVZX16rr8, X86::MOVZX32rr8, X86::MOVZX32rr16, X86::MOV32rr }  // u
+     };
+     
+-    bool isUnsigned = SrcTy->isUnsigned();
++    bool isUnsigned = SrcTy->isUnsigned() || SrcTy == Type::BoolTy;
+     BuildMI(*BB, IP, Opc[isUnsigned][SrcClass + DestClass - 1], 1,
+         DestReg).addReg(SrcReg);
+ 

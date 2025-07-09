@@ -1,0 +1,37 @@
+From f5028c5183a744688c8d2d413c41e076ea72f833 Mon Sep 17 00:00:00 2001
+From: Simon Pilgrim <llvm-dev@redking.me.uk>
+Date: Wed, 10 May 2017 13:06:26 +0000
+Subject: [PATCH] [DAGCombiner] Dropped explicit (sra 0, x) -> 0 and (sra -1,
+ x) -> 0 folds.
+
+These are both handled (and tested) by the earlier ComputeNumSignBits == EltSizeInBits fold.
+---
+ llvm/lib/CodeGen/SelectionDAG/DAGCombiner.cpp | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/llvm/lib/CodeGen/SelectionDAG/DAGCombiner.cpp b/llvm/lib/CodeGen/SelectionDAG/DAGCombiner.cpp
+index 2436a81259fc..1da8fe762630 100644
+--- a/llvm/lib/CodeGen/SelectionDAG/DAGCombiner.cpp
++++ b/llvm/lib/CodeGen/SelectionDAG/DAGCombiner.cpp
+@@ -5534,6 +5534,8 @@ SDValue DAGCombiner::visitSRA(SDNode *N) {
+   }
+ 
+   // Arithmetic shifting an all-sign-bit value is a no-op.
++  // fold (sra 0, x) -> 0
++  // fold (sra -1, x) -> -1
+   if (DAG.ComputeNumSignBits(N0) == OpSizeInBits)
+     return N0;
+ 
+@@ -5548,12 +5550,6 @@ SDValue DAGCombiner::visitSRA(SDNode *N) {
+   ConstantSDNode *N0C = getAsNonOpaqueConstant(N0);
+   if (N0C && N1C && !N1C->isOpaque())
+     return DAG.FoldConstantArithmetic(ISD::SRA, SDLoc(N), VT, N0C, N1C);
+-  // fold (sra 0, x) -> 0
+-  if (isNullConstant(N0))
+-    return N0;
+-  // fold (sra -1, x) -> -1
+-  if (isAllOnesConstant(N0))
+-    return N0;
+   // fold (sra x, c >= size(x)) -> undef
+   if (N1C && N1C->getAPIntValue().uge(OpSizeInBits))
+     return DAG.getUNDEF(VT);

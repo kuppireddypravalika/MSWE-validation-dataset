@@ -1,0 +1,25 @@
+From be2d8f385c37b41318cd3352fee48d56fbd07936 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Fri, 14 May 2010 16:46:57 +0000
+Subject: [PATCH] PG driver: small optimization. Avoid useless FETCH 500 when
+ the cursor didn't return any row
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@19703 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/ogr/ogrsf_frmts/pg/ogrpglayer.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/gdal/ogr/ogrsf_frmts/pg/ogrpglayer.cpp b/gdal/ogr/ogrsf_frmts/pg/ogrpglayer.cpp
+index fbbc4945ef76..54ad96dd7ee2 100644
+--- a/gdal/ogr/ogrsf_frmts/pg/ogrpglayer.cpp
++++ b/gdal/ogr/ogrsf_frmts/pg/ogrpglayer.cpp
+@@ -1307,7 +1307,8 @@ OGRFeature *OGRPGLayer::GetNextRawFeature()
+ /* -------------------------------------------------------------------- */
+ /*      Do we need to fetch more records?                               */
+ /* -------------------------------------------------------------------- */
+-    if( nResultOffset >= PQntuples(hCursorResult)
++    if( PQntuples(hCursorResult) > 0 &&
++        nResultOffset >= PQntuples(hCursorResult)
+         && bCursorActive )
+     {
+         OGRPGClearResult( hCursorResult );

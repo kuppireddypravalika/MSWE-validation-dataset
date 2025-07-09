@@ -1,0 +1,42 @@
+From 5888d718a8eb65fa46c174b1e789307fd604e672 Mon Sep 17 00:00:00 2001
+From: Philippe Canal <pcanal@fnal.gov>
+Date: Sat, 17 Aug 2013 09:30:38 -0500
+Subject: [PATCH] Use prototype search for function in TFormula.
+
+This avoids the (useless) evaluation of fake
+arguments and the related transactions and
+their memory cost.
+
+With this change the memory consumption related
+to TFormula search for function is down to around
+1K (related to the allocation of the memory buffer
+and FileID needed to parse the argument list).
+---
+ hist/hist/src/TFormula.cxx | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/hist/hist/src/TFormula.cxx b/hist/hist/src/TFormula.cxx
+index b59cb83163916..38ea4a5ebf642 100644
+--- a/hist/hist/src/TFormula.cxx
++++ b/hist/hist/src/TFormula.cxx
+@@ -412,7 +412,7 @@ Bool_t TFormula::AnalyzeFunction(TString &chaine, Int_t &err, Int_t offset)
+    // or do the following silly thing:
+    TString proto;
+    for(j=0; j<nargs; j++) {
+-      proto += "0.0,";
++      proto += "double,";
+    }
+    if (nargs) proto.Remove(proto.Length()-1);
+ 
+@@ -420,9 +420,9 @@ Bool_t TFormula::AnalyzeFunction(TString &chaine, Int_t &err, Int_t offset)
+    TClass *ns = (spaceName.Length()) ? TClass::GetClass(spaceName) : 0;
+    TMethodCall *method = new TMethodCall();
+    if (ns) {
+-      method->Init(ns,functionName,proto);
++      method->InitWithPrototype(ns,functionName,proto,false,ROOT::kConversionMatch);
+    } else {
+-      method->Init(functionName,proto);
++      method->InitWithPrototype(functionName,proto,ROOT::kConversionMatch);
+    }
+ 
+    if (method->IsValid()) {

@@ -1,0 +1,27 @@
+From 17c8b340883dad5e1810062ff309979f394d3b1a Mon Sep 17 00:00:00 2001
+From: Eladash <elad3356p@gmail.com>
+Date: Wed, 16 Sep 2020 22:15:14 +0300
+Subject: [PATCH] atomic.cpp: Optimize sema_get to not always use atomic
+ instruction (#8907)
+
+---
+ rpcs3/util/atomic.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/rpcs3/util/atomic.cpp b/rpcs3/util/atomic.cpp
+index 4e856aa0b296..b306831fb49a 100644
+--- a/rpcs3/util/atomic.cpp
++++ b/rpcs3/util/atomic.cpp
+@@ -328,8 +328,11 @@ static bool sema_get(u32 id)
+ 			{
+ 				// Increase reference from non-zero value
+ 				refs++;
++				return true;
+ 			}
+-		}))
++
++			return false;
++		}).second)
+ 		{
+ 			return true;
+ 		}

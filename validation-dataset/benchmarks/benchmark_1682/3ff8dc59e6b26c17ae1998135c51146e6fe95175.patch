@@ -1,0 +1,28 @@
+From 3ff8dc59e6b26c17ae1998135c51146e6fe95175 Mon Sep 17 00:00:00 2001
+From: Eric Beckmann <ecbeckmann@google.com>
+Date: Tue, 13 Jun 2017 21:05:42 +0000
+Subject: [PATCH] Use reference to iterate through string table instead of
+ copying.
+
+Summary: just a quick patch
+
+Subscribers: ruiu, llvm-commits, hiraditya
+
+Differential Revision: https://reviews.llvm.org/D34171
+---
+ llvm/lib/Object/WindowsResource.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/llvm/lib/Object/WindowsResource.cpp b/llvm/lib/Object/WindowsResource.cpp
+index a1a0d96acbc0..3f6080d48f9d 100644
+--- a/llvm/lib/Object/WindowsResource.cpp
++++ b/llvm/lib/Object/WindowsResource.cpp
+@@ -690,7 +690,7 @@ void WindowsResourceCOFFWriter::writeDirectoryTree() {
+ void WindowsResourceCOFFWriter::writeDirectoryStringTable() {
+   // Now write the directory string table for .rsrc$01
+   uint32_t TotalStringTableSize = 0;
+-  for (auto String : StringTable) {
++  for (auto &String : StringTable) {
+     uint16_t Length = String.size();
+     support::endian::write16le(BufferStart + CurrentOffset, Length);
+     CurrentOffset += sizeof(uint16_t);

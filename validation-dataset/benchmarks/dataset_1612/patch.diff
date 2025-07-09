@@ -1,0 +1,36 @@
+From 20e09f25a7ef6fd3488b32efc6f1e87fcf621709 Mon Sep 17 00:00:00 2001
+From: Henric Jungheim <software@henric.org>
+Date: Mon, 30 May 2022 07:34:22 -0700
+Subject: [PATCH] Use std::cmp_greater() before casting.
+
+---
+ src/INIMap/INIMapEditorLoader.cpp | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/src/INIMap/INIMapEditorLoader.cpp b/src/INIMap/INIMapEditorLoader.cpp
+index 6d240e659..df5ef5bd9 100644
+--- a/src/INIMap/INIMapEditorLoader.cpp
++++ b/src/INIMap/INIMapEditorLoader.cpp
+@@ -16,6 +16,8 @@
+ #include <sand.h>
+ 
+ #include <algorithm>
++#include <limits>
++#include <utility>
+ 
+ using namespace std::literals;
+ 
+@@ -195,7 +197,12 @@ void INIMapEditorLoader::loadMap() {
+ 
+             const auto rowString = inifile_->getStringValue("MAP", rowKey);
+ 
+-            auto rowLength = rowString.size();
++            if (std::cmp_greater(rowString.size(), std::numeric_limits<int>::max())) {
++                logWarning(inifile_->getLineNumber("MAP"), "Map row %d is too long!", y);
++                continue;
++            }
++
++            auto rowLength = static_cast<int>(rowString.size());
+ 
+             if (rowLength < sizeX) {
+                 logWarning(inifile_->getLineNumber("MAP", rowKey), "Map row %d is not long enough!", y);

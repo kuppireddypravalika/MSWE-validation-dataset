@@ -1,0 +1,21 @@
+From 1c7de0b4ac7b3d7e6ebdde2fbbc8a908e32ac0a6 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@duempel.org>
+Date: Tue, 5 Jul 2016 18:02:35 +0200
+Subject: [PATCH] output/shout: remove pointless memset() call
+
+---
+ src/output/plugins/ShoutOutputPlugin.cxx | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/src/output/plugins/ShoutOutputPlugin.cxx b/src/output/plugins/ShoutOutputPlugin.cxx
+index b51f7ed823..406be8dafd 100644
+--- a/src/output/plugins/ShoutOutputPlugin.cxx
++++ b/src/output/plugins/ShoutOutputPlugin.cxx
+@@ -247,7 +247,6 @@ ShoutOutput::Configure(const config_param &param, Error &error)
+ 
+ 	{
+ 		char temp[11];
+-		memset(temp, 0, sizeof(temp));
+ 
+ 		snprintf(temp, sizeof(temp), "%u", audio_format.channels);
+ 		shout_set_audio_info(shout_conn, SHOUT_AI_CHANNELS, temp);

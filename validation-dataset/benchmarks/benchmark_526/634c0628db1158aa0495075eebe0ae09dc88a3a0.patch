@@ -1,0 +1,37 @@
+From 634c0628db1158aa0495075eebe0ae09dc88a3a0 Mon Sep 17 00:00:00 2001
+From: Rui Ueyama <ruiu@google.com>
+Date: Wed, 28 Feb 2018 17:32:50 +0000
+Subject: [PATCH] [WebAssembly] Improve WasmSignatureDenseMapInfo.
+
+Let X and Y be types. Previously, functions F(X, Y) and G(Y, X) had
+the same hash value because their hash values are computed as follows:
+
+  hash(F) = hash(X) + hash(Y)
+  hash(G) = hash(Y) + hash(X)
+
+This patch fixes the issue by using hash_combine.
+
+Differential Revision: https://reviews.llvm.org/D43856
+---
+ lld/wasm/Writer.cpp | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/lld/wasm/Writer.cpp b/lld/wasm/Writer.cpp
+index 0cd475896915..539bf8b9ce13 100644
+--- a/lld/wasm/Writer.cpp
++++ b/lld/wasm/Writer.cpp
+@@ -53,11 +53,10 @@ struct WasmSignatureDenseMapInfo {
+     return Sig;
+   }
+   static unsigned getHashValue(const WasmSignature &Sig) {
+-    uintptr_t Value = 0;
+-    Value += DenseMapInfo<int32_t>::getHashValue(Sig.ReturnType);
++    unsigned H = hash_value(Sig.ReturnType);
+     for (int32_t Param : Sig.ParamTypes)
+-      Value += DenseMapInfo<int32_t>::getHashValue(Param);
+-    return Value;
++      H = hash_combine(H, Param);
++    return H;
+   }
+   static bool isEqual(const WasmSignature &LHS, const WasmSignature &RHS) {
+     return LHS == RHS;

@@ -1,0 +1,44 @@
+From c02f953ee03ab29be8b4c3cc538eb14ad066da20 Mon Sep 17 00:00:00 2001
+From: Thomas Goyne <plorkyeran@aegisub.org>
+Date: Sat, 18 Jul 2009 04:37:43 +0000
+Subject: [PATCH] Made the style sorting code only append each style once even
+ when multiple styles have the same name. Closes #922.
+
+Originally committed to SVN as r3163.
+---
+ aegisub/src/dialog_style_manager.cpp | 22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
+
+diff --git a/aegisub/src/dialog_style_manager.cpp b/aegisub/src/dialog_style_manager.cpp
+index ab9c1718a..a3eb57621 100644
+--- a/aegisub/src/dialog_style_manager.cpp
++++ b/aegisub/src/dialog_style_manager.cpp
+@@ -1084,17 +1084,17 @@ void DialogStyleManager::MoveStyles(bool storage, int type) {
+ 		}
+ 
+ 		// Get sorted list
+-		wxArrayString stylNames;
+-		for (int i=0;i<nStyles;i++) stylNames.Add(srcStyls->at(i)->name.Lower());
+-		stylNames.Sort();
+-		AssStyle *curStyl;
+-
+-		// Find each and copy it
+-		for (int i=0;i<nStyles;i++) {
+-			for (int j=0;j<nStyles;j++) {
+-				curStyl = srcStyls->at(j);
+-				if (curStyl->name.Lower() == stylNames[i]) {
+-					styls.push_back(curStyl);
++		wxArrayString styleNames;
++		for (int i=0; i < nStyles; i++) styleNames.Add(srcStyls->at(i)->name);
++		styleNames.Sort();
++
++		std::list<AssStyle *> styles(srcStyls->begin(), srcStyls->end());
++		for (int i = 0; i < nStyles; i++) {
++			for (std::list<AssStyle *>::iterator style = styles.begin(); style != styles.end(); style++) {
++				if ((*style)->name == styleNames[i]) {
++					styls.push_back(*style);
++					styles.erase(style);
++					break;
+ 				}
+ 			}
+ 		}

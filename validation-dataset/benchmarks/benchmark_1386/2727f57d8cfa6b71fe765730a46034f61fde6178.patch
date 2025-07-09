@@ -1,0 +1,40 @@
+From 2727f57d8cfa6b71fe765730a46034f61fde6178 Mon Sep 17 00:00:00 2001
+From: Erich Keane <erich.keane@intel.com>
+Date: Thu, 21 Sep 2017 19:58:55 +0000
+Subject: [PATCH] Suppress Wsign-conversion for enums with matching underlying
+ type
+
+As reported here: https://bugs.llvm.org/show_bug.cgi?id=34692
+
+A non-defined enum with a backing type was always defaulting to
+being treated as a signed type. IN the case where it IS defined,
+the signed-ness of the actual items is used.
+
+This patch uses the underlying type's signed-ness in the non-defined
+case to test signed-comparision.
+
+Differential Revision: https://reviews.llvm.org/D38145
+
+
+git-svn-id: https://llvm.org/svn/llvm-project/cfe/trunk@313907 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Sema/SemaChecking.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/lib/Sema/SemaChecking.cpp b/lib/Sema/SemaChecking.cpp
+index 87634ad57e5..956136859a0 100644
+--- a/lib/Sema/SemaChecking.cpp
++++ b/lib/Sema/SemaChecking.cpp
+@@ -8171,8 +8171,11 @@ struct IntRange {
+     // For enum types, use the known bit width of the enumerators.
+     if (const EnumType *ET = dyn_cast<EnumType>(T)) {
+       EnumDecl *Enum = ET->getDecl();
++      // In C++11, enums without definitions can have an explicitly specified
++      // underlying type.  Use this type to compute the range.
+       if (!Enum->isCompleteDefinition())
+-        return IntRange(C.getIntWidth(QualType(T, 0)), false);
++        return IntRange(C.getIntWidth(QualType(T, 0)),
++                        !ET->isSignedIntegerOrEnumerationType());
+ 
+       unsigned NumPositive = Enum->getNumPositiveBits();
+       unsigned NumNegative = Enum->getNumNegativeBits();

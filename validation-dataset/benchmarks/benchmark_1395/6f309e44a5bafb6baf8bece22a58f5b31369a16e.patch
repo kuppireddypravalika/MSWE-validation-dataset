@@ -1,0 +1,24 @@
+From 6f309e44a5bafb6baf8bece22a58f5b31369a16e Mon Sep 17 00:00:00 2001
+From: Amy Zhuang <amyzhuang97@gmail.com>
+Date: Thu, 27 Jun 2019 10:24:21 -0700
+Subject: [PATCH] Remove CPURuntimeContext mkldnn primitives and workspaces
+ assignments for CODEGEN. CODEGEN uses CPURuntimeContextCG mkldnn primitives
+ and workspaces.
+
+---
+ src/ngraph/runtime/cpu/cpu_call_frame.cpp | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/src/ngraph/runtime/cpu/cpu_call_frame.cpp b/src/ngraph/runtime/cpu/cpu_call_frame.cpp
+index e69b6ec9cb0..6a83a74be37 100644
+--- a/src/ngraph/runtime/cpu/cpu_call_frame.cpp
++++ b/src/ngraph/runtime/cpu/cpu_call_frame.cpp
+@@ -216,8 +216,6 @@ void runtime::cpu::CPU_CallFrame::setup_runtime_context()
+         {
+             // single thread for codegen
+             NGRAPH_CHECK(m_num_ctx == 1);
+-            ctx->mkldnn_primitives.swap(mkldnn_emitter->get_mkldnn_primitives());
+-            ctx->mkldnn_workspaces = mkldnn_emitter->get_mkldnn_workspaces();
+         }
+ 
+         ctx->states = m_external_function->m_states.data();

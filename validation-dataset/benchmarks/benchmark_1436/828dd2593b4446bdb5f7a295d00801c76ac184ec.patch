@@ -1,0 +1,30 @@
+From 828dd2593b4446bdb5f7a295d00801c76ac184ec Mon Sep 17 00:00:00 2001
+From: Ben Strasser <strasser@kit.edu>
+Date: Mon, 9 Oct 2017 11:54:33 +0200
+Subject: [PATCH] Added atomic_thread_fence to prevent endless loop in
+ PBF-parser on some machines when optimizations are activated
+
+---
+ src/osm_decoder.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/osm_decoder.cpp b/src/osm_decoder.cpp
+index 9afc651..08cbdac 100644
+--- a/src/osm_decoder.cpp
++++ b/src/osm_decoder.cpp
+@@ -11,6 +11,7 @@
+ #include <iomanip>
+ #include <sstream>
+ #include <algorithm>
++#include <atomic>
+ #include <string.h>
+ 
+ // The following includes are only there to get access to ntohl. Nothing else is 
+@@ -653,6 +654,7 @@ void ordered_read_osm_pbf(
+ 
+ 	if(!file_is_ordered_even_though_file_header_says_that_it_is_unordered){
+ 		while((decompressor.get_status() & is_header_info_available_bit) == 0){
++			std::atomic_thread_fence(std::memory_order::memory_order_seq_cst);
+ 			std::this_thread::yield();
+ 		}
+ 	}

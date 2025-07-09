@@ -1,0 +1,35 @@
+From b16db9fe68a8322f1d09be67b5a5eb1dcf991619 Mon Sep 17 00:00:00 2001
+From: DennisOSRM <luxen@kit.edu>
+Date: Wed, 19 Sep 2012 11:16:45 +0200
+Subject: [PATCH] Replacing old style casts and unsafe float comparison
+
+---
+ Algorithms/DouglasPeucker.h | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/Algorithms/DouglasPeucker.h b/Algorithms/DouglasPeucker.h
+index 724b479f84f..aa78cec2916 100644
+--- a/Algorithms/DouglasPeucker.h
++++ b/Algorithms/DouglasPeucker.h
+@@ -46,14 +46,14 @@ class DouglasPeucker {
+ 
+     double ComputeDistanceOfPointToLine(const _Coordinate& inputPoint, const _Coordinate& source, const _Coordinate& target) const {
+         double r;
+-        const double x = (double)inputPoint.lat;
+-        const double y = (double)inputPoint.lon;
+-        const double a = (double)source.lat;
+-        const double b = (double)source.lon;
+-        const double c = (double)target.lat;
+-        const double d = (double)target.lon;
++        const double x = static_cast<double>(inputPoint.lat);
++        const double y = static_cast<double>(inputPoint.lon);
++        const double a = static_cast<double>(source.lat);
++        const double b = static_cast<double>(source.lon);
++        const double c = static_cast<double>(target.lat);
++        const double d = static_cast<double>(target.lon);
+         double p,q,mX,nY;
+-        if(c != a) {
++        if(fabs(a - c) <= FLT_EPSILON) {
+             const double m = (d-b)/(c-a); // slope
+             // Projection of (x,y) on line joining (a,b) and (c,d)
+             p = ((x + (m*y)) + (m*m*a - m*b))/(1 + m*m);

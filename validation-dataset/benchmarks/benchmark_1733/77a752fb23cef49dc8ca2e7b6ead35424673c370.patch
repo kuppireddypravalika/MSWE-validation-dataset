@@ -1,0 +1,23 @@
+From 77a752fb23cef49dc8ca2e7b6ead35424673c370 Mon Sep 17 00:00:00 2001
+From: Benjamin Kramer <benny.kra@googlemail.com>
+Date: Fri, 16 Jun 2017 21:27:12 +0000
+Subject: [PATCH] [Object] Remove redundant std::move.
+
+Found by -Wpessimizing-move.
+---
+ llvm/lib/Object/WindowsResource.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/llvm/lib/Object/WindowsResource.cpp b/llvm/lib/Object/WindowsResource.cpp
+index 1b62f5106908..ed3f97c5b5d4 100644
+--- a/llvm/lib/Object/WindowsResource.cpp
++++ b/llvm/lib/Object/WindowsResource.cpp
+@@ -353,7 +353,7 @@ WindowsResourceCOFFWriter::WindowsResourceCOFFWriter(
+       StringTable(Parser.getStringTable()) {
+   performFileLayout();
+ 
+-  OutputBuffer = std::move(MemoryBuffer::getNewMemBuffer(FileSize));
++  OutputBuffer = MemoryBuffer::getNewMemBuffer(FileSize);
+ }
+ 
+ void WindowsResourceCOFFWriter::performFileLayout() {

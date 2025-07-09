@@ -1,0 +1,34 @@
+From 60d122e850f928f03fffbf4b31c9f1b25fd4b318 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@duempel.org>
+Date: Thu, 9 Oct 2008 15:37:18 +0200
+Subject: [PATCH] directory: don't query database during load
+
+Don't use db_get_directory() and traverse the full path with every
+directory being loaded.  Just see if the current parent contains the
+entry.  Everything else would be invalid anyway..
+---
+ src/directory_save.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/directory_save.c b/src/directory_save.c
+index 00cf5f8e0f..51c51c48c0 100644
+--- a/src/directory_save.c
++++ b/src/directory_save.c
+@@ -18,7 +18,6 @@
+ 
+ #include "directory_save.h"
+ #include "directory.h"
+-#include "database.h"
+ #include "song.h"
+ #include "log.h"
+ #include "path.h"
+@@ -88,7 +87,8 @@ directory_load(FILE *fp, struct directory *directory)
+ 				FATAL("Wrong path in database: '%s' in '%s'\n",
+ 				      name, directory->path);
+ 
+-			if ((subdir = db_get_directory(name))) {
++			subdir = directory_get_child(directory, name);
++			if (subdir != NULL) {
+ 				assert(subdir->parent == directory);
+ 			} else {
+ 				subdir = directory_new(name, directory);

@@ -1,0 +1,24 @@
+From 747331f8cd9dafb503a3b4107dac606730594c50 Mon Sep 17 00:00:00 2001
+From: Xottab-DUTY <xottab-duty@yandex.ru>
+Date: Fri, 13 Mar 2020 16:38:39 +0500
+Subject: [PATCH] xrEngine/device.cpp: removed SDL_WINDOWEVENT_RESIZED event
+ processing
+
+It's always preceded by SDL_WINDOWEVENT_SIZE_CHANGED, so we can process
+only this event.
+---
+ src/xrEngine/device.cpp | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/src/xrEngine/device.cpp b/src/xrEngine/device.cpp
+index fb83c35572a..54e934b3e33 100644
+--- a/src/xrEngine/device.cpp
++++ b/src/xrEngine/device.cpp
+@@ -437,7 +437,6 @@ void CRenderDevice::message_loop()
+                     UpdateWindowRects();
+                     break;
+ 
+-                case SDL_WINDOWEVENT_RESIZED:
+                 case SDL_WINDOWEVENT_SIZE_CHANGED:
+                 {
+                     if (!psDeviceFlags.is(rsFullscreen))

@@ -1,0 +1,24 @@
+From f2385c3b3243d1a8def4485bbc86b5760f3b09a3 Mon Sep 17 00:00:00 2001
+From: Ben Fulton <befulton@iu.edu>
+Date: Wed, 17 Nov 2021 14:30:57 -0500
+Subject: [PATCH] Reduce Nelder-Mead threshold to 1e-3 from 1e-6
+
+---
+ src/optimizer.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/optimizer.cpp b/src/optimizer.cpp
+index fbb7e37..18f4471 100644
+--- a/src/optimizer.cpp
++++ b/src/optimizer.cpp
+@@ -370,8 +370,8 @@ class StandardNelderMead : public OptimizerStrategy
+             pfm->chi *= 25;				// expansion
+             pfm->delta = 0.4;
+         }
+-        pfm->tolx = 1e-6;
+-        pfm->tolf = 1e-6;
++        pfm->tolx = 1e-3;
++        pfm->tolf = 1e-3;
+         fminsearch_min(pfm, &initial[0]);
+         auto result = get_best_result(pfm);
+ 

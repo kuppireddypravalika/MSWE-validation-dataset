@@ -1,0 +1,31 @@
+From 878cbbcb65f0c872db6c719422d9a426976fa8b2 Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Sun, 15 Feb 2015 21:01:39 +0100
+Subject: [PATCH] QDateTime: cache the result of date.timeSpec() in QDebug op<<
+
+Saves a couple dozen bytes in text size on optimized AMD64 builds.
+
+Change-Id: Iefd9ca05a7b27f240836c1e1e00df569742fcd7f
+Reviewed-by: Olivier Goffart (Woboq GmbH) <ogoffart@woboq.com>
+---
+ src/corelib/tools/qdatetime.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/corelib/tools/qdatetime.cpp b/src/corelib/tools/qdatetime.cpp
+index aaa639272c9..eeefea81379 100644
+--- a/src/corelib/tools/qdatetime.cpp
++++ b/src/corelib/tools/qdatetime.cpp
+@@ -4965,10 +4965,11 @@ QDebug operator<<(QDebug dbg, const QTime &time)
+ QDebug operator<<(QDebug dbg, const QDateTime &date)
+ {
+     QDebugStateSaver saver(dbg);
++    const Qt::TimeSpec ts = date.timeSpec();
+     dbg.nospace() << "QDateTime(";
+     dbg.noquote() << date.toString(QStringLiteral("yyyy-MM-dd HH:mm:ss.zzz t"))
+-                  << ' ' << date.timeSpec();
+-    switch (date.d->m_spec) {
++                  << ' ' << ts;
++    switch (ts) {
+     case Qt::UTC:
+         break;
+     case Qt::OffsetFromUTC:

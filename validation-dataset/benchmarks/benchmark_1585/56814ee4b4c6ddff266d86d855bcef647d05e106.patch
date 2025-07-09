@@ -1,0 +1,23 @@
+From 56814ee4b4c6ddff266d86d855bcef647d05e106 Mon Sep 17 00:00:00 2001
+From: J-Donald Tournier <jdtournier@gmail.com>
+Date: Wed, 1 Jun 2016 01:40:34 +0100
+Subject: [PATCH] MP-PCA: remove .row() call on output image
+
+---
+ cmd/dwidenoise.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/cmd/dwidenoise.cpp b/cmd/dwidenoise.cpp
+index b61fbefc38..9acb171ec0 100644
+--- a/cmd/dwidenoise.cpp
++++ b/cmd/dwidenoise.cpp
+@@ -97,7 +97,8 @@ class DenoisingFunctor
+     X = svd.matrixU() * s.asDiagonal() * svd.matrixV().adjoint();
+     // Store output
+     assign_pos_of(dwi).to(out);
+-    out.row(3) = X.col(n/2).template cast<value_type>();
++    for (auto l = Loop (3) (out); l; ++l)
++      out.value() = X(out.index(3), n/2);
+   }
+   
+   void operator () (ImageType& dwi, ImageType& out, ImageType& noise)

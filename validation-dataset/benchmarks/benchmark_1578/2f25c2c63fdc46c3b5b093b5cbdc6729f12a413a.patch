@@ -1,0 +1,29 @@
+From 2f25c2c63fdc46c3b5b093b5cbdc6729f12a413a Mon Sep 17 00:00:00 2001
+From: Anton Korobeynikov <asl@math.spbu.ru>
+Date: Sun, 3 May 2009 13:13:51 +0000
+Subject: [PATCH] Add libcall expansion for 16 and 128 bit muls
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@70749 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/CodeGen/SelectionDAG/LegalizeDAG.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/lib/CodeGen/SelectionDAG/LegalizeDAG.cpp b/lib/CodeGen/SelectionDAG/LegalizeDAG.cpp
+index 697caa6ddbb..98908765b73 100644
+--- a/lib/CodeGen/SelectionDAG/LegalizeDAG.cpp
++++ b/lib/CodeGen/SelectionDAG/LegalizeDAG.cpp
+@@ -3315,10 +3315,14 @@ SDValue SelectionDAGLegalize::LegalizeOp(SDValue Op) {
+         }
+         break;
+       case ISD::MUL:
++        if (VT == MVT::i16)
++          LC = RTLIB::MUL_I16;
+         if (VT == MVT::i32)
+           LC = RTLIB::MUL_I32;
+         else if (VT == MVT::i64)
+           LC = RTLIB::MUL_I64;
++        else if (VT == MVT::i128)
++          LC = RTLIB::MUL_I128;
+         break;
+       case ISD::FPOW:
+         LC = GetFPLibCall(VT, RTLIB::POW_F32, RTLIB::POW_F64, RTLIB::POW_F80,

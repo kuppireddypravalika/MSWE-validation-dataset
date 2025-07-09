@@ -1,0 +1,26 @@
+From 684a5545fb4eb7e91cdf87ffd849776a6b9eca8e Mon Sep 17 00:00:00 2001
+From: Erik Garrison <erik.garrison@gmail.com>
+Date: Fri, 5 Nov 2021 22:48:00 +0100
+Subject: [PATCH] avoid boundary condition by using std::find
+
+---
+ src/common/wflign/src/rkmh.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/common/wflign/src/rkmh.cpp b/src/common/wflign/src/rkmh.cpp
+index bde183ad..46a08fb0 100644
+--- a/src/common/wflign/src/rkmh.cpp
++++ b/src/common/wflign/src/rkmh.cpp
+@@ -90,9 +90,9 @@ std::vector<hash_t> hash_sequence(const char* seq,
+     std::sort(hashes.begin(), hashes.end());
+     // we remove non-canonical hashes
+     if (hashes.back() == std::numeric_limits<hash_t>::max()) {
+-        auto last = hashes.end(); --last;
+-        while (*last == std::numeric_limits<hash_t>::max()) --last;
+-        hashes.erase(++last, hashes.end());
++        hashes.erase(std::find(hashes.begin(), hashes.end(),
++                               std::numeric_limits<hash_t>::max()),
++                     hashes.end());
+     }
+     if (hashes.size() > sketch_size) {
+         hashes.erase(hashes.begin()+sketch_size, hashes.end());

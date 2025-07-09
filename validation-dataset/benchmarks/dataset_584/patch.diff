@@ -1,0 +1,24 @@
+From 2ed1df38a0e9d087c69c94a519f64e4e368f4827 Mon Sep 17 00:00:00 2001
+From: Julian Hess <jhess@broadinstitute.org>
+Date: Wed, 3 Jul 2019 13:27:57 -0400
+Subject: [PATCH] Speed up processing of very long headers
+
+(e.g. hg38)
+---
+ src/GenomicRegion.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/GenomicRegion.cpp b/src/GenomicRegion.cpp
+index bbc78b743..8ba7be19c 100644
+--- a/src/GenomicRegion.cpp
++++ b/src/GenomicRegion.cpp
+@@ -277,7 +277,8 @@ int32_t GenomicRegion::DistanceBetweenEnds(const GenomicRegion &gr) const {
+       // specifying our contigs in b37 style whereas dict is hg** style;
+       // let's attempt to automatically convert [0-9XY]+ -> chr[0-9XY]+
+ #ifdef HAVE_C11
+-      if(chr == -1 && std::regex_match(tchr, std::regex("([0-9XY]+)"))) {
++      static std::regex b37_regex("([0-9XY]+)");
++      if(chr == -1 && std::regex_match(tchr, b37_regex)) {
+ 	 chr = hdr.Name2ID("chr" + tchr);
+       }
+ #endif

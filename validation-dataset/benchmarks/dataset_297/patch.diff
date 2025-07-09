@@ -1,0 +1,24 @@
+From f06866480dd538a72107a0f9103353fc659e79f2 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@spatialys.com>
+Date: Sat, 21 Apr 2018 12:17:44 +0200
+Subject: [PATCH] DXF: avoid very long processing time. Fixes
+ https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=7854. Credit to OSS
+ Fuzz
+
+---
+ gdal/ogr/ogrsf_frmts/dxf/ogrdxflayer.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/gdal/ogr/ogrsf_frmts/dxf/ogrdxflayer.cpp b/gdal/ogr/ogrsf_frmts/dxf/ogrdxflayer.cpp
+index 48287918c6aa..872c7b6b0a6d 100644
+--- a/gdal/ogr/ogrsf_frmts/dxf/ogrdxflayer.cpp
++++ b/gdal/ogr/ogrsf_frmts/dxf/ogrdxflayer.cpp
+@@ -3281,6 +3281,8 @@ void OGRDXFLayer::TranslateINSERTCore(
+         catch( const std::invalid_argument& )
+         {
+             // Block doesn't exist
++            CPLError(CE_Warning, CPLE_AppDefined,
++                     "Block %s does not exist", osBlockName.c_str());
+             delete poFeature;
+             return;
+         }

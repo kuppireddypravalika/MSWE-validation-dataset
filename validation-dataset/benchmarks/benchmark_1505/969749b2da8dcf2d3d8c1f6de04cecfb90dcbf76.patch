@@ -1,0 +1,29 @@
+From 969749b2da8dcf2d3d8c1f6de04cecfb90dcbf76 Mon Sep 17 00:00:00 2001
+From: jimmyk <jimmyk@ca.ibm.com>
+Date: Mon, 25 May 2020 13:16:57 -0400
+Subject: [PATCH] Replaced INT32_MAX and INT32_MIN
+
+Replaced INT32_MAX and INT32_MIN in inlineSimpleAtomicUpdate when checking if
+a value fits in a signed 32 bit value. INT32_MAX and INT32_MIN were causing
+problems in some compilers.
+
+Signed-off-by: jimmyk <jimmyk@ca.ibm.com>
+---
+ compiler/p/codegen/OMRTreeEvaluator.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/compiler/p/codegen/OMRTreeEvaluator.cpp b/compiler/p/codegen/OMRTreeEvaluator.cpp
+index 40b7f8c6e5..440174b1c1 100644
+--- a/compiler/p/codegen/OMRTreeEvaluator.cpp
++++ b/compiler/p/codegen/OMRTreeEvaluator.cpp
+@@ -5181,8 +5181,8 @@ static TR::Register *inlineSimpleAtomicUpdate(TR::Node *node, bool isAddOp, bool
+           && !deltaChild->getRegister()
+           && (deltaChild->getDataType() == TR::Int32
+                  || (deltaChild->getDataType() == TR::Int64
+-                        && deltaChild->getLongInt() <= INT32_MAX
+-                        && deltaChild->getLongInt() >= INT32_MIN)))
++                        && deltaChild->getLongInt() <= 0x000000007FFFFFFFL
++                        && deltaChild->getLongInt() >= 0xFFFFFFFF80000000L)))
+       {
+       const int64_t deltaLong = (deltaChild->getDataType() == TR::Int64)
+                                    ? deltaChild->getLongInt()

@@ -1,0 +1,38 @@
+From c8a76a492a0002d34cb1cc52f47a2b8ac0634a0c Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Torbj=C3=B6rn=20Andersson?=
+ <eriktorbjorn@users.sourceforge.net>
+Date: Tue, 14 Jun 2022 07:33:53 +0200
+Subject: [PATCH] SCUMM: Make Loom intro fire animation run at constant speed
+
+The fire animation is sped up along with the rest of the game while the
+messenger nymph is flying. Slow it down to make it appear to run at
+constant speed throughout the intro. This does not apply to the VGA
+talkie version, because there the fire isn't animated.
+---
+ engines/scumm/script.cpp | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/engines/scumm/script.cpp b/engines/scumm/script.cpp
+index dcf3af99c906..0b4ec9342cc8 100644
+--- a/engines/scumm/script.cpp
++++ b/engines/scumm/script.cpp
+@@ -671,6 +671,19 @@ void ScummEngine::writeVar(uint var, int value) {
+ 				value = 3;
+ 		}
+ 
++		// WORKAROUND: When the Loom messenger nymph flies to wake up
++		// Bobbin, the whole game is sped up. Slow down the fire
++		// animation so that it appears to run at constant speed
++		// throughout the intro. This does not apply to the VGA talkie
++		// version, because there the fire isn't animated.
++
++		else if (_game.id == GID_LOOM && _game.version < 4 && vm.slot[_currentScript].number == 44 && var == VAR_TIMER_NEXT && _enableEnhancements) {
++			Actor *a = derefActorSafe(4, "writeVar");
++			if (a) {
++				a->setAnimSpeed((value == 0) ? 6 : 0);
++			}
++		}
++
+ 		_scummVars[var] = value;
+ 
+ 		// Unlike the PC version, the Macintosh version of Loom appears

@@ -1,0 +1,24 @@
+From e2429afc104ee05935d0578ebae96b0c6394350b Mon Sep 17 00:00:00 2001
+From: "bearlee@alum.mit.edu"
+ <bearlee@alum.mit.edu@9a304bd9-dce1-f7c0-8d5c-bb1642157d4e>
+Date: Wed, 28 Dec 2011 19:56:15 +0000
+Subject: [PATCH] updated multi_normal_log to use multiply_log
+
+git-svn-id: https://stan.googlecode.com/svn/trunk@415 9a304bd9-dce1-f7c0-8d5c-bb1642157d4e
+---
+ src/stan/prob/distributions/multi_normal.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/stan/prob/distributions/multi_normal.hpp b/src/stan/prob/distributions/multi_normal.hpp
+index af892459af1..ff77dae3e1d 100644
+--- a/src/stan/prob/distributions/multi_normal.hpp
++++ b/src/stan/prob/distributions/multi_normal.hpp
+@@ -81,7 +81,7 @@ namespace stan {
+       if (include_summand<propto>::value) 
+ 	lp += NEG_LOG_SQRT_TWO_PI * y.rows();
+       if (include_summand<propto,T_covar>::value)
+-	lp -= 0.5 * log(determinant(Sigma));
++	lp -= multiply_log(0.5,determinant(Sigma));
+       if (include_summand<propto,T_y,T_loc,T_covar>::value) {
+ 	Eigen::Matrix<typename promote_args<T_y,T_loc>::type, Dynamic, 1> diff 
+ 	  = subtract(y,mu);

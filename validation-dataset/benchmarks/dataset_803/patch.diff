@@ -1,0 +1,31 @@
+From 0b07679ff21f2ef0418a4604d69df2579c4360f7 Mon Sep 17 00:00:00 2001
+From: Kamil Rakoczy <krakoczy@antmicro.com>
+Date: Wed, 21 Sep 2022 11:54:23 +0200
+Subject: [PATCH] v3errorEnd: look for instance only when warning is not
+ ignored (#3632)
+
+This approach reduced total time of V3Undriven stage from 34,2s to 2,5s
+in design containing almost 400 000 unused variables.
+
+Signed-off-by: Kamil Rakoczy <krakoczy@antmicro.com>
+---
+ src/V3Ast.cpp | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/V3Ast.cpp b/src/V3Ast.cpp
+index 24c4d0e120..9b406f816d 100644
+--- a/src/V3Ast.cpp
++++ b/src/V3Ast.cpp
+@@ -1212,7 +1212,11 @@ void AstNode::v3errorEnd(std::ostringstream& str) const {
+             const_cast<AstNode*>(this)->dump(nsstr);
+             nsstr << endl;
+         }
+-        m_fileline->v3errorEnd(nsstr, instanceStr());
++        // Don't look for instance name when warning is disabled.
++        // In case of large number of warnings, this can
++        // take significant amount of time
++        m_fileline->v3errorEnd(nsstr,
++                               m_fileline->warnIsOff(V3Error::errorCode()) ? "" : instanceStr());
+     }
+ }
+ 

@@ -1,0 +1,37 @@
+From 7c4c92e8a6b2ceafe7352fce6c351378aa7de4f9 Mon Sep 17 00:00:00 2001
+From: Xottab-DUTY <xottab-duty@yandex.ru>
+Date: Thu, 5 Dec 2019 10:17:53 +0500
+Subject: [PATCH] xrRender/r__screenshot.cpp: check that rect is unlocked
+
+minor code optimization
+---
+ src/Layers/xrRender/r__screenshot.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/src/Layers/xrRender/r__screenshot.cpp b/src/Layers/xrRender/r__screenshot.cpp
+index d5e0b55aded..8efbd54b24b 100644
+--- a/src/Layers/xrRender/r__screenshot.cpp
++++ b/src/Layers/xrRender/r__screenshot.cpp
+@@ -625,12 +625,11 @@ void CRender::ScreenshotAsyncEnd(CMemoryWriter& memory_writer)
+     VERIFY(!m_bMakeAsyncSS);
+ 
+     D3DLOCKED_RECT D;
+-    HRESULT hr;
+     IDirect3DSurface9* pFB;
+ 
+     pFB = Target->pFB;
+ 
+-    hr = pFB->LockRect(&D, nullptr, D3DLOCK_NOSYSLOCK);
++    const HRESULT hr = pFB->LockRect(&D, nullptr, D3DLOCK_NOSYSLOCK);
+     if (hr != D3D_OK)
+         return;
+ 
+@@ -687,7 +686,7 @@ void CRender::ScreenshotAsyncEnd(CMemoryWriter& memory_writer)
+         memory_writer.w(pOrigin, (rtWidth * rtHeight) * 4);
+     }
+ 
+-    hr = pFB->UnlockRect();
++    CHK_DX(pFB->UnlockRect());
+ }
+ 
+ #endif // USE_DX10

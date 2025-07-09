@@ -1,0 +1,46 @@
+From 25ac46355541c988a622d0fcbaff9ef4613c91df Mon Sep 17 00:00:00 2001
+From: Raizo62 <silicium62-github@yahoo.fr>
+Date: Sat, 15 May 2021 10:38:55 +0200
+Subject: [PATCH] cppcheck : Consider using std::transform algorithm instead of
+ a raw loop 	WirelessDeviceList : list_devices : use std::transform instead
+ of for loop
+
+---
+ src/cwirelessdevicelist.cc | 14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/src/cwirelessdevicelist.cc b/src/cwirelessdevicelist.cc
+index 20a2b00..c9d5d17 100644
+--- a/src/cwirelessdevicelist.cc
++++ b/src/cwirelessdevicelist.cc
+@@ -8,6 +8,7 @@
+ 
+ #include "cwirelessdevicelist.h"
+ #include <cstring>
++#include <algorithm> // std::transform
+ 
+ 
+ WirelessDeviceList::WirelessDeviceList(){
+@@ -68,12 +69,19 @@ void WirelessDeviceList::delete_device(int index){
+ std::vector<WirelessDevice> & WirelessDeviceList::list_devices()  {
+ 
+ 	std::vector<WirelessDevice> * list_wd = new std::vector<WirelessDevice>();
++	list_wd->reserve(_wdevices_list.size());
+ 
+ 	_listaccess.lock();
+-	for (auto & wd : _wdevices_list){
+ 
+-		list_wd->push_back(wd.second);
+-	}
++	std::transform (_wdevices_list.begin(),
++					_wdevices_list.end(),
++					back_inserter(*list_wd),
++					[] (std::pair<int, WirelessDevice> const & pair)
++						{
++							return pair.second;
++						}
++	);
++
+ 	_listaccess.unlock();
+ 
+ 	return *(list_wd) ;

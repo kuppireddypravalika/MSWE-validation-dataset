@@ -1,0 +1,30 @@
+From 048c543fe2a578caa7e1ae7834b6ce8e9dbec0f0 Mon Sep 17 00:00:00 2001
+From: Richard Jenkins <rwj@serenity.uk.net>
+Date: Mon, 3 Jul 2017 23:59:19 +0100
+Subject: [PATCH] Fix needless double invocation of Memory::Set
+
+Memory::Set() invocations moved to InitialiseEntryMaps() function.
+---
+ src/openrct2/rct1/S4Importer.cpp | 9 ---------
+ 1 file changed, 9 deletions(-)
+
+diff --git a/src/openrct2/rct1/S4Importer.cpp b/src/openrct2/rct1/S4Importer.cpp
+index 29ad077762c3..e184013f64d5 100644
+--- a/src/openrct2/rct1/S4Importer.cpp
++++ b/src/openrct2/rct1/S4Importer.cpp
+@@ -310,15 +310,6 @@ class S4Importer final : public IParkImporter
+         // Avoid reusing the value used for last import
+         _parkValueConversionFactor = 0;
+ 
+-        Memory::Set(_rideTypeToRideEntryMap,     255, sizeof(_rideTypeToRideEntryMap));
+-        Memory::Set(_vehicleTypeToRideEntryMap,  255, sizeof(_vehicleTypeToRideEntryMap));
+-        Memory::Set(_smallSceneryTypeToEntryMap, 255, sizeof(_smallSceneryTypeToEntryMap));
+-        Memory::Set(_largeSceneryTypeToEntryMap, 255, sizeof(_largeSceneryTypeToEntryMap));
+-        Memory::Set(_wallTypeToEntryMap,         255, sizeof(_wallTypeToEntryMap));
+-        Memory::Set(_pathTypeToEntryMap,         255, sizeof(_pathTypeToEntryMap));
+-        Memory::Set(_pathAdditionTypeToEntryMap, 255, sizeof(_pathAdditionTypeToEntryMap));
+-        Memory::Set(_sceneryThemeTypeToEntryMap, 255, sizeof(_sceneryThemeTypeToEntryMap));
+-
+         InitialiseEntryMaps();
+         uint16 mapSize = _s4.map_size == 0 ? 128 : _s4.map_size;
+ 

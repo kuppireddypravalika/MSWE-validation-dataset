@@ -1,0 +1,37 @@
+From ed0d46e51aece6026dd1b52c35a36dc5ee15b8db Mon Sep 17 00:00:00 2001
+From: Ryan Houdek <Sonicadvance1@gmail.com>
+Date: Fri, 13 Jan 2023 18:28:48 -0800
+Subject: [PATCH] Frontend: Optimize NormalOp to most likely pick a NormalOp.
+ It's the most common.
+
+---
+ External/FEXCore/Source/Interface/Core/Frontend.cpp | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/External/FEXCore/Source/Interface/Core/Frontend.cpp b/External/FEXCore/Source/Interface/Core/Frontend.cpp
+index c494e05690..07cb1f859f 100644
+--- a/External/FEXCore/Source/Interface/Core/Frontend.cpp
++++ b/External/FEXCore/Source/Interface/Core/Frontend.cpp
+@@ -593,7 +593,11 @@ bool Decoder::NormalOpHeader(FEXCore::X86Tables::X86InstInfo const *Info, uint16
+   LOGMAN_THROW_AA_FMT(Info->Type != FEXCore::X86Tables::TYPE_REX_PREFIX,
+                      "REX PREFIX should have been decoded before this!");
+ 
+-  if (Info->Type >= FEXCore::X86Tables::TYPE_GROUP_1 &&
++  // A normal instruction is the most likely.
++  if (Info->Type == FEXCore::X86Tables::TYPE_INST) [[likely]] {
++    return NormalOp(Info, Op);
++  }
++  else if (Info->Type >= FEXCore::X86Tables::TYPE_GROUP_1 &&
+       Info->Type <= FEXCore::X86Tables::TYPE_GROUP_11) {
+     uint8_t ModRMByte = ReadByte();
+     DecodeInst->ModRM = ModRMByte;
+@@ -741,7 +745,8 @@ bool Decoder::NormalOpHeader(FEXCore::X86Tables::X86InstInfo const *Info, uint16
+     return NormalOp(&EVEXTableOps[EVEXOp], EVEXOp);
+   }
+ 
+-  return NormalOp(Info, Op);
++  LOGMAN_MSG_A_FMT("Invalid instruction decoding type");
++  FEX_UNREACHABLE;
+ }
+ 
+ bool Decoder::DecodeInstruction(uint64_t PC) {

@@ -1,0 +1,31 @@
+From cff15f10d0dca46b4ced3507962ac08f9de114bd Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Tue, 25 Oct 2016 22:03:38 -0400
+Subject: [PATCH] [libromdata] NintendoPublishers: Use a lookup table instead
+ of snprintf() to convert old publisher codes to new ones.
+
+---
+ src/libromdata/NintendoPublishers.cpp | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/src/libromdata/NintendoPublishers.cpp b/src/libromdata/NintendoPublishers.cpp
+index 98c0740fd1..f217ce68c0 100644
+--- a/src/libromdata/NintendoPublishers.cpp
++++ b/src/libromdata/NintendoPublishers.cpp
+@@ -489,10 +489,12 @@ const rp_char *NintendoPublishers::lookup(const char *code)
+  */
+ const rp_char *NintendoPublishers::lookup_old(uint8_t code)
+ {
+-	char buf[8];
+-	snprintf(buf, sizeof(buf), "%02X", code);
+-	uint16_t code16 = ((uint8_t)(buf[0]) << 8) |
+-			   (uint8_t)(buf[1]);
++	static const uint8_t hex_lookup[16] = {
++		'0','1','2','3','4','5','6','7',
++		'8','9','A','B','C','D','E','F'
++	};
++	uint16_t code16 = (hex_lookup[code >> 4] << 8) |
++			   hex_lookup[code & 0x0F];
+ 	return lookup(code16);
+ }
+ 

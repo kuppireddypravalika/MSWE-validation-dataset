@@ -1,0 +1,30 @@
+From 168b2538e348591a35fa1c23c1dcce86aea6a738 Mon Sep 17 00:00:00 2001
+From: "holyfoot/hf@mysql.com/hfmain.(none)" <>
+Date: Sun, 11 Mar 2007 22:30:54 +0400
+Subject: [PATCH] Bug #26527 LOAD DATA INFILE extremely slow with partitioned
+ table mysql_load calls hander::start_bulk_insert(0) to prepare caches for big
+ inserts. As ha_partition didn't allow these caches for underlaying tables,
+ the inserts were much slower
+
+---
+ sql/ha_partition.cc | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/sql/ha_partition.cc b/sql/ha_partition.cc
+index db0d118c2e0..e5b61b29423 100644
+--- a/sql/ha_partition.cc
++++ b/sql/ha_partition.cc
+@@ -2865,12 +2865,7 @@ void ha_partition::start_bulk_insert(ha_rows rows)
+   handler **file;
+   DBUG_ENTER("ha_partition::start_bulk_insert");
+ 
+-  if (!rows)
+-  {
+-    /* Avoid allocation big caches in all underlaying handlers */
+-    DBUG_VOID_RETURN;
+-  }
+-  rows= rows/m_tot_parts + 1;
++  rows= rows ? rows/m_tot_parts + 1 : 0;
+   file= m_file;
+   do
+   {

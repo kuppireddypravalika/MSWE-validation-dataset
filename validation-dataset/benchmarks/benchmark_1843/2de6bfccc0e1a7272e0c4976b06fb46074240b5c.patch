@@ -1,0 +1,22 @@
+From 2de6bfccc0e1a7272e0c4976b06fb46074240b5c Mon Sep 17 00:00:00 2001
+From: nelson <nelson@cimne.upc.edu>
+Date: Wed, 4 Apr 2012 11:19:37 +0000
+Subject: [PATCH] eliminating error shared for shared
+
+---
+ .../schemes/forward_increment_lagrange_multiplier_scheme.h      | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/applications/structural_application/custom_strategies/schemes/forward_increment_lagrange_multiplier_scheme.h b/applications/structural_application/custom_strategies/schemes/forward_increment_lagrange_multiplier_scheme.h
+index 59cdba029e1e..561306c4cb82 100644
+--- a/applications/structural_application/custom_strategies/schemes/forward_increment_lagrange_multiplier_scheme.h
++++ b/applications/structural_application/custom_strategies/schemes/forward_increment_lagrange_multiplier_scheme.h
+@@ -141,7 +141,7 @@ namespace Kratos
+ 	  while(is_converged ==false &&   ++iter < max )
+ 	  {                    
+  	      //STEP1
+-	      #pragma omp parallel for shared(alfa_damp, mid_time_step, CurrentProcessInfo)
++	      #pragma omp parallel for //shared(alfa_damp, mid_time_step, CurrentProcessInfo)
+ 	      for(int k=0; k<number_of_threads; k++)
+ 	      {
+ 		ConditionsContainerType::iterator it_begin = end_previos + condition_partition[k];

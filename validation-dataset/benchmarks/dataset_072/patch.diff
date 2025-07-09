@@ -1,0 +1,22 @@
+From b47d7700c0e3e46bb70888ced70737f4af413036 Mon Sep 17 00:00:00 2001
+From: djsrv <dservilla@gmail.com>
+Date: Fri, 29 Jan 2021 01:04:15 -0500
+Subject: [PATCH] Use short version of erase
+
+---
+ src/handler.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/handler.cpp b/src/handler.cpp
+index d6ef70e..f574c95 100644
+--- a/src/handler.cpp
++++ b/src/handler.cpp
+@@ -626,7 +626,7 @@ void Handler::translateBytecode(Bytecode &bytecode, size_t index, const std::vec
+                 stmt = true;
+             auto &rawList = argList->getValue()->l;
+             auto obj = std::move(rawList.front());
+-            rawList.erase(rawList.begin(), rawList.begin() + 1);
++            rawList.erase(rawList.begin());
+             translation = std::make_unique<ObjCallNode>(std::move(obj), names[bytecode.obj], std::move(argList));
+         }
+         break;

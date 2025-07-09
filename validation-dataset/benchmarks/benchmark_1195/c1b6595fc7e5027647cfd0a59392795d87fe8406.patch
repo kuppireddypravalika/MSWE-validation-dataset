@@ -1,0 +1,27 @@
+From c1b6595fc7e5027647cfd0a59392795d87fe8406 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Thu, 22 Nov 2012 09:27:02 +0000
+Subject: [PATCH] Don't use CheckClassInfo() which might trigger autoloading.
+ Instead, use GetListOfClasses() for classes that don't have a rootmap file
+ but are loaded, and TInterpreter::GetClassSharedLibs() for classes that are
+ not yet loaded but have a rootmap entry.
+
+git-svn-id: http://root.cern.ch/svn/root/trunk@47571 27541ba8-7e3a-0410-8455-c3a389f83636
+---
+ core/textinput/src/Getline_color.cxx | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/core/textinput/src/Getline_color.cxx b/core/textinput/src/Getline_color.cxx
+index dc34c0c3e92a0..5f7e5bbd62bff 100644
+--- a/core/textinput/src/Getline_color.cxx
++++ b/core/textinput/src/Getline_color.cxx
+@@ -230,7 +230,8 @@ void ROOT::TextInputColorizer::ProcessTextChange(EditorRange& Modification,
+          std::string word = text.substr(i, wordLen);
+          char color = kColorNone;
+          if (gROOT->GetListOfTypes()->FindObject(word.c_str())
+-             || gInterpreter->CheckClassInfo(word.c_str(), kFALSE)) {
++             || gROOT->GetListOfClasses()->FindObject(word.c_str())
++             || gInterpreter->GetClassSharedLibs(word.c_str())) {
+             color = kColorType;
+          }
+          for (size_t ic = i; ic < i + wordLen; ++ic) {

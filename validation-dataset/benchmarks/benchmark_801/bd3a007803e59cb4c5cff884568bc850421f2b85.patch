@@ -1,0 +1,33 @@
+From bd3a007803e59cb4c5cff884568bc850421f2b85 Mon Sep 17 00:00:00 2001
+From: Piotr Sobczak <piotr.sobczak@amd.com>
+Date: Tue, 26 Sep 2023 09:07:17 +0200
+Subject: [PATCH] Reduce instcombine iterations form 2 to 1 for non-NGG
+
+The instcombine is run earlier a couple of times so in most cases
+it is not required to run it again with 2 iterations.
+
+Out of 10K test shaders only a handful is affected by this change,
+and the differences are negligible.
+
+This also makes it consistent with the NGG path.
+---
+ lgc/patch/Patch.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/lgc/patch/Patch.cpp b/lgc/patch/Patch.cpp
+index d1945e356d..3398fd7abe 100644
+--- a/lgc/patch/Patch.cpp
++++ b/lgc/patch/Patch.cpp
+@@ -211,10 +211,10 @@ void Patch::addPasses(PipelineState *pipelineState, lgc::PassManager &passMgr, T
+     fpm.addPass(PatchBufferOp());
+ #if LLVM_MAIN_REVISION && LLVM_MAIN_REVISION < 452298
+     // Old version of the code
+-    unsigned instCombineOpt = 2;
++    unsigned instCombineOpt = 1;
+ #else
+     // New version of the code (also handles unknown version, which we treat as latest)
+-    auto instCombineOpt = InstCombineOptions().setMaxIterations(2);
++    auto instCombineOpt = InstCombineOptions().setMaxIterations(1);
+ #endif
+     fpm.addPass(InstCombinePass(instCombineOpt));
+     passMgr.addPass(createModuleToFunctionPassAdaptor(std::move(fpm)));

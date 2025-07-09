@@ -1,0 +1,33 @@
+From 894dd54fc23351ce03021ca6fd9f19582c927d68 Mon Sep 17 00:00:00 2001
+From: Will Dietz <wdietz2@illinois.edu>
+Date: Fri, 13 Jul 2012 18:43:41 +0000
+Subject: [PATCH] DSNodeEquivs: Clear NodeMap before re-using to avoid
+ reprocessing.
+
+When equivalencing nodes to the GlobalsGraph, clear the mappings
+between each iteration so that we don't re-equivalence an
+ever-growing set of mappings.
+
+Clearly a bug, but for the curious here's some timing comparisons:
+403.gcc: 93s -> 4s
+400.perlbench: 25s -> 1s
+
+Much better.
+
+git-svn-id: https://llvm.org/svn/llvm-project/poolalloc/trunk@160178 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/AssistDS/DSNodeEquivs.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/lib/AssistDS/DSNodeEquivs.cpp b/lib/AssistDS/DSNodeEquivs.cpp
+index e71b9675..c03c28ee 100644
+--- a/lib/AssistDS/DSNodeEquivs.cpp
++++ b/lib/AssistDS/DSNodeEquivs.cpp
+@@ -187,6 +187,7 @@ void DSNodeEquivs::equivNodesToGlobals(DSGraph *G) {
+     assert(GlobalNode && "No node for global in global scalar map?");
+ 
+     // Map the two together and all reachable from each...
++    NodeMap.clear();
+     DSGraph::computeNodeMapping(LocalNode, GlobalNode, NodeMap, false);
+ 
+     // Build EC's with this mapping.

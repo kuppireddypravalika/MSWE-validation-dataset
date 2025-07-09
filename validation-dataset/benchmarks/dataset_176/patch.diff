@@ -1,0 +1,48 @@
+From bea7f5a7637dc0f079d4571a293b6bbbd64ab4b6 Mon Sep 17 00:00:00 2001
+From: shengshuyang <shengshuyangdlut@gmail.com>
+Date: Fri, 28 Feb 2014 12:15:06 -0800
+Subject: [PATCH] Update assembleRegions() in region_growing_rgb.hpp to speed
+ up empty segment deletion.
+
+---
+ .../segmentation/impl/region_growing_rgb.hpp  | 25 +++++++++++++------
+ 1 file changed, 18 insertions(+), 7 deletions(-)
+
+diff --git a/segmentation/include/pcl/segmentation/impl/region_growing_rgb.hpp b/segmentation/include/pcl/segmentation/impl/region_growing_rgb.hpp
+index 72c181222d7..a49fa681657 100644
+--- a/segmentation/include/pcl/segmentation/impl/region_growing_rgb.hpp
++++ b/segmentation/include/pcl/segmentation/impl/region_growing_rgb.hpp
+@@ -585,15 +585,26 @@ pcl::RegionGrowingRGB<PointT, NormalT>::assembleRegions (std::vector<unsigned in
+   }
+ 
+   // now we need to erase empty regions
+-  std::vector< pcl::PointIndices >::iterator i_region;
+-  i_region = clusters_.begin ();
+-  while(i_region != clusters_.end ())
++  if (clusters_.empty ()) 
++    return;
++
++  std::vector<pcl::PointIndices>::iterator itr1, itr2;
++  itr1 = clusters_.begin ();
++  itr2 = clusters_.end () - 1;
++
++  while (itr1 < itr2)
+   {
+-    if ( i_region->indices.empty () )
+-      i_region = clusters_.erase (i_region);
+-    else
+-      i_region++;
++    while (!(itr1->indices.empty ()) && itr1 < itr2) 
++      itr1++;
++    while (  itr2->indices.empty ()  && itr1 < itr2) 
++      itr2--;
++	  
++    if (itr1 != itr2)
++      itr1->indices.swap (itr2->indices);
+   }
++
++  if (itr2->indices.empty ())
++    clusters_.erase (itr2, clusters_.end ());
+ }
+ 
+ //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -1,0 +1,22 @@
+From d13e845f06a2a69e1b2be1309b1f300fb7a952a0 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Luk=C3=A1=C5=A1=20Karas?= <lukas.karas@centrum.cz>
+Date: Fri, 27 Jul 2018 14:14:40 +0200
+Subject: [PATCH] use M_PI_4 instead of M_PI/4
+
+---
+ libosmscout-map/include/osmscout/LabelLayouter.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libosmscout-map/include/osmscout/LabelLayouter.h b/libosmscout-map/include/osmscout/LabelLayouter.h
+index ab1cd2b17..0b7ec4af9 100644
+--- a/libosmscout-map/include/osmscout/LabelLayouter.h
++++ b/libosmscout-map/include/osmscout/LabelLayouter.h
+@@ -625,7 +625,7 @@ namespace osmscout {
+       while (offset+label->width < pLength){
+ 
+         // skip string rendering when path is too much squiggly at this offset
+-        if (!labelPath.TestAngleVariance(offset,offset+label->width,M_PI/4)){
++        if (!labelPath.TestAngleVariance(offset,offset+label->width,M_PI_4)){
+           // skip drawing current label and let offset point to the next instance
+           offset+=label->width + labelData.contourLabelSpace;
+           continue;

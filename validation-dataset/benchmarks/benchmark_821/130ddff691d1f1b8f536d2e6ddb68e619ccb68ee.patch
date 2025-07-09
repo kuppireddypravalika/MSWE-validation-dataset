@@ -1,0 +1,29 @@
+From 130ddff691d1f1b8f536d2e6ddb68e619ccb68ee Mon Sep 17 00:00:00 2001
+From: Alejandro Castro <alejandro.castro@tri.global>
+Date: Wed, 12 Feb 2020 13:28:59 -0500
+Subject: [PATCH] Gets rid of accidental heap allocation within
+ CalcArticulatedBodyForceBiasCache() (#12728)
+
+* Gets rid of accidental heap allocaiton within CalcArticulatedBodyForceBiasCache().
+
+For a large model like Atlas (73 dofs), this impacts performance by about 5%.
+More importantly, profilers get very distracted by this massive amount of allocations.
+---
+ multibody/tree/multibody_tree.cc | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/multibody/tree/multibody_tree.cc b/multibody/tree/multibody_tree.cc
+index 5555d4649872..932217ea91f6 100644
+--- a/multibody/tree/multibody_tree.cc
++++ b/multibody/tree/multibody_tree.cc
+@@ -1709,7 +1709,9 @@ void MultibodyTree<T>::CalcArticulatedBodyForceBiasCache(
+       const BodyNode<T>& node = *body_nodes_[body_node_index];
+ 
+       // Get generalized force and body force for this node.
+-      const VectorX<T>& tau_applied =
++      // N.B. Using the VectorBlock here avoids heap allocation. We have
++      // observed this to penalize performance for large models (nv > 36).
++      Eigen::VectorBlock<const Eigen::Ref<const VectorX<T>>> tau_applied =
+           node.get_mobilizer().get_generalized_forces_from_array(
+               generalized_forces);
+       const SpatialForce<T>& Fapplied_Bo_W = body_forces[body_node_index];

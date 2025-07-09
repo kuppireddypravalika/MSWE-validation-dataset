@@ -1,0 +1,34 @@
+From 3e05a95674adf23725375f95a1aaf797a20fd06c Mon Sep 17 00:00:00 2001
+From: Fraser Cormack <fraser@codeplay.com>
+Date: Mon, 26 Jun 2023 14:29:33 +0100
+Subject: [PATCH] [host] Use bit_floor in LLVM 16+
+
+PowerOf2Floor was removed in LLVM 17
+---
+ modules/compiler/targets/host/source/HostPassMachinery.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/modules/compiler/targets/host/source/HostPassMachinery.cpp b/modules/compiler/targets/host/source/HostPassMachinery.cpp
+index 20edf064f3..d5d9d14e53 100644
+--- a/modules/compiler/targets/host/source/HostPassMachinery.cpp
++++ b/modules/compiler/targets/host/source/HostPassMachinery.cpp
+@@ -46,6 +46,7 @@
+ #include <host/remove_byval_attributes_pass.h>
+ #include <host/target.h>
+ #include <llvm/ADT/APFloat.h>
++#include <llvm/ADT/bit.h>
+ #include <llvm/Analysis/TargetTransformInfo.h>
+ #include <llvm/Target/TargetMachine.h>
+ #include <llvm/Transforms/IPO/AlwaysInliner.h>
+@@ -103,7 +104,11 @@ bool hostVeczPassOpts(llvm::Function &F, llvm::ModuleAnalysisManager &MAM,
+   // and dynamic work width must not exceed the device's maximum
+   // work width, so cap it before we even attempt vectorization.
+   // Only try to vectorize to widths of powers of two.
++#if LLVM_VERSION_GREATER_EQUAL(16, 0)
++  const uint32_t SIMDWidth = llvm::bit_floor(
++#else
+   const uint32_t SIMDWidth = llvm::PowerOf2Floor(
++#endif
+       local_size != 0 ? std::min(local_size, work_width) : work_width);
+ 
+   vecz_options.factor =

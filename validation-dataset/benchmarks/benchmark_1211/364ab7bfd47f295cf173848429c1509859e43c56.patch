@@ -1,0 +1,32 @@
+From 364ab7bfd47f295cf173848429c1509859e43c56 Mon Sep 17 00:00:00 2001
+From: Francesco Pretto <ceztko@gmail.com>
+Date: Tue, 1 Oct 2024 13:56:43 +0200
+Subject: [PATCH] PdfObjectStream: Optimize MoveFrom to move objects to be
+ copied instead
+
+---
+ src/podofo/main/PdfObjectStream.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/podofo/main/PdfObjectStream.cpp b/src/podofo/main/PdfObjectStream.cpp
+index 311b1777f..650ac0b33 100644
+--- a/src/podofo/main/PdfObjectStream.cpp
++++ b/src/podofo/main/PdfObjectStream.cpp
+@@ -234,7 +234,7 @@ void PdfObjectStream::MoveFrom(PdfObjectStream& rhs)
+     }
+     else
+     {
+-        lhsDict.AddKey("Filter"_n, PdfObject(*filter), true);
++        lhsDict.AddKey("Filter"_n, std::move(*filter), true);
+         rhsDict.RemoveKey("Filter", true);
+     }
+ 
+@@ -245,7 +245,7 @@ void PdfObjectStream::MoveFrom(PdfObjectStream& rhs)
+     }
+     else
+     {
+-        lhsDict.AddKey("DecodeParms"_n, PdfObject(*decodeParms), true);
++        lhsDict.AddKey("DecodeParms"_n, std::move(*decodeParms), true);
+         rhsDict.RemoveKey("DecodeParms", true);
+     }
+ }

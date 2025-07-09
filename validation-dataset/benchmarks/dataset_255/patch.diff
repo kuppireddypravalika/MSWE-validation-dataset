@@ -1,0 +1,23 @@
+From 7d184b513792dae0a182f74fd53bd882f28599a0 Mon Sep 17 00:00:00 2001
+From: Gleb Belov <gleb.belov@monash.edu>
+Date: Mon, 8 Jan 2018 16:44:27 +1100
+Subject: [PATCH] solns2out: should only issue '% time elapsed: ...' if a new
+ solution is given (use --non-unique to skip check). Good for benchmarking
+
+---
+ lib/solns2out_class.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/solns2out_class.cpp b/lib/solns2out_class.cpp
+index 5e6754cd3..bc8b78e05 100644
+--- a/lib/solns2out_class.cpp
++++ b/lib/solns2out_class.cpp
+@@ -212,7 +212,7 @@ bool Solns2Out::evalOutput( const string& s_ExtraInfo ) {
+     if ( '\n'!=s_ExtraInfo.back() )                 /// TODO is this enough to check EOL?
+       getOutput() << '\n';
+   }
+-  if (_opt.flag_output_time)
++  if ( fNew && _opt.flag_output_time)
+     getOutput() << "% time elapsed: " << stoptime(starttime) << "\n";
+   if ( fNew && !_opt.flag_canonicalize && !_opt.solution_separator.empty())
+     getOutput() << _opt.solution_separator << '\n';

@@ -1,0 +1,39 @@
+From b17918590989d9371de9738f993502b672d7d581 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Pawe=C5=82=20Bylica?= <chfast@gmail.com>
+Date: Sat, 29 Feb 2020 23:22:53 +0100
+Subject: [PATCH] bench: Do full instantiation in "execute" benchmarks
+
+---
+ test/bench/bench.cpp | 12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
+
+diff --git a/test/bench/bench.cpp b/test/bench/bench.cpp
+index 41ae40845..71e106fab 100644
+--- a/test/bench/bench.cpp
++++ b/test/bench/bench.cpp
+@@ -109,8 +109,6 @@ void benchmark_execute(
+             state.SkipWithError("Memory initialization failed");
+     }
+ 
+-    const auto initial_memory = fizzy::bytes{engine->get_memory()};
+-
+     {  // Execute once and check results against expectations.
+         const auto result = engine->execute(*func_ref, benchmark_case.func_args);
+         if (result.trapped)
+@@ -139,11 +137,11 @@ void benchmark_execute(
+ 
+     for ([[maybe_unused]] auto _ : state)
+     {
+-        // Reset instance to its initial state.
+-        // At this point we only reset memory, so this works only while globals
+-        // and imports are not used. If this become a problem doing full
+-        // instantiate() should be considered.
+-        engine->set_memory(initial_memory);
++        state.PauseTiming();
++        engine->instantiate();
++        if (has_memory)
++            engine->init_memory(benchmark_case.memory);
++        state.ResumeTiming();
+ 
+         const auto result = engine->execute(*func_ref, benchmark_case.func_args);
+         benchmark::DoNotOptimize(result);

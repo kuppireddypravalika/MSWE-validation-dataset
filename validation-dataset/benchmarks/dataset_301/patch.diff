@@ -1,0 +1,26 @@
+From e0f68241babfd4284cb03a7892d2f9f9f9b00cff Mon Sep 17 00:00:00 2001
+From: Stuart Morgan <smorgan@mythtv.org>
+Date: Mon, 14 Oct 2013 20:13:22 +0100
+Subject: [PATCH] Pontentially save some time in
+ Scheduler::HandleIdleShutdown(). Only one tuner needs to be in use to block
+ shutdown, so if we find one then skip checking the others.
+
+---
+ mythtv/programs/mythbackend/scheduler.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/mythtv/programs/mythbackend/scheduler.cpp b/mythtv/programs/mythbackend/scheduler.cpp
+index 42204848e9c..3c594ae1214 100644
+--- a/mythtv/programs/mythbackend/scheduler.cpp
++++ b/mythtv/programs/mythbackend/scheduler.cpp
+@@ -2686,7 +2686,10 @@ void Scheduler::HandleIdleShutdown(
+                  !recording; ++it)
+         {
+             if ((*it)->IsBusy())
++            {
+                 recording = true;
++                break;
++            }
+         }
+ 
+         // If there are BLOCKING clients, then we're not idle

@@ -1,0 +1,27 @@
+From d49b2f700fe1e8ba9185f683280cc916e2249baf Mon Sep 17 00:00:00 2001
+From: Allan Sandfeld Jensen <allan.jensen@theqtcompany.com>
+Date: Mon, 23 Feb 2015 14:34:11 +0100
+Subject: [PATCH] Minor optimization in SSE4 unpremultiply
+
+Use a more direct conversion to desired unpacked format.
+
+Change-Id: I47e4a31c580f294c4e717850c4a420e16214e0a9
+Reviewed-by: Thiago Macieira <thiago.macieira@intel.com>
+---
+ src/gui/painting/qdrawingprimitive_sse2_p.h | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/gui/painting/qdrawingprimitive_sse2_p.h b/src/gui/painting/qdrawingprimitive_sse2_p.h
+index 22d12050745..aded999cdd2 100644
+--- a/src/gui/painting/qdrawingprimitive_sse2_p.h
++++ b/src/gui/painting/qdrawingprimitive_sse2_p.h
+@@ -245,8 +245,7 @@ inline QRgb qUnpremultiply_sse4(QRgb p)
+     const uint invAlpha = qt_inv_premul_factor[alpha];
+     const __m128i via = _mm_set1_epi32(invAlpha);
+     const __m128i vr = _mm_set1_epi32(0x8000);
+-    __m128i vl = _mm_unpacklo_epi8(_mm_cvtsi32_si128(p), _mm_setzero_si128());
+-    vl = _mm_unpacklo_epi16(vl, _mm_setzero_si128());
++    __m128i vl = _mm_cvtepu8_epi32(_mm_cvtsi32_si128(p));
+     vl = _mm_mullo_epi32(vl, via);
+     vl = _mm_add_epi32(vl, vr);
+     vl = _mm_srai_epi32(vl, 16);

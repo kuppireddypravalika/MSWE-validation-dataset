@@ -1,0 +1,27 @@
+From c1dbd5dfa6a1bd43d0707c03d47f707383d65bf3 Mon Sep 17 00:00:00 2001
+From: Abdul Zreika <azre6702@uni.sydney.edu.au>
+Date: Mon, 25 Sep 2017 00:21:39 +1000
+Subject: [PATCH] Materialize when aggregator does not contain atom.
+
+Avoids the problem with things like `a(x) :- x = max y { y = 4 }.`,
+which should work (and crop up when inlining atoms in aggregators).
+---
+ src/AstTransforms.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/AstTransforms.cpp b/src/AstTransforms.cpp
+index 60ead6232da..133b2371c2d 100644
+--- a/src/AstTransforms.cpp
++++ b/src/AstTransforms.cpp
+@@ -674,9 +674,9 @@ bool MaterializeAggregationQueriesTransformer::needsMaterializedRelation(const A
+     // inspect remaining atom more closely
+     const AstAtom* atom = dynamic_cast<const AstAtom*>(agg.getBodyLiterals()[0]);
+     if(!atom) {
+-      return false;
++      // no atoms, so materialize
++      return true;
+     }
+-    assert(atom && "Body of aggregate is not containing an atom!");
+ 
+     // if the same variable occurs several times => materialize
+     bool duplicates = false;

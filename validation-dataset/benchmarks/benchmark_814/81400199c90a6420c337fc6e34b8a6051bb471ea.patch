@@ -1,0 +1,39 @@
+From 81400199c90a6420c337fc6e34b8a6051bb471ea Mon Sep 17 00:00:00 2001
+From: poljere <poljere@users.noreply.github.com>
+Date: Wed, 26 Apr 2017 11:02:35 -0700
+Subject: [PATCH] HdRenderIndexScalability surfaces a performance regression in
+ the Render Index. In a previous change we added collection as a parameter for
+ the lambda to run via TBB and that extra parameter made it much slower. The
+ reason is that even though they are references being passed to the lambda we
+ were not specifying that we wanted to pass the reference so we would endup
+ calling the copy constructor for all those parameters that we thought we were
+ passing by reference.
+
+(Internal change: 1739501)
+---
+ pxr/imaging/lib/hd/renderIndex.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/pxr/imaging/lib/hd/renderIndex.cpp b/pxr/imaging/lib/hd/renderIndex.cpp
+index 5e94428f7f..94e777390e 100644
+--- a/pxr/imaging/lib/hd/renderIndex.cpp
++++ b/pxr/imaging/lib/hd/renderIndex.cpp
+@@ -582,8 +582,8 @@ HdRenderIndex::GetDrawItems(HdRprimCollection const& collection)
+         }
+ 
+         dispatcher.Run(
+-          [children, collection, reprName, forcedRepr, 
+-            rootPaths, excludePaths, &result, this]() {
++          [children, &collection, &reprName, forcedRepr, 
++            &rootPaths, &excludePaths, &result, this]() {
+             
+             // In the loop below, we process the previous item while fetching
+             // the next, this is done to hide the memory latency of accessing
+@@ -619,7 +619,6 @@ HdRenderIndex::GetDrawItems(HdRprimCollection const& collection)
+                             reprName, forcedRepr, &result);
+         });
+     }
+-
+     
+     dispatcher.Wait();
+ 

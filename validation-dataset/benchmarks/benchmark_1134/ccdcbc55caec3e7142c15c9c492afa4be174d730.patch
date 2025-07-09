@@ -1,0 +1,33 @@
+From ccdcbc55caec3e7142c15c9c492afa4be174d730 Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Tue, 26 Jan 2016 19:45:58 +0100
+Subject: [PATCH] qmake: don't iterate over .keys()
+
+... iterate over the container itself instead. Avoids
+temporary QList creation as well as the lookup cost
+when actually calling value(key).
+
+Change-Id: Icac867c30e63863cfa44a382eedd4d6df2070a59
+Reviewed-by: Lars Knoll <lars.knoll@theqtcompany.com>
+(cherry picked from qtbase/c9cb20c01a0f3fa93ff9f79fd7ea3f53939497c4)
+Reviewed-by: Marc Mutz <marc.mutz@kdab.com>
+Reviewed-by: Jake Petroules <jake.petroules@qt.io>
+---
+ src/shared/proparser/qmakebuiltins.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/shared/proparser/qmakebuiltins.cpp b/src/shared/proparser/qmakebuiltins.cpp
+index d3fd28184ca..aca42342b50 100644
+--- a/src/shared/proparser/qmakebuiltins.cpp
++++ b/src/shared/proparser/qmakebuiltins.cpp
+@@ -303,8 +303,8 @@ static void addJsonArray(const QJsonArray &array, const QString &keyPrefix, ProV
+ 
+ static void addJsonObject(const QJsonObject &object, const QString &keyPrefix, ProValueMap *map)
+ {
+-    foreach (const QString &key, object.keys())
+-        addJsonValue(object.value(key), keyPrefix + key, map);
++    for (auto it = object.begin(), end = object.end(); it != end; ++it)
++        addJsonValue(it.value(), keyPrefix + it.key(), map);
+ 
+     insertJsonKeyValue(keyPrefix + QLatin1String("_KEYS_"), object.keys(), map);
+ }

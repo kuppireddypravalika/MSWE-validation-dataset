@@ -1,0 +1,36 @@
+From 9c32becf796ec5a066d6aa16845a3770fe586a07 Mon Sep 17 00:00:00 2001
+From: ulteq <ulteq@web.de>
+Date: Sun, 4 Nov 2018 21:45:00 +0100
+Subject: [PATCH] :wrench: Minor 'CalcFuseDrag' optimization
+
+---
+ source/main/physics/BeamForcesEuler.cpp | 8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
+
+diff --git a/source/main/physics/BeamForcesEuler.cpp b/source/main/physics/BeamForcesEuler.cpp
+index 38992b7682..654912b8a6 100644
+--- a/source/main/physics/BeamForcesEuler.cpp
++++ b/source/main/physics/BeamForcesEuler.cpp
+@@ -130,7 +130,7 @@ void Actor::CalcAircraftForces(bool doUpdate)
+ 
+ void Actor::CalcFuseDrag()
+ {
+-    if (m_fusealge_airfoil)
++    if (m_fusealge_airfoil && m_fusealge_width > 0.0f)
+     {
+         Vector3 wind = -m_fusealge_front->Velocity;
+         float wspeed = wind.length();
+@@ -145,13 +145,7 @@ void Actor::CalcFuseDrag()
+ 
+         //tropospheric model valid up to 11.000m (33.000ft)
+         float altitude = m_fusealge_front->AbsPosition.y;
+-
+-        // TODO Unused Varaible
+-        //float sea_level_temperature=273.15f+15.0f; //in Kelvin
+         float sea_level_pressure = 101325; //in Pa
+-
+-        // TODO Unused Varaible
+-        //float airtemperature=sea_level_temperature-altitude*0.0065f; //in Kelvin
+         float airpressure = sea_level_pressure * approx_pow(1.0 - 0.0065 * altitude / 288.1, 5.24947); //in Pa
+         float airdensity = airpressure * 0.0000120896f;//1.225 at sea level
+ 

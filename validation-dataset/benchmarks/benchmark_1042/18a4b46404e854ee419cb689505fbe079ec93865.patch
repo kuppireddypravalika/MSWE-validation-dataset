@@ -1,0 +1,27 @@
+From 18a4b46404e854ee419cb689505fbe079ec93865 Mon Sep 17 00:00:00 2001
+From: Dan Gohman <gohman@apple.com>
+Date: Mon, 7 Jun 2010 19:12:54 +0000
+Subject: [PATCH] Micro-optimize this.
+
+llvm-svn: 105542
+---
+ llvm/lib/Analysis/ScalarEvolution.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/llvm/lib/Analysis/ScalarEvolution.cpp b/llvm/lib/Analysis/ScalarEvolution.cpp
+index 1d6f21d3e38..08831dfd227 100644
+--- a/llvm/lib/Analysis/ScalarEvolution.cpp
++++ b/llvm/lib/Analysis/ScalarEvolution.cpp
+@@ -505,8 +505,10 @@ namespace {
+         return false;
+ 
+       // Primarily, sort the SCEVs by their getSCEVType().
+-      if (LHS->getSCEVType() != RHS->getSCEVType())
+-        return LHS->getSCEVType() < RHS->getSCEVType();
++      unsigned LST = LHS->getSCEVType();
++      unsigned RST = RHS->getSCEVType();
++      if (LST != RST)
++        return LST < RST;
+ 
+       // Then, pick an arbitrary sort. Use the profiling data for speed.
+       const FoldingSetNodeIDRef &L = LHS->getProfile();

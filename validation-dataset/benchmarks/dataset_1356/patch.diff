@@ -1,0 +1,50 @@
+From 72608d2fd25a499afa07cec172088b75174d4ae4 Mon Sep 17 00:00:00 2001
+From: Johannes Hofmann <Johannes.Hofmann@gmx.de>
+Date: Fri, 27 Nov 2009 18:25:50 +0100
+Subject: [PATCH] fix nested <ul> handling in user agent style
+
+Originally I hoped that <ul> elements would be nested like this:
+
+<ul>
+	<li>foo</li>
+	<ul>
+		<li>bar</li>
+	</ul>
+</ul>
+
+in which case we could use ul > ul.
+But instead it seems to be common to use:
+
+<ul>
+	<li>foo</li>
+	<li>
+		<ul>
+			<li>bar</li>
+		</ul>
+	</li>
+</ul>
+
+The child selector ('>') is slightly more efficient than
+the general descendant (' ') selector, but it doesn't
+seem to matter much anyway.
+---
+ src/css.cc | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/css.cc b/src/css.cc
+index 617de1dcf..0ac8e6034 100644
+--- a/src/css.cc
++++ b/src/css.cc
+@@ -572,9 +572,9 @@ void CssContext::buildUserAgentStyle () {
+      "pre {white-space: pre}"
+      "ol {list-style-type: decimal}"
+      "ul {list-style-type: disc}"
+-     "ul > ul {list-style-type: circle}"
+-     "ul > ul > ul {list-style-type: square}"
+-     "ul > ul > ul > ul {list-style-type: disc}"
++     "ul ul {list-style-type: circle}"
++     "ul ul ul {list-style-type: square}"
++     "ul ul ul ul {list-style-type: disc}"
+      "u {text-decoration: underline}"
+      "small, sub, sup {font-size: 0.83em}"
+      "sub {vertical-align: sub}"

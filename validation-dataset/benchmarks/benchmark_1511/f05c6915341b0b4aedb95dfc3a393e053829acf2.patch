@@ -1,0 +1,26 @@
+From f05c6915341b0b4aedb95dfc3a393e053829acf2 Mon Sep 17 00:00:00 2001
+From: Luis Ibanez <luis.ibanez@kitware.com>
+Date: Mon, 6 Apr 2009 16:32:34 -0400
+Subject: [PATCH] COMP: Replacing "log" and "ceil" with "vcl_log" and
+ "vcl_ceil" in order to support Sun-CC with -stlport4.
+
+---
+ Examples/Numerics/FourierDescriptors1.cxx | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/Examples/Numerics/FourierDescriptors1.cxx b/Examples/Numerics/FourierDescriptors1.cxx
+index 65094916ac1..0d7276f4f4b 100644
+--- a/Examples/Numerics/FourierDescriptors1.cxx
++++ b/Examples/Numerics/FourierDescriptors1.cxx
+@@ -178,8 +178,9 @@ int main(int argc, char * argv[] )
+   //  Software Guide : EndLatex 
+ 
+   // Software Guide : BeginCodeSnippet
+-  const unsigned int powerOfTwo   = (unsigned int)ceil( log( (double)(numberOfPoints)) /
+-                                          log( (double)(2.0)));
++  const unsigned int powerOfTwo   = 
++    (unsigned int)vcl_ceil( vcl_log( (double)(numberOfPoints)) /
++                            vcl_log( (double)(2.0)) );
+ 
+   const unsigned int spectrumSize = 1 << powerOfTwo;
+ 

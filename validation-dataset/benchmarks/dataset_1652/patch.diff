@@ -1,0 +1,31 @@
+From fd9013658bab096839154ae6e68adfd1a4e10189 Mon Sep 17 00:00:00 2001
+From: Richard Moore <rich@kde.org>
+Date: Sun, 3 Feb 2013 16:12:15 +0000
+Subject: [PATCH] Increase the size of the QHostInfo cache.
+
+This change increases the size of the DNS cache in QHostInfo from 64
+entries to 128. Given the figures in the google chrome performance paper
+http://www.igvita.com/posa/high-performance-networking-in-google-chrome/
+this should mean we can cache enough entries to handle 4 tabs at once.
+
+Change-Id: I34e32e9e0966473591c59ca5f222623a354650d2
+Reviewed-by: Peter Hartmann <phartmann@rim.com>
+---
+ src/network/kernel/qhostinfo.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/network/kernel/qhostinfo.cpp b/src/network/kernel/qhostinfo.cpp
+index 6de83c37545d..d9d8396011dd 100644
+--- a/src/network/kernel/qhostinfo.cpp
++++ b/src/network/kernel/qhostinfo.cpp
+@@ -699,8 +699,8 @@ void Q_AUTOTEST_EXPORT qt_qhostinfo_enable_cache(bool e)
+ }
+ 
+ // cache for 60 seconds
+-// cache 64 items
+-QHostInfoCache::QHostInfoCache() : max_age(60), enabled(true), cache(64)
++// cache 128 items
++QHostInfoCache::QHostInfoCache() : max_age(60), enabled(true), cache(128)
+ {
+ #ifdef QT_QHOSTINFO_CACHE_DISABLED_BY_DEFAULT
+     enabled = false;

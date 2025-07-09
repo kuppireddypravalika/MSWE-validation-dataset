@@ -1,0 +1,23 @@
+From 300fd14903de0248442251dcd8398e6242d30912 Mon Sep 17 00:00:00 2001
+From: Julien Pommier <pommier@pianoteq.com>
+Date: Fri, 28 May 2004 16:22:01 +0000
+Subject: [PATCH] minor speedup for the assembly of linear elasticity
+
+---
+ src/getfem_assembling.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/getfem_assembling.h b/src/getfem_assembling.h
+index 77d72fe96..b68e0be0d 100644
+--- a/src/getfem_assembling.h
++++ b/src/getfem_assembling.h
+@@ -225,7 +225,8 @@ namespace getfem
+     */
+     generic_assembly assem("lambda=data$1(#2); mu=data$2(#2);"
+ 			   "t=comp(vGrad(#1).vGrad(#1).Base(#2));"
+-			   "e=(t{:,2,3,:,5,6,:}+t{:,3,2,:,5,6,:}+t{:,2,3,:,6,5,:}+t{:,3,2,:,6,5,:})/4;"
++			   //"e=(t{:,2,3,:,5,6,:}+t{:,3,2,:,5,6,:}+t{:,2,3,:,6,5,:}+t{:,3,2,:,6,5,:})/4;"
++			   "e=(t{:,2,3,:,5,6,:}+t{:,3,2,:,5,6,:})*0.5;"
+ 			   "M(#1,#1)+= sym(2*e(:,i,j,:,i,j,k).mu(k) + e(:,i,i,:,j,j,k).lambda(k))");
+ 
+     assem.push_mf(mf);

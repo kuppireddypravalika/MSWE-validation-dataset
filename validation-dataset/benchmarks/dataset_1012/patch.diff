@@ -1,0 +1,23 @@
+From d04ae41a440f3e5a0d419849d3a85c7ea6cdcb78 Mon Sep 17 00:00:00 2001
+From: Denis Corbin <dar.linux@free.fr>
+Date: Sun, 10 Jan 2016 21:26:14 +0100
+Subject: [PATCH] avoiding comparing crc of delta_sig with crc of plain file
+ found on filesystem
+
+---
+ src/libdar/cat_file.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/libdar/cat_file.cpp b/src/libdar/cat_file.cpp
+index 231edf64e..c04bf960a 100644
+--- a/src/libdar/cat_file.cpp
++++ b/src/libdar/cat_file.cpp
+@@ -1300,7 +1300,7 @@ namespace libdar
+ 	{
+ 	    const crc *my_crc = nullptr;
+ 
+-	    if(get_crc(my_crc)) // we have a CRC available for data
++	    if(get_crc(my_crc) && get_saved_status() != s_delta) // we have a CRC available for data
+ 	    {
+ 		    // just compare CRC (as for isolated_mode)
+ 

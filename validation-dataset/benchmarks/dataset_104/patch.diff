@@ -1,0 +1,31 @@
+From 7c82ea7674b316bc28ab225a81265e4810469ec8 Mon Sep 17 00:00:00 2001
+From: Rafa Gago <rafael_gago_81@hotmail.com>
+Date: Sun, 26 Mar 2017 23:07:02 +0200
+Subject: [PATCH] benchmark: require less free disk space
+
+---
+ example/benchmark/main.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/example/benchmark/main.cpp b/example/benchmark/main.cpp
+index edd8f51..0e63083 100644
+--- a/example/benchmark/main.cpp
++++ b/example/benchmark/main.cpp
+@@ -1060,7 +1060,7 @@ void print_usage()
+ //------------------------------------------------------------------------------
+ int main (int argc, const char* argv[])
+ {
+-    const unsigned msgs = 2000000;
++    const unsigned msgs = 1000000;
+ 
+     if (system (MKDIR_OUT_FOLDER) == -1) {
+         std::puts ("unable to create " OUT_FOLDER);
+@@ -1081,7 +1081,7 @@ int main (int argc, const char* argv[])
+         for (auto it = loggers.begin(); it < loggers.end(); ++it) {
+             *it = true;
+         }
+-        run_tests (20, msgs, loggers);
++        run_tests (50, msgs, loggers);
+     }
+     else if(is_mal_stress || choice.compare ("mal-perf") == 0) {
+         loggers[log_mal_heap] = true;

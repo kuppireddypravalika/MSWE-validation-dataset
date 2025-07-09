@@ -1,0 +1,38 @@
+From cc1c702f628d93f9d84b681059e16652ad09d595 Mon Sep 17 00:00:00 2001
+From: Daniel Dunbar <daniel@zuster.org>
+Date: Mon, 21 Sep 2009 03:56:00 +0000
+Subject: [PATCH] Don't allow formatted_ostream to be unbuffered, even if its
+ underlying buffer is.  - The problem is that formatted_ostream forces its
+ underlying buffer to be    unbuffered, so if some client happens to wrap a
+ formatted_ostream around    something, but still use the underlying stream,
+ then we can end up writing on    a fully unbuffered output (which was never
+ intended to be unbuffered).
+
+ - This makes clang (and presumably llvm-gcc) -emit-llvm -S a mere 10x faster.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@82434 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ include/llvm/Support/FormattedStream.h | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/include/llvm/Support/FormattedStream.h b/include/llvm/Support/FormattedStream.h
+index 24a3546200a..6b51144e9ef 100644
+--- a/include/llvm/Support/FormattedStream.h
++++ b/include/llvm/Support/FormattedStream.h
+@@ -105,10 +105,15 @@ namespace llvm
+       // own buffering, and it doesn't need or want TheStream to do another
+       // layer of buffering underneath. Resize the buffer to what TheStream
+       // had been using, and tell TheStream not to do its own buffering.
++      //
++      // If the underlying stream is unbuffered, just use its preferred buffer
++      // size. We can't treat this as an honest wish for unbuffered output,
++      // because it could very well be a stream we previously forced to be
++      // unbuffered.
+       if (size_t BufferSize = TheStream->GetBufferSize())
+         SetBufferSize(BufferSize);
+       else
+-        SetUnbuffered();
++        SetBuffered();
+       TheStream->SetUnbuffered();
+ 
+       Scanned = 0;

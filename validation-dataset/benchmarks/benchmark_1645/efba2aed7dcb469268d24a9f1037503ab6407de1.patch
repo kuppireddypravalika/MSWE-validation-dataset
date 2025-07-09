@@ -1,0 +1,37 @@
+From efba2aed7dcb469268d24a9f1037503ab6407de1 Mon Sep 17 00:00:00 2001
+From: Lioncache <mai.iam2048@gmail.com>
+Date: Tue, 21 Mar 2023 14:35:21 -0400
+Subject: [PATCH] Arm64/VectorOps: Remove unnecessary mov in VSShr
+
+We can just use the movprfx to move the data to shift into the
+destination and then perform the shift directly with Dst as an operand.
+
+This is safe, since no original vectors are used in the ASR operation,
+only temporaries are used.
+
+Lets us eliminate a temporary and keep things simpler.
+---
+ .../Source/Interface/Core/JIT/Arm64/VectorOps.cpp        | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/External/FEXCore/Source/Interface/Core/JIT/Arm64/VectorOps.cpp b/External/FEXCore/Source/Interface/Core/JIT/Arm64/VectorOps.cpp
+index 5a60f3bcdd..8c10f966cc 100644
+--- a/External/FEXCore/Source/Interface/Core/JIT/Arm64/VectorOps.cpp
++++ b/External/FEXCore/Source/Interface/Core/JIT/Arm64/VectorOps.cpp
+@@ -2152,12 +2152,11 @@ DEF_OP(VSShr) {
+   if (HostSupportsSVE && Is256Bit) {
+     const auto Mask = PRED_TMP_32B.Merging();
+ 
+-    dup_imm(SubRegSize, VTMP2.Z(), MaxShift);
+-    umin(SubRegSize, VTMP2.Z(), Mask, VTMP2.Z(), ShiftVector.Z());
++    dup_imm(SubRegSize, VTMP1.Z(), MaxShift);
++    umin(SubRegSize, VTMP1.Z(), Mask, VTMP1.Z(), ShiftVector.Z());
+ 
+-    movprfx(VTMP1.Z(), Vector.Z());
+-    asr(SubRegSize, VTMP1.Z(), Mask, VTMP1.Z(), VTMP2.Z());
+-    mov(Dst.Z(), VTMP1.Z());
++    movprfx(Dst.Z(), Vector.Z());
++    asr(SubRegSize, Dst.Z(), Mask, Dst.Z(), VTMP1.Z());
+   } else {
+     LOGMAN_THROW_AA_FMT(ElementSize != 8, "Adv. SIMD UMIN doesn't handle 64-bit values");
+ 

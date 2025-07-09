@@ -1,0 +1,43 @@
+From e63ecd81ec1853a0f0d80746eef8d8f58f7698f0 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@musicpd.org>
+Date: Thu, 7 Oct 2021 22:43:26 +0200
+Subject: [PATCH] command/QueueCommands: eliminate id lookup from
+ handle_addid()
+
+Use MoveRange() instead of MoveId().
+---
+ src/command/QueueCommands.cxx | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/src/command/QueueCommands.cxx b/src/command/QueueCommands.cxx
+index d45cdb40af..e80acb4ab6 100644
+--- a/src/command/QueueCommands.cxx
++++ b/src/command/QueueCommands.cxx
+@@ -127,9 +127,9 @@ handle_addid(Client &client, Request args, Response &r)
+ 
+ 	int to = -1;
+ 
+-	if (args.size > 1) {
+-		const auto queue_length = partition.playlist.queue.GetLength();
++	const auto queue_length = partition.playlist.queue.GetLength();
+ 
++	if (args.size > 1) {
+ 		const char *const s = args[1];
+ 		if (*s == '+') {
+ 			/* after the current song */
+@@ -155,11 +155,13 @@ handle_addid(Client &client, Request args, Response &r)
+ 	}
+ 
+ 	const SongLoader loader(client);
+-	unsigned added_id = partition.AppendURI(loader, uri);
++	const unsigned added_position = queue_length;
++	const unsigned added_id = partition.AppendURI(loader, uri);
+ 
+ 	if (to >= 0) {
+ 		try {
+-			partition.MoveId(added_id, to);
++			partition.MoveRange(RangeArg::Single(added_position),
++					    to);
+ 		} catch (...) {
+ 			/* rollback */
+ 			partition.DeleteId(added_id);

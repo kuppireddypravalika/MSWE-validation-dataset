@@ -1,0 +1,30 @@
+From 9f0d6e71d6f814dce9da88e4970b7bfe227d3e73 Mon Sep 17 00:00:00 2001
+From: Ahmet Bilgili <ahmet.bilgili@epfl.ch>
+Date: Fri, 14 Oct 2016 01:23:06 +0200
+Subject: [PATCH] Fix the %300 CPU usage
+
+---
+ livre/core/pipeline/SimpleExecutor.cpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/livre/core/pipeline/SimpleExecutor.cpp b/livre/core/pipeline/SimpleExecutor.cpp
+index 2a2b9b6f..59506b67 100644
+--- a/livre/core/pipeline/SimpleExecutor.cpp
++++ b/livre/core/pipeline/SimpleExecutor.cpp
+@@ -68,11 +68,14 @@ struct SimpleExecutor::Impl
+ 
+     void schedule()
+     {
+-        std::set< Future > inputConditions = { _unlockPromise.getFuture() };
++        std::set< Future > inputConditions;
+         std::list< ExecutablePtr > executables;
+         while( true )
+         {
+-            waitForAny( Futures( inputConditions.begin(), inputConditions.end( )));
++            Futures futures = { Future( _unlockPromise ) };
++            futures.insert( futures.end(),
++                            inputConditions.begin(), inputConditions.end( ));
++            waitForAny( futures );
+             {
+                 ScopedLock lock( _promiseReset );
+                 if( _unlockPromise.getFuture().isReady( ))

@@ -1,0 +1,37 @@
+From ce9432964c5173a81dbee3d6a6013eed7c8681c2 Mon Sep 17 00:00:00 2001
+From: Tulio Leao <tupaschoal@gmail.com>
+Date: Wed, 13 Nov 2019 09:48:21 -0300
+Subject: [PATCH] Improve coords management on window_rotate_camera
+
+---
+ src/openrct2/interface/Window.cpp | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/src/openrct2/interface/Window.cpp b/src/openrct2/interface/Window.cpp
+index 5282d653eba7..27f4c48cedab 100644
+--- a/src/openrct2/interface/Window.cpp
++++ b/src/openrct2/interface/Window.cpp
+@@ -922,10 +922,11 @@ void window_rotate_camera(rct_window* w, int32_t direction)
+     // x is LOCATION_NULL if middle of viewport is obstructed by another window?
+     if (coords.x == LOCATION_NULL || other != viewport)
+     {
+-        x = (viewport->view_width >> 1) + viewport->view_x;
+-        y = (viewport->view_height >> 1) + viewport->view_y;
++        int16_t view_x = (viewport->view_width >> 1) + viewport->view_x;
++        int16_t view_y = (viewport->view_height >> 1) + viewport->view_y;
+ 
+-        viewport_adjust_for_map_height(&x, &y, &z);
++        viewport_adjust_for_map_height(&view_x, &view_y, &z);
++        coords = { view_x, view_y };
+     }
+     else
+     {
+@@ -935,7 +936,7 @@ void window_rotate_camera(rct_window* w, int32_t direction)
+     gCurrentRotation = (get_current_rotation() + direction) & 3;
+ 
+     int32_t new_x, new_y;
+-    centre_2d_coordinates(x, y, z, &new_x, &new_y, viewport);
++    centre_2d_coordinates(coords.x, coords.y, z, &new_x, &new_y, viewport);
+ 
+     w->saved_view_x = new_x;
+     w->saved_view_y = new_y;

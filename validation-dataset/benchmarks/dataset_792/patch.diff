@@ -1,0 +1,24 @@
+From 006237191f49ebeda8e19538dca8aae20e182c06 Mon Sep 17 00:00:00 2001
+From: Marton Hajdu <mezpusz@hotmail.com>
+Date: Wed, 8 Nov 2023 16:44:31 +0100
+Subject: [PATCH] Get rid of nonsensical finite integer inductions with the
+ same lower and upper bounds
+
+---
+ Inferences/Induction.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/Inferences/Induction.cpp b/Inferences/Induction.cpp
+index e71f1a5811..e05b6e1b5b 100644
+--- a/Inferences/Induction.cpp
++++ b/Inferences/Induction.cpp
+@@ -953,6 +953,9 @@ void InductionClauseIterator::performIntInduction(const InductionContext& contex
+   if (hasBound2) {
+     // Finite interval induction, use two bounds on both x and y.
+     TermList b2(optionalBound2->term);
++    if (b1 == b2) {
++      return;
++    }
+     // create X<b2 or X>b2 (which is b2<X)
+     Formula* Lxcompb2 = new AtomicFormula(Literal::create2(less, true, (increasing ? x : b2), (increasing ? b2 : x)));
+     const bool isBound2Equal = (optionalBound2->literal->functor() == less && optionalBound2->literal->isNegative());

@@ -1,0 +1,22 @@
+From 25e150462cc47087f182fc1424a6f4e648e9d789 Mon Sep 17 00:00:00 2001
+From: akito <akito914@icloud.com>
+Date: Sat, 14 Jan 2023 02:32:14 +0900
+Subject: [PATCH] Speed up yuv2rgb conversion using inline function
+
+---
+ src/shared/capture/capturev4l.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/shared/capture/capturev4l.cpp b/src/shared/capture/capturev4l.cpp
+index 748e3122..90ad49ad 100644
+--- a/src/shared/capture/capturev4l.cpp
++++ b/src/shared/capture/capturev4l.cpp
+@@ -605,7 +605,7 @@ bool GlobalV4Linstance::getImage(const GlobalV4Linstance::image_t &in_img,
+   };
+ }
+ 
+-GlobalV4Linstance::rgb GlobalV4Linstance::yuv2rgb(GlobalV4Linstance::yuv p)
++inline GlobalV4Linstance::rgb GlobalV4Linstance::yuv2rgb(GlobalV4Linstance::yuv p)
+ {
+     GlobalV4Linstance::rgb r;
+ 

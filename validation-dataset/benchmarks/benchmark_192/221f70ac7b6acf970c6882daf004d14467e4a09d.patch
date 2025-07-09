@@ -1,0 +1,22 @@
+From 221f70ac7b6acf970c6882daf004d14467e4a09d Mon Sep 17 00:00:00 2001
+From: "Daniel J. Hofmann" <daniel@trvx.org>
+Date: Fri, 1 Apr 2016 17:13:43 +0200
+Subject: [PATCH] Synthesize parser only once from DSL: static storage duration
+
+---
+ src/server/api/url_parser.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/server/api/url_parser.cpp b/src/server/api/url_parser.cpp
+index 661440bd02e..964dfb29f98 100644
+--- a/src/server/api/url_parser.cpp
++++ b/src/server/api/url_parser.cpp
+@@ -62,7 +62,7 @@ boost::optional<ParsedURL> parseURL(std::string::iterator &iter, const std::stri
+ {
+     using It = std::decay<decltype(iter)>::type;
+ 
+-    URLParser<It, ParsedURL> parser;
++    static URLParser<It, ParsedURL> const parser;
+     ParsedURL out;
+ 
+     const auto ok = boost::spirit::qi::parse(iter, end, parser, out);

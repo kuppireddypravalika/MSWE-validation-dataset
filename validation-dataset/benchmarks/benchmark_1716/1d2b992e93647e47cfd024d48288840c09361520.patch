@@ -1,0 +1,28 @@
+From 1d2b992e93647e47cfd024d48288840c09361520 Mon Sep 17 00:00:00 2001
+From: Morwenn <morwenn29@hotmail.fr>
+Date: Sun, 25 Oct 2020 12:23:39 +0100
+Subject: [PATCH] Change the number of allocated poplars in poplar_sort
+
+The new bound for the std::vector::reserve() in poplar_sort comes from
+the analysis performed by Harvey & Zatloukal in their work about the
+post-order heap. This should ensure that the poplars vector only ever
+performs a single memory allocation.
+---
+ include/cpp-sort/detail/poplar_sort.h | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/include/cpp-sort/detail/poplar_sort.h b/include/cpp-sort/detail/poplar_sort.h
+index 41ee57df..2c8d7e00 100644
+--- a/include/cpp-sort/detail/poplar_sort.h
++++ b/include/cpp-sort/detail/poplar_sort.h
+@@ -133,7 +133,9 @@ namespace detail
+         if (size < 2) return;
+ 
+         std::vector<poplar<RandomAccessIterator>> poplars;
+-        poplars.reserve(log2(size));
++        // Harvey & Zatloukal, The Post-Order Heap:
++        // [...] the number of trees, k, is at most floor(lg(n + 1)) + 1
++        poplars.reserve(log2(size + 1) + 1);
+ 
+         //
+         // Size of the biggest poplar in the array, which always is a number

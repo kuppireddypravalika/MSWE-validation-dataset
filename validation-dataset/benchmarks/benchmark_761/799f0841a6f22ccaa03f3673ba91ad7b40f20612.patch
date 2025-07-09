@@ -1,0 +1,32 @@
+From 799f0841a6f22ccaa03f3673ba91ad7b40f20612 Mon Sep 17 00:00:00 2001
+From: Thiago Macieira <thiago.macieira@intel.com>
+Date: Tue, 19 Jun 2012 17:36:10 +0200
+Subject: [PATCH] Make QRegion not need to be friends with QVector
+
+This hack was introduced in Qt 4.5 and the intention was to resize
+(hopefully, shrink) the QVector without causing it to reallocate
+memory. We can accomplish the same by reserving the size: until we
+clear() or squeeze(), the container will not free memory.
+
+Change-Id: I03a09537a617be0ce865eefa043005e4051e8706
+Reviewed-by: Lars Knoll <lars.knoll@nokia.com>
+---
+ src/gui/painting/qregion.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/src/gui/painting/qregion.cpp b/src/gui/painting/qregion.cpp
+index d13389e602..357380e2d8 100644
+--- a/src/gui/painting/qregion.cpp
++++ b/src/gui/painting/qregion.cpp
+@@ -4206,9 +4206,8 @@ QVector<QRect> QRegion::rects() const
+ {
+     if (d->qt_rgn) {
+         d->qt_rgn->vectorize();
+-        // hw: modify the vector size directly to avoid reallocation
+-        if (d->qt_rgn->rects.d != QVector<QRect>::Data::sharedNull())
+-            d->qt_rgn->rects.d->size = d->qt_rgn->numRects;
++        d->qt_rgn->rects.reserve(d->qt_rgn->numRects);
++        d->qt_rgn->rects.resize(d->qt_rgn->numRects);
+         return d->qt_rgn->rects;
+     } else {
+         return QVector<QRect>();

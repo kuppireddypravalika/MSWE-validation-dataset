@@ -1,0 +1,31 @@
+From 5361a8dec5300761044dd8a2628db0c0448075cc Mon Sep 17 00:00:00 2001
+From: Anton Kudryavtsev <a.kudryavtsev@netris.ru>
+Date: Thu, 14 Apr 2016 09:17:55 +0300
+Subject: [PATCH] Moc generator: avoid creating QMap::keys().
+
+Iterate the keys directly off the QMap itself.
+
+Change-Id: I7792414db250d8ae63a935513a16a01eb184ebde
+Reviewed-by: Edward Welbourne <edward.welbourne@theqtcompany.com>
+Reviewed-by: Marc Mutz <marc.mutz@kdab.com>
+---
+ src/tools/moc/generator.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/tools/moc/generator.cpp b/src/tools/moc/generator.cpp
+index 2b09cf873a7b..e95ec8296ca6 100644
+--- a/src/tools/moc/generator.cpp
++++ b/src/tools/moc/generator.cpp
+@@ -499,9 +499,9 @@ void Generator::generateCode()
+     // QTBUG-20639 - Accept non-local enums for QML signal/slot parameters.
+     // Look for any scoped enum declarations, and add those to the list
+     // of extra/related metaobjects for this object.
+-    QList<QByteArray> enumKeys = cdef->enumDeclarations.keys();
+-    for (int i = 0; i < enumKeys.count(); ++i) {
+-        const QByteArray &enumKey = enumKeys[i];
++    for (auto it = cdef->enumDeclarations.keyBegin(),
++         end = cdef->enumDeclarations.keyEnd(); it != end; ++it) {
++        const QByteArray &enumKey = *it;
+         int s = enumKey.lastIndexOf("::");
+         if (s > 0) {
+             QByteArray scope = enumKey.left(s);

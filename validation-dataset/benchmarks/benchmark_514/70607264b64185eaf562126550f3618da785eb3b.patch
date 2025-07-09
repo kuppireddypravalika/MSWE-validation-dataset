@@ -1,0 +1,24 @@
+From 70607264b64185eaf562126550f3618da785eb3b Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Thu, 18 May 2023 09:11:09 -0600
+Subject: [PATCH] Capture `population` result by const reference
+
+Fixes MSVC Warning:
+> C26820: This is a potentially expensive copy operation. Consider using a reference unless a copy is required.
+---
+ OPHD/PopulationPool.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/OPHD/PopulationPool.cpp b/OPHD/PopulationPool.cpp
+index 1f3d2f98d..cee1b8d27 100644
+--- a/OPHD/PopulationPool.cpp
++++ b/OPHD/PopulationPool.cpp
+@@ -34,7 +34,7 @@ bool PopulationPool::usePopulation(PopulationRequirements populationRequirements
+ {
+ 	const auto [workersRequired, scientistsRequired] = populationRequirements;
+ 
+-	const auto population = mPopulation->getPopulations();
++	const auto& population = mPopulation->getPopulations();
+ 	const auto scientistsAvailable = population.scientist - (mScientistsAsWorkers + mScientistsUsed);
+ 	const auto workersAvailable = population.worker - mWorkersUsed;
+ 

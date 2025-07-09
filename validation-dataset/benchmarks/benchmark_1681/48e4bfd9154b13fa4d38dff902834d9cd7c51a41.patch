@@ -1,0 +1,42 @@
+From 48e4bfd9154b13fa4d38dff902834d9cd7c51a41 Mon Sep 17 00:00:00 2001
+From: Jeffrey Walton <noloader@gmail.com>
+Date: Fri, 6 May 2016 05:20:56 -0400
+Subject: [PATCH] Improved compile time checking to make runtime check
+ consitent with lack of availability
+
+---
+ cpu.cpp | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
+
+diff --git a/cpu.cpp b/cpu.cpp
+index bd2f51839..3247e5e7c 100644
+--- a/cpu.cpp
++++ b/cpu.cpp
+@@ -269,16 +269,23 @@ void __attribute__ ((constructor)) DetectArmFeatures()
+ void DetectArmFeatures()
+ #endif
+ {
+-#if defined(__linux__) && defined(__aarch64__)
++#if defined(__linux__) && defined(__aarch64__) // ARM-64
+ 	const unsigned long hwcaps = getauxval(AT_HWCAP);
+ 	g_hasNEON = !!(hwcaps & HWCAP_ASIMD);
++# if defined(__ARM_FEATURE_CRC32)
+ 	g_hasCRC32 = !!(hwcaps & HWCAP_CRC32);
+-#elif defined(__linux__)
++# else
++	g_hasCRC32 = false;
++# endif
++#elif defined(__linux__) // ARM-32
+ 	const unsigned long hwcaps = getauxval(AT_HWCAP);
+ 	g_hasNEON = !!(hwcaps & HWCAP_ARM_NEON);
+-	// g_hasCRC32 = !!(hwcaps & HWCAP_ARM_CRC32);
++# if defined(__ARM_FEATURE_CRC32)
++	g_hasCRC32 = !!(hwcaps & HWCAP_ARM_CRC32);
++# else
+ 	g_hasCRC32 = false;
+-#elif defined(_WIN32) && defined(_M_ARM)
++# endif
++#elif defined(_WIN32) && defined(_M_ARM) // Microsoft ARM
+ 	g_hasNEON = true;
+ 	g_hasCRC32 = false;
+ #endif

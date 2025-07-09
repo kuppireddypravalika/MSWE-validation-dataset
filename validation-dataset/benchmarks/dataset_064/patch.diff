@@ -1,0 +1,32 @@
+From 708c4f889568071069bdeaf7ac179387d899e8fa Mon Sep 17 00:00:00 2001
+From: Weilong Wu <veyron_wu@163.com>
+Date: Fri, 2 Dec 2022 12:50:07 +0800
+Subject: [PATCH] [Eager, Performance Optimization] modify AllocateFrom to
+ reduce deconstruction of shared_ptr (#48548)
+
+---
+ paddle/phi/core/dense_tensor.cc | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/paddle/phi/core/dense_tensor.cc b/paddle/phi/core/dense_tensor.cc
+index 3c6f306e8c8f0d..3d717969afaf7e 100644
+--- a/paddle/phi/core/dense_tensor.cc
++++ b/paddle/phi/core/dense_tensor.cc
+@@ -128,7 +128,16 @@ void* DenseTensor::AllocateFrom(Allocator* allocator,
+   if (!holder_ || holder_->size() < bytes + meta_.offset) {
+     meta_.offset = 0;
+     VLOG(10) << "Allocate data with bytes: " << bytes;
+-    ResetHolder(allocator->Allocate(bytes));
++    auto holder = allocator->Allocate(bytes);
++    if (holder_) {
++      PADDLE_ENFORCE_LE(
++          numel() * static_cast<int64_t>(SizeOf(dtype)) +
++              static_cast<int64_t>(meta_.offset),
++          static_cast<int64_t>(holder->size()),
++          phi::errors::InvalidArgument(
++              "The size of Holder is not enough to store the Tensor."));
++    }
++    holder_ = std::move(holder);
+   }
+ 
+   return reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(holder_->ptr()) +

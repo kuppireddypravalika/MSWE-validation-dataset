@@ -1,0 +1,33 @@
+From 84330007e12122bf1b690a4e68b5ef8e973c7882 Mon Sep 17 00:00:00 2001
+From: Anton Kudryavtsev <a.kudryavtsev@netris.ru>
+Date: Thu, 21 Apr 2016 21:58:58 +0300
+Subject: [PATCH] QLockFile: move early out earlier to avoid allocations.
+
+Saves reading two lines and allocating storage for them.
+
+Change-Id: I71f6c7019f4c097897945eea52851e4623b75dc2
+Reviewed-by: David Faure <david.faure@kdab.com>
+Reviewed-by: Edward Welbourne <edward.welbourne@theqtcompany.com>
+---
+ src/corelib/io/qlockfile.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/corelib/io/qlockfile.cpp b/src/corelib/io/qlockfile.cpp
+index 7e39dc56fbab..cb61a52c04cf 100644
+--- a/src/corelib/io/qlockfile.cpp
++++ b/src/corelib/io/qlockfile.cpp
+@@ -293,12 +293,12 @@ bool QLockFilePrivate::getLockInfo(qint64 *pid, QString *hostname, QString *appn
+ 
+     QByteArray pidLine = reader.readLine();
+     pidLine.chop(1);
++    if (pidLine.isEmpty())
++        return false;
+     QByteArray appNameLine = reader.readLine();
+     appNameLine.chop(1);
+     QByteArray hostNameLine = reader.readLine();
+     hostNameLine.chop(1);
+-    if (pidLine.isEmpty())
+-        return false;
+ 
+     qint64 thePid = pidLine.toLongLong();
+     if (pid)

@@ -1,0 +1,23 @@
+From 4a496fa8a9f0e3fe1e2ab16201accc6bda8e14f5 Mon Sep 17 00:00:00 2001
+From: legatvs <legatvs@gmail.com>
+Date: Tue, 3 Feb 2009 17:49:37 +0200
+Subject: [PATCH] Removed +1 from req. space (--subsequent-mode=all)
+ calculations.
+
+---
+ main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/main.c b/main.c
+index ab7aad7..64a4e9e 100644
+--- a/main.c
++++ b/main.c
+@@ -63,7 +63,7 @@ run_subseq_all (void) {
+     char *cmd=0;
+ 
+     while (curr != 0) { /* calc. req. space */
+-        rsize += strlen(curr->str)+1;
++        rsize += strlen(curr->str);
+         curr = curr->next;
+     }
+ 

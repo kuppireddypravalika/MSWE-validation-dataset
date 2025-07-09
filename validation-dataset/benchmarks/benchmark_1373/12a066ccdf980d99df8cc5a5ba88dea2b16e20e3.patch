@@ -1,0 +1,34 @@
+From 12a066ccdf980d99df8cc5a5ba88dea2b16e20e3 Mon Sep 17 00:00:00 2001
+From: Kefu Chai <kefu.chai@scylladb.com>
+Date: Sat, 3 Aug 2024 10:21:40 +0800
+Subject: [PATCH] sstable_directory: use return_exception_ptr() when
+ appropriate
+
+instead of using `std::rethrow_exception()`, use
+`coroutine::return_exception_ptr()` which is a little bit  more
+efficient.
+
+See also 6cafd83e1cc1fad28ca01d15e89a0e258a33c39b
+
+Signed-off-by: Kefu Chai <kefu.chai@scylladb.com>
+
+Closes scylladb/scylladb#20001
+---
+ sstables/sstable_directory.cc | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/sstables/sstable_directory.cc b/sstables/sstable_directory.cc
+index 923fd810bb19..0327885f411c 100644
+--- a/sstables/sstable_directory.cc
++++ b/sstables/sstable_directory.cc
+@@ -315,9 +315,7 @@ future<> sstable_directory::filesystem_components_lister::process(sstable_direct
+     co_await lister.close();
+     if (ex) {
+         dirlog.debug("Could not process sstable directory {}: {}", _directory, ex);
+-        // FIXME: waiting for https://github.com/scylladb/seastar/pull/1090
+-        // co_await coroutine::return_exception(std::move(ex));
+-        std::rethrow_exception(std::move(ex));
++        co_await coroutine::return_exception_ptr(std::move(ex));
+     }
+ 
+     // Always okay to delete files with a temporary TOC. We want to do it before we process

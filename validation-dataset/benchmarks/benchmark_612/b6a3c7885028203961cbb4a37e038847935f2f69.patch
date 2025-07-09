@@ -1,0 +1,22 @@
+From b6a3c7885028203961cbb4a37e038847935f2f69 Mon Sep 17 00:00:00 2001
+From: Moritz Lehmann <moritz.lehmann@uni-bayreuth.de>
+Date: Thu, 1 Jun 2023 08:25:59 +0200
+Subject: [PATCH] Fixed compile bug in SURFACE extension for D2Q9
+
+---
+ src/kernel.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/kernel.cpp b/src/kernel.cpp
+index 450f6c00..4e076fda 100644
+--- a/src/kernel.cpp
++++ b/src/kernel.cpp
+@@ -1260,7 +1260,7 @@ string opencl_c_container() { return R( // ########################## begin of O
+ 	const float center_offset = plic_cube(phit[0], by); // calculate z-offset PLIC of center point only once
+ 	for(uint i=1u; i<9u; i++) { // iterate over neighbors, no loop unrolling here (50% better perfoemance without loop unrolling)
+ 		if(phit[i]>0.0f&&phit[i]<1.0f) { // limit neighbors to interface nodes
+-			const float3 ei = (float3)(c_D2Q9(i), c_D2Q9(9+i), 0.0f); // assume neighbor normal vector is the same as center normal vector
++			const float3 ei = (float3)(c(i), c(9u+i), 0.0f); // assume neighbor normal vector is the same as center normal vector
+ 			const float offset = plic_cube(phit[i], by)-center_offset;
+ 			p[number++] = (float2)(dot(ei, bx), dot(ei, by)+offset); // do coordinate system transformation into (x, f(x)) and apply PLIC pffsets
+ 		}

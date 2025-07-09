@@ -1,0 +1,29 @@
+From 0d519a5f28d963246121dfa9249f50a1a2580d20 Mon Sep 17 00:00:00 2001
+From: Stenzek <stenzek@gmail.com>
+Date: Sun, 24 Dec 2023 20:31:51 +1000
+Subject: [PATCH] x86/FPU: Use SSE4 pminsd+pminud for sign clamping
+
+---
+ pcsx2/x86/iFPU.cpp | 9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
+
+diff --git a/pcsx2/x86/iFPU.cpp b/pcsx2/x86/iFPU.cpp
+index c15bebf48c0b2..c9af3d97db91c 100644
+--- a/pcsx2/x86/iFPU.cpp
++++ b/pcsx2/x86/iFPU.cpp
+@@ -342,13 +342,8 @@ static void fpuFreeIfTemp(int xmmreg)
+ 
+ __fi void fpuFloat3(int regd) // +NaN -> +fMax, -NaN -> -fMax, +Inf -> +fMax, -Inf -> -fMax
+ {
+-	const int t1reg = _allocTempXMMreg(XMMT_FPS);
+-	xMOVSS(xRegisterSSE(t1reg), xRegisterSSE(regd));
+-	xAND.PS(xRegisterSSE(t1reg), ptr[&s_neg[0]]);
+-	xMIN.SS(xRegisterSSE(regd), ptr[&g_maxvals[0]]);
+-	xMAX.SS(xRegisterSSE(regd), ptr[&g_minvals[0]]);
+-	xOR.PS(xRegisterSSE(regd), xRegisterSSE(t1reg));
+-	_freeXMMreg(t1reg);
++	xPMIN.SD(xRegisterSSE(regd), ptr128[&g_maxvals[0]]);
++	xPMIN.UD(xRegisterSSE(regd), ptr128[&g_minvals[0]]);
+ }
+ 
+ __fi void fpuFloat(int regd) // +/-NaN -> +fMax, +Inf -> +fMax, -Inf -> -fMax

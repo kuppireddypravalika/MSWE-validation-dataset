@@ -1,0 +1,25 @@
+From ea080355be73bbe17b4cb8363c76add5696db7c1 Mon Sep 17 00:00:00 2001
+From: Alexandros Frantzis <alexandros.frantzis@canonical.com>
+Date: Tue, 22 Jan 2013 18:54:47 +0200
+Subject: [PATCH] compositor: Minimize time we hold renderer resources
+
+---
+ src/compositor/compositor.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/compositor/compositor.cpp b/src/compositor/compositor.cpp
+index ba86248928b..575e1d28ff5 100644
+--- a/src/compositor/compositor.cpp
++++ b/src/compositor/compositor.cpp
+@@ -61,10 +61,9 @@ struct FilterForVisibleRenderablesInRegion : public mc::FilterForRenderables
+ 
+ void mc::Compositor::render(graphics::Display* display)
+ {
+-    RenderingOperator applicator(*renderer);
+-
+     display->for_each_display_buffer([&](mg::DisplayBuffer& buffer)
+     {
++        RenderingOperator applicator(*renderer);
+         FilterForVisibleRenderablesInRegion selector(buffer.view_area());
+ 
+         buffer.make_current();

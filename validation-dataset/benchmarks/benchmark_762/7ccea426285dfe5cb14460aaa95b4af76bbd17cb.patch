@@ -1,0 +1,36 @@
+From 7ccea426285dfe5cb14460aaa95b4af76bbd17cb Mon Sep 17 00:00:00 2001
+From: T Petrov <tpetrov@codeblocks.org>
+Date: Sun, 28 May 2017 15:26:44 +0000
+Subject: [PATCH] * optimize loading: Swap the conditions first the cheaper and
+ then the more expensive one
+
+> Calling FileTypeOf is more expensive than reading and checking if a bool
+  is true.
+> The swap of the conditions should half the number of calls to FileTypeOf,
+  because most of the header files aren't pchs - the compile flag is false.
+> This optimization dropped the load time for the MySql cmake generated
+  project from 3.9 sec to 2.3 seconds on a core2quad @ 3.2ghz.
+
+git-svn-id: https://svn.code.sf.net/p/codeblocks/code/trunk@11069 2a5c6006-c6dd-42ca-98ab-0921f2732cef
+---
+ src/plugins/compilergcc/compilerMINGWgenerator.cpp | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/src/plugins/compilergcc/compilerMINGWgenerator.cpp b/src/plugins/compilergcc/compilerMINGWgenerator.cpp
+index 3db081cbbc..6db55fd875 100644
+--- a/src/plugins/compilergcc/compilerMINGWgenerator.cpp
++++ b/src/plugins/compilergcc/compilerMINGWgenerator.cpp
+@@ -49,11 +49,9 @@ wxString CompilerMINGWGenerator::SetupIncludeDirs(Compiler* compiler, ProjectBui
+         wxArrayString includedDirs; // avoid adding duplicate dirs...
+         wxString sep = wxFILE_SEP_PATH;
+         // find all PCH in project
+-        for (FilesList::iterator it = target->GetParentProject()->GetFilesList().begin(); it != target->GetParentProject()->GetFilesList().end(); ++it)
++        for (ProjectFile *f : target->GetParentProject()->GetFilesList())
+         {
+-            ProjectFile* f = *it;
+-            if (FileTypeOf(f->relativeFilename) == ftHeader &&
+-                f->compile)
++            if (f->compile && FileTypeOf(f->relativeFilename) == ftHeader)
+             {
+                 // it is a PCH; add it's object dir to includes
+                 wxFileName fn(f->GetObjName());

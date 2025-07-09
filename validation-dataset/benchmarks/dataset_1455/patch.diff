@@ -1,0 +1,41 @@
+From 3e6fe3507683991e55c18f9458d5b664d8df2fda Mon Sep 17 00:00:00 2001
+From: Vivek Venkatraman Krishnan <vivekvenkris@gmail.com>
+Date: Thu, 19 Nov 2020 14:57:30 +0100
+Subject: [PATCH] removing the last 1 second of data that could have different
+ statistics
+
+---
+ include/data_types/filterbank.hpp | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/include/data_types/filterbank.hpp b/include/data_types/filterbank.hpp
+index 53d8a52..f6d0e40 100644
+--- a/include/data_types/filterbank.hpp
++++ b/include/data_types/filterbank.hpp
+@@ -223,6 +223,12 @@ class SigprocFilterbank: public Filterbank {
+     ErrorChecker::check_file_error(infile, filename);
+     // Read the header
+     read_header(infile,hdr);
++
++    //removing the last 1 second of data that could have different statistics
++    hdr.nsamples -= (unsigned int)(1 / hdr.tsamp);
++
++
++
+     size_t input_size = (size_t) hdr.nsamples*hdr.nbits*hdr.nchans/8;
+     this->data = new unsigned char [input_size];
+     infile.seekg(hdr.size, std::ios::beg);
+@@ -235,6 +241,13 @@ class SigprocFilterbank: public Filterbank {
+     this->nbits = hdr.nbits;
+     this->fch1 = hdr.fch1;
+     this->foff  = hdr.foff;
++
++
++    //removing the last second of data
++
++
++
++
+   }
+   
+   /*!

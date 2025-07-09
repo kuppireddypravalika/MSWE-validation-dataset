@@ -1,0 +1,31 @@
+From b6162fa1efd2e7db453610bf18b17370a8a5ae61 Mon Sep 17 00:00:00 2001
+From: George Rimar <grimar@accesssoftek.com>
+Date: Thu, 8 Dec 2016 13:50:28 +0000
+Subject: [PATCH] [ELF] - Read 16 bits for R_386_16/R_386_PC16 relocations
+ instead of 32.
+
+Looks it was theoretically incorrect if the section is at the very end of the file as
+reading 32 bits would pass the end of file
+---
+ lld/ELF/Target.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/lld/ELF/Target.cpp b/lld/ELF/Target.cpp
+index 9f743d4a2d50..285dac773545 100644
+--- a/lld/ELF/Target.cpp
++++ b/lld/ELF/Target.cpp
+@@ -439,12 +439,13 @@ uint64_t X86TargetInfo::getImplicitAddend(const uint8_t *Buf,
+   default:
+     return 0;
+   case R_386_16:
++  case R_386_PC16:
++    return read16le(Buf);
+   case R_386_32:
+   case R_386_GOT32:
+   case R_386_GOT32X:
+   case R_386_GOTOFF:
+   case R_386_GOTPC:
+-  case R_386_PC16:
+   case R_386_PC32:
+   case R_386_PLT32:
+   case R_386_TLS_LE:

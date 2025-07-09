@@ -1,0 +1,23 @@
+From 9ea29e8ffd3e9ba75df10366750bfa672aca6035 Mon Sep 17 00:00:00 2001
+From: Sumo Gr <sumogr@mail.com>
+Date: Thu, 30 Apr 2020 13:33:44 +0300
+Subject: [PATCH] [wallet2] Replace std::move with boost::move to avoid
+ prevention of copy elision
+
+---
+ src/wallet/wallet2.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/wallet/wallet2.cpp b/src/wallet/wallet2.cpp
+index 201024a727..172e92f873 100644
+--- a/src/wallet/wallet2.cpp
++++ b/src/wallet/wallet2.cpp
+@@ -1123,7 +1123,7 @@ void wallet_device_callback::on_progress(const hw::device_progress& event)
+ }
+ 
+ wallet2::wallet2(network_type nettype, uint64_t kdf_rounds, bool unattended, std::unique_ptr<epee::net_utils::http::http_client_factory> http_client_factory):
+-  m_http_client(std::move(http_client_factory->create())),
++  m_http_client(boost::move(http_client_factory->create())),
+   m_multisig_rescan_info(NULL),
+   m_multisig_rescan_k(NULL),
+   m_upper_transaction_weight_limit(0),

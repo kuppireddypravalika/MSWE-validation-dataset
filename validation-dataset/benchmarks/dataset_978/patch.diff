@@ -1,0 +1,60 @@
+From 39396789b15aaed0b7954619969b3e636254f8df Mon Sep 17 00:00:00 2001
+From: lioncash <mai.iam2048@gmail.com>
+Date: Wed, 28 Dec 2022 11:43:05 +0000
+Subject: [PATCH] Interpreter/ConversionOps: Prevent out of bounds/excessive
+ element handling in Vector_FToF
+
+Previously this could access more elements than it needs to.
+
+In the case where we pass in a 128-bit vector and perform a 128-bit
+operation, only two doubles should be handled, but in this case will
+actually try and handle four double elements.
+
+Consider converting doubles within a vector into floats:
+
+e.g. _Vector_FToF(16, 4, Src, 8)
+
+16 is our OpSize
+4 is our DestElementSize
+Src is our input vector
+8 is the SrcElementSize
+
+(OpSize << 1) / Op->SrcElementSize becomes:
+(16 << 1) / 8 ->
+32 / 8 ->
+4
+
+What we actually want it 2 here, we're indexing 128-bit vectors out of
+its bounds (not a problem now, since we assume up to 256-bit in the
+interpreter).
+
+Similarly with 256-bit vectors
+
+_Vector_FToF(32, 4, Src, 8)
+
+would become:
+
+64 / 8 -> 8
+
+where we actually want 4, since we only have 4 64-bit elements in a
+256-bit vector.
+
+This corrects this in the interpreter by just special-casing the 64-bit
+calculation.
+---
+ .../FEXCore/Source/Interface/Core/Interpreter/ConversionOps.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/External/FEXCore/Source/Interface/Core/Interpreter/ConversionOps.cpp b/External/FEXCore/Source/Interface/Core/Interpreter/ConversionOps.cpp
+index f9a5f14cf6..0f20fa130b 100644
+--- a/External/FEXCore/Source/Interface/Core/Interpreter/ConversionOps.cpp
++++ b/External/FEXCore/Source/Interface/Core/Interpreter/ConversionOps.cpp
+@@ -195,7 +195,7 @@ DEF_OP(Vector_FToF) {
+       // Sometimes is used to convert from a 128bit vector register
+       // in to a 64bit vector register with different sized elements
+       // eg: %ssa5 i32v2 = Vector_FToF %ssa4 i128, #0x8
+-      uint8_t Elements = (OpSize << 1) / Op->SrcElementSize;
++      uint8_t Elements = OpSize == 8 ? 2 : OpSize / Op->SrcElementSize;
+       DO_VECTOR_1SRC_2TYPE_OP_NOSIZE(float, double, Func, 0, 0)
+       break;
+     }

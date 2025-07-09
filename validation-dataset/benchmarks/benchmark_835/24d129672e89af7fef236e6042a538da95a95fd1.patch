@@ -1,0 +1,47 @@
+From 24d129672e89af7fef236e6042a538da95a95fd1 Mon Sep 17 00:00:00 2001
+From: Nils Asmussen <nils@script-solution.de>
+Date: Thu, 3 Oct 2013 11:19:30 +0200
+Subject: [PATCH] zero: Put a zero'd block in the static data area.
+
+We need the memory anyway. Therefore, it doesn't really matter
+whether we extend our heap or have a larger BSS segment. 16K
+should be enough for almost any case, but we're still prepared
+for larger requests.
+---
+ source/drivers/common/zero/zeromain.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/source/drivers/common/zero/zeromain.c b/source/drivers/common/zero/zeromain.c
+index ddbe9bf33..5ff69a294 100644
+--- a/source/drivers/common/zero/zeromain.c
++++ b/source/drivers/common/zero/zeromain.c
+@@ -25,7 +25,10 @@
+ #include <stdlib.h>
+ #include <errno.h>
+ 
++#define BUF_SIZE	(16 * 1024)
++
+ static sMsg msg;
++static char zeros[BUF_SIZE];
+ 
+ int main(void) {
+ 	int id;
+@@ -49,7 +52,7 @@ int main(void) {
+ 				case MSG_DEV_READ: {
+ 					/* offset is ignored here */
+ 					size_t count = msg.args.arg2;
+-					void *data = calloc(count,1);
++					void *data = count <= BUF_SIZE ? zeros : calloc(count,1);
+ 					if(!data) {
+ 						printe("[ZERO] Unable to alloc mem");
+ 						count = 0;
+@@ -59,7 +62,8 @@ int main(void) {
+ 					send(fd,MSG_DEV_READ_RESP,&msg,sizeof(msg.args));
+ 					if(count) {
+ 						send(fd,MSG_DEV_READ_RESP,data,count);
+-						free(data);
++						if(count > BUF_SIZE)
++							free(data);
+ 					}
+ 				}
+ 				break;

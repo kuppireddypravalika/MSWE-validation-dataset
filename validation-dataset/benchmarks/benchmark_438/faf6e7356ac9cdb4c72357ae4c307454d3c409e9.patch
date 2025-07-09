@@ -1,0 +1,22 @@
+From faf6e7356ac9cdb4c72357ae4c307454d3c409e9 Mon Sep 17 00:00:00 2001
+From: Erik Garrison <erik.garrison@gmail.com>
+Date: Fri, 23 Jan 2015 19:30:05 -0500
+Subject: [PATCH] use dynamic-1 in for_each_node_parallel
+
+---
+ vg.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/vg.cpp b/vg.cpp
+index bfba804dd1c..523f6d98e28 100644
+--- a/vg.cpp
++++ b/vg.cpp
+@@ -1451,7 +1451,7 @@ Node* VG::create_node(string seq) {
+ void VG::for_each_node_parallel(function<void(Node*)> lambda) {
+     create_progress(graph.node_size());
+     int64_t completed = 0;
+-#pragma omp parallel for schedule(dynamic,100) shared(completed)
++#pragma omp parallel for schedule(dynamic) shared(completed)
+     for (int64_t i = 0; i < graph.node_size(); ++i) {
+         lambda(graph.mutable_node(i));
+         if (progress && completed++ % 1000 == 0) {

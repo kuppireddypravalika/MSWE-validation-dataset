@@ -1,0 +1,44 @@
+From 8bbb1ef63004698a84ca2a4aba8fcd22539e7cd9 Mon Sep 17 00:00:00 2001
+From: Christopher James Halse Rogers <christopher.halse.rogers@canonical.com>
+Date: Fri, 2 May 2014 09:28:01 +1000
+Subject: [PATCH] Use std::min() and constify max_count
+
+---
+ examples/eglcounter.cpp | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/examples/eglcounter.cpp b/examples/eglcounter.cpp
+index 1901f43157a..84f5432118c 100644
+--- a/examples/eglcounter.cpp
++++ b/examples/eglcounter.cpp
+@@ -25,6 +25,7 @@
+ #include <vector>
+ #include <stdexcept>
+ #include <iostream>
++#include <algorithm>
+ 
+ static GLuint load_shader(const char *src, GLenum type)
+ {
+@@ -73,12 +74,9 @@ class TwoDigitCounter
+ {
+ public:
+     TwoDigitCounter(GLuint prog, float thickness, unsigned int max_count)
+-        : count{0}, max_count{max_count}, program{prog},
++        : count{0}, max_count{std::min(max_count, 99u)}, program{prog},
+           vertices{create_vertices(thickness)}, digit_drawables{create_digits()}
+     {
+-        if (max_count > 99)
+-            this->max_count = 99;
+-
+         vpos = glGetAttribLocation(program, "vPosition");
+         if (vpos == -1)
+             throw std::runtime_error("Failed to obtain vPosition attribute");
+@@ -191,7 +189,7 @@ class TwoDigitCounter
+     }
+ 
+     unsigned int count;
+-    unsigned int max_count;
++    unsigned int const max_count;
+ 
+     GLint vpos;
+     GLint xoff;

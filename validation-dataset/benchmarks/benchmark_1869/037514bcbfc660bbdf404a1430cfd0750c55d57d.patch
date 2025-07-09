@@ -1,0 +1,31 @@
+From 037514bcbfc660bbdf404a1430cfd0750c55d57d Mon Sep 17 00:00:00 2001
+From: Paul Beckingham <paul@beckingham.net>
+Date: Sun, 1 Nov 2015 22:05:46 -0500
+Subject: [PATCH] CmdInfo: Converted from strtol to std::stoul
+
+---
+ src/commands/CmdInfo.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/commands/CmdInfo.cpp b/src/commands/CmdInfo.cpp
+index 2c6268408..09036356c 100644
+--- a/src/commands/CmdInfo.cpp
++++ b/src/commands/CmdInfo.cpp
+@@ -227,7 +227,7 @@ int CmdInfo::execute (std::string& output)
+     std::string created = task.get ("entry");
+     if (created.length ())
+     {
+-      ISO8601d dt (strtol (created.c_str (), NULL, 10));
++      ISO8601d dt (static_cast <time_t> (std::stoul (created)));
+       age = ISO8601p (now - dt).formatVague ();
+     }
+ 
+@@ -543,7 +543,7 @@ int CmdInfo::execute (std::string& output)
+           {
+             int row = journal.addRow ();
+ 
+-            ISO8601d timestamp (strtol (when.substr (5).c_str (), NULL, 10));
++            ISO8601d timestamp (static_cast <time_t> (std::stoul (when.substr (5))));
+             journal.set (row, 0, timestamp.toString (dateformat));
+ 
+             Task before (previous.substr (4));

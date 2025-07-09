@@ -1,0 +1,33 @@
+From a96ccb1bc8ff99907fa65e932178ff56b06fb48c Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Sat, 4 Jul 2020 20:49:50 -0600
+Subject: [PATCH] Use std::map::find rather that search with for loop
+
+---
+ OPHD/States/MapViewStateHelper.cpp | 12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
+
+diff --git a/OPHD/States/MapViewStateHelper.cpp b/OPHD/States/MapViewStateHelper.cpp
+index feab730b2..3958a3e38 100644
+--- a/OPHD/States/MapViewStateHelper.cpp
++++ b/OPHD/States/MapViewStateHelper.cpp
+@@ -516,14 +516,12 @@ void checkRobotDeployment(XmlElement* _ti, RobotTileTable& _rm, Robot* _r, Robot
+ 	_ti->attribute("age", _r->fuelCellAge());
+ 	_ti->attribute("production", _r->turnsToCompleteTask());
+ 
+-	for (auto it = _rm.begin(); it != _rm.end(); ++it)
++	const auto it = _rm.find(_r);
++	if (it->first == _r)
+ 	{
+-		if (it->first == _r)
+-		{
+-			_ti->attribute("x", it->second->x());
+-			_ti->attribute("y", it->second->y());
+-			_ti->attribute("depth", it->second->depth());
+-		}
++		_ti->attribute("x", it->second->x());
++		_ti->attribute("y", it->second->y());
++		_ti->attribute("depth", it->second->depth());
+ 	}
+ 
+ }

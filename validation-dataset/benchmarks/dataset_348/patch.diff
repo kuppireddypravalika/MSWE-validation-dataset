@@ -1,0 +1,29 @@
+From eccc5c96946af48daeb568507534b9b3740bcd95 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?B=C3=A5rd=20Skaflestad?= <Bard.Skaflestad@sintef.no>
+Date: Tue, 27 May 2014 17:22:50 +0200
+Subject: [PATCH] variableState: Use pre-computed list of "all cells"
+
+Class FullyImplicitBlackoilSolver<Grid> already features a list of
+"all" cells, built at object construction time.  There's no need to
+re-compute that list on every call to variableState() (when Gas is
+active).
+---
+ opm/autodiff/FullyImplicitBlackoilSolver_impl.hpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/opm/autodiff/FullyImplicitBlackoilSolver_impl.hpp b/opm/autodiff/FullyImplicitBlackoilSolver_impl.hpp
+index d439ad2c5bf..12cb372ef8d 100644
+--- a/opm/autodiff/FullyImplicitBlackoilSolver_impl.hpp
++++ b/opm/autodiff/FullyImplicitBlackoilSolver_impl.hpp
+@@ -530,9 +530,8 @@ namespace {
+ 
+             if (active_[ Gas]) {
+                 // Define Sg Rs and Rv in terms of xvar.
+-                std::vector<int> all_cells = buildAllCells(nc);
+-                ADB rsSat = fluidRsSat(state.pressure,all_cells);
+-                ADB rvSat = fluidRvSat(state.pressure,all_cells);
++                ADB rsSat = fluidRsSat(state.pressure, cells_);
++                ADB rvSat = fluidRvSat(state.pressure, cells_);
+                 ADB xvar = vars[ nextvar++ ];
+                 ADB sg = isSg*xvar + isRv* so;
+                 state.saturation[ pu.phase_pos[ Gas ] ] = sg;

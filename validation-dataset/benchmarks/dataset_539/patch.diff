@@ -1,0 +1,37 @@
+From 57b0a429407a57cee17f159c6af7db9d6d937c91 Mon Sep 17 00:00:00 2001
+From: "J. Alexander Treuman" <jat@spatialrift.net>
+Date: Sat, 23 Dec 2006 15:22:35 +0000
+Subject: [PATCH] Don't stop decoding if we're at maxFrames just because
+ there's a Xing tag. Instead, stop decoding as soon as we've found the
+ frames/samples at the "end" that we want drop.
+
+git-svn-id: https://svn.musicpd.org/mpd/trunk@5149 09075e82-0dd4-0310-85a5-a0d7c8717e4f
+---
+ src/inputPlugins/mp3_plugin.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/src/inputPlugins/mp3_plugin.c b/src/inputPlugins/mp3_plugin.c
+index 9434489bcc..b2279b29ec 100644
+--- a/src/inputPlugins/mp3_plugin.c
++++ b/src/inputPlugins/mp3_plugin.c
+@@ -759,8 +759,6 @@ static int mp3Read(mp3DecodeData * data, OutputBuffer * cb, DecoderControl * dc,
+ 		mad_timer_add(&data->timer, (data->frame).header.duration);
+ 		data->bitRate = (data->frame).header.bitrate;
+ 		if (data->currentFrame >= data->maxFrames) {
+-			/* stop decoding, since Xing maxFrames is accurate */
+-			if (data->foundXing) return DECODE_BREAK;
+ 			data->currentFrame = data->maxFrames - 1;
+ 		} else {
+ 			data->highestFrame++;
+@@ -811,8 +809,9 @@ static int mp3Read(mp3DecodeData * data, OutputBuffer * cb, DecoderControl * dc,
+ 			break;
+ 		} else if ((data->dropFramesAtEnd > 0) && 
+ 		           (data->currentFrame == (data->maxFrames + 1 - data->dropFramesAtEnd))) {
+-			data->dropFramesAtEnd--;
+-			break;
++			/* stop decoding, effectively dropping all remaining
++			 * frames */
++			return DECODE_BREAK;
+ 		}
+ 
+ 		if (data->inStream->metaTitle) {

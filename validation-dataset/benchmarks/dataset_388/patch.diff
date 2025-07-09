@@ -1,0 +1,25 @@
+From 67265e7f3ad89ef36bb4293f9b5158c0e8a7a01e Mon Sep 17 00:00:00 2001
+From: Po Yen Chen <poyenc@skymizer.com>
+Date: Tue, 15 Jan 2019 15:16:41 +0800
+Subject: [PATCH] Deallocate memory wich invoke MallocAllocator::destroy()
+
+---
+ include/onnc/ADT/StringHashTable.h | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/include/onnc/ADT/StringHashTable.h b/include/onnc/ADT/StringHashTable.h
+index 9c473a914..f90b6a748 100644
+--- a/include/onnc/ADT/StringHashTable.h
++++ b/include/onnc/ADT/StringHashTable.h
+@@ -103,7 +103,10 @@ class MallocAllocator<internal::Entry<StringRef, ValueType> >
+   { return size_t(-1) / sizeof(DataType); }
+ 
+   void destroy(pointer pObject)
+-  { pObject->~DataType(); }
++  {
++    pObject->~DataType();
++    deallocate(pObject);
++  }
+ };
+ 
+ template<class ValueType,

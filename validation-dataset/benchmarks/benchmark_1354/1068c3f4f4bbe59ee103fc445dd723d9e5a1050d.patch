@@ -1,0 +1,28 @@
+From 1068c3f4f4bbe59ee103fc445dd723d9e5a1050d Mon Sep 17 00:00:00 2001
+From: Vyacheslav Ivanov <islavaivanov76@gmail.com>
+Date: Fri, 2 Aug 2024 02:45:57 +0300
+Subject: [PATCH] fix: optimization: PVS-Studio warning V820
+
+Replaced copying of the 'sources' variable with move semantics to improve performance.
+
+By moving instead of copying, we avoid unnecessary copying of data and enhance efficiency.
+
+Reported by: PVS-Studio
+Signed-off-by: Vyacheslav Ivanov <islavaivanov76@gmail.com>
+---
+ src/content/PacksManager.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/content/PacksManager.cpp b/src/content/PacksManager.cpp
+index 675efee9f..3a47d66df 100644
+--- a/src/content/PacksManager.cpp
++++ b/src/content/PacksManager.cpp
+@@ -8,7 +8,7 @@
+ PacksManager::PacksManager() = default;
+ 
+ void PacksManager::setSources(std::vector<fs::path> sources) {
+-    this->sources = sources;
++    this->sources = std::move(sources);
+ }
+ 
+ void PacksManager::scan() {

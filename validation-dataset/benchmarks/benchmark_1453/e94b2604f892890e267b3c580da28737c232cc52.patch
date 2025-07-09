@@ -1,0 +1,32 @@
+From e94b2604f892890e267b3c580da28737c232cc52 Mon Sep 17 00:00:00 2001
+From: ggorman <>
+Date: Thu, 24 Mar 2011 12:44:05 +0000
+Subject: [PATCH] Replace LU with LDLT for solving the least squared problem.
+ This should be replaced with an SVD method when we migrate to Eigen 3.x
+
+---
+ metric_tensor/include/MetricField.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/metric_tensor/include/MetricField.h b/metric_tensor/include/MetricField.h
+index e1b55051..b8c35682 100644
+--- a/metric_tensor/include/MetricField.h
++++ b/metric_tensor/include/MetricField.h
+@@ -217,7 +217,7 @@ template<typename real_t, typename index_t>
+           }
+ 
+           Eigen::Matrix<real_t, Eigen::Dynamic, 1> a = Eigen::Matrix<real_t, Eigen::Dynamic, 1>::Zero(6);
+-          A.lu().solve(b, &a);
++          A.ldlt().solve(b, &a);
+ 
+           Hessian[i*4  ] = 2*a[1]; // d2/dx2
+           Hessian[i*4+1] = a[2];   // d2/dxdy
+@@ -263,7 +263,7 @@ template<typename real_t, typename index_t>
+           }
+ 
+           Eigen::Matrix<real_t, Eigen::Dynamic, 1> a = Eigen::Matrix<real_t, Eigen::Dynamic, 1>::Zero(10);
+-          A.lu().solve(b, &a);
++          A.ldlt().solve(b, &a);
+ 
+           Hessian[i*9  ] = a[4]*2.0; // d2/dx2
+           Hessian[i*9+1] = a[5];     // d2/dxdy

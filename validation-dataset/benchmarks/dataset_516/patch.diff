@@ -1,0 +1,24 @@
+From 19cb9e13dfa04536c72a9767ae38317f91eb085d Mon Sep 17 00:00:00 2001
+From: Xottab-DUTY <xottab-duty@yandex.ru>
+Date: Mon, 22 Jul 2024 00:06:28 +0500
+Subject: [PATCH] xrCore/XML/tinyxml.h: just clear std::string instead of
+ assigning empty string
+
+Optimization
+---
+ src/xrCore/XML/tinyxml.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/xrCore/XML/tinyxml.h b/src/xrCore/XML/tinyxml.h
+index 77471637faf..b1f4e0d04e1 100644
+--- a/src/xrCore/XML/tinyxml.h
++++ b/src/xrCore/XML/tinyxml.h
+@@ -1304,7 +1304,7 @@ class TiXmlDocument : public TiXmlNode
+     {
+         error = false;
+         errorId = 0;
+-        errorDesc = "";
++        errorDesc.clear();
+         errorLocation.row = errorLocation.col = 0;
+         // errorLocation.last = 0;
+     }

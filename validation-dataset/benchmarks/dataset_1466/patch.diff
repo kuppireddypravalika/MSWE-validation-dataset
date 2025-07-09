@@ -1,0 +1,38 @@
+From beaeb26c641b2d7eb746ca6f85978a3e1840c248 Mon Sep 17 00:00:00 2001
+From: Matthias <mattwi@fysik.dtu.dk>
+Date: Tue, 14 Dec 2021 19:34:44 +0100
+Subject: [PATCH] Add l2norm overload for std::array
+
+---
+ inc/dg/adaptive.h | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/inc/dg/adaptive.h b/inc/dg/adaptive.h
+index 65ce25ee9..640827381 100644
+--- a/inc/dg/adaptive.h
++++ b/inc/dg/adaptive.h
+@@ -19,6 +19,24 @@ get_value_type<ContainerType> l2norm( const ContainerType& x)
+ {
+     return sqrt( dg::blas1::dot( x,x));
+ }
++/*! @brief Compute \f$ \sqrt{\sum_i x_i^2}\f$ using naive summation
++ *
++ * This overload is intended for small arrays where the \c dg::blas1::dot function
++ * has its worst performance and takes overly long time to compute
++ * The intention of this function is to used in the \c Adaptive timestepping class.
++ * @param x Vector to take the norm of
++ * @return \c sqrt(sum_i x_i^2)
++ */
++template <class value_type, int N,
++    typename = std::enable_if_t<std::is_arithmetic<value_type>::value>>
++value_type l2norm( const std::array<value_type,N>& x)
++{
++    value_type sum;
++    for( unsigned i=0; i<N; i++)
++        sum += x[i]*x[i];
++    return sqrt( sum);
++}
++k
+ ///\f$ h_{n+1}= h_n \epsilon_n^{-1/p}\f$
+ template<class value_type>
+ value_type i_control( std::array<value_type,3> dt, std::array<value_type,3> eps, unsigned embedded_order, unsigned order)

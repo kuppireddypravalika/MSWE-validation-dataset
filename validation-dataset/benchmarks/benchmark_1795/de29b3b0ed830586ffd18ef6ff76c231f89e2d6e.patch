@@ -1,0 +1,31 @@
+From de29b3b0ed830586ffd18ef6ff76c231f89e2d6e Mon Sep 17 00:00:00 2001
+From: Magne Sjaastad <magne.sjaastad@ceetronsolutions.com>
+Date: Tue, 20 Dec 2022 11:48:39 +0100
+Subject: [PATCH] OpenMP: Use default AABB tree construction for one cell per
+ BB
+
+Do not use buildCellSearchTreeOptimized() when when cellCountPerBB is 1, as the performance in this case is best using buildCellSearchTree()
+---
+ ApplicationLibCode/ReservoirDataModel/RigMainGrid.cpp | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/ApplicationLibCode/ReservoirDataModel/RigMainGrid.cpp b/ApplicationLibCode/ReservoirDataModel/RigMainGrid.cpp
+index 8a9f7399d4b..95fc1050c9d 100644
+--- a/ApplicationLibCode/ReservoirDataModel/RigMainGrid.cpp
++++ b/ApplicationLibCode/ReservoirDataModel/RigMainGrid.cpp
+@@ -272,7 +272,14 @@ void RigMainGrid::computeCachedData( std::string* aabbTreeInfo )
+     const double factor               = std::ceil( cellCount() / maxNumberOfLeafNodes );
+     const size_t cellsPerBoundingBox  = std::max( size_t( 1 ), static_cast<size_t>( factor ) );
+ 
+-    buildCellSearchTreeOptimized( cellsPerBoundingBox );
++    if ( cellsPerBoundingBox > 1 )
++    {
++        buildCellSearchTreeOptimized( cellsPerBoundingBox );
++    }
++    else
++    {
++        buildCellSearchTree();
++    }
+ 
+     if ( aabbTreeInfo )
+     {

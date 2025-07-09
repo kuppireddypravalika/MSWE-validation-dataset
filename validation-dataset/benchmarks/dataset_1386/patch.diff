@@ -1,0 +1,37 @@
+From 2291b89c5f7d0ec662814c8ee38fdf1cee3eb614 Mon Sep 17 00:00:00 2001
+From: James Pallister <james.pallister@bristol.ac.uk>
+Date: Fri, 17 Jul 2015 15:06:16 +0100
+Subject: [PATCH] Speed improvement for live iterator
+
+---
+ src/algorithms/canonical.cpp | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/src/algorithms/canonical.cpp b/src/algorithms/canonical.cpp
+index 09bb550..e73a18b 100644
+--- a/src/algorithms/canonical.cpp
++++ b/src/algorithms/canonical.cpp
+@@ -541,6 +541,11 @@ pair<vector<unsigned>,bool> canonicalMappingLive(vector<RegisterSlot*> &slotlist
+     }
+     mapping_count.resize(largest_reg+1);
+ 
++    vector<bool> current_live_reg, current_read_reg;
++
++    current_live_reg.resize(largest_reg+1);
++    current_read_reg.resize(largest_reg+1);
++
+     if(values.size() != slotlist.size())
+     {
+         values.clear();
+@@ -613,11 +618,6 @@ pair<vector<unsigned>,bool> canonicalMappingLive(vector<RegisterSlot*> &slotlist
+             // the registers which we have already remapped. Copy them into a
+             // new vector, so we can leave the precomputed values untouched.
+ 
+-            vector<bool> current_live_reg, current_read_reg;
+-
+-            current_live_reg.resize(largest_reg+1);
+-            current_read_reg.resize(largest_reg+1);
+-
+             // Calculate which registers are live, and which are read from,
+             // this is a representation of the use and def sets.
+             for(unsigned j = 0; j < i; ++j)

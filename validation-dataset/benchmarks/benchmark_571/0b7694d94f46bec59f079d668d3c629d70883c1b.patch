@@ -1,0 +1,26 @@
+From 0b7694d94f46bec59f079d668d3c629d70883c1b Mon Sep 17 00:00:00 2001
+From: Hugo Devillers <devillers@cg.uni-saarland.de>
+Date: Wed, 19 Jun 2024 10:11:33 +0200
+Subject: [PATCH] hotfix: don't pre-size hashmap in Rewriter
+
+---
+ src/thorin/transform/rewrite.cpp | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/thorin/transform/rewrite.cpp b/src/thorin/transform/rewrite.cpp
+index ee4e4bec0..ac352568f 100644
+--- a/src/thorin/transform/rewrite.cpp
++++ b/src/thorin/transform/rewrite.cpp
+@@ -3,7 +3,11 @@
+ namespace thorin {
+ 
+ Rewriter::Rewriter(World& src, World& dst) : src_(src), dst_(dst) {
+-    old2new_.rehash(src.defs().capacity());
++    // TODO: rehash is slow-ish, especially in Debug mode
++    // Many short-lived Rewriters are created that only rebuild a tiny portion of the
++    // world, such as in CondEval. For these, we end up paying a significant amount
++    // of time just running this, leading to bad performance. Be smarter or don't do this.
++    //old2new_.rehash(src.defs().capacity());
+ }
+ 
+ Rewriter::Rewriter(World& src, World& dst, Rewriter& parent) : Rewriter(src, dst) {

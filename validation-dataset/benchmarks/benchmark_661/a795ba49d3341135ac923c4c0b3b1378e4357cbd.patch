@@ -1,0 +1,33 @@
+From a795ba49d3341135ac923c4c0b3b1378e4357cbd Mon Sep 17 00:00:00 2001
+From: Jonas Hahnfeld <hahnjo@hahnjo.de>
+Date: Sun, 17 Jun 2018 09:55:20 +0000
+Subject: [PATCH] [NVPTX] Ignore target-cpu and -features for inlining
+
+We don't want to prevent inlining because of target-cpu and -features
+attributes that were added to newer versions of LLVM/Clang: There are
+no incompatible functions in PTX, ptxas will throw errors in such cases.
+
+Differential Revision: https://reviews.llvm.org/D47691
+---
+ llvm/lib/Target/NVPTX/NVPTXTargetTransformInfo.h | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/llvm/lib/Target/NVPTX/NVPTXTargetTransformInfo.h b/llvm/lib/Target/NVPTX/NVPTXTargetTransformInfo.h
+index 812d305da185..a631055d36a0 100644
+--- a/llvm/lib/Target/NVPTX/NVPTXTargetTransformInfo.h
++++ b/llvm/lib/Target/NVPTX/NVPTXTargetTransformInfo.h
+@@ -61,6 +61,14 @@ class NVPTXTTIImpl : public BasicTTIImplBase<NVPTXTTIImpl> {
+   unsigned getRegisterBitWidth(bool Vector) const { return 32; }
+   unsigned getMinVectorRegisterBitWidth() const { return 32; }
+ 
++  // We don't want to prevent inlining because of target-cpu and -features
++  // attributes that were added to newer versions of LLVM/Clang: There are
++  // no incompatible functions in PTX, ptxas will throw errors in such cases.
++  bool areInlineCompatible(const Function *Caller,
++                           const Function *Callee) const {
++    return true;
++  }
++
+   // Increase the inlining cost threshold by a factor of 5, reflecting that
+   // calls are particularly expensive in NVPTX.
+   unsigned getInliningThresholdMultiplier() { return 5; }

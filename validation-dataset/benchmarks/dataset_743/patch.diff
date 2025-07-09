@@ -1,0 +1,25 @@
+From 73eabe2f12a30b7cc86006498c2ecf480b60c47a Mon Sep 17 00:00:00 2001
+From: Vadim Zeitlin <vadim@wxwidgets.org>
+Date: Tue, 12 Nov 2019 23:21:51 +0100
+Subject: [PATCH] Remove redundant wxClientDC::SetFont() call
+
+wxClientDC inherits the font used by the associated window anyhow, there
+is no need to set it explicitly.
+
+No real changes, just a micro optimization.
+---
+ src/common/stattextcmn.cpp | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/src/common/stattextcmn.cpp b/src/common/stattextcmn.cpp
+index daf24882965c..ac1c6c6ceca7 100644
+--- a/src/common/stattextcmn.cpp
++++ b/src/common/stattextcmn.cpp
+@@ -269,7 +269,6 @@ wxString wxStaticTextBase::Ellipsize(const wxString& label) const
+     }
+ 
+     wxClientDC dc(const_cast<wxStaticTextBase*>(this));
+-    dc.SetFont(GetFont());
+ 
+     wxEllipsizeMode mode;
+     if ( HasFlag(wxST_ELLIPSIZE_START) )

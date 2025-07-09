@@ -1,0 +1,42 @@
+From 274c25852179d032efb5afe6a4a268c7fafc9e8c Mon Sep 17 00:00:00 2001
+From: Friedemann Kleint <Friedemann.Kleint@digia.com>
+Date: Fri, 5 Oct 2012 10:12:08 +0200
+Subject: [PATCH] Use jom in tst_qmake.
+
+Speed up compiling the tests.
+
+Task-number: 26023
+
+Change-Id: Ib5e872cc6cde09ac90f426a8f6e7cfea509d02e2
+Reviewed-by: Sergio Ahumada <sergio.ahumada@digia.com>
+Reviewed-by: Joerg Bornemann <joerg.bornemann@digia.com>
+---
+ tests/auto/tools/qmake/tst_qmake.cpp | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/tests/auto/tools/qmake/tst_qmake.cpp b/tests/auto/tools/qmake/tst_qmake.cpp
+index ca4c11e9aa..6e2eb316b9 100644
+--- a/tests/auto/tools/qmake/tst_qmake.cpp
++++ b/tests/auto/tools/qmake/tst_qmake.cpp
+@@ -44,6 +44,7 @@
+ #include "testcompiler.h"
+ 
+ #include <QObject>
++#include <QStandardPaths>
+ #include <QDir>
+ 
+ class tst_qmake : public QObject
+@@ -111,7 +112,12 @@ void tst_qmake::initTestCase()
+     QString binpath = QLibraryInfo::location(QLibraryInfo::BinariesPath);
+     QString cmd = QString("%1/qmake").arg(binpath);
+ #ifdef Q_CC_MSVC
+-    test_compiler.setBaseCommands( "nmake", cmd );
++    const QString jom = QStandardPaths::findExecutable(QLatin1String("jom.exe"));
++    if (jom.isEmpty()) {
++        test_compiler.setBaseCommands( QLatin1String("nmake"), cmd );
++    } else {
++        test_compiler.setBaseCommands( jom, cmd );
++    }
+ #elif defined(Q_CC_MINGW)
+     test_compiler.setBaseCommands( "mingw32-make", cmd );
+ #elif defined(Q_OS_WIN) && defined(Q_CC_GNU)

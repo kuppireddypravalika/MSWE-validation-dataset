@@ -1,0 +1,23 @@
+From 27a09bea8f52b2ed2cbcf353a5b048239e9ddfc7 Mon Sep 17 00:00:00 2001
+From: grichenk <grichenk@78c7ea69-d796-4a43-9a09-de51944f1b03>
+Date: Tue, 24 Aug 2021 13:58:52 +0000
+Subject: [PATCH] Replaced bind1st/mem_fun with bind/mem_fn. JIRA CXX-10934
+
+git-svn-id: https://anonsvn.ncbi.nlm.nih.gov/repos/v1/trunk/c++@94619 78c7ea69-d796-4a43-9a09-de51944f1b03
+---
+ src/objtools/alnmgr/demo/aln_build_app.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/objtools/alnmgr/demo/aln_build_app.cpp b/src/objtools/alnmgr/demo/aln_build_app.cpp
+index 71f8bcff136..805a0139770 100644
+--- a/src/objtools/alnmgr/demo/aln_build_app.cpp
++++ b/src/objtools/alnmgr/demo/aln_build_app.cpp
+@@ -215,7 +215,7 @@ void CAlnBuildApp::LoadInputAlns(void)
+     
+     CAlnAsnReader reader(&GetScope());
+     reader.Read(in.get(),
+-                bind1st(mem_fun(&CAlnBuildApp::InsertAln), this),
++                bind(mem_fn(&CAlnBuildApp::InsertAln), this, placeholders::_1),
+                 asn_type);
+ }
+ 

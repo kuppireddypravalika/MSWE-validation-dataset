@@ -1,0 +1,23 @@
+From 61a5c2e9b63f6362123eac40c18a50b290865837 Mon Sep 17 00:00:00 2001
+From: Nicholas Nethercote <nnethercote@mozilla.com>
+Date: Mon, 18 Jan 2010 09:36:32 +1100
+Subject: [PATCH] Bug 539876 - nanojit: optimize away 'y = mul x, 1'. 
+ r=rreitmai.
+
+---
+ nanojit/LIR.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/nanojit/LIR.cpp b/nanojit/LIR.cpp
+index 4133532..938dd80 100644
+--- a/nanojit/LIR.cpp
++++ b/nanojit/LIR.cpp
+@@ -732,6 +732,8 @@ namespace nanojit
+                 default:
+                     ;
+                 }
++            } else if (c == 1 && v == LIR_mul) {
++                return oprnd1;
+             }
+         }
+ 

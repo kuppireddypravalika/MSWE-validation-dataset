@@ -1,0 +1,33 @@
+From f80557525ad3fd2e63cb5283456331a9483958bb Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@intel.com>
+Date: Fri, 27 Oct 2017 20:13:10 +0000
+Subject: [PATCH] [X86] Teach fastisel to use VLX VMOVNTDQA for v4f64 and
+ 256-bit integers when available.
+
+This looks to have been missed from r280682.
+---
+ llvm/lib/Target/X86/X86FastISel.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/llvm/lib/Target/X86/X86FastISel.cpp b/llvm/lib/Target/X86/X86FastISel.cpp
+index 49ff90644e45..1f51cbb722ad 100644
+--- a/llvm/lib/Target/X86/X86FastISel.cpp
++++ b/llvm/lib/Target/X86/X86FastISel.cpp
+@@ -423,7 +423,7 @@ bool X86FastISel::X86FastEmitLoad(EVT VT, X86AddressMode &AM,
+   case MVT::v4f64:
+     assert(HasAVX);
+     if (IsNonTemporal && Alignment >= 32 && HasAVX2)
+-      Opc = X86::VMOVNTDQAYrm;
++      Opc = HasVLX ? X86::VMOVNTDQAZ256rm : X86::VMOVNTDQAYrm;
+     else if (IsNonTemporal && Alignment >= 16)
+       return false; // Force split for X86::VMOVNTDQArm
+     else if (Alignment >= 32)
+@@ -438,7 +438,7 @@ bool X86FastISel::X86FastEmitLoad(EVT VT, X86AddressMode &AM,
+   case MVT::v32i8:
+     assert(HasAVX);
+     if (IsNonTemporal && Alignment >= 32 && HasAVX2)
+-      Opc = X86::VMOVNTDQAYrm;
++      Opc = HasVLX ? X86::VMOVNTDQAZ256rm : X86::VMOVNTDQAYrm;
+     else if (IsNonTemporal && Alignment >= 16)
+       return false; // Force split for X86::VMOVNTDQArm
+     else if (Alignment >= 32)

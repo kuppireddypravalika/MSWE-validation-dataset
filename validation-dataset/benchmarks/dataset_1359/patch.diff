@@ -1,0 +1,31 @@
+From 395d12ff03e1765a14e7b17a4f0fb062ad473969 Mon Sep 17 00:00:00 2001
+From: Sebastian Geerken <devnull@localhost>
+Date: Sat, 15 Dec 2012 13:45:21 +0100
+Subject: [PATCH] Use binary search for paragraphs. The number of paragraphs
+ *can* become quite large, e.g. for pre-formatted text.
+
+---
+ dw/textblock_linebreaking.cc | 10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
+
+diff --git a/dw/textblock_linebreaking.cc b/dw/textblock_linebreaking.cc
+index 28c2999b5..6cadca26d 100644
+--- a/dw/textblock_linebreaking.cc
++++ b/dw/textblock_linebreaking.cc
+@@ -1082,13 +1082,9 @@ void Textblock::fillParagraphs ()
+    else
+       firstWordOfLine = 0;
+ 
+-   // Binary search would be faster, but there should not be many paragraphs
+-   // in a text block (so that binary search may be even slower).
+-   int parNo = 0;
+-   while (paragraphs->size() - 1 > parNo &&
+-          paragraphs->getRef(parNo)->lastWord <= firstWordOfLine)
+-      parNo++;
+-
++   // If there are no paragraphs yet, findParagraphOfWord will return
++   // -1: use 0 then instead.
++   int parNo = misc::max (0, findParagraphOfWord (firstWordOfLine));
+    paragraphs->setSize (parNo);
+ 
+    int firstWord;

@@ -1,0 +1,21 @@
+From 73e13d6cfc891b1582134ab73ab2c5e7a0285d2a Mon Sep 17 00:00:00 2001
+From: Guido Tack <guido.tack@monash.edu>
+Date: Mon, 26 Feb 2018 10:30:19 +1100
+Subject: [PATCH] Don't trigger GC after each solution (too eager)
+
+---
+ lib/solns2out_class.cpp | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/lib/solns2out_class.cpp b/lib/solns2out_class.cpp
+index 6d29cceb0..042840f41 100644
+--- a/lib/solns2out_class.cpp
++++ b/lib/solns2out_class.cpp
+@@ -135,7 +135,6 @@ void Solns2Out::restoreDefaults() {
+     }
+   }
+   fNewSol2Print = false;
+-  GC::trigger();
+ }
+ 
+ void Solns2Out::parseAssignments(string& solution) {

@@ -1,0 +1,21 @@
+From d404cc028b984efd8c55149ee4f7b3a51fd22a92 Mon Sep 17 00:00:00 2001
+From: Alan Griffiths <alan@octopull.co.uk>
+Date: Wed, 3 Oct 2012 12:20:36 +0100
+Subject: [PATCH] Add a yield() that speeds up acceptance-tests under valgrind
+
+---
+ src/display_server.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/display_server.cpp b/src/display_server.cpp
+index 9c84d201b12..047fa40f5f6 100644
+--- a/src/display_server.cpp
++++ b/src/display_server.cpp
+@@ -79,6 +79,7 @@ void mir::DisplayServer::start()
+ void mir::DisplayServer::do_stuff()
+ {
+     //TODO
++    std::this_thread::yield();
+ }
+ 
+ void mir::DisplayServer::stop()

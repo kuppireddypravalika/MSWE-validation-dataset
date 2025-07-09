@@ -1,0 +1,35 @@
+From b33e79161f2a7a9397a2a4f78628e91120ee24bd Mon Sep 17 00:00:00 2001
+From: Brett208 <15183337+Brett208@users.noreply.github.com>
+Date: Sat, 26 Jun 2021 20:22:11 -0400
+Subject: [PATCH] Use std::accumulate instead of loop to add population
+
+---
+ OPHD/Population/Population.cpp | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/OPHD/Population/Population.cpp b/OPHD/Population/Population.cpp
+index aee1e3bcc..9c21c12f7 100644
+--- a/OPHD/Population/Population.cpp
++++ b/OPHD/Population/Population.cpp
+@@ -3,6 +3,7 @@
+ #include "../RandomNumberGenerator.h"
+ #include <algorithm>
+ #include <iostream>
++#include <numeric>
+ 
+ 
+ namespace {
+@@ -67,12 +68,7 @@ void Population::addPopulation(PersonRole role, int count)
+  */
+ int Population::size() const
+ {
+-	int count = 0;
+-	for (auto& populationRole : mPopulation)
+-	{
+-		count += populationRole;
+-	}
+-	return count;
++	return std::accumulate(mPopulation.begin(), mPopulation.end(), 0);
+ }
+ 
+ 

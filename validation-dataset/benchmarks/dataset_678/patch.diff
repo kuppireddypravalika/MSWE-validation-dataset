@@ -1,0 +1,41 @@
+From 3b3d70df3e862ab8b32975a2ce05d574a492cad6 Mon Sep 17 00:00:00 2001
+From: Kai Sommerfeld <kai.sommerfeld@gmx.com>
+Date: Sat, 2 Nov 2019 16:43:26 +0100
+Subject: [PATCH] [PVR] CGUIEPGGridContainer::GetPrevItem: eliminate unneeded
+ sequential looping over epg grid.
+
+---
+ xbmc/pvr/guilib/GUIEPGGridContainer.cpp | 16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
+
+diff --git a/xbmc/pvr/guilib/GUIEPGGridContainer.cpp b/xbmc/pvr/guilib/GUIEPGGridContainer.cpp
+index 3fab6ad05b6d6..1316461378b1b 100644
+--- a/xbmc/pvr/guilib/GUIEPGGridContainer.cpp
++++ b/xbmc/pvr/guilib/GUIEPGGridContainer.cpp
+@@ -1401,17 +1401,19 @@ GridItem* CGUIEPGGridContainer::GetNextItem(int channel)
+ 
+ GridItem* CGUIEPGGridContainer::GetPrevItem(int channel)
+ {
+-  int channelIndex = channel + m_channelOffset;
+-  int blockIndex = m_blockCursor + m_blockOffset;
++  const int channelIndex = channel + m_channelOffset;
++  const int blockIndex = m_blockCursor + m_blockOffset;
+   if (channelIndex >= m_gridModel->ChannelItemsSize() || blockIndex >= m_gridModel->GetBlockCount())
+     return nullptr;
+ 
+-  int i = m_blockCursor;
+-
+-  while (i > 0 && m_gridModel->GetGridItem(channelIndex, i + m_blockOffset) == m_gridModel->GetGridItem(channelIndex, blockIndex))
+-    i--;
++  int block = m_gridModel->GetGridItemStartBlock(channelIndex, blockIndex);
++  if (block > 0)
++  {
++    // last block of previous event is one block before start block of selected event
++    block -= 1;
++  }
+ 
+-  return m_gridModel->GetGridItemPtr(channelIndex, i + m_blockOffset);
++  return m_gridModel->GetGridItemPtr(channelIndex, block);
+ }
+ 
+ GridItem* CGUIEPGGridContainer::GetItem(int channel)

@@ -1,0 +1,24 @@
+From ee3a526eccac524e480cc0e27fa465e86c578471 Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@intel.com>
+Date: Thu, 7 Dec 2017 08:04:33 +0000
+Subject: [PATCH] [SelectionDAG] Use TLI.getVectorIdxTy to determine type for
+ an EXTRACT_VECTOR_ELT index instead of hardcoding MVT::i8.
+
+---
+ llvm/lib/CodeGen/SelectionDAG/LegalizeVectorTypes.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/llvm/lib/CodeGen/SelectionDAG/LegalizeVectorTypes.cpp b/llvm/lib/CodeGen/SelectionDAG/LegalizeVectorTypes.cpp
+index bded9817b066..b574c1ea8b5d 100644
+--- a/llvm/lib/CodeGen/SelectionDAG/LegalizeVectorTypes.cpp
++++ b/llvm/lib/CodeGen/SelectionDAG/LegalizeVectorTypes.cpp
+@@ -1754,7 +1754,8 @@ SDValue DAGTypeLegalizer::SplitVecOp_EXTRACT_VECTOR_ELT(SDNode *N) {
+     for (unsigned i = 0; i < VecVT.getVectorNumElements(); ++i) {
+       ElementOps.push_back(DAG.getAnyExtOrTrunc(
+           DAG.getNode(ISD::EXTRACT_VECTOR_ELT, dl, EltVT, Vec,
+-                      DAG.getConstant(i, dl, MVT::i8)),
++                      DAG.getConstant(i, dl,
++                                      TLI.getVectorIdxTy(DAG.getDataLayout()))),
+           dl, MVT::i8));
+     }
+ 

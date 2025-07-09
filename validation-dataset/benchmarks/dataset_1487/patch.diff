@@ -1,0 +1,32 @@
+From b81a6d47e0389010da46e675da86e4b199a8c59c Mon Sep 17 00:00:00 2001
+From: Mike Schatz <mschatz@cs.jhu.edu>
+Date: Fri, 25 May 2018 18:53:21 -0400
+Subject: [PATCH] use clock() instead of time() in case it is launched within 1
+ second
+
+---
+ src/Select_samples.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/Select_samples.cpp b/src/Select_samples.cpp
+index 7249534..e4df9bb 100644
+--- a/src/Select_samples.cpp
++++ b/src/Select_samples.cpp
+@@ -6,6 +6,7 @@
+  */
+ 
+ #include "Select_samples.h"
++#include <ctime>
+ 
+ bool genotype_parse(char * buffer) {
+ 
+@@ -267,7 +268,8 @@ void select_random(std::string vcf_file, int num_samples, std::string output) {
+ 	std::vector<std::string> sample_names;
+ 	int total_svs = 0;
+ 
+-	srand(time(NULL));
++	//srand(time(NULL));
++	srand(clock());
+ 
+ //we can actually just use a vector instead!
+ 	std::string tmp_file = output;

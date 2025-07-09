@@ -1,0 +1,24 @@
+From 79b0338a90c306c129d10d9a3c72071b4553c561 Mon Sep 17 00:00:00 2001
+From: ridiculousfish <corydoras@ridiculousfish.com>
+Date: Sun, 3 Apr 2016 12:56:14 -0700
+Subject: [PATCH] Check the shift_path bit instead of compare m in s32
+ branchfree
+
+Saves an instruction under gcc
+---
+ libdivide.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libdivide.h b/libdivide.h
+index 85b958c..6997000 100644
+--- a/libdivide.h
++++ b/libdivide.h
+@@ -1215,7 +1215,7 @@ int32_t libdivide_s32_branchfree_do(int32_t numer, const struct libdivide_s32_br
+     
+     // If q is non-negative, we have nothing to do
+     // If q is negative, we want to add either (2**shift)-1 if d is a power of 2, or (2**shift) if it is not a power of 2
+-    uint32_t is_power_of_2 = (magic == 0);
++    uint32_t is_power_of_2 = !!(more & LIBDIVIDE_S32_SHIFT_PATH);
+     uint32_t q_sign = (uint32_t)(q >> 31);
+     q += q_sign & ((1 << shift) - is_power_of_2);
+     

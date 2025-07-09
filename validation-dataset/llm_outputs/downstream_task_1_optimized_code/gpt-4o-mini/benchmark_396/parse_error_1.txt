@@ -1,0 +1,7 @@
+No valid JSON object with 'optimized_code' found: line 1 column 1 (char 0)
+
+```json
+{
+  "optimized_code": "#include <cstddef>\n\nstruct Position {\n    bool non_pawn_material(int /*side*/) const { return true; }\n};\n\nstruct Stack { int staticEval; };\n\n__attribute__((noinline)) int null_search(int depth) {\n    volatile int sum = 0;\n    // Unroll loop for better performance\n    for (int i = 0; i < depth * 100000; i += 4) {\n        sum += i;\n        if (i + 1 < depth * 100000) sum += (i + 1);\n        if (i + 2 < depth * 100000) sum += (i + 2);\n        if (i + 3 < depth * 100000) sum += (i + 3);\n    }\n    return sum;\n}\n\nsize_t run(size_t loops) {\n    Position pos;\n    Stack ss{};\n    size_t sum = 0;\n    // Pre-calculate staticEval values\n    int evals[5] = {5, -5, -5, -5, -5};\n    for (size_t i = 0; i < loops; ++i) {\n        int depth = static_cast<int>(i % 10) + 1; // depths 1..10\n        ss.staticEval = evals[i % 5];\n        sum += search(pos, &ss, depth, 10, 0);\n    }\n    return sum;\n}\n\n// Explicit template instantiation, unchanged\n\n";
+}
+```

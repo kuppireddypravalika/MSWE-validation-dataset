@@ -1,0 +1,23 @@
+From e219a355d214e85484e88519d64be51cf8308e42 Mon Sep 17 00:00:00 2001
+From: pudelkoM <maximilian.pudelko@tum.de>
+Date: Wed, 7 Jun 2017 15:58:01 +0200
+Subject: [PATCH] C++ has no VLAs. Use fixed size array with max. batch lookup
+ size instead.
+
+---
+ src/flowtracker.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/flowtracker.cpp b/src/flowtracker.cpp
+index 37f95a9..02e052e 100644
+--- a/src/flowtracker.cpp
++++ b/src/flowtracker.cpp
+@@ -81,7 +81,7 @@ namespace flowtracker {
+         }
+         
+         int get_flow_data_bulk(const void* keys[], std::uint32_t num_keys, T* data[]) {
+-            std::int32_t positions[num_keys] = {};
++            std::int32_t positions[batch_size] = {};
+             int ret = rte_hash_lookup_bulk(this->ipv4_map, reinterpret_cast<const void**>(keys), num_keys, positions);
+             if (ret != 0) {
+                 return ret;

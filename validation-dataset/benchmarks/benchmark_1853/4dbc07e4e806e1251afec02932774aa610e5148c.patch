@@ -1,0 +1,37 @@
+From 4dbc07e4e806e1251afec02932774aa610e5148c Mon Sep 17 00:00:00 2001
+From: Markus Vieth <mvieth@techfak.uni-bielefeld.de>
+Date: Sat, 19 Oct 2024 19:52:22 +0200
+Subject: [PATCH] Convolution3D: use dynamic schedule for OpenMP Each iteration
+ does a radius search, which does not take the same amount of time for each
+ point. Specifying no schedule usually results in a static schedule. Related
+ to https://github.com/PointCloudLibrary/pcl/pull/5775
+
+Benchmarks with table_scene_mug_stereo_textured.pcd (nan points removed before convolution) on Intel Core i7-9850H:
+
+GCC:
+threads | 1    | 2    | 3    | 4    | 5    | 6    |
+before  | 2267 | 1725 | 1283 | 1039 |  863 |  744 |
+dynamic | 2269 | 1155 |  795 |  611 |  497 |  427 |
+
+MSVC 2022 (release configuration):
+threads | 1    | 2    | 3    | 4    | 5    | 6    |
+before  | 2400 | 1886 | 1478 | 1176 |  972 |  857 |
+dynamic | 2501 | 1281 |  919 |  704 |  593 |  537 |
+---
+ filters/include/pcl/filters/impl/convolution_3d.hpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/filters/include/pcl/filters/impl/convolution_3d.hpp b/filters/include/pcl/filters/impl/convolution_3d.hpp
+index 4fbce289994..1001bce7319 100644
+--- a/filters/include/pcl/filters/impl/convolution_3d.hpp
++++ b/filters/include/pcl/filters/impl/convolution_3d.hpp
+@@ -249,7 +249,8 @@ pcl::filters::Convolution3D<PointInT, PointOutT, KernelT>::convolve (PointCloudO
+   default(none) \
+   shared(output) \
+   firstprivate(nn_indices, nn_distances) \
+-  num_threads(threads_)
++  num_threads(threads_) \
++  schedule(dynamic, 64)
+   for (std::int64_t point_idx = 0; point_idx < static_cast<std::int64_t> (surface_->size ()); ++point_idx)
+   {
+     const PointInT& point_in = surface_->points [point_idx];

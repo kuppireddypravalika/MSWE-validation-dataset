@@ -1,0 +1,48 @@
+From ce4eaab20a7ccda862492bcfb3b679bd7ccd6670 Mon Sep 17 00:00:00 2001
+From: Artur Wieczorek <artwik@wp.pl>
+Date: Thu, 23 Jan 2020 19:29:43 +0100
+Subject: [PATCH] Don't use wxINVERT mode in drawing focus rectangle for
+ wxPGProperty
+
+wxPGProperty of category type is drawn every time (with or without focus
+rectangle) on the clear background so there is no need to erase focus
+rectangle by overdrawing it in wxINVERT mode. It can be safely drawn in
+wxCOPY mode.
+
+See #16890.
+---
+ src/propgrid/property.cpp | 17 -----------------
+ 1 file changed, 17 deletions(-)
+
+diff --git a/src/propgrid/property.cpp b/src/propgrid/property.cpp
+index e615a9a9e391..f8d90385cc1c 100644
+--- a/src/propgrid/property.cpp
++++ b/src/propgrid/property.cpp
+@@ -66,27 +66,10 @@ static void wxPGDrawFocusRect(wxWindow *win, wxDC& dc,
+     wxRendererNative::Get().DrawFocusRect(win, dc, rect);
+ #else
+     wxUnusedVar(win);
+-#ifdef __WXMSW__
+-    dc.SetLogicalFunction(wxINVERT);
+-
+-    wxPen pen(*wxBLACK,1,wxPENSTYLE_DOT);
+-    pen.SetCap(wxCAP_BUTT);
+-    dc.SetPen(pen);
+-    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+-
+-    dc.DrawRectangle(rect);
+-
+-    dc.SetLogicalFunction(wxCOPY);
+-#else
+-    dc.SetLogicalFunction(wxINVERT);
+ 
+     dc.SetPen(wxPen(*wxBLACK,1,wxPENSTYLE_DOT));
+     dc.SetBrush(*wxTRANSPARENT_BRUSH);
+-
+     dc.DrawRectangle(rect);
+-
+-    dc.SetLogicalFunction(wxCOPY);
+-#endif // __WXMSW__/!__WXMSW__
+ #endif // wxPG_USE_NATIVE_FOCUS_RECT_RENDERER/!wxPG_USE_NATIVE_FOCUS_RECT_RENDERER
+ }
+ 

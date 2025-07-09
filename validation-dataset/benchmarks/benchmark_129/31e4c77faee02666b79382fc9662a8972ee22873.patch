@@ -1,0 +1,26 @@
+From 31e4c77faee02666b79382fc9662a8972ee22873 Mon Sep 17 00:00:00 2001
+From: Dan Gohman <gohman@apple.com>
+Date: Thu, 7 May 2009 19:43:39 +0000
+Subject: [PATCH] Perform constant folding on operands of instructions with
+ non-void types, such as loads and calls.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@71175 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Transforms/Scalar/InstructionCombining.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/lib/Transforms/Scalar/InstructionCombining.cpp b/lib/Transforms/Scalar/InstructionCombining.cpp
+index 9feb442df97..c285c324ddb 100644
+--- a/lib/Transforms/Scalar/InstructionCombining.cpp
++++ b/lib/Transforms/Scalar/InstructionCombining.cpp
+@@ -12770,7 +12770,9 @@ bool InstCombiner::DoOneIteration(Function &F, unsigned Iteration) {
+       continue;
+     }
+ 
+-    if (TD && I->getType()->getTypeID() == Type::VoidTyID) {
++    if (TD &&
++        (I->getType()->getTypeID() == Type::VoidTyID ||
++         I->isTrapping())) {
+       // See if we can constant fold its operands.
+       for (User::op_iterator i = I->op_begin(), e = I->op_end(); i != e; ++i)
+         if (ConstantExpr *CE = dyn_cast<ConstantExpr>(i))

@@ -1,0 +1,23 @@
+From 16ba04b3d3f52b97056764e011f0af07e379a5f3 Mon Sep 17 00:00:00 2001
+From: Sergio Martins <iamsergio@gmail.com>
+Date: Fri, 1 Dec 2017 14:49:04 +0000
+Subject: [PATCH] connect-3arg-lambda: Minor optimization
+
+Run the cheapest check first
+---
+ src/checks/level1/connect-3arg-lambda.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/checks/level1/connect-3arg-lambda.cpp b/src/checks/level1/connect-3arg-lambda.cpp
+index 12148907..9e5ceff9 100644
+--- a/src/checks/level1/connect-3arg-lambda.cpp
++++ b/src/checks/level1/connect-3arg-lambda.cpp
+@@ -45,7 +45,7 @@ void Connect3argLambda::VisitStmt(clang::Stmt *stmt)
+         return;
+ 
+     FunctionDecl *fdecl = callExpr->getDirectCallee();
+-    if (!QtUtils::isConnect(fdecl) || fdecl->getNumParams() != 3)
++    if (!fdecl || fdecl->getNumParams() != 3 || !QtUtils::isConnect(fdecl))
+         return;
+ 
+     auto lambda = HierarchyUtils::getFirstChildOfType2<LambdaExpr>(callExpr->getArg(2));

@@ -1,0 +1,42 @@
+From 76cf99cb58345326e2cc70233c12f0233c807775 Mon Sep 17 00:00:00 2001
+From: Lukas Rusak <lorusak@gmail.com>
+Date: Thu, 13 Apr 2023 12:21:03 -0700
+Subject: [PATCH] TexturePacker: JPGDecoder: use std::vector for image data
+
+Signed-off-by: Lukas Rusak <lorusak@gmail.com>
+---
+ .../native/TexturePacker/src/decoder/JPGDecoder.cpp    | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/tools/depends/native/TexturePacker/src/decoder/JPGDecoder.cpp b/tools/depends/native/TexturePacker/src/decoder/JPGDecoder.cpp
+index 467cfe0cc9cc7..53ad584772295 100644
+--- a/tools/depends/native/TexturePacker/src/decoder/JPGDecoder.cpp
++++ b/tools/depends/native/TexturePacker/src/decoder/JPGDecoder.cpp
+@@ -90,13 +90,16 @@ bool JPGDecoder::LoadFile(const std::string &filename, DecodedFrames &frames)
+ 
+   frame.rgbaImage.pixels.resize(ImageSize);
+ 
+-  unsigned char *scanlinebuff = new unsigned char[3 * cinfo.image_width];
++  std::vector<unsigned char> scanlinebuff;
++  scanlinebuff.resize(3 * cinfo.image_width);
++
+   unsigned char* dst = (unsigned char*)frame.rgbaImage.pixels.data();
+   while (cinfo.output_scanline < cinfo.output_height)
+   {
+-    jpeg_read_scanlines(&cinfo,&scanlinebuff,1);
++    unsigned char* src2 = scanlinebuff.data();
++
++    jpeg_read_scanlines(&cinfo, &src2, 1);
+ 
+-    unsigned char *src2 = scanlinebuff;
+     unsigned char *dst2 = dst;
+     for (unsigned int x = 0; x < cinfo.image_width; x++, src2 += 3)
+     {
+@@ -107,7 +110,6 @@ bool JPGDecoder::LoadFile(const std::string &filename, DecodedFrames &frames)
+     }
+     dst += cinfo.image_width * 4;
+   }
+-  delete [] scanlinebuff;
+ 
+   jpeg_finish_decompress(&cinfo);
+   jpeg_destroy_decompress(&cinfo);

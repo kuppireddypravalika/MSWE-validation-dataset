@@ -1,0 +1,25 @@
+From 50cef6d393ffcacb69f42972592d9a54c02d7e9a Mon Sep 17 00:00:00 2001
+From: Philippe Antoine <contact@catenacyber.fr>
+Date: Thu, 11 Jul 2019 16:25:26 +0200
+Subject: [PATCH] Skips leading zeroes while looking for pattern
+
+This avoids quadratic complexity which could lead to DOS
+---
+ htp/bstr.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/htp/bstr.c b/htp/bstr.c
+index 474a21cc..b34d3c0b 100644
+--- a/htp/bstr.c
++++ b/htp/bstr.c
+@@ -546,6 +546,10 @@ int bstr_util_mem_index_of_mem_nocasenorzero(const void *_data1, size_t len1, co
+ 
+     for (i = 0; i < len1; i++) {
+         size_t k = i;
++        if (data1[i] == 0) {
++            // skip leading zeroes to avoid quadratic complexity
++            continue;
++        }
+ 
+         for (j = 0; ((j < len2) && (k < len1)); j++, k++) {
+             if (data1[k] == 0) {

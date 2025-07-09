@@ -1,0 +1,29 @@
+From 62cb43eb385b1f49378de8df1300a5e490440e9a Mon Sep 17 00:00:00 2001
+From: "Garth N. Wells" <gnw20@cam.ac.uk>
+Date: Thu, 4 Jun 2009 13:06:47 +0100
+Subject: [PATCH] Use block-wise MTL4 insertion. Seems to be a bit faster.
+
+---
+ dolfin/la/MTL4Matrix.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/dolfin/la/MTL4Matrix.cpp b/dolfin/la/MTL4Matrix.cpp
+index f3b634e6195..952bad4094c 100644
+--- a/dolfin/la/MTL4Matrix.cpp
++++ b/dolfin/la/MTL4Matrix.cpp
+@@ -107,9 +107,15 @@ void MTL4Matrix::add(const double* block, uint m, const uint* rows, uint n, cons
+   if(!ins)
+     init_inserter();
+ 
++  // Block insertion
++  *ins << element_array(mtl::dense2D<double>(m, n, const_cast<double*>(block)), 
++                        mtl::dense_vector<uint>(m, const_cast<uint*>(rows)),
++                        mtl::dense_vector<uint>(n, const_cast<uint*>(cols))); 
++  /*
+   for (uint i = 0; i < m; i++)
+     for (uint j = 0; j < n; j++)
+       (*ins)[rows[i]][cols[j]] << block[i*n +j];
++  */
+ }
+ //-----------------------------------------------------------------------------
+ void MTL4Matrix::MTL4Matrix::axpy(double a, const GenericMatrix& A,

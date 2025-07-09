@@ -1,0 +1,30 @@
+From c8a0cedf33dcde132e6804922292cbdf63a4d803 Mon Sep 17 00:00:00 2001
+From: Alexander Overvoorde <overv161@gmail.com>
+Date: Sat, 23 Jul 2016 17:32:15 +0200
+Subject: [PATCH] Change rct2_measure_fps to only call time() once
+
+---
+ src/rct2.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/rct2.c b/src/rct2.c
+index 873529c84179..7fccdfcb4e85 100644
+--- a/src/rct2.c
++++ b/src/rct2.c
+@@ -309,12 +309,14 @@ static void rct2_measure_fps()
+ {
+     _frames++;
+ 
+-    if (time(NULL) != _lastSecond) {
++    time_t currentTime = time(NULL);
++
++    if (currentTime != _lastSecond) {
+         _currentFPS = _frames;
+         _frames = 0;
+     }
+ 
+-    _lastSecond = time(NULL);
++    _lastSecond = currentTime;
+ }
+ 
+ static void rct2_draw_fps(rct_drawpixelinfo *dpi)

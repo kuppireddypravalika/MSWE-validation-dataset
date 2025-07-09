@@ -1,0 +1,23 @@
+From 7baaec2a66c8b411b03184f8b2b8685261419d04 Mon Sep 17 00:00:00 2001
+From: Sandor Kertesz <cgr@ecmwf.int>
+Date: Fri, 27 Jan 2017 13:35:02 +0000
+Subject: [PATCH] ecFlowUI: expand all is extremely slow in tree view
+ ECFLOW-857
+
+---
+ Viewer/src/VAttributeType.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Viewer/src/VAttributeType.cpp b/Viewer/src/VAttributeType.cpp
+index e53bf5bf8..ff9a4ad29 100644
+--- a/Viewer/src/VAttributeType.cpp
++++ b/Viewer/src/VAttributeType.cpp
+@@ -714,7 +714,7 @@ bool VEventAttribute::getData(VNode *vnode,int row,int& size,QStringList& data)
+         return false;
+ 
+     node_ptr node=vnode->node();
+-    if(node)
++    if(!node)
+         return false;
+ 
+ #ifdef _UI_ATTR_DEBUG

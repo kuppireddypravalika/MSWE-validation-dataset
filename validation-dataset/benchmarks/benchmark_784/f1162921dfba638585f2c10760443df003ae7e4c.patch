@@ -1,0 +1,30 @@
+From f1162921dfba638585f2c10760443df003ae7e4c Mon Sep 17 00:00:00 2001
+From: Lars Knoll <lars.knoll@qt.io>
+Date: Mon, 16 Apr 2018 12:32:17 +0200
+Subject: [PATCH] Correctly check length limit in Array.push()
+
+getLength() returns a 64 bit value, so check against
+UINT_MAX instead of checking for an implicit overflow
+
+Change-Id: I9ac7f582a85bc696faa42dd10170b9b03b33bcf9
+Reviewed-by: Simon Hausmann <simon.hausmann@qt.io>
+---
+ src/qml/jsruntime/qv4arrayobject.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/qml/jsruntime/qv4arrayobject.cpp b/src/qml/jsruntime/qv4arrayobject.cpp
+index 37c386d7816..9b9a2f1052a 100644
+--- a/src/qml/jsruntime/qv4arrayobject.cpp
++++ b/src/qml/jsruntime/qv4arrayobject.cpp
+@@ -352,9 +352,9 @@ ReturnedValue ArrayPrototype::method_push(const FunctionObject *b, const Value *
+     instance->arrayCreate();
+     Q_ASSERT(instance->arrayData());
+ 
+-    uint len = instance->getLength();
++    quint64 len = instance->getLength();
+ 
+-    if (len + argc < len) {
++    if (len + quint64(argc) >= UINT_MAX) {
+         // ughh... this goes beyond UINT_MAX
+         double l = len;
+         ScopedString s(scope);

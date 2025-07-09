@@ -1,0 +1,29 @@
+From b239de7f3e06c2820b2a59e554e3695cfa5aec92 Mon Sep 17 00:00:00 2001
+From: sjohanss <unknown>
+Date: Mon, 20 Jan 2014 12:56:18 +0100
+Subject: [PATCH] 8020277: Young GC could be extremely slow due to assertion in
+ ObjectStartArray::object_starts_in_range 8009462: Young GC's (ParNewGC and
+ SerialGC) have unexpected variances. Summary: Removed the assertion slowing
+ down GC. Reviewed-by: stefank, mgerdin
+
+---
+ .../parallelScavenge/objectStartArray.cpp                  | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/src/share/vm/gc_implementation/parallelScavenge/objectStartArray.cpp b/src/share/vm/gc_implementation/parallelScavenge/objectStartArray.cpp
+index 8dfcf1889..753c3e3d4 100644
+--- a/src/share/vm/gc_implementation/parallelScavenge/objectStartArray.cpp
++++ b/src/share/vm/gc_implementation/parallelScavenge/objectStartArray.cpp
+@@ -139,11 +139,6 @@ bool ObjectStartArray::object_starts_in_range(HeapWord* start_addr,
+       return true;
+     }
+   }
+-  // No object starts in this slice; verify this using
+-  // more traditional methods:  Note that no object can
+-  // start before the start_addr.
+-  assert(end_addr == start_addr ||
+-         object_start(end_addr - 1) <= start_addr,
+-         "Oops an object does start in this slice?");
++
+   return false;
+ }

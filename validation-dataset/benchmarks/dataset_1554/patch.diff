@@ -1,0 +1,25 @@
+From 2e9856b0da4bac644efe0c51a779f72bffe2a9c3 Mon Sep 17 00:00:00 2001
+From: Andreas Schaefer <gentryx@gmx.de>
+Date: Fri, 4 Sep 2015 01:37:02 +0200
+Subject: [PATCH] yet another speedup for region: improves all inserts,
+ therefore affects expand() and intersect(), too
+
+---
+ src/geometry/region.h | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/geometry/region.h b/src/geometry/region.h
+index 4499713af..905616e27 100644
+--- a/src/geometry/region.h
++++ b/src/geometry/region.h
+@@ -683,6 +683,10 @@ class Region
+             return *this;
+         }
+ 
++        if (count(s) == 0) {
++            return *this;
++        }
++
+         geometryCacheTainted = true;
+         RegionHelpers::RegionInsertHelper<DIM - 1>()(this, s);
+         return *this;

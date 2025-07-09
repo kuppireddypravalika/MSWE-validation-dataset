@@ -1,0 +1,32 @@
+From d8d552f56b3cf7446853bd9227f9937c346aa4de Mon Sep 17 00:00:00 2001
+From: MCJack123 <jackmacwindowslinux@gmail.com>
+Date: Sun, 27 Dec 2020 23:18:19 -0500
+Subject: [PATCH] Removed 3ms delay on timers
+
+This is long obsolete, since moving to pure SDL timers.
+---
+ src/apis/os.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/apis/os.cpp b/src/apis/os.cpp
+index 362693d9..b523640f 100644
+--- a/src/apis/os.cpp
++++ b/src/apis/os.cpp
+@@ -126,7 +126,7 @@ static Uint32 notifyEvent(Uint32 interval, void* param) {
+ static int os_startTimer(lua_State *L) {
+     lastCFunction = __func__;
+     Computer * computer = get_comp(L);
+-    if (luaL_checknumber(L, 1) <= 0.0) {
++    if (luaL_checknumber(L, 1) < 0.001) {
+         queueEvent(computer, [](lua_State *L, void*)->std::string {lua_pushinteger(L, 1); return "timer"; }, NULL);
+         lua_pushinteger(L, 1);
+         return 1;
+@@ -139,7 +139,7 @@ static int os_startTimer(lua_State *L) {
+         struct timer_data_t * data = (timer_data_t*)a;
+         Uint32 time = (Uint32)(lua_tonumber(L, 1) * 1000);
+         if (config.standardsMode) time = (Uint32)ceil(time / 50.0) * 50;
+-        data->timer = SDL_AddTimer(time + 3, notifyEvent, data);
++        data->timer = SDL_AddTimer(time, notifyEvent, data);
+         return NULL;
+     }, data);
+     runningTimerData->insert(std::make_pair(data->timer, data));

@@ -1,0 +1,23 @@
+From 0f77ce26928766cdea2b947487a3ebe0926a047d Mon Sep 17 00:00:00 2001
+From: Rui Ueyama <ruiu@google.com>
+Date: Wed, 13 Jun 2018 19:58:33 +0000
+Subject: [PATCH] Remove needless bitwise-AND.
+
+Because applyMask ignores upper bits, we don't need to mask them.
+---
+ lld/ELF/Arch/Hexagon.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lld/ELF/Arch/Hexagon.cpp b/lld/ELF/Arch/Hexagon.cpp
+index 96b516c40ddd..40746f21aac0 100644
+--- a/lld/ELF/Arch/Hexagon.cpp
++++ b/lld/ELF/Arch/Hexagon.cpp
+@@ -67,7 +67,7 @@ void Hexagon::relocateOne(uint8_t *Loc, RelType Type, uint64_t Val) const {
+   case R_HEX_NONE:
+     break;
+   case R_HEX_B22_PCREL:
+-    or32le(Loc, applyMask(0x01ff3ffe, ((Val >> 2) & 0x3fffff)));
++    or32le(Loc, applyMask(0x1ff3ffe, Val >> 2));
+     break;
+   default:
+     error(getErrorLocation(Loc) + "unrecognized reloc " + toString(Type));

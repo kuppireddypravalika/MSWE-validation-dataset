@@ -1,0 +1,41 @@
+From 22936155c4d806bd2a203e4aa9021d80238a7dae Mon Sep 17 00:00:00 2001
+From: Eldrine Le Prismarine <ref.dreamtowards@gmail.com>
+Date: Tue, 26 Sep 2023 15:48:20 +0800
+Subject: [PATCH] optim: threadpool reduce 1 lock in worker thread
+
+---
+ src/stdx/thread_pool.cpp | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/src/stdx/thread_pool.cpp b/src/stdx/thread_pool.cpp
+index 5f9e97a7..6e332386 100644
+--- a/src/stdx/thread_pool.cpp
++++ b/src/stdx/thread_pool.cpp
+@@ -5,11 +5,15 @@
+ 
+ void stdx::thread_pool::_WorkerProc()
+ {
++	bool _OnceExecuted = false;
++
+ 	while (true)
+ 	{
+ 		std::function<void()> task;
+ 		{
+ 			std::unique_lock<std::mutex> _lock(m_TasksLock);
++			if (_OnceExecuted)
++				--m_NumThreadsWorking;  // should after task(), but put here for less-lock efficiency
+ 
+ 			while (m_Tasks.empty())
+ 			{
+@@ -27,10 +31,7 @@ void stdx::thread_pool::_WorkerProc()
+ 
+ 		task();
+ 
+-		{
+-			std::unique_lock<std::mutex> _lock(m_TasksLock);  // performance issue?
+-			--m_NumThreadsWorking;  // del:should after task(), but put here for less-lock efficiency
+-		}
++		_OnceExecuted = true;
+ 	}
+ }
+ 

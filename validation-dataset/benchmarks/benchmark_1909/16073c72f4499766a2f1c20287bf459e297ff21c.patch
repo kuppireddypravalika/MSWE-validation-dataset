@@ -1,0 +1,27 @@
+From 16073c72f4499766a2f1c20287bf459e297ff21c Mon Sep 17 00:00:00 2001
+From: Arushi Aggarwal <aggarwa4@illinois.edu>
+Date: Fri, 10 Sep 2010 22:28:42 +0000
+Subject: [PATCH] The pool allocation algorithm was missing functions that were
+ not part of any global EC. The function now goes over these functions, and
+ checks if they need pools passed to them.
+
+git-svn-id: https://llvm.org/svn/llvm-project/poolalloc/trunk@113649 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/PoolAllocate/PoolAllocate.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/lib/PoolAllocate/PoolAllocate.cpp b/lib/PoolAllocate/PoolAllocate.cpp
+index 0250a747..9e744b42 100644
+--- a/lib/PoolAllocate/PoolAllocate.cpp
++++ b/lib/PoolAllocate/PoolAllocate.cpp
+@@ -743,7 +743,9 @@ PoolAllocate::FindPoolArgs (Module & M) {
+   for (Module::iterator I = M.begin(), E = M.end(); I != E; ++I) {
+     if (!I->isDeclaration() && Graphs->hasDSGraph(*I)) {
+       if (FunctionInfo.find (I) == FunctionInfo.end()) {
+-        FunctionInfo.insert(std::make_pair(I, FuncInfo(*I)));
++        std::vector<const Function *> Functions;
++        Functions.push_back(I);
++        FindFunctionPoolArgs (Functions);
+       }
+     }
+   }

@@ -1,0 +1,55 @@
+From 43bf8f6da1bcbf38f7d3539a4df5491d318d181b Mon Sep 17 00:00:00 2001
+From: Milo Yip <miloyip@gmail.com>
+Date: Mon, 11 Aug 2014 00:30:31 +0800
+Subject: [PATCH] Change CountDecimalDigit32() to simple implementation
+
+It is simple and pure C++. And it is found in performance test that it
+is even faster than the original version, due to distribution of n. But
+the performance gain is not obvious in RapidJSON.
+---
+ include/rapidjson/internal/dtoa.h | 32 +++++++++++--------------------
+ 1 file changed, 11 insertions(+), 21 deletions(-)
+
+diff --git a/include/rapidjson/internal/dtoa.h b/include/rapidjson/internal/dtoa.h
+index 044e2fb7..44f5c115 100644
+--- a/include/rapidjson/internal/dtoa.h
++++ b/include/rapidjson/internal/dtoa.h
+@@ -218,27 +218,17 @@ inline void GrisuRound(char* buffer, int len, uint64_t delta, uint64_t rest, uin
+ }
+ 
+ inline unsigned CountDecimalDigit32(uint32_t n) {
+-	static const uint32_t powers_of_10[] = {
+-		0,
+-		10,
+-		100,
+-		1000,
+-		10000,
+-		100000,
+-		1000000,
+-		10000000,
+-		100000000,
+-		1000000000
+-	};
+-
+-#ifdef _MSC_VER
+-	unsigned long i = 0;
+-	_BitScanReverse(&i, n | 1);
+-	uint32_t t = (i + 1) * 1233 >> 12;
+-#elif __GNUC__
+-	uint32_t t = (32 - __builtin_clz(n | 1)) * 1233 >> 12;
+-#endif
+-	return t - (n < powers_of_10[t]) + 1;
++	// Simple pure C++ implementation was faster than __builtin_clz version in this situation.
++	if (n < 10) return 1;
++	if (n < 100) return 2;
++	if (n < 1000) return 3;
++	if (n < 10000) return 4;
++	if (n < 100000) return 5;
++	if (n < 1000000) return 6;
++	if (n < 10000000) return 7;
++	if (n < 100000000) return 8;
++	if (n < 1000000000) return 9;
++	return 10;
+ }
+ 
+ inline void DigitGen(const DiyFp& W, const DiyFp& Mp, uint64_t delta, char* buffer, int* len, int* K) {

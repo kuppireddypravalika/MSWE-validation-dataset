@@ -1,0 +1,36 @@
+From 0980679d9f7165689946d1a50a70313b4d001369 Mon Sep 17 00:00:00 2001
+From: Morwenn <morwenn29@hotmail.fr>
+Date: Wed, 20 Jan 2016 12:59:29 +0100
+Subject: [PATCH] Small optimization to make_poplar.
+
+---
+ include/cpp-sort/detail/poplar_sort.h | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/include/cpp-sort/detail/poplar_sort.h b/include/cpp-sort/detail/poplar_sort.h
+index 3cbad25c..d31b25b5 100644
+--- a/include/cpp-sort/detail/poplar_sort.h
++++ b/include/cpp-sort/detail/poplar_sort.h
+@@ -103,9 +103,22 @@ namespace detail
+             return;
+         }
+ 
++        auto&& proj = utility::as_function(projection);
++
+         auto middle = first + size / 2;
+         make_poplar(first, middle, compare, projection);
+         make_poplar(middle, std::prev(last), compare, projection);
++
++        // Make sure that the poplar on the right has a bigger root
++        // that the one on the left. Apparently, it makes things
++        // faster, probably helping the branch predictor or
++        // something...
++        if (compare(proj(*(last - 2)), proj(*std::prev(middle))))
++        {
++            std::iter_swap(std::prev(middle), last - 2);
++            sift(first - 1, middle - first, compare, projection);
++        }
++
+         sift(first - 1, size, compare, projection);
+     }
+ 

@@ -1,0 +1,34 @@
+From 56335afdad64c6fb7dad7fda8acb89c5c0a52031 Mon Sep 17 00:00:00 2001
+From: Adam Sawicki <adam.sawicki@amd.com>
+Date: Tue, 1 Feb 2022 14:11:35 +0100
+Subject: [PATCH] Fixed algorithm in
+ BlockMetadata_TLSF::CreateAllocationRequest
+
+Code by @medranSolus
+---
+ src/D3D12MemAlloc.cpp | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/src/D3D12MemAlloc.cpp b/src/D3D12MemAlloc.cpp
+index 22d496c..2a68534 100644
+--- a/src/D3D12MemAlloc.cpp
++++ b/src/D3D12MemAlloc.cpp
+@@ -4206,12 +4206,15 @@ bool BlockMetadata_TLSF::CreateAllocationRequest(
+ 
+     // Round up to the next block
+     UINT64 sizeForNextList = allocSize;
+-    if (allocSize >= (1 << SECOND_LEVEL_INDEX))
++    UINT64 smallSizeStep = SMALL_BUFFER_SIZE / (IsVirtual() ? 1 << SECOND_LEVEL_INDEX : 4);
++    if (allocSize > SMALL_BUFFER_SIZE)
+     {
+-        sizeForNextList += (1ULL << (BitScanMSB(allocSize) - SECOND_LEVEL_INDEX)) - 1;
++        sizeForNextList += (1ULL << (BitScanMSB(allocSize) - SECOND_LEVEL_INDEX));
+     }
++    else if (allocSize > SMALL_BUFFER_SIZE - smallSizeStep)
++        sizeForNextList = SMALL_BUFFER_SIZE + 1;
+     else
+-        sizeForNextList += (1 << SECOND_LEVEL_INDEX) - 1;
++        sizeForNextList += smallSizeStep;
+ 
+     // Check larger bucket
+     UINT32 nextListIndex = 0;

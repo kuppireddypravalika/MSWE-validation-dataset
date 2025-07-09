@@ -1,0 +1,43 @@
+From d18e4f136f6d3a3eae5d25d49c926dfbb352b3c0 Mon Sep 17 00:00:00 2001
+From: Tobias Doerffel <tobias.doerffel@gmail.com>
+Date: Sun, 23 Oct 2016 17:45:58 +0200
+Subject: [PATCH] IMA/ToolButton: calculate minimum width based on width of
+ rendered text
+
+Instead of hardcoding the width of the button, calculate the minimum
+individually based on the actual text and the metrics of the font used
+for rendering the text. A possible drawback is the non-uniform
+appearence of the toolbar.
+
+Closes #11
+---
+ ima/src/ToolButton.cpp | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/ima/src/ToolButton.cpp b/ima/src/ToolButton.cpp
+index 64a639423..25f0becaa 100644
+--- a/ima/src/ToolButton.cpp
++++ b/ima/src/ToolButton.cpp
+@@ -289,17 +289,17 @@ void ToolButton::updateSize()
+ 	f.setPointSizeF( 8 );
+ 	setFont( f );
+ 
++	QFontMetrics metrics( f );
++
++	int minWidth = ( ( ( qMax( metrics.width( m_label ), metrics.width( m_altLabel ) ) + MARGIN ) / 8 + 1 ) * 8 );
++
+ 	if( s_iconOnlyMode )
+ 	{
+ 		setFixedSize( 52, 48 );
+ 	}
+-	else if( m_label.size() > 14 || m_altLabel.size() > 14 )
+-	{
+-		setFixedSize( 96, 48 );
+-	}
+ 	else
+ 	{
+-		setFixedSize( 88, 48 );
++		setFixedSize( qMax( minWidth, 88 ), 48 );
+ 	}
+ }
+ 

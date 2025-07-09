@@ -1,0 +1,33 @@
+From 28cc4c621b25e67359ca31dd311d7f83d419cf07 Mon Sep 17 00:00:00 2001
+From: Juli Mallett <juli@clockworksquid.com>
+Date: Mon, 23 May 2011 19:37:54 +0000
+Subject: [PATCH] Calculate q - p only once.  20% performance improvement in
+ some benchmarks.
+
+---
+ xcodec/xcodec_encoder.cc | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/xcodec/xcodec_encoder.cc b/xcodec/xcodec_encoder.cc
+index e33d504..bd4adf4 100644
+--- a/xcodec/xcodec_encoder.cc
++++ b/xcodec/xcodec_encoder.cc
+@@ -75,14 +75,16 @@ XCodecEncoder::encode(Buffer *output, Buffer *input)
+ 		 */
+ 		const uint8_t *p, *q = seg->end();
+ 		for (p = seg->data(); p < q; p++) {
++			ptrdiff_t resid = q - p;
++
+ 			/*
+ 			 * If we cannot acquire a complete hash within this segment.
+ 			 */
+-			if (o + (q - p) < XCODEC_SEGMENT_LENGTH) {
++			if (o + resid < XCODEC_SEGMENT_LENGTH) {
+ 				/*
+ 				 * Hash all of the bytes from it and continue.
+ 				 */
+-				o += q - p;
++				o += resid;
+ 				while (p < q)
+ 					xcodec_hash.add(*p++);
+ 				break;

@@ -1,0 +1,31 @@
+From 315ba388f32ad7943c226f2faba4e9b35e899dc9 Mon Sep 17 00:00:00 2001
+From: Thiago Macieira <thiago.macieira@intel.com>
+Date: Fri, 8 Nov 2013 08:32:34 -0800
+Subject: [PATCH] Avoid signed integer overflow by making an addition a
+ subtraction
+
+The task has a very good explanation. The use-case was
+  ba.remove(n, INT_MAX);
+since you can't pass -1 to the length, and that results in overflow when
+you add n+INT_MAX.
+
+Task-number: QTBUG-34694
+Change-Id: I365eb86b2d0dabbe0bde67e4e7f33d64fd5793af
+Reviewed-by: Olivier Goffart <ogoffart@woboq.com>
+---
+ src/corelib/tools/qbytearray.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/corelib/tools/qbytearray.cpp b/src/corelib/tools/qbytearray.cpp
+index eb06bd471316..03b10903ab03 100644
+--- a/src/corelib/tools/qbytearray.cpp
++++ b/src/corelib/tools/qbytearray.cpp
+@@ -1854,7 +1854,7 @@ QByteArray &QByteArray::remove(int pos, int len)
+     if (len <= 0  || uint(pos) >= uint(d->size))
+         return *this;
+     detach();
+-    if (pos + len >= d->size) {
++    if (len >= d->size - pos) {
+         resize(pos);
+     } else {
+         memmove(d->data() + pos, d->data() + pos + len, d->size - pos - len);

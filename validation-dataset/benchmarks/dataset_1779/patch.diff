@@ -1,0 +1,22 @@
+From c79d6fdcf4f1afe36f8d6d8812d1e1b407c10be5 Mon Sep 17 00:00:00 2001
+From: Jon Frydensbjerg <jonf@vip.cybercity.dk>
+Date: Thu, 7 Dec 2023 10:33:12 +0100
+Subject: [PATCH] Use find instead of rfind
+
+---
+ video_decoder.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/video_decoder.cpp b/video_decoder.cpp
+index db7d869..bb8fa8e 100644
+--- a/video_decoder.cpp
++++ b/video_decoder.cpp
+@@ -24,7 +24,7 @@ VideoDecoder::VideoDecoder(const std::string& decoder_name, const std::string& h
+   if (!hw_accel_spec.empty()) {
+     const char* device = nullptr;
+ 
+-    const size_t colon_pos = hw_accel_spec.rfind(":");
++    const size_t colon_pos = hw_accel_spec.find(":");
+ 
+     if (colon_pos == std::string::npos) {
+       hw_accel_name_ = hw_accel_spec;

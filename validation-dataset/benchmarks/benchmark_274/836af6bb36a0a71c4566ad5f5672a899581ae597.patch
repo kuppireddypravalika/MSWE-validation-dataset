@@ -1,0 +1,26 @@
+From 836af6bb36a0a71c4566ad5f5672a899581ae597 Mon Sep 17 00:00:00 2001
+From: Owen Anderson <resistor@mac.com>
+Date: Thu, 17 Jun 2010 00:51:12 +0000
+Subject: [PATCH] Fix comment, per Chris' suggestion.
+
+llvm-svn: 106192
+---
+ lldb/source/Symbol/Symtab.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/lldb/source/Symbol/Symtab.cpp b/lldb/source/Symbol/Symtab.cpp
+index f19b074a02a..c8f1b0c667a 100644
+--- a/lldb/source/Symbol/Symtab.cpp
++++ b/lldb/source/Symbol/Symtab.cpp
+@@ -254,7 +254,10 @@ Symtab::SortSymbolIndexesByValue (std::vector<uint32_t>& indexes, bool remove_du
+     if (indexes.size() <= 1)
+         return;
+ 
+-    // Sort the indexes in place using std::sort
++    // Sort the indexes in place using std::stable_sort.
++    // NOTE: The use of std::stable_sort instead of std::sort here is strictly for performance,
++    // not correctness.  The indexes vector tends to be "close" to sorted, which the
++    // stable sort handles better.
+     std::stable_sort(indexes.begin(), indexes.end(), SymbolIndexComparator(m_symbols));
+ 
+     // Remove any duplicates if requested

@@ -1,0 +1,26 @@
+From 0779c4f1f7117ae58c7ac1e2f4324557a580dbcd Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Sat, 13 Jan 2018 13:27:02 +0000
+Subject: [PATCH] OpenFileGDB: avoid redundant layers to be listed and thus
+ excessive memory allocations. Fixes
+ https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=5283. Credit to OSS
+ Fuzz
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@41258 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/ogr/ogrsf_frmts/openfilegdb/ogropenfilegdbdatasource.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/gdal/ogr/ogrsf_frmts/openfilegdb/ogropenfilegdbdatasource.cpp b/gdal/ogr/ogrsf_frmts/openfilegdb/ogropenfilegdbdatasource.cpp
+index 1cb8e4df5526..a6cde9740d73 100644
+--- a/gdal/ogr/ogrsf_frmts/openfilegdb/ogropenfilegdbdatasource.cpp
++++ b/gdal/ogr/ogrsf_frmts/openfilegdb/ogropenfilegdbdatasource.cpp
+@@ -277,6 +277,8 @@ void OGROpenFileGDBDataSource::AddLayer( const CPLString& osName,
+         idx = oIter->second;
+     if( idx > 0 && (nInterestTable <= 0 || nInterestTable == idx) )
+     {
++        m_osMapNameToIdx.erase(osName);
++
+         CPLString osFilename = CPLFormFilename(
+             m_osDirName, CPLSPrintf("a%08x", idx), "gdbtable");
+         if( FileExists(osFilename) )

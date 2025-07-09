@@ -1,0 +1,41 @@
+From 956bf1362c596aaa023147d3f6497dc2500a2429 Mon Sep 17 00:00:00 2001
+From: Ivan Komissarov <abbapoh@gmail.com>
+Date: Tue, 25 Feb 2020 01:24:12 +0100
+Subject: [PATCH] Avoid useless allocations in Item::propertyDeclaration
+
+PropertyDeclaration() allocates Private class which can be easily
+avoided by using iterator API
+
+Change-Id: I8240fe845b8a4d8f3ad8f8372f5bca178982ab29
+Reviewed-by: Christian Kandeler <christian.kandeler@qt.io>
+---
+ src/lib/corelib/language/item.cpp | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/src/lib/corelib/language/item.cpp b/src/lib/corelib/language/item.cpp
+index 9f754bdd7c..a86cfeac1a 100644
+--- a/src/lib/corelib/language/item.cpp
++++ b/src/lib/corelib/language/item.cpp
+@@ -203,15 +203,15 @@ bool Item::isOfTypeOrhasParentOfType(ItemType type) const
+ 
+ PropertyDeclaration Item::propertyDeclaration(const QString &name, bool allowExpired) const
+ {
+-    PropertyDeclaration decl = m_propertyDeclarations.value(name);
+-    if (decl.isValid())
+-        return decl;
++    auto it = m_propertyDeclarations.find(name);
++    if (it != m_propertyDeclarations.end())
++        return it.value();
+     if (allowExpired) {
+-        decl = m_expiredPropertyDeclarations.value(name);
+-        if (decl.isValid())
+-            return decl;
++        it = m_expiredPropertyDeclarations.find(name);
++        if (it != m_expiredPropertyDeclarations.end())
++            return it.value();
+     }
+-    return m_prototype ? m_prototype->propertyDeclaration(name) : decl;
++    return m_prototype ? m_prototype->propertyDeclaration(name) : PropertyDeclaration();
+ }
+ 
+ void Item::addModule(const Item::Module &module)

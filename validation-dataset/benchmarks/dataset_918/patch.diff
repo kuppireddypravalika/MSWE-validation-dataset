@@ -1,0 +1,22 @@
+From 7ddcef0b92e87cf658b6915d16fbd45f724b2e35 Mon Sep 17 00:00:00 2001
+From: Tim Teulings <tim@framstag.com>
+Date: Sat, 11 Jun 2011 13:20:17 +0200
+Subject: [PATCH] Free memory afte rlast use of data structure.
+
+---
+ libosmscout/src/osmscout/GenNodeUseIndex.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/libosmscout/src/osmscout/GenNodeUseIndex.cpp b/libosmscout/src/osmscout/GenNodeUseIndex.cpp
+index 76007c069..4bb4d2eaf 100644
+--- a/libosmscout/src/osmscout/GenNodeUseIndex.cpp
++++ b/libosmscout/src/osmscout/GenNodeUseIndex.cpp
+@@ -204,6 +204,8 @@ namespace osmscout {
+       index=newIndex;
+     }
+ 
++    nodeDistribution.clear();
++
+     std::vector<uint32_t>   resultDistribution; // Number of entries in interval
+     std::vector<FileOffset> resultOffset;       // Offset for each interval
+     std::vector<uint32_t>   resultOffsetCount;  // Number of entries for each interval

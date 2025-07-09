@@ -1,0 +1,36 @@
+From 75a4417c6210c5f16b8c55082da0030cb9607ad4 Mon Sep 17 00:00:00 2001
+From: Pietro Belotti <petr7b6@gmail.com>
+Date: Fri, 11 Apr 2014 23:38:43 +0000
+Subject: [PATCH] since options 5 and 6 of milp method in FP are preliminary to
+ a SCIP solve, make that solve fast
+
+---
+ Couenne/src/heuristics/CouenneFPscipSolve.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/Couenne/src/heuristics/CouenneFPscipSolve.cpp b/Couenne/src/heuristics/CouenneFPscipSolve.cpp
+index 619a50dc..7394e63d 100644
+--- a/Couenne/src/heuristics/CouenneFPscipSolve.cpp
++++ b/Couenne/src/heuristics/CouenneFPscipSolve.cpp
+@@ -437,6 +437,10 @@ SCIP_RETCODE CouenneFeasPump::ScipSolve (const double *nSol, double* &sol, int n
+ 
+       case 5: // use rounding heuristic in Couenne
+ 
++	SCIP_CALL( SCIPsetLongintParam(scip, "limits/stallnodes", 500) );
++	SCIP_CALL( SCIPsetLongintParam(scip, "limits/nodes", 5000) );
++	SCIP_CALL( SCIPsetRealParam   (scip, "limits/gap", .05) );
++
+ 	{
+ 	  if (!sol)
+ 	    sol = new CouNumber [problem_ -> nVars ()];
+@@ -457,6 +461,10 @@ SCIP_RETCODE CouenneFeasPump::ScipSolve (const double *nSol, double* &sol, int n
+ 
+       case 6: // round; TODO: but perturb first if we are cycling
+ 
++	SCIP_CALL( SCIPsetLongintParam(scip, "limits/stallnodes", 500) );
++	SCIP_CALL( SCIPsetLongintParam(scip, "limits/nodes", 5000) );
++	SCIP_CALL( SCIPsetRealParam   (scip, "limits/gap", .05) );
++
+ 	if (!sol)
+ 	  sol = new CouNumber [problem_ -> nVars ()];
+ 

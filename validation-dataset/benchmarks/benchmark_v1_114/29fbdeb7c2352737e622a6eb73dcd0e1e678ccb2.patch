@@ -1,0 +1,31 @@
+From 29fbdeb7c2352737e622a6eb73dcd0e1e678ccb2 Mon Sep 17 00:00:00 2001
+From: Justin Carpentier <justin.carpentier@inria.fr>
+Date: Mon, 21 Mar 2022 01:33:00 +0100
+Subject: [PATCH] algo/parallel: use static schedule
+
+---
+ src/algorithm/parallel/broadphase.hpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/algorithm/parallel/broadphase.hpp b/src/algorithm/parallel/broadphase.hpp
+index 9cce355591..026716bc91 100644
+--- a/src/algorithm/parallel/broadphase.hpp
++++ b/src/algorithm/parallel/broadphase.hpp
+@@ -47,7 +47,7 @@ namespace pinocchio
+     {
+       bool is_colliding = false;
+       Eigen::DenseIndex i = 0;
+-#pragma omp parallel for schedule(dynamic)
++#pragma omp parallel for schedule(static)
+       for(i = 0; i < batch_size; i++)
+       {
+         if(is_colliding) continue;
+@@ -67,7 +67,7 @@ namespace pinocchio
+     else
+     {
+       Eigen::DenseIndex i = 0;
+-#pragma omp parallel for schedule(dynamic)
++#pragma omp parallel for schedule(static)
+       for(i = 0; i < batch_size; i++)
+       {
+         const int thread_id = omp_get_thread_num();

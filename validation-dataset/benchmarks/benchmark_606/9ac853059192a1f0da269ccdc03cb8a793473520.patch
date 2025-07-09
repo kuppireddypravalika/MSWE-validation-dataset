@@ -1,0 +1,47 @@
+From 9ac853059192a1f0da269ccdc03cb8a793473520 Mon Sep 17 00:00:00 2001
+From: Anton Kudryavtsev <a.kudryavtsev@netris.ru>
+Date: Wed, 27 Jan 2016 11:42:06 +0300
+Subject: [PATCH] QHttpNetworkHeaderPrivate: use erase and std::remove_if with
+ QList
+
+... instead of using erase in a loop, with quadratic complexity.
+
+Change-Id: I9527923dcfc3201776a59de53dd5c03ca4d80063
+Reviewed-by: Marc Mutz <marc.mutz@kdab.com>
+---
+ src/network/access/qhttpnetworkheader.cpp | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/src/network/access/qhttpnetworkheader.cpp b/src/network/access/qhttpnetworkheader.cpp
+index 60a55b0ef57..7199abbf175 100644
+--- a/src/network/access/qhttpnetworkheader.cpp
++++ b/src/network/access/qhttpnetworkheader.cpp
+@@ -39,6 +39,8 @@
+ 
+ #include "qhttpnetworkheader_p.h"
+ 
++#include <algorithm>
++
+ #ifndef QT_NO_HTTP
+ 
+ QT_BEGIN_NAMESPACE
+@@ -103,13 +105,12 @@ QList<QByteArray> QHttpNetworkHeaderPrivate::headerFieldValues(const QByteArray
+ 
+ void QHttpNetworkHeaderPrivate::setHeaderField(const QByteArray &name, const QByteArray &data)
+ {
+-    QList<QPair<QByteArray, QByteArray> >::Iterator it = fields.begin();
+-    while (it != fields.end()) {
+-        if (qstricmp(name.constData(), it->first) == 0)
+-            it = fields.erase(it);
+-        else
+-            ++it;
+-    }
++    auto firstEqualsName = [&name](const QPair<QByteArray, QByteArray> &header) {
++        return qstricmp(name.constData(), header.first) == 0;
++    };
++    fields.erase(std::remove_if(fields.begin(), fields.end(),
++                                firstEqualsName),
++                 fields.end());
+     fields.append(qMakePair(name, data));
+ }
+ 

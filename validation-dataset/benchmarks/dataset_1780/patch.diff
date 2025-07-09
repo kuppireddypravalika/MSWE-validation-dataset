@@ -1,0 +1,22 @@
+From 5b50ef188bc323082b84d1406bf6fb33e739e6c8 Mon Sep 17 00:00:00 2001
+From: Patrick Ellis <patrick@soundcloud.com>
+Date: Sat, 1 Sep 2012 14:09:16 +0200
+Subject: [PATCH] use 512 as the default buffer size again
+
+---
+ App/AudioThruEngine.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/App/AudioThruEngine.cpp b/App/AudioThruEngine.cpp
+index 230b5c5..60a6132 100644
+--- a/App/AudioThruEngine.cpp
++++ b/App/AudioThruEngine.cpp
+@@ -6,7 +6,7 @@ AudioThruEngine::AudioThruEngine() :
+   mRunning(false),
+   mMuting(false),
+   mThruing(true),
+-  mBufferSize(1024),
++  mBufferSize(512),
+   mExtraLatencyFrames(0)
+ {
+ }

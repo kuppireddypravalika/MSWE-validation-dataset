@@ -1,0 +1,26 @@
+From 2912f864d5ae4e2ae16ea63a1e009a232918ffc3 Mon Sep 17 00:00:00 2001
+From: "Radu B. Rusu" <radu.b.rusu@gmail.com>
+Date: Wed, 31 Oct 2012 22:12:27 +0000
+Subject: [PATCH] save as binary compressed
+
+git-svn-id: svn+ssh://svn.pointclouds.org/pcl/trunk@7760 a9d63959-f2ad-4865-b262-bf0e56cfafb6
+---
+ tools/transform_point_cloud.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/tools/transform_point_cloud.cpp b/tools/transform_point_cloud.cpp
+index b01e39edc9e..41bc3c3f915 100644
+--- a/tools/transform_point_cloud.cpp
++++ b/tools/transform_point_cloud.cpp
+@@ -175,8 +175,9 @@ saveCloud (const std::string &filename, const sensor_msgs::PointCloud2 &output)
+   tt.tic ();
+ 
+   print_highlight ("Saving "); print_value ("%s ", filename.c_str ());
+-  
+-  pcl::io::savePCDFile (filename, output);
++
++  PCDWriter w;
++  w.writeBinaryCompressed (filename, output);
+   
+   printElapsedTimeAndNumberOfPoints (tt.toc (), output.width, output.height);
+ }

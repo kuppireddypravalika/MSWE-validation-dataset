@@ -1,0 +1,33 @@
+From cc311554d2625df96c9cc850b250c78e61b7df27 Mon Sep 17 00:00:00 2001
+From: Stefanos Kornilios Mitsis Poiitidis <stef@skmp.dev>
+Date: Thu, 29 Oct 2020 12:32:42 +0200
+Subject: [PATCH] Frontend: Sort blocks for better branching
+
+---
+ External/FEXCore/Source/Interface/Core/Frontend.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/External/FEXCore/Source/Interface/Core/Frontend.cpp b/External/FEXCore/Source/Interface/Core/Frontend.cpp
+index 622d760688..2afa80d574 100644
+--- a/External/FEXCore/Source/Interface/Core/Frontend.cpp
++++ b/External/FEXCore/Source/Interface/Core/Frontend.cpp
+@@ -4,6 +4,7 @@
+ #include "LogManager.h"
+ 
+ #include <array>
++#include <algorithm>
+ #include <cstring>
+ #include <FEXCore/Core/X86Enums.h>
+ #include <FEXCore/Debug/X86Tables.h>
+@@ -1003,6 +1004,11 @@ bool Decoder::DecodeInstructionsAtEntry(uint8_t const* _InstStream, uint64_t PC)
+     CurrentBlockDecoding.DecodedInstructions = &DecodedBuffer.at(BlockStartOffset);
+   }
+ 
++
++  // sort for better branching
++  std::sort(Blocks.begin(), Blocks.end(), [](const FEXCore::Frontend::Decoder::DecodedBlocks& a, const FEXCore::Frontend::Decoder::DecodedBlocks& b) {
++    return a.Entry < b.Entry;
++  });
+   return !ErrorDuringDecoding;
+ }
+ 

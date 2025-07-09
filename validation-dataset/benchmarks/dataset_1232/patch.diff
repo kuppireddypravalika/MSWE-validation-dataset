@@ -1,0 +1,27 @@
+From c2167dcbf7cd13889868d0e0591c3087771590e8 Mon Sep 17 00:00:00 2001
+From: Takashiro <takashiro@qq.com>
+Date: Sat, 12 Jul 2014 23:39:34 +0800
+Subject: [PATCH] use constant references instead of new objects
+
+Signed-off-by: Takashiro <takashiro@qq.com>
+---
+ src/server/serverplayer.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/server/serverplayer.cpp b/src/server/serverplayer.cpp
+index b73f2d8d9d..65193fab38 100644
+--- a/src/server/serverplayer.cpp
++++ b/src/server/serverplayer.cpp
+@@ -1099,10 +1099,10 @@ void ServerPlayer::marshal(ServerPlayer *player) const{
+         room->notifyProperty(player, this, "kingdom", "god");
+     }
+ 
+-    foreach(QString flag, flags)
++    foreach(const QString &flag, flags)
+         room->notifyProperty(player, this, "flags", flag);
+ 
+-    foreach(QString item, history.keys()) {
++    foreach(const QString &item, history.keys()) {
+         int value = history.value(item);
+         if (value > 0) {
+ 

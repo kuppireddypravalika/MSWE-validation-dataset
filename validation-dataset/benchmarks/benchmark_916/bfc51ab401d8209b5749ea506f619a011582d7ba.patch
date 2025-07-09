@@ -1,0 +1,22 @@
+From bfc51ab401d8209b5749ea506f619a011582d7ba Mon Sep 17 00:00:00 2001
+From: Simon Pilgrim <llvm-dev@redking.me.uk>
+Date: Wed, 11 Apr 2018 22:24:48 +0000
+Subject: [PATCH] Don't repeatedly evaluate size() in the for loop. NFCI.
+
+---
+ llvm/utils/TableGen/X86EVEX2VEXTablesEmitter.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/llvm/utils/TableGen/X86EVEX2VEXTablesEmitter.cpp b/llvm/utils/TableGen/X86EVEX2VEXTablesEmitter.cpp
+index 7fc8cda65dad..9d2d3178866b 100644
+--- a/llvm/utils/TableGen/X86EVEX2VEXTablesEmitter.cpp
++++ b/llvm/utils/TableGen/X86EVEX2VEXTablesEmitter.cpp
+@@ -261,7 +261,7 @@ class IsMatch {
+     // Also for instructions that their EVEX version was upgraded to work with
+     // k-registers. For example VPCMPEQBrm (xmm output register) and
+     // VPCMPEQBZ128rm (k register output register).
+-    for (unsigned i = 0; i < Inst->Operands.size(); i++) {
++    for (unsigned i = 0, e = Inst->Operands.size(); i < e; i++) {
+       Record *OpRec1 = Inst->Operands[i].Rec;
+       Record *OpRec2 = Inst2->Operands[i].Rec;
+ 

@@ -1,0 +1,36 @@
+From 11873bab4bccb848fef2429e780cddd225bbb7ce Mon Sep 17 00:00:00 2001
+From: Emily Kahl <emily.v.kahl@gmail.com>
+Date: Tue, 17 Oct 2017 08:58:23 +1100
+Subject: [PATCH] Replaced OMP taskwait with an explicit barrier to ensure
+ proper synchronisation of threadprivate variables
+
+---
+ Configuration/ManyBodyOperator.h | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/Configuration/ManyBodyOperator.h b/Configuration/ManyBodyOperator.h
+index a96f8e0..c41a943 100644
+--- a/Configuration/ManyBodyOperator.h
++++ b/Configuration/ManyBodyOperator.h
+@@ -806,7 +806,8 @@ std::vector<double> ManyBodyOperator<pElectronOperators...>::GetMatrixElement(co
+                 if(IsMyJob(config_index))
+                 {
+ #ifdef AMBIT_USE_OPENMP
+-                    #pragma omp task default(shared) firstprivate(config_it, config_jt, config_index, solution) shared(total)
++                    #pragma omp task default(none) firstprivate(config_it, config_jt, config_index, \
++solution, epsilon) shared(total, left_eigenvector, right_eigenvector)
+                     {
+ #endif
+                     // Iterate over projections
+@@ -870,9 +871,9 @@ std::vector<double> ManyBodyOperator<pElectronOperators...>::GetMatrixElement(co
+             config_jt++;
+         }
+         config_it++;
+-    } // config_it + OpenMP single construct. There is an implicit OpenMP barrier here
++    } // config_it + OpenMP single construct
+ #ifdef AMBIT_USE_OPENMP
+-    #pragma omp taskwait
++    #pragma omp barrier
+     // Finally, gather all the thread totals into the final results
+     #pragma omp critical(MANY_BODY_OP)
+     for(int ii = 0; ii < return_size; ++ii)

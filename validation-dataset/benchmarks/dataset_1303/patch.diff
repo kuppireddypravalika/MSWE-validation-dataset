@@ -1,0 +1,34 @@
+From 9a36366cdaa0a6cbd96a50ef5c898dccc39de259 Mon Sep 17 00:00:00 2001
+From: simupop <simupop@4f9f4801-c785-45ef-b63d-f11ee613d617>
+Date: Tue, 21 Apr 2009 01:18:42 +0000
+Subject: [PATCH] Imporve the efficiency of pyIndPointer
+
+---
+ src/utility.cpp | 14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
+
+diff --git a/src/utility.cpp b/src/utility.cpp
+index 52de8f17a..6fe5c74e9 100644
+--- a/src/utility.cpp
++++ b/src/utility.cpp
+@@ -1359,15 +1359,11 @@ PyObject * pyIndObj(void * p)
+ 
+ void * pyIndPointer(PyObject * obj)
+ {
+-	if (PySwigObject_Check(obj)) {
+-		if (reinterpret_cast<PySwigObject *>(obj)->ty == g_swigindividual)
+-			return reinterpret_cast<PySwigObject *>(obj)->ptr;
+-		else
+-			return NULL;
+-	}
+-	if (PyObject_HasAttr(obj, SWIG_This()))
+-		// a shadowed class
+-		return pyIndPointer(PyObject_GetAttr(obj, SWIG_This()));
++	if (obj == NULL || !PyObject_HasAttr(obj, SWIG_This()))
++		return NULL;
++	PyObject * ptr = PyObject_GetAttr(obj, SWIG_This());
++	if (PySwigObject_Check(ptr) && reinterpret_cast<PySwigObject *>(ptr)->ty == g_swigindividual)
++		return reinterpret_cast<PySwigObject *>(ptr)->ptr;
+ 	return NULL;
+ }
+ 

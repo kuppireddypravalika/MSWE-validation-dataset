@@ -1,0 +1,46 @@
+From 57bdefd993ef4b1025ff2c1a706c610dc858f03f Mon Sep 17 00:00:00 2001
+From: Luis Ibanez <luis.ibanez@kitware.com>
+Date: Mon, 27 Dec 2010 20:22:56 -0500
+Subject: [PATCH] COMP: long double doesn't initialize all its bytes.
+
+The long double type (in the platform where we are running valgrind),
+and in Ubuntu 10.04 with gcc 4.4.3, does not initialize all its bytes
+when assigning a value. It reports its sizeof() to be 16, but only
+initialize 11 of those bytes. In order to get around an uninitialized
+report by Valgrind, here we declare an union between the long double
+and an array of chars of the same size, in order to use the char array
+to initialize the same memory where the long double is allocated.
+
+Change-Id: Ic0ea8cd2908402a0298cc7da9e070198ca684565
+---
+ .../vxl/core/vnl/tests/test_numeric_traits.cxx  | 17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
+
+diff --git a/Utilities/vxl/core/vnl/tests/test_numeric_traits.cxx b/Utilities/vxl/core/vnl/tests/test_numeric_traits.cxx
+index 1ee9e213016..a3d31434ebe 100644
+--- a/Utilities/vxl/core/vnl/tests/test_numeric_traits.cxx
++++ b/Utilities/vxl/core/vnl/tests/test_numeric_traits.cxx
+@@ -200,7 +200,22 @@ void test_numeric_traits()
+   // there should only be 2 zeros in the representation: the sign bits of mantissa and of exponent:
+   TEST("vnl_numeric_traits<double>::maxval must be the largest possible", nr_of_ones, 8*sizeof(double)-2);
+ 
+-  x = (unsigned char*)(&ldm);
++  typedef union {
++    long double ld;
++    char lc[sizeof(long double)];
++    } longdoublewithbackup;
++
++  longdoublewithbackup ldwb;
++
++  // initialize the full set of bytes under the long double type
++  for(unsigned int jj = 0; jj < sizeof(long double); jj++)
++    {
++    ldwb.lc[jj] = 0;
++    }
++
++  ldwb.ld = ldm;
++
++  x = (unsigned char*)(&(ldwb.ld));
+ #if 0
+       // See TODO below.  Do not set if not used.
+   nr_of_ones = 0;

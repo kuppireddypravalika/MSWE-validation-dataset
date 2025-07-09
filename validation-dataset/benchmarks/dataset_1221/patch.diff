@@ -1,0 +1,22 @@
+From 5bb4e1ed497c3ca47cefc2ab889f0cb172b29cc3 Mon Sep 17 00:00:00 2001
+From: "Kevin M. Godby" <kevin@godby.org>
+Date: Fri, 16 Sep 2016 17:27:25 -0500
+Subject: [PATCH] Reduced async log queue size to 64 messages.
+
+---
+ src/osvr/Util/LogRegistry.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/osvr/Util/LogRegistry.cpp b/src/osvr/Util/LogRegistry.cpp
+index 7d9a1765a..746f8ae2e 100644
+--- a/src/osvr/Util/LogRegistry.cpp
++++ b/src/osvr/Util/LogRegistry.cpp
+@@ -211,7 +211,7 @@ namespace util {
+             // File sink - rotates daily
+             std::string logDir;
+             try {
+-                size_t q_size = 65536; // queue size must be power of 2
++                size_t q_size = 64; // queue size must be power of 2
+                 spdlog::set_async_mode(q_size);
+                 namespace fs = boost::filesystem;
+                 auto base_name = fs::path(getLoggingDirectory(true));

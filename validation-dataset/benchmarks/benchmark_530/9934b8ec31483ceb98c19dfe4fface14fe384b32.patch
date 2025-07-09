@@ -1,0 +1,34 @@
+From 9934b8ec31483ceb98c19dfe4fface14fe384b32 Mon Sep 17 00:00:00 2001
+From: Marco Costalba <mcostalba@gmail.com>
+Date: Mon, 12 Mar 2012 15:21:54 +0100
+Subject: [PATCH] Don't sync with C library I/O buffers
+
+Now we are forced to just use C++ iostream becuase
+buffers are independent and using C library functions
+like printf() or scanf() could yield to issues.
+
+Speed up of about 1%.
+
+No functional change.
+
+Signed-off-by: Marco Costalba <mcostalba@gmail.com>
+---
+ src/main.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/src/main.cpp b/src/main.cpp
+index 0c94ed89..1b2fdf9d 100644
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -43,6 +43,11 @@ int main(int argc, char* argv[]) {
+   Eval::init();
+   TT.set_size(Options["Hash"]);
+ 
++  // Don't sync with C library I/O buffers, faster but now using printf()
++  // or scanf() could yield to issues because buffers are independent.
++  cout.sync_with_stdio(false);
++  cin.sync_with_stdio(false);
++
+   cout << engine_info() << endl;
+ 
+   if (argc == 1)

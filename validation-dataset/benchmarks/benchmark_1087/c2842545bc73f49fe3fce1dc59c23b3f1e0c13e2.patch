@@ -1,0 +1,24 @@
+From c2842545bc73f49fe3fce1dc59c23b3f1e0c13e2 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Wed, 30 Dec 2015 19:39:31 +0000
+Subject: [PATCH] GDALRasterBand::~GDALRasterBand(): avoid harmless int32
+ overflow
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@32560 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/gcore/gdalrasterband.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gdal/gcore/gdalrasterband.cpp b/gdal/gcore/gdalrasterband.cpp
+index 5011f69762f6..b7144e1421c0 100644
+--- a/gdal/gcore/gdalrasterband.cpp
++++ b/gdal/gcore/gdalrasterband.cpp
+@@ -91,7 +91,7 @@ GDALRasterBand::~GDALRasterBand()
+ 
+     delete poBandBlockCache;
+ 
+-    if( nBlockReads > nBlocksPerRow * nBlocksPerColumn
++    if( static_cast<GIntBig>(nBlockReads) > static_cast<GIntBig>(nBlocksPerRow) * nBlocksPerColumn
+         && nBand == 1 && poDS != NULL )
+     {
+         CPLDebug( "GDAL", "%d block reads on %d block band 1 of %s.",

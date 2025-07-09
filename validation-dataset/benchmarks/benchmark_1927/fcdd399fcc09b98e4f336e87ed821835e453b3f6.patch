@@ -1,0 +1,28 @@
+From fcdd399fcc09b98e4f336e87ed821835e453b3f6 Mon Sep 17 00:00:00 2001
+From: Rahil Shah <rahil@ca.ibm.com>
+Date: Thu, 12 Oct 2017 16:03:41 -0400
+Subject: [PATCH] Increase the limit of constant data snippet
+
+Increase the size of maximum allowable data snippet from
+64 bytes to 128 bytes.
+
+Signed-off-by: Rahil Shah <rahil@ca.ibm.com>
+---
+ compiler/z/codegen/OMRCodeGenerator.hpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/compiler/z/codegen/OMRCodeGenerator.hpp b/compiler/z/codegen/OMRCodeGenerator.hpp
+index 2c1123f17b..d2d963f34b 100644
+--- a/compiler/z/codegen/OMRCodeGenerator.hpp
++++ b/compiler/z/codegen/OMRCodeGenerator.hpp
+@@ -1135,8 +1135,8 @@ class OMR_EXTENSIBLE CodeGenerator : public OMR::CodeGenerator
+    TR::Instruction* ccInstruction() { return _ccInstruction; }
+    void setCCInstruction(TR::Instruction* cc) { _ccInstruction = cc; }
+ 
+-   #define TR_DEFAULT_DATA_SNIPPET_EXPONENT 6
+-   int32_t constantDataSnippetExponent() { return TR_DEFAULT_DATA_SNIPPET_EXPONENT; } // 1 << 6 = 64 byte max size for each constantDataSnippet
++   #define TR_DEFAULT_DATA_SNIPPET_EXPONENT 7
++   int32_t constantDataSnippetExponent() { return TR_DEFAULT_DATA_SNIPPET_EXPONENT; } // 1 << 7 = 128 byte max size for each constantDataSnippet
+ 
+ 
+  private:

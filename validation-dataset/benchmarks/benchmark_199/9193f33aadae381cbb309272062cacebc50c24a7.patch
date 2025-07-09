@@ -1,0 +1,25 @@
+From 9193f33aadae381cbb309272062cacebc50c24a7 Mon Sep 17 00:00:00 2001
+From: Vladimir Menshakov <whoozle@yandex.ru>
+Date: Fri, 10 Jun 2011 02:29:05 +0400
+Subject: [PATCH] DREAMWEB: replaced movsw with 2*movsb
+
+---
+ engines/dreamweb/runtime.h | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/engines/dreamweb/runtime.h b/engines/dreamweb/runtime.h
+index 0e106b991684..475647b69a7e 100644
+--- a/engines/dreamweb/runtime.h
++++ b/engines/dreamweb/runtime.h
+@@ -421,9 +421,8 @@ class Context {
+ 	}
+ 
+ 	inline void _movsw() {
+-		es.word(di) = ds.word(si);
+-		di += 2;
+-		si += 2;
++		_movsb();
++		_movsb();
+ 	}
+ 
+ 	inline void _lodsb() {

@@ -1,0 +1,23 @@
+From 665eba457ccd7d7384ee260c224f13b665049c80 Mon Sep 17 00:00:00 2001
+From: Erik Garrison <erik.garrison@gmail.com>
+Date: Sun, 1 Feb 2015 20:14:30 +0000
+Subject: [PATCH] increase the number of background compactions to == threads
+
+---
+ index.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/index.cpp b/index.cpp
+index fc36f52f9c9..7ecdfc99530 100644
+--- a/index.cpp
++++ b/index.cpp
+@@ -45,7 +45,8 @@ void Index::prepare_for_bulk_load(void) {
+     options.write_buffer_size = 1024 * 1024 * 256;
+     options.target_file_size_base = 1024 * 1024 * 512;
+     options.IncreaseParallelism(threads);
+-    //options.env->SetBackgroundThreads(threads);
++    options.env->SetBackgroundThreads(threads);
++    options.max_background_compactions = threads;
+     //options.allow_mmap_writes = true;
+     options.max_write_buffer_number = threads;
+     //options.allow_os_buffer = false;

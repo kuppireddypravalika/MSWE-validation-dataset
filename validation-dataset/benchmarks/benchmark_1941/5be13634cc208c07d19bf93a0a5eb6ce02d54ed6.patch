@@ -1,0 +1,25 @@
+From 5be13634cc208c07d19bf93a0a5eb6ce02d54ed6 Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@gmail.com>
+Date: Sun, 4 Jun 2017 22:41:56 +0000
+Subject: [PATCH] [InstSimplify] Use llvm::all_of instead of a manual loop. NFC
+
+---
+ llvm/lib/Analysis/InstructionSimplify.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/llvm/lib/Analysis/InstructionSimplify.cpp b/llvm/lib/Analysis/InstructionSimplify.cpp
+index 66ac847455cd..c19af1b5ff7a 100644
+--- a/llvm/lib/Analysis/InstructionSimplify.cpp
++++ b/llvm/lib/Analysis/InstructionSimplify.cpp
+@@ -3896,9 +3896,8 @@ static Value *SimplifyGEPInst(Type *SrcTy, ArrayRef<Value *> Ops,
+   }
+ 
+   // Check to see if this is constant foldable.
+-  for (unsigned i = 0, e = Ops.size(); i != e; ++i)
+-    if (!isa<Constant>(Ops[i]))
+-      return nullptr;
++  if (!all_of(Ops, [](Value *V) { return isa<Constant>(V); }))
++    return nullptr;
+ 
+   return ConstantExpr::getGetElementPtr(SrcTy, cast<Constant>(Ops[0]),
+                                         Ops.slice(1));

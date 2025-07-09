@@ -1,0 +1,26 @@
+From 3fc638298ef7ab9033bd065e50e640eaf5715a46 Mon Sep 17 00:00:00 2001
+From: vitamin-caig <vitamin.caig@gmail.com>
+Date: Fri, 25 Aug 2023 18:11:58 +0300
+Subject: [PATCH] Reduce memory usage on zlib decompressing.
+
+---
+ src/binary/compression/src/zlib.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/binary/compression/src/zlib.cpp b/src/binary/compression/src/zlib.cpp
+index 5696920f3..1b2008794 100644
+--- a/src/binary/compression/src/zlib.cpp
++++ b/src/binary/compression/src/zlib.cpp
+@@ -95,8 +95,10 @@ namespace Binary::Compression::Zlib
+       {
+         if (Delegate.avail_out == 0)
+         {
+-          const auto bufSize = Math::Align<std::size_t>(
+-              Delegate.total_in ? uint64_t(Delegate.avail_in) * Delegate.total_out / Delegate.total_in : 1, 16384);
++          const auto restInput = uint64_t(Delegate.avail_in - Delegate.total_in);
++          const auto forecastOutput = Delegate.total_in ? restInput * Delegate.total_out / Delegate.total_in
++                                                        : restInput * 2;
++          const auto bufSize = Math::Align<std::size_t>(forecastOutput, 16384);
+           SetOutput(output.Allocate(bufSize), bufSize);
+         }
+         const auto res = ::inflate(&Delegate, Z_SYNC_FLUSH);

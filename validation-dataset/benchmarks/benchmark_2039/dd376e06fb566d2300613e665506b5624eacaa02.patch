@@ -1,0 +1,25 @@
+From dd376e06fb566d2300613e665506b5624eacaa02 Mon Sep 17 00:00:00 2001
+From: Pilow <pierre.laupretre@gmail.com>
+Date: Wed, 5 Apr 2017 23:06:37 +0200
+Subject: [PATCH] [compiler] Optimize delete_temporary method
+
+---
+ src/compiler/Compiler.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/compiler/Compiler.cpp b/src/compiler/Compiler.cpp
+index 61e19e84..0fe23adc 100644
+--- a/src/compiler/Compiler.cpp
++++ b/src/compiler/Compiler.cpp
+@@ -312,7 +312,10 @@ Compiler::value Compiler::insn_native(Compiler::value v) const {
+ 
+ void Compiler::insn_delete_temporary(Compiler::value v) const {
+ 	if (v.t.must_manage_memory()) {
+-		insn_call(Type::VOID, {v}, (void*) &LSValue::delete_temporary);
++		// insn_call(Type::VOID, {v}, (void*) &LSValue::delete_temporary);
++		insn_if_not(insn_refs(v), [&]() {
++			insn_call(Type::VOID, {v}, (void*) &LSValue::free);
++		});
+ 	} else if (v.t == Type::MPZ_TMP) {
+ 		insn_delete_mpz(v);
+ 	}

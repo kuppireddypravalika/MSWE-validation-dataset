@@ -1,0 +1,22 @@
+From 303e49ef616c4253e392487b611444fcc7e8aff8 Mon Sep 17 00:00:00 2001
+From: Olly Betts <olly@survex.com>
+Date: Tue, 9 Jan 2018 13:46:23 +1300
+Subject: [PATCH] Use exp2(x) rather than pow(2.0, x)
+
+---
+ xapian-letor/scorer/ndcg_score.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/xapian-letor/scorer/ndcg_score.cc b/xapian-letor/scorer/ndcg_score.cc
+index db88bb3715c..ca0f369aa6c 100644
+--- a/xapian-letor/scorer/ndcg_score.cc
++++ b/xapian-letor/scorer/ndcg_score.cc
+@@ -49,7 +49,7 @@ get_dcg(const std::vector<double> &labels)
+     LOGCALL_STATIC(API, double, "get_dcg", labels);
+     double dcg = 0;
+     for (int i = 0; i < int(labels.size()); ++i) {
+-	dcg += (pow(2, labels[i]) - 1) / log2(i + 2);
++	dcg += (exp2(labels[i]) - 1) / log2(i + 2);
+     }
+     return dcg;
+ }

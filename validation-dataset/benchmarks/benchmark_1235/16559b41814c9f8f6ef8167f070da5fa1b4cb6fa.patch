@@ -1,0 +1,31 @@
+From 16559b41814c9f8f6ef8167f070da5fa1b4cb6fa Mon Sep 17 00:00:00 2001
+From: Pieter Pas <pieter.pas@outlook.com>
+Date: Wed, 6 Sep 2023 10:21:07 +0200
+Subject: [PATCH] Use std::find instead of ranges::find for Clang 14
+
+---
+ src/alpaqa/include/alpaqa/functions/nuclear-norm.hpp | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/src/alpaqa/include/alpaqa/functions/nuclear-norm.hpp b/src/alpaqa/include/alpaqa/functions/nuclear-norm.hpp
+index 0c76c4bb8d..996fd5c6d3 100644
+--- a/src/alpaqa/include/alpaqa/functions/nuclear-norm.hpp
++++ b/src/alpaqa/include/alpaqa/functions/nuclear-norm.hpp
+@@ -42,12 +42,12 @@ struct NuclearNorm {
+         L1Norm<config_t> l1 = λ;
+         real_t value = l1.prox(svd.singularValues(), singular_values, γ);
+ #else
+-        auto step        = vec::Constant(n, λ * γ);
+-        singular_values  = vec::Zero(n).cwiseMax(svd.singularValues() - step);
+-        real_t value     = λ * γ * singular_values.template lpNorm<1>();
++        auto step       = vec::Constant(n, λ * γ);
++        singular_values = vec::Zero(n).cwiseMax(svd.singularValues() - step);
++        real_t value    = λ * γ * singular_values.template lpNorm<1>();
+ #endif
+-        using std::ranges::find;
+-        index_t rank = find(singular_values, 0) - singular_values.begin();
++        auto it0 = std::find(singular_values.begin(), singular_values.end(), 0);
++        index_t rank = it0 - singular_values.begin();
+         using Eigen::placeholders::all, Eigen::seqN;
+         auto sel = seqN(0, rank);
+         auto &&U = svd.matrixU(), &&V = svd.matrixV();

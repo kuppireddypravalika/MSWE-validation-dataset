@@ -1,0 +1,31 @@
+From e1d00dce317ed41b76647f3bcd464c2f1b48c080 Mon Sep 17 00:00:00 2001
+From: Anton Kudryavtsev <anton.kudryavtsev@vk.team>
+Date: Wed, 23 Aug 2023 11:18:08 +0300
+Subject: [PATCH] QTimer: avoid needless allocation
+
+It was introduced in 4368179c37cae05d16109e319fc1c77490754c7d
+
+Use QBAV to trim operation and then make QBA
+
+Change-Id: I578305e5b5254c66052d8a11815aaa7209e629bb
+Reviewed-by: Thiago Macieira <thiago.macieira@intel.com>
+---
+ src/corelib/kernel/qtimer.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/corelib/kernel/qtimer.cpp b/src/corelib/kernel/qtimer.cpp
+index 34f239558059..6c13215ac52f 100644
+--- a/src/corelib/kernel/qtimer.cpp
++++ b/src/corelib/kernel/qtimer.cpp
+@@ -441,8 +441,9 @@ void QTimer::singleShot(int msec, Qt::TimerType timerType, const QObject *receiv
+                 qWarning("QTimer::singleShot: Invalid slot specification");
+                 return;
+             }
+-            QByteArray methodName(member+1, bracketPosition - 1 - member); // extract method name
+-            QMetaObject::invokeMethod(const_cast<QObject *>(receiver), methodName.trimmed().constData(),
++            const auto methodName = QByteArrayView(member + 1, // extract method name
++                                                   bracketPosition - 1 - member).trimmed();
++            QMetaObject::invokeMethod(const_cast<QObject *>(receiver), methodName.toByteArray().constData(),
+                                       Qt::QueuedConnection);
+             return;
+         }

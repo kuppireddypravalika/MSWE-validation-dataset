@@ -1,0 +1,35 @@
+From 4666e7a176abba69923a5cfefb95c2dab80f787a Mon Sep 17 00:00:00 2001
+From: drmortalwombat <90205530+drmortalwombat@users.noreply.github.com>
+Date: Tue, 12 Jul 2022 14:50:55 +0200
+Subject: [PATCH] Fix single block loop optimization for function call in loop
+
+---
+ oscar64/NativeCodeGenerator.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/oscar64/NativeCodeGenerator.cpp b/oscar64/NativeCodeGenerator.cpp
+index d0d67bc..f65441e 100644
+--- a/oscar64/NativeCodeGenerator.cpp
++++ b/oscar64/NativeCodeGenerator.cpp
+@@ -13787,6 +13787,10 @@ bool NativeCodeBasicBlock::JoinTailCodeSequences(NativeCodeProcedure* proc, bool
+ 						mFalseJump->mEntryRequiredRegs += CPU_REG_X;
+ 
+ 						pb->mExitProvidedRegs += CPU_REG_X;
++						mExitProvidedRegs += CPU_REG_Y;
++
++						ns = mIns.Size();
++
+ 						mIns[ns - 3] = mIns[ns - 2];
+ 						mIns[ns - 2].mType = ASMIT_INX; mIns[ns - 2].mMode = ASMIM_IMPLIED;
+ 						changed = true;
+@@ -13808,6 +13812,10 @@ bool NativeCodeBasicBlock::JoinTailCodeSequences(NativeCodeProcedure* proc, bool
+ 						mFalseJump->mEntryRequiredRegs += CPU_REG_Y;
+ 
+ 						pb->mExitProvidedRegs += CPU_REG_Y;
++						mExitProvidedRegs += CPU_REG_Y;
++
++						ns = mIns.Size();
++
+ 						mIns[ns - 3] = mIns[ns - 2];
+ 						mIns[ns - 2].mType = ASMIT_INY; mIns[ns - 2].mMode = ASMIM_IMPLIED;
+ 						changed = true;

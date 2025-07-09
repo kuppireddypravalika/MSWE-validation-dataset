@@ -1,0 +1,26 @@
+From 9bb4651c8e6139b0e1edf1752569223643162e44 Mon Sep 17 00:00:00 2001
+From: Peter Collingbourne <peter@pcc.me.uk>
+Date: Fri, 9 Dec 2016 04:57:19 +0000
+Subject: [PATCH] Support: Use a 64-bit seek in raw_fd_ostream::seek().
+
+---
+ llvm/lib/Support/raw_ostream.cpp | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/llvm/lib/Support/raw_ostream.cpp b/llvm/lib/Support/raw_ostream.cpp
+index 92c7967cd8f3..c51f1d376b0a 100644
+--- a/llvm/lib/Support/raw_ostream.cpp
++++ b/llvm/lib/Support/raw_ostream.cpp
+@@ -598,7 +598,11 @@ void raw_fd_ostream::close() {
+ uint64_t raw_fd_ostream::seek(uint64_t off) {
+   assert(SupportsSeeking && "Stream does not support seeking!");
+   flush();
+-  pos = ::lseek(FD, off, SEEK_SET);
++#ifdef LLVM_ON_WIN32
++  pos = ::_lseeki64(FD, off, SEEK_SET);
++#else
++  pos = ::lseek64(FD, off, SEEK_SET);
++#endif
+   if (pos == (uint64_t)-1)
+     error_detected();
+   return pos;

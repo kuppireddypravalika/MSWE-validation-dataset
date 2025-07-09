@@ -1,0 +1,23 @@
+From b6abcafe3d008a50cfb0f9ca6db4f305bedfe552 Mon Sep 17 00:00:00 2001
+From: Sandor Kertesz <cgr@ecmwf.int>
+Date: Thu, 26 Jan 2017 15:29:26 +0000
+Subject: [PATCH] ecFlowUI: expand all is extremely slow in tree view
+ ECFLOW-857
+
+---
+ Viewer/src/VNode.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Viewer/src/VNode.cpp b/Viewer/src/VNode.cpp
+index 8ddc3f6b0..c3f6cacce 100644
+--- a/Viewer/src/VNode.cpp
++++ b/Viewer/src/VNode.cpp
+@@ -796,7 +796,7 @@ const std::string& VNode::abortedReason() const
+ 
+ int VNode::labelNum() const
+ {
+-    return (!node_)?node_->labels().size():0;
++    return (node_)?node_->labels().size():0;
+ }
+ 
+ int VNode::labelLineNum(int row) const

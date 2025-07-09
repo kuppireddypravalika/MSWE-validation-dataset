@@ -1,0 +1,22 @@
+From 4d1f288a5af7ccea7d9e4ed40ab40b1efcb8b748 Mon Sep 17 00:00:00 2001
+From: Shawn Waldon <shawn.waldon@kitware.com>
+Date: Thu, 23 Feb 2017 15:00:52 -0500
+Subject: [PATCH] Use lowest() rather than min() as the lower bound
+
+---
+ tomviz/InterfaceBuilder.cxx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tomviz/InterfaceBuilder.cxx b/tomviz/InterfaceBuilder.cxx
+index 7c61070e7..96b1195d1 100644
+--- a/tomviz/InterfaceBuilder.cxx
++++ b/tomviz/InterfaceBuilder.cxx
+@@ -202,7 +202,7 @@ void addNumericWidget(QGridLayout* layout, int row, QJsonObject& parameterNode,
+     }
+   }
+ 
+-  std::vector<T> minValues(defaultValues.size(), std::numeric_limits<T>::min());
++  std::vector<T> minValues(defaultValues.size(), std::numeric_limits<T>::lowest());
+   if (parameterNode.contains("minimum")) {
+     QJsonValueRef minNode = parameterNode["minimum"];
+     if (isType<T>(minNode)) {

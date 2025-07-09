@@ -1,0 +1,23 @@
+From 4e8e73baea7148453607332a75a91c111c0f6471 Mon Sep 17 00:00:00 2001
+From: Sven Woop <sven.woop@intel.com>
+Date: Thu, 16 Feb 2017 12:42:08 +0100
+Subject: [PATCH] less often testing strand splits, improves hair build
+ performance by 25%, and reduced rendering by 0.6%
+
+---
+ kernels/builders/bvh_builder_hair.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/kernels/builders/bvh_builder_hair.h b/kernels/builders/bvh_builder_hair.h
+index 02ab10ae6..1dbaf8568 100644
+--- a/kernels/builders/bvh_builder_hair.h
++++ b/kernels/builders/bvh_builder_hair.h
+@@ -180,7 +180,7 @@ namespace embree
+           /* try splitting into two strands */
+           HeuristicStrandSplitSAH::Split strandSplit;
+           float strandSAH = inf;
+-          if (bestSAH > 0.6f*leafSAH) {
++          if (bestSAH > 0.7f*leafSAH) {
+             strandSplit = strandHeuristic.find(pinfo);
+             strandSAH = travCostUnaligned*halfArea(pinfo.geomBounds) + intCost*strandSplit.splitSAH();
+             bestSAH = min(strandSAH,bestSAH);

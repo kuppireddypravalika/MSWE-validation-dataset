@@ -1,0 +1,26 @@
+From 2783a7826f3d131dead6ca71e89da89fe2370517 Mon Sep 17 00:00:00 2001
+From: hellcatv <hellcatv@9476613a-4e0a-0410-bcee-947800e9c4d1>
+Date: Wed, 16 Aug 2006 08:12:14 +0000
+Subject: [PATCH] allow for optimization return_static_relation
+
+---
+ src/cmd/ai/order_comm.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/cmd/ai/order_comm.cpp b/src/cmd/ai/order_comm.cpp
+index 300f1243c7..2f2ca45783 100644
+--- a/src/cmd/ai/order_comm.cpp
++++ b/src/cmd/ai/order_comm.cpp
+@@ -47,8 +47,11 @@ void Order::ProcessCommMessage(CommunicationMessage & c) {
+   
+ }
+ float Order::GetEffectiveRelationship (const Unit * target)const {
++  
+   float staticrel = FactionUtil::GetIntRelation (parent->faction,target->faction);
+-  return staticrel;
++  static bool returnStaticRel=XMLSupport::parse_float(vs_config->getVariable("AI","return_static_relation","false"));
++  if (returnStaticRel)
++      return staticrel;
+   for (unsigned int i=0;i<suborders.size();i++) {
+     float effrel = suborders[i]->GetEffectiveRelationship(target);
+     if (effrel !=staticrel) {

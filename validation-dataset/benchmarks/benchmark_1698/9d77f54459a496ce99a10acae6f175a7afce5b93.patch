@@ -1,0 +1,25 @@
+From 9d77f54459a496ce99a10acae6f175a7afce5b93 Mon Sep 17 00:00:00 2001
+From: Julian Helfferich <julian.helfferich@googlemail.com>
+Date: Tue, 10 Jan 2017 12:11:49 +0100
+Subject: [PATCH] Revert one return by reference and return by copy instead.
+
+The function GetIndices() builds a new vector and you can't copy a
+reference to a temporary object. This should still be very efficient,
+because the compiler will optimize it to a move operation.
+---
+ src/Grid.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/Grid.h b/src/Grid.h
+index 516abb0a..37c638c4 100644
+--- a/src/Grid.h
++++ b/src/Grid.h
+@@ -229,7 +229,7 @@ class Grid : public Serializable
+     }
+ 
+     //! Return the Grid indices for a given point.
+-    const std::vector<int>& GetIndices(const std::vector<double> &x) const
++    std::vector<int> GetIndices(const std::vector<double> &x) const
+     {
+         return std::vector<int>(GetDimension(), 0);
+     }

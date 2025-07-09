@@ -1,0 +1,22 @@
+From 7af38fdeb63bf2e4e4c345df766eb6e5f162f711 Mon Sep 17 00:00:00 2001
+From: Florian Echtler <floe@butterbrot.org>
+Date: Tue, 30 Aug 2022 15:33:03 +0200
+Subject: [PATCH] only run the chroma filter when actually enabled
+
+---
+ src/V4L2.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/V4L2.cpp b/src/V4L2.cpp
+index 8201a73..02e539a 100644
+--- a/src/V4L2.cpp
++++ b/src/V4L2.cpp
+@@ -38,7 +38,7 @@ void V4L2::remove_background() {
+ 
+   uint8_t* in_data = (uint8_t*)input.data;
+ 
+-  if (in_data) for (int i = 0; i < input.rows*input.cols*3; i+=3) {
++  if (do_filter && in_data) for (int i = 0; i < input.rows*input.cols*3; i+=3) {
+ 
+     uint8_t r = in_data[i+0];
+     uint8_t g = in_data[i+1];

@@ -1,0 +1,26 @@
+From 0bf43142511f3642a57c580b09f26aaa44145f84 Mon Sep 17 00:00:00 2001
+From: Marek Marecki <marekjm@ozro.pw>
+Date: Tue, 7 Sep 2021 21:22:00 +0200
+Subject: [PATCH] Use greedy li variant when loading function offsets
+
+Function calls will be just a wee bit faster if the VM does not have to
+make a roundtrip through all the usual machinery. Function calls are
+preemption events anyway, so there is nothing lost if we automatically
+emit greedy instructions for them.
+---
+ new/src/tools/exec/asm.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/new/src/tools/exec/asm.cpp b/new/src/tools/exec/asm.cpp
+index 568b60d25..9c542e3fb 100644
+--- a/new/src/tools/exec/asm.cpp
++++ b/new/src/tools/exec/asm.cpp
+@@ -830,7 +830,7 @@ auto expand_pseudoinstructions(std::vector<ast::Instruction> raw, std::map<std::
+             auto li = ast::Instruction{};
+             {
+                 li.opcode = each.opcode;
+-                li.opcode.text = "li";
++                li.opcode.text = "g.li";
+ 
+                 li.operands.push_back(fn_offset);
+                 li.operands.push_back(fn_offset);

@@ -1,0 +1,48 @@
+From d6a5406e79e22fe06ca683638a5eb77d56867a87 Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Mon, 31 Jul 2017 00:20:44 -0400
+Subject: [PATCH] [libromdata] NintendoBadge::loadFieldData(): Use
+ `d->multiBadge` for mega badge detection.
+
+The code was checking `width` twice, and it should have been
+`width > 1 || height > 1`. We're already checking this in the constructor
+and setting `d->multiBadge`, so just use that.
+---
+ src/libromdata/NintendoBadge.cpp | 22 +++++-----------------
+ 1 file changed, 5 insertions(+), 17 deletions(-)
+
+diff --git a/src/libromdata/NintendoBadge.cpp b/src/libromdata/NintendoBadge.cpp
+index 8601a7840a..5915cc9931 100644
+--- a/src/libromdata/NintendoBadge.cpp
++++ b/src/libromdata/NintendoBadge.cpp
+@@ -434,25 +434,13 @@ int NintendoBadge::loadFieldData(void)
+ 	// Type.
+ 	const rp_char *badgeType;
+ 	switch (d->badgeType) {
+-		case NintendoBadgePrivate::BADGE_TYPE_PRBS: {
+-			const Badge_PRBS_Header *const prbs = &d->badgeHeader.prbs;
+-			if (prbs->width > 1 && prbs->width > 1) {
+-				badgeType = _RP("Individual Badge");
+-			} else {
+-				badgeType = _RP("Mega Badge");
+-			}
++		case NintendoBadgePrivate::BADGE_TYPE_PRBS:
++			badgeType = (d->multiBadge ? _RP("Mega Badge") : _RP("Individual Badge"));
+ 			break;
+-		}
+-
+-		case NintendoBadgePrivate::BADGE_TYPE_CABS: {
+-			const Badge_PRBS_Header *const prbs = &d->badgeHeader.prbs;
+-			if (prbs->width > 1 && prbs->width > 1) {
+-				badgeType = _RP("Badge Set");
+-			} else {
+-				badgeType = _RP("Mega Badge Set");
+-			}
++
++		case NintendoBadgePrivate::BADGE_TYPE_CABS:
++			badgeType = (d->multiBadge ? _RP("Mega Badge Set") : _RP("Badge Set"));
+ 			break;
+-		}
+ 
+ 		default:
+ 			// Unknown.

@@ -1,0 +1,37 @@
+From fb3af457b2264e25f85087f9b73995df02ef229c Mon Sep 17 00:00:00 2001
+From: Martin Mittring <martin.mittring@epicgames.com>
+Date: Wed, 26 Aug 2015 14:54:02 -0400
+Subject: [PATCH] fixed issues with recent change CL 2669564 	fixed UE-2000
+ UE4: RENDERING: FORTNITE: Add a method for animating mid post process
+ materials 	Fixed MID Parameter blending, was not looking at the full
+ hierarchy. Slightly slower but there is a much worse performance issue
+ lurking in CopyMaterialInstanceParameters() we have to tackle in a following
+ checkin.
+
+[CL 2669673 by Martin Mittring in Main branch]
+---
+ .../Engine/Private/Materials/MaterialInstanceDynamic.cpp      | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Engine/Source/Runtime/Engine/Private/Materials/MaterialInstanceDynamic.cpp b/Engine/Source/Runtime/Engine/Private/Materials/MaterialInstanceDynamic.cpp
+index 9270972dfd6..d9288df2f6b 100644
+--- a/Engine/Source/Runtime/Engine/Private/Materials/MaterialInstanceDynamic.cpp
++++ b/Engine/Source/Runtime/Engine/Private/Materials/MaterialInstanceDynamic.cpp
+@@ -156,7 +156,7 @@ void UMaterialInstanceDynamic::K2_InterpolateMaterialInstanceParams(UMaterialIns
+ 				auto ParamValueA = GameThread_GetScalarParameterValue(MaterialInstanceA, Name);
+ 				auto ParamValueB = GameThread_GetScalarParameterValue(MaterialInstanceB, Name);
+ 
+-				if(!ParamValueA && !ParamValueB)
++				if(ParamValueA || ParamValueB)
+ 				{
+ 					auto Default = 0.0f;
+ 
+@@ -185,7 +185,7 @@ void UMaterialInstanceDynamic::K2_InterpolateMaterialInstanceParams(UMaterialIns
+ 				auto ParamValueA = GameThread_GetVectorParameterValue(MaterialInstanceA, Name);
+ 				auto ParamValueB = GameThread_GetVectorParameterValue(MaterialInstanceB, Name);
+ 
+-				if(!ParamValueA && !ParamValueB)
++				if(ParamValueA || ParamValueB)
+ 				{
+ 					auto Default = FLinearColor();
+ 

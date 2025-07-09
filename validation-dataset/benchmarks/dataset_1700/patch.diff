@@ -1,0 +1,26 @@
+From 4ca455700539696c7f433f10751219cdd1f3fe9b Mon Sep 17 00:00:00 2001
+From: Benjamin Kaufmann <kaufmann@cs.uni-potsdam.de>
+Date: Sat, 26 May 2018 11:19:54 +0200
+Subject: [PATCH] Integrate nogoods on Enumerator::start().
+
+ * Try to integrate all not yet processed enumeration
+   nogoods into the solver on start of a new path.
+   This is especially important when switching from optimization
+   to enumeration in mode optN and should fix clingo issue #104
+   (https://github.com/potassco/clingo/issues/104)
+---
+ src/enumerator.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/enumerator.cpp b/src/enumerator.cpp
+index daf5e13b..8caa830f 100644
+--- a/src/enumerator.cpp
++++ b/src/enumerator.cpp
+@@ -96,6 +96,7 @@ bool EnumerationConstraint::start(Solver& s, const LitVec& path, bool disjoint)
+ 	setDisjoint(disjoint);
+ 	if (s.pushRoot(path) && s.pushRoot(s.sharedContext()->stepLiteral())) {
+ 		integrateBound(s);
++		integrateNogoods(s);
+ 		return true;
+ 	}
+ 	return false;

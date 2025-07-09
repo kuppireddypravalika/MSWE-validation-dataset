@@ -1,0 +1,28 @@
+From 46fd7a6ef8766d5d1b5816e9f2ceff51d5ceb006 Mon Sep 17 00:00:00 2001
+From: Dan Gohman <gohman@apple.com>
+Date: Sun, 29 Aug 2010 15:18:49 +0000
+Subject: [PATCH] Do one lookup instead of two.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@112434 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Transforms/Scalar/LoopStrengthReduce.cpp | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/lib/Transforms/Scalar/LoopStrengthReduce.cpp b/lib/Transforms/Scalar/LoopStrengthReduce.cpp
+index 64d493c514d..8370c08d2e1 100644
+--- a/lib/Transforms/Scalar/LoopStrengthReduce.cpp
++++ b/lib/Transforms/Scalar/LoopStrengthReduce.cpp
+@@ -161,9 +161,10 @@ RegUseTracker::DropUse(size_t LUIdx) {
+ 
+ bool
+ RegUseTracker::isRegUsedByUsesOtherThan(const SCEV *Reg, size_t LUIdx) const {
+-  if (!RegUsesMap.count(Reg)) return false;
+-  const SmallBitVector &UsedByIndices =
+-    RegUsesMap.find(Reg)->second.UsedByIndices;
++  RegUsesTy::const_iterator I = RegUsesMap.find(Reg);
++  if (I == RegUsesMap.end())
++    return false;
++  const SmallBitVector &UsedByIndices = I->second.UsedByIndices;
+   int i = UsedByIndices.find_first();
+   if (i == -1) return false;
+   if ((size_t)i != LUIdx) return true;

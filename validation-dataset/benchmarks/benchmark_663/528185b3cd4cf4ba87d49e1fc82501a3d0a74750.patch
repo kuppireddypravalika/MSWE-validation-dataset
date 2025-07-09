@@ -1,0 +1,25 @@
+From 528185b3cd4cf4ba87d49e1fc82501a3d0a74750 Mon Sep 17 00:00:00 2001
+From: Rui Ueyama <ruiu@google.com>
+Date: Thu, 29 Mar 2018 18:29:12 +0000
+Subject: [PATCH] Exit early from a loop. NFC.
+
+This patch fixes an issue introduced in r328810 which made the algorithm
+to always run the loop O(n^2) times, though we can break early. The
+output remains the same.
+---
+ lld/ELF/Writer.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lld/ELF/Writer.cpp b/lld/ELF/Writer.cpp
+index 26e0d7ccd133..340324f5e7d2 100644
+--- a/lld/ELF/Writer.cpp
++++ b/lld/ELF/Writer.cpp
+@@ -2002,7 +2002,7 @@ static void checkOverlap(StringRef Name, std::vector<SectionOffset> &Sections) {
+       OutputSection *Other = Sections[J].Sec;
+       uint64_t OtherStart = Sections[J].Offset;
+       if (Start + Sec->Size <= OtherStart)
+-        continue;
++        break;
+ 
+       errorOrWarn("section " + Sec->Name + " " + Name +
+                   " range overlaps with " + Other->Name + "\n>>> " + Sec->Name +

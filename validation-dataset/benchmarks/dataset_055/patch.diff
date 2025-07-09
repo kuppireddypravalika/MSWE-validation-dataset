@@ -1,0 +1,31 @@
+From 90e1b981c07b4ffb010f8b28caf03be256dbb97f Mon Sep 17 00:00:00 2001
+From: ulteq <ulteq@web.de>
+Date: Mon, 22 Feb 2016 15:18:32 +0100
+Subject: [PATCH] [Codechange] Reactived the terrain caching (mapbin) on linux
+
+Noticeable speedup when loading maps like Auriga
+
+This PR made it work: #789
+---
+ source/main/terrain/TerrainGeometryManager.cpp | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/source/main/terrain/TerrainGeometryManager.cpp b/source/main/terrain/TerrainGeometryManager.cpp
+index 4da0cf38c0..920cb4a172 100644
+--- a/source/main/terrain/TerrainGeometryManager.cpp
++++ b/source/main/terrain/TerrainGeometryManager.cpp
+@@ -187,14 +187,12 @@ void TerrainGeometryManager::initTerrain()
+ 			}
+ 		}
+ 		
+-#ifdef _WIN32
+ 		// always save the results when it was imported
+ 		if (!disableCaching)
+ 		{
+ 			LoadingWindow::getSingleton().setProgress(23, _L("saving all terrain pages ..."));
+ 			mTerrainGroup->saveAllTerrains(false);
+ 		}
+-#endif // _WIN32
+ 	} else
+ 	{
+ 		LOG(" *** Terrain loaded from cache ***");

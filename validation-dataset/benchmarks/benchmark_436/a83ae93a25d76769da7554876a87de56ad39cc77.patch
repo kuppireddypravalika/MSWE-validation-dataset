@@ -1,0 +1,34 @@
+From a83ae93a25d76769da7554876a87de56ad39cc77 Mon Sep 17 00:00:00 2001
+From: Giles <--global>
+Date: Sat, 6 Jun 2020 23:46:53 +0100
+Subject: [PATCH] replace quotientE by intDivide
+
+---
+ Kernel/Theory.hpp | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/Kernel/Theory.hpp b/Kernel/Theory.hpp
+index 519a8bbbfa..1462ff9d13 100644
+--- a/Kernel/Theory.hpp
++++ b/Kernel/Theory.hpp
+@@ -87,15 +87,19 @@ class IntegerConstantType
+       if(num._val==0){ throw ArithmeticException(); }
+       return _val/num._val;
+   }
+-  // TODO: shouldn't we always be using intDivide for quotientE - when are they different (apart from real rounding)?
+   IntegerConstantType quotientE(const IntegerConstantType& num) const { 
+     CALL("IntegerConstantType::quotientE");
++
++    // Just do intDivide as realDivide may have rounding errors
++    return IntegerConstantType(intDivide(num));
++/*
+     //cout << "quotientE " << _val << " and " << num._val << endl;
+     if(num.divides(*this)){
+       return IntegerConstantType(intDivide(num));
+     }
+     if(num._val>0) return IntegerConstantType(::floor(realDivide(num)));
+     else return IntegerConstantType(::ceil(realDivide(num)));
++*/
+   }
+   IntegerConstantType quotientT(const IntegerConstantType& num) const { 
+     if(num.divides(*this)){

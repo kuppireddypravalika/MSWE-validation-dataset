@@ -1,0 +1,22 @@
+From 3454700780696d833dd5d90e0a26d53b3923408f Mon Sep 17 00:00:00 2001
+From: Chris Harris <chris.harris@kitware.com>
+Date: Wed, 18 Apr 2018 21:51:48 -0400
+Subject: [PATCH] Remove extra delete
+
+We now do a fast delete at the start of the pipeline execution.
+---
+ tomviz/Pipeline.cxx | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/tomviz/Pipeline.cxx b/tomviz/Pipeline.cxx
+index a4a4078c1..9b442976e 100644
+--- a/tomviz/Pipeline.cxx
++++ b/tomviz/Pipeline.cxx
+@@ -205,7 +205,6 @@ void Pipeline::pipelineBranchCanceled()
+ {
+   PipelineWorker::Future* future =
+     qobject_cast<PipelineWorker::Future*>(sender());
+-  future->result()->Delete();
+   future->deleteLater();
+   if (m_future == future) {
+     m_future = nullptr;

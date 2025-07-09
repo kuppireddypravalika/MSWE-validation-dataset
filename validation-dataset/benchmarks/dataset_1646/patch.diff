@@ -1,0 +1,26 @@
+From b629bdc085ea5ef556180d59bfc1dc292f93cc6c Mon Sep 17 00:00:00 2001
+From: Anton Kudryavtsev <anton.kudryavtsev@vk.team>
+Date: Wed, 13 Sep 2023 17:19:26 +0300
+Subject: [PATCH] qmimedata: reduce allocations
+
+use QBAV more
+
+Change-Id: Id7fdf5dcb19cd4011317adf5c635a9d974d7d98a
+Reviewed-by: Edward Welbourne <edward.welbourne@qt.io>
+---
+ src/corelib/kernel/qmimedata.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/corelib/kernel/qmimedata.cpp b/src/corelib/kernel/qmimedata.cpp
+index 8f5be6a266e2..561c92aa7b98 100644
+--- a/src/corelib/kernel/qmimedata.cpp
++++ b/src/corelib/kernel/qmimedata.cpp
+@@ -564,7 +564,7 @@ void QMimeData::setData(const QString &mimeType, const QByteArray &data)
+     Q_D(QMimeData);
+ 
+     if (mimeType == "text/uri-list"_L1) {
+-        QByteArray ba = data;
++        auto ba = QByteArrayView(data);
+         if (ba.endsWith('\0'))
+             ba.chop(1);
+         d->setData(mimeType, dataToUrls(ba));

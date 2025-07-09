@@ -1,0 +1,22 @@
+From adc464bf427a682e68cac90de6d5c66db1043094 Mon Sep 17 00:00:00 2001
+From: Nathaniel Wesley Filardo <nfilardo@microsoft.com>
+Date: Tue, 10 Jan 2023 12:44:41 +0000
+Subject: [PATCH] alloc: shave some space by inlining
+
+---
+ sdk/core/allocator/alloc.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sdk/core/allocator/alloc.h b/sdk/core/allocator/alloc.h
+index b7fbf5912..2e73ae4d4 100644
+--- a/sdk/core/allocator/alloc.h
++++ b/sdk/core/allocator/alloc.h
+@@ -793,7 +793,7 @@ class MState
+ 	 *
+ 	 * Returns true if any objects were dequeued, false otherwise.
+ 	 */
+-	bool quarantine_dequeue()
++	__always_inline bool quarantine_dequeue()
+ 	{
+ 		// 4 chosen by fair die roll.
+ 		return mspace_qtbin_deqn(4) > 0;

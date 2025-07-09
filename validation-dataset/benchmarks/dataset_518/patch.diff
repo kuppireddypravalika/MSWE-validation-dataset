@@ -1,0 +1,28 @@
+From 9a9e5cce0899255d16f96d6045705dfb69059282 Mon Sep 17 00:00:00 2001
+From: Warboy <neo_nihilist@hotmail.com>
+Date: Tue, 25 Jun 2013 01:25:57 +1000
+Subject: [PATCH] save cycles, don't waste time with units that can't do
+ anything.
+
+---
+ src/Battlescape/BattlescapeGame.cpp | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/src/Battlescape/BattlescapeGame.cpp b/src/Battlescape/BattlescapeGame.cpp
+index 3b46280f72..253353b765 100644
+--- a/src/Battlescape/BattlescapeGame.cpp
++++ b/src/Battlescape/BattlescapeGame.cpp
+@@ -183,6 +183,13 @@ void BattlescapeGame::handleAI(BattleUnit *unit)
+ 	
+ 	_tuReserved = BA_NONE;
+ 
++	if (unit->getTimeUnits() <= 5)
++	{
++		_save->selectNextPlayerUnit(true, true);
++		_AIActionCounter = 0;
++		return;
++	}
++
+ 	if (unit->getMainHandWeapon() && unit->getMainHandWeapon()->getRules()->getBattleType() == BT_FIREARM)
+ 	{
+ 		switch (unit->getAggression())

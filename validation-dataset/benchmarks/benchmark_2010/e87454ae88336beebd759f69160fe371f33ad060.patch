@@ -1,0 +1,39 @@
+From e87454ae88336beebd759f69160fe371f33ad060 Mon Sep 17 00:00:00 2001
+From: Rosen Penev <rosenp@gmail.com>
+Date: Mon, 23 Mar 2020 20:31:57 -0700
+Subject: [PATCH] MpcdecDecoderPlugin: use std variant of pow
+
+It's available with uClibc-ng. It also offers overloads.
+
+Signed-off-by: Rosen Penev <rosenp@gmail.com>
+---
+ src/decoder/plugins/MpcdecDecoderPlugin.cxx | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/decoder/plugins/MpcdecDecoderPlugin.cxx b/src/decoder/plugins/MpcdecDecoderPlugin.cxx
+index 4e9ef798e9..e839255749 100644
+--- a/src/decoder/plugins/MpcdecDecoderPlugin.cxx
++++ b/src/decoder/plugins/MpcdecDecoderPlugin.cxx
+@@ -25,12 +25,12 @@
+ #include "tag/Handler.hxx"
+ #include "util/Domain.hxx"
+ #include "util/Clamp.hxx"
+-#include "util/Math.hxx"
+ #include "util/ScopeExit.hxx"
+ #include "Log.hxx"
+ 
+ #include <mpc/mpcdec.h>
+ 
++#include <cmath>
+ #include <iterator>
+ 
+ struct mpc_decoder_data {
+@@ -142,7 +142,7 @@ ImportMpcdecReplayGain(mpc_uint16_t gain, mpc_uint16_t peak) noexcept
+ 
+ 	if (gain != 0 && peak != 0) {
+ 		t.gain = MPC_OLD_GAIN_REF - (gain  / 256.);
+-		t.peak = pow(10, peak / 256. / 20) / 32767;
++		t.peak = std::pow(10, peak / 256. / 20) / 32767;
+ 	}
+ 
+ 	return t;

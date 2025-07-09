@@ -1,0 +1,44 @@
+From 597a71fa99ea4845d61e5db630de02d73bf37421 Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Wed, 7 Jan 2015 15:44:05 +0100
+Subject: [PATCH] Make qSwap() noexcept, if possible
+
+This greatly increases the value of qSwap(), since not only does it
+automatically do the parallel std+ADL lookup of swap(), but also
+now centralizes the rather messy code involved to create a correct
+noexcept specification.
+
+Other code now can simply use
+    Q_DECL_NOEXCEPT_EXPT(noexcept(qSwap(lhs, rhs))).
+
+Change-Id: Ia35df4876b143e86c4150ac452a48c3775c3702b
+Reviewed-by: Thiago Macieira <thiago.macieira@intel.com>
+---
+ src/corelib/global/qglobal.h | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/src/corelib/global/qglobal.h b/src/corelib/global/qglobal.h
+index 273dcb9acb3..48ba09075d8 100644
+--- a/src/corelib/global/qglobal.h
++++ b/src/corelib/global/qglobal.h
+@@ -802,8 +802,20 @@ static inline bool qIsNull(float f)
+ #  define Q_DUMMY_COMPARISON_OPERATOR(C)
+ #endif
+ 
++namespace QtPrivate
++{
++namespace SwapExceptionTester { // insulate users from the "using std::swap" below
++    using std::swap; // import std::swap
++    template <typename T>
++    void checkSwap(T &t)
++        Q_DECL_NOEXCEPT_EXPR(noexcept(swap(t, t)));
++    // declared, but not implemented (only to be used in unevaluated contexts (noexcept operator))
++}
++} // namespace QtPrivate
++
+ template <typename T>
+ inline void qSwap(T &value1, T &value2)
++    Q_DECL_NOEXCEPT_EXPR(noexcept(QtPrivate::SwapExceptionTester::checkSwap(value1)))
+ {
+     using std::swap;
+     swap(value1, value2);

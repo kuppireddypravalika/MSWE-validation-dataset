@@ -1,0 +1,23 @@
+From ab7bee354a640d5a46cee84038015a451a48c7b9 Mon Sep 17 00:00:00 2001
+From: Hendrik Leppkes <h.leppkes@gmail.com>
+Date: Mon, 23 Sep 2013 20:07:10 +0200
+Subject: [PATCH] Seek after the 4-byte extra TS headers on BD.
+
+This avoids an extra resync pass and improves seeking performance.
+---
+ demuxer/Demuxers/BDDemuxer.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/demuxer/Demuxers/BDDemuxer.cpp b/demuxer/Demuxers/BDDemuxer.cpp
+index b990d4e93..cf29ecf30 100644
+--- a/demuxer/Demuxers/BDDemuxer.cpp
++++ b/demuxer/Demuxers/BDDemuxer.cpp
+@@ -433,7 +433,7 @@ STDMETHODIMP CBDDemuxer::Seek(REFERENCE_TIME rTime)
+   int64_t target = bd_find_seek_point(m_pBD, ConvertDSTimeTo90Khz(rTime));
+ 
+   DbgLog((LOG_TRACE, 1, "Seek Request: %I64u (time); %I64u (byte), %I64u (prev byte)", rTime, target, prev));
+-  return m_lavfDemuxer->SeekByte(target, AVSEEK_FLAG_BACKWARD);
++  return m_lavfDemuxer->SeekByte(target + 4, AVSEEK_FLAG_BACKWARD);
+ }
+ 
+ const char *CBDDemuxer::GetContainerFormat() const

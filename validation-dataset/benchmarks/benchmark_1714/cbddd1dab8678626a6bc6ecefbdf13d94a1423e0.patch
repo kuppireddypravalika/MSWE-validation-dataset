@@ -1,0 +1,25 @@
+From cbddd1dab8678626a6bc6ecefbdf13d94a1423e0 Mon Sep 17 00:00:00 2001
+From: Xin Tong <trent.xin.tong@gmail.com>
+Date: Wed, 18 Jan 2017 00:15:11 +0000
+Subject: [PATCH] Skip loop header while we can when computing loop safety info
+
+---
+ llvm/lib/Transforms/Scalar/LICM.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/llvm/lib/Transforms/Scalar/LICM.cpp b/llvm/lib/Transforms/Scalar/LICM.cpp
+index baa2594c7550..be576404addf 100644
+--- a/llvm/lib/Transforms/Scalar/LICM.cpp
++++ b/llvm/lib/Transforms/Scalar/LICM.cpp
+@@ -461,7 +461,10 @@ void llvm::computeLoopSafetyInfo(LoopSafetyInfo *SafetyInfo, Loop *CurLoop) {
+ 
+   SafetyInfo->MayThrow = SafetyInfo->HeaderMayThrow;
+   // Iterate over loop instructions and compute safety info.
+-  for (Loop::block_iterator BB = CurLoop->block_begin(),
++  // Skip header as it has been computed and stored in HeaderMayThrow.
++  // The first block in loopinfo.Blocks is guaranteed to be the header.
++  assert(Header == *CurLoop->getBlocks().begin() && "First block must be header");
++  for (Loop::block_iterator BB = std::next(CurLoop->block_begin()),
+                             BBE = CurLoop->block_end();
+        (BB != BBE) && !SafetyInfo->MayThrow; ++BB)
+     for (BasicBlock::iterator I = (*BB)->begin(), E = (*BB)->end();

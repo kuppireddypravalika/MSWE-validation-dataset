@@ -1,0 +1,31 @@
+From 15c6b6863a0570fd064d28984d0812370da9962e Mon Sep 17 00:00:00 2001
+From: Vasiliy Olekhov <vasiliy.olekhov@nil.foundation>
+Date: Tue, 17 Oct 2023 12:48:40 +0300
+Subject: [PATCH] Add transpiler flag for new optimizations #309
+
+---
+ bin/transpiler/src/main.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/bin/transpiler/src/main.cpp b/bin/transpiler/src/main.cpp
+index ee0c57e8..2082ff1d 100644
+--- a/bin/transpiler/src/main.cpp
++++ b/bin/transpiler/src/main.cpp
+@@ -175,6 +175,7 @@ int main(int argc, char *argv[]) {
+             ("gates-inline-threshold", boost::program_options::value<std::size_t>(), "Gates inline size limit. Default = 0, none of the gates are inlined")
+             ("lookups-library-threshold", boost::program_options::value<std::size_t>(), "Lookups library size limit, per module. Default = 0, each lookup in a separate library")
+             ("lookups-inline-threshold", boost::program_options::value<std::size_t>(), "Lookups inline size limit. Default = 0, none of the lookups are inlined")
++            ("deduce-horner", "Detect polynomials over one variable and deduce to Horner's formula")
+             ;
+     // clang-format on
+ 
+@@ -411,7 +412,8 @@ int main(int argc, char *argv[]) {
+             gates_library_threshold,
+             lookups_library_threshold,
+             gates_inline_threshold,
+-            lookups_inline_threshold
++            lookups_inline_threshold,
++            vm.count("deduce-horner") > 0
+         ).print();
+         return 0;
+     }

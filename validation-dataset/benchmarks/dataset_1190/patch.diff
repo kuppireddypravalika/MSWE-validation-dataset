@@ -1,0 +1,29 @@
+From e9899d74da4cc1636cdb6d04851a0e19dece9434 Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Sun, 28 Jun 2020 10:55:55 -0600
+Subject: [PATCH] Use packed parameter call in Explosion::update
+
+---
+ OPHD/States/PlanetSelectState.cpp | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/OPHD/States/PlanetSelectState.cpp b/OPHD/States/PlanetSelectState.cpp
+index 4b15e8603..dc4097ab5 100644
+--- a/OPHD/States/PlanetSelectState.cpp
++++ b/OPHD/States/PlanetSelectState.cpp
+@@ -39,14 +39,12 @@ class Explosion
+ 			mTimer.reset();
+ 		}
+ 
+-		auto rasterX = static_cast<float>(x);
+-		auto rasterY = static_cast<float>(y);
+ 		auto width = 128.0f;
+ 		auto height = 128.0f;
+ 		auto posX = (mFrame % 8u) * width;
+ 		auto posY = (mFrame / 8u) * height;
+ 		auto orientationDegrees = 270.0f;
+-		renderer.drawSubImageRotated(mSheet, rasterX, rasterY, posX, posY, width, height, orientationDegrees);
++		renderer.drawSubImageRotated(mSheet, Point<int>{x, y}, {posX, posY, width, height}, orientationDegrees);
+ 	}
+ 
+ private:

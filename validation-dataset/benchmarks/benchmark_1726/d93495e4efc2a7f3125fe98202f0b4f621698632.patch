@@ -1,0 +1,35 @@
+From d93495e4efc2a7f3125fe98202f0b4f621698632 Mon Sep 17 00:00:00 2001
+From: Andrew Adams <andrew.b.adams@gmail.com>
+Date: Mon, 28 Jan 2019 14:04:13 -0800
+Subject: [PATCH] Don't create unnecessary lets in Inlining
+
+---
+ src/Inline.cpp | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/src/Inline.cpp b/src/Inline.cpp
+index c46aadcbce..07cbf76d0f 100644
+--- a/src/Inline.cpp
++++ b/src/Inline.cpp
+@@ -6,6 +6,8 @@
+ #include "IRPrinter.h"
+ #include "Inline.h"
+ #include "Qualify.h"
++#include "IROperator.h"
++#include "Substitute.h"
+ 
+ namespace Halide {
+ namespace Internal {
+@@ -113,7 +115,11 @@ class Inliner : public IRMutator {
+             internal_assert(args.size() == func_args.size());
+ 
+             for (size_t i = 0; i < args.size(); i++) {
+-                body = Let::make(func.name() + "." + func_args[i], args[i], body);
++                if (is_const(args[i]) || args[i].as<Variable>()) {
++                    body = substitute(func.name() + "." + func_args[i], args[i], body);
++                } else {
++                    body = Let::make(func.name() + "." + func_args[i], args[i], body);
++                }
+             }
+ 
+             found++;

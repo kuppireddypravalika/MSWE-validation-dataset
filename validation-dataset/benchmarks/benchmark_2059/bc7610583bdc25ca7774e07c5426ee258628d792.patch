@@ -1,0 +1,27 @@
+From bc7610583bdc25ca7774e07c5426ee258628d792 Mon Sep 17 00:00:00 2001
+From: Zhang Ting <709968123@qq.com>
+Date: Mon, 6 Jul 2020 11:35:41 +0800
+Subject: [PATCH] use eval() to improve CPU performance (#25243)
+
+---
+ paddle/fluid/operators/clip_by_norm_op.h | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/paddle/fluid/operators/clip_by_norm_op.h b/paddle/fluid/operators/clip_by_norm_op.h
+index a2562c44d70f40..f6f99369636268 100644
+--- a/paddle/fluid/operators/clip_by_norm_op.h
++++ b/paddle/fluid/operators/clip_by_norm_op.h
+@@ -82,7 +82,12 @@ class ClipByNormKernel : public framework::OpKernel<T> {
+     auto scaling = temp + (static_cast<T>(1) - temp) * max_norm / x_norm;
+     Eigen::array<int, 1> one_dim{{1}};
+     Eigen::DSizes<int, 1> m_dsize(input->numel());
+-    out.device(place) = x * scaling.reshape(one_dim).broadcast(m_dsize);
++    if (context.GetPlace() == platform::CPUPlace()) {
++      out.device(place) =
++          x * scaling.reshape(one_dim).eval().broadcast(m_dsize);
++    } else {
++      out.device(place) = x * scaling.reshape(one_dim).broadcast(m_dsize);
++    }
+   }
+ };
+ 

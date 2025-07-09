@@ -1,0 +1,23 @@
+From 24b4553ff5357f85603dcc6b8f9f3485e9d3160d Mon Sep 17 00:00:00 2001
+From: Edgar Velazquez-Armendariz <edgarv@users.noreply.github.com>
+Date: Thu, 8 Dec 2011 19:46:56 -0800
+Subject: [PATCH] Use 75% of the CPUs in OpenEXR to avoid oversubscription.
+
+---
+ OpenEXR_Matlab/util.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/OpenEXR_Matlab/util.cpp b/OpenEXR_Matlab/util.cpp
+index c8e8541..cc4c7f8 100755
+--- a/OpenEXR_Matlab/util.cpp
++++ b/OpenEXR_Matlab/util.cpp
+@@ -68,7 +68,8 @@ void pcg::mexEXRInit()
+ {
+     static bool initialized = false;
+     if (!initialized) {
+-        const int numCPUs = getNumCPUs();
++        // Use up to 75% of CPUs to avoid oversubscription
++        const int numCPUs = (3*getNumCPUs() + 3) / 4;
+         Imf::setGlobalThreadCount(numCPUs);
+         mexAtExit(mexEXRExitCallback);
+         initialized = true;

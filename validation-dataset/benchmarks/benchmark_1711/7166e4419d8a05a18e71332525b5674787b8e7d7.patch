@@ -1,0 +1,24 @@
+From 7166e4419d8a05a18e71332525b5674787b8e7d7 Mon Sep 17 00:00:00 2001
+From: Matthias Braun <matze@braunis.de>
+Date: Tue, 16 May 2017 18:43:30 +0000
+Subject: [PATCH] ShrinkWrap: Add skipFunction() call
+
+ShrinkWrapping is a performance optimization that can safely be skipped,
+so we can add `if (!skipFunction()) return;`
+---
+ llvm/lib/CodeGen/ShrinkWrap.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/llvm/lib/CodeGen/ShrinkWrap.cpp b/llvm/lib/CodeGen/ShrinkWrap.cpp
+index e9df915bad14..2638702da152 100644
+--- a/llvm/lib/CodeGen/ShrinkWrap.cpp
++++ b/llvm/lib/CodeGen/ShrinkWrap.cpp
+@@ -425,7 +425,7 @@ static bool isIrreducibleCFG(const MachineFunction &MF,
+ }
+ 
+ bool ShrinkWrap::runOnMachineFunction(MachineFunction &MF) {
+-  if (MF.empty() || !isShrinkWrapEnabled(MF))
++  if (skipFunction(*MF.getFunction()) || MF.empty() || !isShrinkWrapEnabled(MF))
+     return false;
+ 
+   DEBUG(dbgs() << "**** Analysing " << MF.getName() << '\n');

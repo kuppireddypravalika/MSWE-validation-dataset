@@ -1,0 +1,32 @@
+From e6b0d82c2ecec02f8b1cb07dc345faf8731865ce Mon Sep 17 00:00:00 2001
+From: "J. Alexander Treuman" <jat@spatialrift.net>
+Date: Tue, 18 Jul 2006 15:50:10 +0000
+Subject: [PATCH] Don't bother freeing a bunch of stuff at exit, since it takes
+ far too long and accomplishes nothing.
+
+git-svn-id: https://svn.musicpd.org/mpd/trunk@4396 09075e82-0dd4-0310-85a5-a0d7c8717e4f
+---
+ src/main.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/src/main.c b/src/main.c
+index bd94f43445..807ce642a4 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -613,10 +613,13 @@ int main(int argc, char * argv[]) {
+         savePlaylistState();
+         saveAudioDevicesState();
+ 
+-	
+         freeAllInterfaces();
+-	closeAllListenSockets();
+-        closeMp3Directory();
++        closeAllListenSockets();
++
++        /* This slows shutdown immensely, and doesn't really accomplish
++         * anything.  Uncomment when we rewrite tagTracker to use a tree. */
++        /*closeMp3Directory();*/
++
+         finishPlaylist();
+         freePlayerData();
+         finishAudioDriver();

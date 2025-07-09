@@ -1,0 +1,33 @@
+From 4a35180f6d07bc2af7d8901a04d68d47bfccc8ee Mon Sep 17 00:00:00 2001
+From: Ted Kremenek <kremenek@apple.com>
+Date: Fri, 8 Aug 2008 02:45:18 +0000
+Subject: [PATCH] Use DeclStmt::decl_iterator instead of walking the
+ getNextDeclarator() chain.
+
+llvm-svn: 54501
+---
+ clang/lib/Sema/SemaStmt.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/clang/lib/Sema/SemaStmt.cpp b/clang/lib/Sema/SemaStmt.cpp
+index e743810ed41..5065bb9bc6d 100644
+--- a/clang/lib/Sema/SemaStmt.cpp
++++ b/clang/lib/Sema/SemaStmt.cpp
+@@ -526,13 +526,13 @@ Sema::ActOnForStmt(SourceLocation ForLoc, SourceLocation LParenLoc,
+   if (DeclStmt *DS = dyn_cast_or_null<DeclStmt>(First)) {
+     // C99 6.8.5p3: The declaration part of a 'for' statement shall only declare
+     // identifiers for objects having storage class 'auto' or 'register'.
+-    for (ScopedDecl *D = DS->getDecl(); D; D = D->getNextDeclarator()) {
+-      VarDecl *VD = dyn_cast<VarDecl>(D);
++    for (DeclStmt::decl_iterator DI=DS->decl_begin(), DE=DS->decl_end();
++         DI!=DE; ++DI) {
++      VarDecl *VD = dyn_cast<VarDecl>(*DI);
+       if (VD && VD->isBlockVarDecl() && !VD->hasLocalStorage())
+         VD = 0;
+       if (VD == 0)
+-        Diag(dyn_cast<ScopedDecl>(D)->getLocation(), 
+-             diag::err_non_variable_decl_in_for);
++        Diag((*DI)->getLocation(), diag::err_non_variable_decl_in_for);
+       // FIXME: mark decl erroneous!
+     }
+   }

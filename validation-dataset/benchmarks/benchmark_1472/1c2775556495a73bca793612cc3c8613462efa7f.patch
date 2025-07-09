@@ -1,0 +1,32 @@
+From 1c2775556495a73bca793612cc3c8613462efa7f Mon Sep 17 00:00:00 2001
+From: manuelk <mkraemer@pixar.com>
+Date: Fri, 9 Jan 2015 11:38:32 -0800
+Subject: [PATCH] Change subdivision vertex ordering
+
+- switch to vert-verts first ordering (advantageous as it preserves the index of a parent vertex at all subsequent levels)
+---
+ opensubdiv/vtr/refinement.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/opensubdiv/vtr/refinement.cpp b/opensubdiv/vtr/refinement.cpp
+index c5d67bc5e..1fe09704f 100644
+--- a/opensubdiv/vtr/refinement.cpp
++++ b/opensubdiv/vtr/refinement.cpp
+@@ -214,7 +214,7 @@ void
+ Refinement::populateParentChildIndices() {
+ 
+     //
+-    //  Two vertex orderings are under consideration -- the current/original orders
++    //  Two vertex orderings are under consideration -- the original mode orders
+     //  vertices originating from faces first (historically these were relied upon
+     //  to compute the rest of the vertices) while ordering vertices from vertices
+     //  first is being considered (advantageous as it preserves the index of a parent
+@@ -224,7 +224,7 @@ Refinement::populateParentChildIndices() {
+     //  (which can be inferred from settings here) the rest of the code should be
+     //  invariant to vertex ordering.
+     //
+-    bool faceVertsFirst = true;
++    bool faceVertsFirst = false;
+ 
+     //
+     //  These two blocks now differ only in the utility function that assigns the

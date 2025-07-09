@@ -1,0 +1,23 @@
+From 76c4604c59ea6536d6bff41b16a35af752771ad9 Mon Sep 17 00:00:00 2001
+From: Fred Emmott <fred@fredemmott.com>
+Date: Fri, 19 Jun 2020 18:01:34 -0700
+Subject: [PATCH] [Windows][ESDUtilities] Trivial perf optimization for
+ GetExtension
+
+---
+ StreamDeckSDK/ESDUtilitiesWindows.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/StreamDeckSDK/ESDUtilitiesWindows.cpp b/StreamDeckSDK/ESDUtilitiesWindows.cpp
+index ceb8a70..b9bacd6 100644
+--- a/StreamDeckSDK/ESDUtilitiesWindows.cpp
++++ b/StreamDeckSDK/ESDUtilitiesWindows.cpp
+@@ -58,7 +58,7 @@ bool IsNetworkDriveRoot(const std::string& inUtf8Path) {
+ 
+ std::string GetExtension(const std::string& inPath) {
+ 	const std::string fileName = ESDUtilities::GetFileName(inPath);
+-	size_t pos = fileName.find_last_of(".");
++	size_t pos = fileName.find_last_of('.');
+ 	if (std::string::npos != pos && ((pos + 1) != fileName.length())) {
+ 		return fileName.substr(pos);
+ 	} else {

@@ -1,0 +1,26 @@
+From 795fa559bc0f40ae4d8639646aca702b901f9fdd Mon Sep 17 00:00:00 2001
+From: Kurt Schwehr <schwehr@gmail.com>
+Date: Thu, 24 Dec 2015 04:53:16 +0000
+Subject: [PATCH] Use a static cast to try to silence windows build failure.
+
+ogrs57datasource.cpp(205) : warning C4800: 'int' : forcing value to bool 'true' or 'false' (performance warning)
+
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@32434 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/ogr/ogrsf_frmts/s57/ogrs57datasource.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gdal/ogr/ogrsf_frmts/s57/ogrs57datasource.cpp b/gdal/ogr/ogrsf_frmts/s57/ogrs57datasource.cpp
+index 5b3694156b7b..197e68c831b4 100644
+--- a/gdal/ogr/ogrsf_frmts/s57/ogrs57datasource.cpp
++++ b/gdal/ogr/ogrsf_frmts/s57/ogrs57datasource.cpp
+@@ -202,7 +202,7 @@ int OGRS57DataSource::Open( const char * pszFilename )
+                              GetOption(S57O_RECODE_BY_DSSI) );
+ 
+     S57Reader *poModule = new S57Reader( pszFilename );
+-    bool bRet = poModule->SetOptions( papszReaderOptions );
++    bool bRet = static_cast<bool>( poModule->SetOptions( papszReaderOptions ) );
+     CSLDestroy( papszReaderOptions );
+ 
+     if( !bRet )

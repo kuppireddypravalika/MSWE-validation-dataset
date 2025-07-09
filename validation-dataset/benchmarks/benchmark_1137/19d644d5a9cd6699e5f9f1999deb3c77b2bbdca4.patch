@@ -1,0 +1,40 @@
+From 19d644d5a9cd6699e5f9f1999deb3c77b2bbdca4 Mon Sep 17 00:00:00 2001
+From: Bob Wilson <bob.wilson@apple.com>
+Date: Thu, 9 Sep 2010 00:38:32 +0000
+Subject: [PATCH] For double-spaced VLD3/VLD4 instructions, copy the explicit
+ super-register use operand from the pseudo instruction to the new instruction
+ as an implicit use. This will preserve any other flags (e.g., kill) on the
+ operand.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@113456 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Target/ARM/ARMExpandPseudoInsts.cpp | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
+
+diff --git a/lib/Target/ARM/ARMExpandPseudoInsts.cpp b/lib/Target/ARM/ARMExpandPseudoInsts.cpp
+index 031ac7aa87c..3988a84eed6 100644
+--- a/lib/Target/ARM/ARMExpandPseudoInsts.cpp
++++ b/lib/Target/ARM/ARMExpandPseudoInsts.cpp
+@@ -122,13 +122,17 @@ void ARMExpandPseudo::ExpandVLD(MachineBasicBlock::iterator &MBBI,
+     MIB.addOperand(MI.getOperand(OpIdx++));
+ 
+   MIB = AddDefaultPred(MIB);
+-  TransferImpOps(MI, MIB, MIB);
+-  // For an instruction writing the odd subregs, add an implicit use of the
+-  // super-register because the even subregs were loaded separately.
+-  if (RegSpc == EvenDblSpc || RegSpc == OddDblSpc)
+-    MIB.addReg(DstReg, RegState::Implicit);
++  // For an instruction writing double-spaced subregs, the pseudo instruction
++  // has an extra operand that is a use of the super-register.  Copy that over
++  // to the new instruction as an implicit operand.
++  if (RegSpc == EvenDblSpc || RegSpc == OddDblSpc) {
++    MachineOperand MO = MI.getOperand(OpIdx);
++    MO.setImplicit(true);
++    MIB.addOperand(MO);
++  }
+   // Add an implicit def for the super-register.
+   MIB.addReg(DstReg, RegState::ImplicitDefine | getDeadRegState(DstIsDead));
++  TransferImpOps(MI, MIB, MIB);
+   MI.eraseFromParent();
+ }
+ 

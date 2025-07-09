@@ -1,0 +1,33 @@
+From 37c2ee38e48a18d2f7f522b3304efe27507b50f9 Mon Sep 17 00:00:00 2001
+From: Giles Bathgate <gilesbathgate@gmail.com>
+Date: Sun, 8 May 2011 23:39:22 +0100
+Subject: [PATCH] Huge performance increace in Hull module.
+
+There is no need to union the children of hull, when we are only
+interested in the "point cloud". This made one test render in 5s
+vs 13s.
+---
+ src/nodeevaluator.cpp | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/src/nodeevaluator.cpp b/src/nodeevaluator.cpp
+index 3503c853e..baa6579ce 100644
+--- a/src/nodeevaluator.cpp
++++ b/src/nodeevaluator.cpp
+@@ -58,9 +58,13 @@ void NodeEvaluator::visit(MinkowskiNode* op)
+ 
+ void NodeEvaluator::visit(HullNode* n)
+ {
+-	evaluate(n,Union);
+-	CGALExplorer explorer(result->getPoly3());
+-	CGALExplorer::Polygon points = explorer.getPoints();
++	CGALExplorer::Polygon points;
++	foreach(Node* c,n->getChildren()) {
++		c->accept(*this);
++		CGALExplorer explorer(result->getPoly3());
++		foreach(CGAL::Point3 pt,explorer.getPoints())
++			points.append(pt);
++	}
+ 
+ 	CGAL::Object hull;
+ 	CGAL::convex_hull_3(points.begin(),points.end(),hull);

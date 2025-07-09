@@ -1,0 +1,28 @@
+From eaa5bc3cdfac18a52e42406d6f6983467e8c158e Mon Sep 17 00:00:00 2001
+From: Justin Lebar <justin.lebar@gmail.com>
+Date: Wed, 22 Feb 2012 12:26:21 +0100
+Subject: [PATCH] Bug 729453 - Decrease stack allocation in
+ nsTArray::SwapArrayElements from 8KB to 64B. r=roc
+
+---
+ xpcom/glue/nsTArray-inl.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/xpcom/glue/nsTArray-inl.h b/xpcom/glue/nsTArray-inl.h
+index 5a0a842721d..ada4f7a0ff1 100644
+--- a/xpcom/glue/nsTArray-inl.h
++++ b/xpcom/glue/nsTArray-inl.h
+@@ -398,11 +398,11 @@ nsTArray_base<Alloc>::SwapArrayElements(nsTArray_base<Allocator>& other,
+   }
+ 
+   // Allocate temporary storage for the smaller of the two arrays.  We want to
+-  // allocate this space on the stack, unless it's very large.  Sounds like a
++  // allocate this space on the stack, if it's not too large.  Sounds like a
+   // job for AutoTArray!  (One of the two arrays we're swapping is using an
+   // auto buffer, so we're likely not allocating a lot of space here.  But one
+   // could, in theory, allocate a huge AutoTArray on the heap.)
+-  nsAutoTArray<PRUint8, 8192, Alloc> temp;
++  nsAutoTArray<PRUint8, 64, Alloc> temp;
+   if (!temp.SetCapacity(smallerLength * elemSize)) {
+     return false;
+   }

@@ -1,0 +1,40 @@
+From 720f576f8d2b573451c9ac3e86b1e78c08646a00 Mon Sep 17 00:00:00 2001
+From: Chris Lattner <sabre@nondot.org>
+Date: Tue, 30 Jan 2007 06:01:31 +0000
+Subject: [PATCH] Optimize #define analysis for the common case of a single
+ target.
+
+llvm-svn: 39331
+---
+ clang/Basic/TargetInfo.cpp | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/clang/Basic/TargetInfo.cpp b/clang/Basic/TargetInfo.cpp
+index 3dd9488e315..65f70b471f4 100644
+--- a/clang/Basic/TargetInfo.cpp
++++ b/clang/Basic/TargetInfo.cpp
+@@ -68,6 +68,24 @@ void TargetInfo::getTargetDefines(std::vector<char> &Buffer) {
+   std::map<std::string, std::string> PrimaryDefines;
+   GetTargetDefineMap(PrimaryTarget, PrimaryDefines);
+   
++  // If we have no secondary targets, be a bit more efficient.
++  if (SecondaryTargets.empty()) {
++    for (std::map<std::string, std::string>::iterator I = 
++           PrimaryDefines.begin(), E = PrimaryDefines.end(); I != E; ++I) {
++      // If this define is non-portable, turn it into #define_target, otherwise
++      // just use #define.
++      const char *Command = "#define ";
++      Buffer.insert(Buffer.end(), Command, Command+strlen(Command));
++      
++      // Insert "defname defvalue\n".
++      Buffer.insert(Buffer.end(), I->first.begin(), I->first.end());
++      Buffer.push_back(' ');
++      Buffer.insert(Buffer.end(), I->second.begin(), I->second.end());
++      Buffer.push_back('\n');
++    }
++    return;
++  }
++  
+   // Get the sets of secondary #defines.
+   std::vector<std::map<std::string, std::string> > SecondaryDefines;
+   SecondaryDefines.resize(SecondaryTargets.size());

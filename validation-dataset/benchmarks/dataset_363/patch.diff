@@ -1,0 +1,25 @@
+From 0fda53dfd200c363927c1f8b2704c0d3806bbda9 Mon Sep 17 00:00:00 2001
+From: Matthias Kuehlewein <github@kuehlewein.de>
+Date: Sat, 7 May 2022 10:45:05 +0200
+Subject: [PATCH] ObjectQueryParser: Remove superfluous length check
+
+The 'if (pos < input.length())' in function 'getToken()' is superfluous
+since this check is already done inside the enclosing for loop.
+---
+ src/core/objects/object_query.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/core/objects/object_query.cpp b/src/core/objects/object_query.cpp
+index 13cf1ae66..450d5dad9 100644
+--- a/src/core/objects/object_query.cpp
++++ b/src/core/objects/object_query.cpp
+@@ -833,8 +833,7 @@ void ObjectQueryParser::getToken()
+ 			}
+ 			else if (current == QLatin1Char('\\'))
+ 			{
+-				if (pos < input.length())
+-					++pos;
++				++pos;
+ 			}
+ 		}
+ 	}

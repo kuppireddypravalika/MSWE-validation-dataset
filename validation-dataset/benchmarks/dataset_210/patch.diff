@@ -1,0 +1,26 @@
+From 60549ec9b077642ce6c2e26c0ffcfdf4143304bf Mon Sep 17 00:00:00 2001
+From: zhulingfeng <664675691@qq.com>
+Date: Tue, 14 Nov 2023 07:40:28 +0800
+Subject: [PATCH] [surface] Speed up nurbs surface fitting
+
+Use Eigen function completeOrthogonalDecomposition instead of jacobiSvd to solve linear least squares systems
+to speed up nurbs surface fitting, see https://eigen.tuxfamily.org/dox/group__LeastSquares.html for details.
+
+By the way, it may fix segmemt fault on some machines caused by jacobiSvd call.
+---
+ surface/src/on_nurbs/nurbs_solve_eigen.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/surface/src/on_nurbs/nurbs_solve_eigen.cpp b/surface/src/on_nurbs/nurbs_solve_eigen.cpp
+index 0c28bf60fcb..9ed63491673 100644
+--- a/surface/src/on_nurbs/nurbs_solve_eigen.cpp
++++ b/surface/src/on_nurbs/nurbs_solve_eigen.cpp
+@@ -136,7 +136,7 @@ NurbsSolve::solve ()
+ {
+   //  m_xeig = m_Keig.colPivHouseholderQr().solve(m_feig);
+   //  Eigen::MatrixXd x = A.householderQr().solve(b);
+-  m_xeig = m_Keig.jacobiSvd (Eigen::ComputeThinU | Eigen::ComputeThinV).solve (m_feig);
++  m_xeig = m_Keig.completeOrthogonalDecomposition().solve (m_feig);
+ 
+   return true;
+ }

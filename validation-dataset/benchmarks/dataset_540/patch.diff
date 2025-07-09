@@ -1,0 +1,30 @@
+From 54e6b27989733cdb3c3f23193ea300fd6c381978 Mon Sep 17 00:00:00 2001
+From: "J. Alexander Treuman" <jat@spatialrift.net>
+Date: Fri, 29 Jun 2007 18:41:02 +0000
+Subject: [PATCH] log: flush the warning log after redirecting stderr to the
+ log files
+
+Previously, the warning log was only flushed if creating the db or logging
+to stdout.  This meant that under normal circumstances (no db creation,
+logging to files) the warning log was never flushed.  This caused a bug
+when a warning was printed for each call to the status command where the
+warning buffer would grow endlessly, eventually using more and more CPU to
+reallocate it.
+
+git-svn-id: https://svn.musicpd.org/mpd/trunk@6660 09075e82-0dd4-0310-85a5-a0d7c8717e4f
+---
+ src/log.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/log.c b/src/log.c
+index fa4ae64f03..7701da3a53 100644
+--- a/src/log.c
++++ b/src/log.c
+@@ -175,6 +175,7 @@ void setup_log_output(const int use_stdout)
+ 	if (!use_stdout) {
+ 		redirect_logs();
+ 		stdout_mode = 0;
++		flushWarningLog();
+ 	}
+ 	redirect_stdin();
+ }

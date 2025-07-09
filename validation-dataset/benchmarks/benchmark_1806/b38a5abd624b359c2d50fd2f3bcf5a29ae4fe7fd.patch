@@ -1,0 +1,23 @@
+From b38a5abd624b359c2d50fd2f3bcf5a29ae4fe7fd Mon Sep 17 00:00:00 2001
+From: Joshua Henderson <joshua.henderson@microchip.com>
+Date: Mon, 8 Jun 2020 22:16:30 -0700
+Subject: [PATCH] uri: optimize regex search at the expense of compile
+
+Signed-off-by: Joshua Henderson <joshua.henderson@microchip.com>
+---
+ src/uri.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/uri.cpp b/src/uri.cpp
+index 67822c64..ca992b1f 100644
+--- a/src/uri.cpp
++++ b/src/uri.cpp
+@@ -57,7 +57,7 @@ void Uri::parse(const std::string& uri)
+     // regex suggested by RFC 3986: https://tools.ietf.org/html/rfc3986#page-50
+     static const std::regex uri_regex(
+         R"(^(([^:\/?#]+):)?(//([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?)",
+-        std::regex::extended
++        std::regex::extended | std::regex::optimize
+     );
+ 
+     std::smatch match;

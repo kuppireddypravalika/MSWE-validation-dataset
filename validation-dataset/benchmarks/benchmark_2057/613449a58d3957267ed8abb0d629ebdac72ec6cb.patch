@@ -1,0 +1,31 @@
+From 613449a58d3957267ed8abb0d629ebdac72ec6cb Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Thu, 22 Jan 2015 15:04:30 +0100
+Subject: [PATCH] QDate: don't spend code size covering the impossible case
+
+All other similar functions in QDate just return an empty string
+in case none of the switch labels would trigger (which would now
+cause a compiler warning, after removing the default case label),
+so do that here, too.
+
+Saves 44B in text size.
+
+Change-Id: I80ee4975082706adcd15fe89511d08c67e149324
+Reviewed-by: Thiago Macieira <thiago.macieira@intel.com>
+---
+ src/corelib/tools/qdatetime.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/corelib/tools/qdatetime.cpp b/src/corelib/tools/qdatetime.cpp
+index 324a30858d9..82763ed9838 100644
+--- a/src/corelib/tools/qdatetime.cpp
++++ b/src/corelib/tools/qdatetime.cpp
+@@ -762,7 +762,7 @@ QString QDate::longDayName(int weekday, MonthNameType type)
+     case QDate::StandaloneFormat:
+         return QLocale::system().standaloneDayName(weekday, QLocale::LongFormat);
+     }
+-    return QLocale::system().dayName(weekday, QLocale::LongFormat);
++    return QString();
+ }
+ #endif //QT_NO_TEXTDATE
+ 

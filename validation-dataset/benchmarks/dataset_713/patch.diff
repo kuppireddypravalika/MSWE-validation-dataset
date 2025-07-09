@@ -1,0 +1,23 @@
+From eff23f1982fca741eeea1ac6505cc68e1f5ec2d6 Mon Sep 17 00:00:00 2001
+From: Ivan Vashchaev <vivkin@gmail.com>
+Date: Sun, 9 Nov 2014 05:12:49 +0300
+Subject: [PATCH] 5% speedup on numbers-heavy json by removing checking '+'
+ sign at begining
+
+---
+ src/gason.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/gason.cpp b/src/gason.cpp
+index c7805d0..fcdafbe 100644
+--- a/src/gason.cpp
++++ b/src/gason.cpp
+@@ -70,7 +70,7 @@ static inline int char2int(char c) {
+ 
+ static double string2double(char *s, char **endptr) {
+     char ch = *s;
+-    if (ch == '+' || ch == '-')
++    if (ch == '-')
+         ++s;
+ 
+     double result = 0;

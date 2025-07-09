@@ -1,0 +1,33 @@
+From eb54b5973e2bd1cb174140d330d26cc3e1d7b063 Mon Sep 17 00:00:00 2001
+From: Chris Lattner <sabre@nondot.org>
+Date: Mon, 10 Jul 2006 06:34:27 +0000
+Subject: [PATCH] Add simple optimization: check for (and skip) spaces and tabs
+ immediately before lexing a token.  This speeds the common case where tokens
+ are separated by small amount of whitespace.  This makes a slight but
+ reproducible positive effect lexing a preprocessed carbon.h.
+
+llvm-svn: 38691
+---
+ clang/Lex/Lexer.cpp | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/clang/Lex/Lexer.cpp b/clang/Lex/Lexer.cpp
+index 9cf0dae0a0c..967d4e76758 100644
+--- a/clang/Lex/Lexer.cpp
++++ b/clang/Lex/Lexer.cpp
+@@ -928,6 +928,15 @@ void Lexer::LexTokenInternal(LexerToken &Result) {
+   // CurPtr - Cache BufferPtr in an automatic variable.
+   const char *CurPtr = BufferPtr;
+ 
++  // Small amounts of horizontal whitespace is very common between tokens.
++  if ((*CurPtr == ' ') || (*CurPtr == '\t')) {
++    ++CurPtr;
++    while ((*CurPtr == ' ') || (*CurPtr == '\t'))
++      ++CurPtr;
++    BufferPtr = CurPtr;
++    Result.SetFlag(LexerToken::LeadingSpace);
++  }
++  
+   unsigned SizeTmp, SizeTmp2;   // Temporaries for use in cases below.
+   
+   // Read a character, advancing over it.

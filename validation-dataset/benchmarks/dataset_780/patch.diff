@@ -1,0 +1,40 @@
+From 3966f85f7b863d4e819638120f4e3caa309d62d2 Mon Sep 17 00:00:00 2001
+From: aztek <evgeny.kotelnikov@gmail.com>
+Date: Wed, 12 Aug 2015 11:40:38 +0200
+Subject: [PATCH] FOOL elimination for the CASC mode
+
+---
+ CASC/ForkingCM.cpp | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/CASC/ForkingCM.cpp b/CASC/ForkingCM.cpp
+index ad29b5a366..0913cc858c 100644
+--- a/CASC/ForkingCM.cpp
++++ b/CASC/ForkingCM.cpp
+@@ -26,9 +26,13 @@
+ 
+ #include "Saturation/SaturationAlgorithm.hpp"
+ 
++#include "Kernel/Formula.hpp"
++#include "Kernel/Signature.hpp"
++#include "Shell/FOOLElimination.hpp"
+ #include "Shell/Normalisation.hpp"
+ #include "Shell/Options.hpp"
+ #include "Shell/Preprocess.hpp"
++#include "Shell/TheoryAxioms.hpp"
+ #include "Saturation/ProvingHelper.hpp"
+ #include "Shell/Statistics.hpp"
+ #include "Shell/UIHelper.hpp"
+@@ -52,6 +56,12 @@ ForkingCM::ForkingCM()
+   {
+     TimeCounter tc(TC_PREPROCESSING);
+ 
++    // TODO: should we do defooling here?
++    if (_prb->hasFOOL()) {
++      TheoryAxioms().applyFOOL(*_prb);
++      FOOLElimination().apply(*_prb);
++    }
++
+     //we normalize now so that we don't have to do it in every child Vampire
+     ScopedLet<Statistics::ExecutionPhase> phaseLet(env.statistics->phase,Statistics::NORMALIZATION);
+     Normalisation norm;

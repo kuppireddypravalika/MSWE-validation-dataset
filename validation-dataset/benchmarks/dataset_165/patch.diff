@@ -1,0 +1,27 @@
+From 4388ce112e6920a406387157cb6a3ab5c17e8f72 Mon Sep 17 00:00:00 2001
+From: tangwei12 <tangwei12@baidu.com>
+Date: Fri, 22 Jun 2018 15:19:05 +0800
+Subject: [PATCH] checkpoint notify op optimized
+
+---
+ paddle/fluid/operators/checkpoint_notify_op.cc | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/paddle/fluid/operators/checkpoint_notify_op.cc b/paddle/fluid/operators/checkpoint_notify_op.cc
+index 7fc5b5e62214c5..c4219a429a53eb 100644
+--- a/paddle/fluid/operators/checkpoint_notify_op.cc
++++ b/paddle/fluid/operators/checkpoint_notify_op.cc
+@@ -55,10 +55,9 @@ class CheckpointNotifyOp : public framework::OperatorBase {
+ class CheckpointNotifyOpMaker : public framework::OpProtoAndCheckerMaker {
+  public:
+   void Make() {
+-    AddAttr<std::vector<std::string>>(
+-        "epmap",
+-        "(string vector, default  127.0.0.1:6164)"
+-        "Server endpoints in the order of input variables for mapping")
++    AddAttr<std::vector<std::string>>("epmap",
++                                      "(string vector, default  127.0.0.1:6164)"
++                                      "Parameter Server endpoints in the order")
+         .SetDefault({"127.0.0.1:6164"});
+     AddAttr<std::string>(
+         "dir", "(string, default '') indicate the folder checkpoint will use");

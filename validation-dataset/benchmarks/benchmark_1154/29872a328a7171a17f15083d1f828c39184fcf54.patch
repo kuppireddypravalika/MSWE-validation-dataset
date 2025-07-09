@@ -1,0 +1,38 @@
+From 29872a328a7171a17f15083d1f828c39184fcf54 Mon Sep 17 00:00:00 2001
+From: Kristian Evers <kristianevers@gmail.com>
+Date: Fri, 7 Sep 2018 23:37:22 +0200
+Subject: [PATCH] cs2cs: Always convert to degrees when angular output is
+ received (#1112)
+
+Previous to this commit cs2cs did not convert angular output to degrees
+when using operations setting PJ->right = PJ_IO_UNITS_ANGULAR. This
+commit adopts the conventions used after the introduction of pipelines.
+
+In practice, this allows the following and similar transformations to
+output in degrees and not radians:
+
+```
+echo 37.3916666667   -6.9325000 | cs2cs +proj=latlong +ellps=clrk80 \
+    +to +proj=molodensky +ellps=clrk80 +da=-112.145 +df=-0.54750714e-4 \
+    +dx=-175 +dy=-23 +dz=-303
+37.39   -6.93 -8.2
+```
+---
+ src/cs2cs.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/cs2cs.c b/src/cs2cs.c
+index 76c4740392..518d4e713f 100644
+--- a/src/cs2cs.c
++++ b/src/cs2cs.c
+@@ -135,8 +135,8 @@ static void process(FILE *fid)
+                 fputs(rtodms(pline, data.v, 'N', 'S'), stdout);
+             }
+ 
+-        } else {	/* x-y or decimal degree ascii output */
+-            if ( pj_is_latlong(toProj) ) {
++        } else { /* x-y or decimal degree ascii output */
++            if ( proj_angular_output(toProj, PJ_FWD) ) {
+                 data.v *= RAD_TO_DEG;
+                 data.u *= RAD_TO_DEG;
+             }

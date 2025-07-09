@@ -1,0 +1,22 @@
+From 0d1c0e72a6049359a461e2557b36dff87ceaaa29 Mon Sep 17 00:00:00 2001
+From: nastys <@a.a>
+Date: Tue, 11 Jan 2022 04:04:58 +0100
+Subject: [PATCH] macOS: Increase thread stack size to 8 MiB
+
+---
+ Utilities/Thread.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Utilities/Thread.cpp b/Utilities/Thread.cpp
+index f4debb4164de0..c79d3af673ba4 100644
+--- a/Utilities/Thread.cpp
++++ b/Utilities/Thread.cpp
+@@ -1908,7 +1908,7 @@ void thread_base::start()
+ #elif defined(__APPLE__)
+ 	pthread_attr_t stack_size_attr;
+ 	pthread_attr_init(&stack_size_attr);
+-	pthread_attr_setstacksize(&stack_size_attr, 0x200000);
++	pthread_attr_setstacksize(&stack_size_attr, 0x800000);
+ 	ensure(pthread_create(reinterpret_cast<pthread_t*>(&m_thread.raw()), &stack_size_attr, entry_point, this) == 0);
+ #else
+ 	ensure(pthread_create(reinterpret_cast<pthread_t*>(&m_thread.raw()), nullptr, entry_point, this) == 0);

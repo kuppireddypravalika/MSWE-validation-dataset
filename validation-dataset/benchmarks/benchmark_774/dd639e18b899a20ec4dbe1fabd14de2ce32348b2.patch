@@ -1,0 +1,26 @@
+From dd639e18b899a20ec4dbe1fabd14de2ce32348b2 Mon Sep 17 00:00:00 2001
+From: Rosen Penev <rosenp@gmail.com>
+Date: Fri, 25 Sep 2020 22:16:37 -0700
+Subject: [PATCH] clang-tidy: remove pointless std::move
+
+Found with performance-move-const-arg
+
+Signed-off-by: Rosen Penev <rosenp@gmail.com>
+---
+ src/storage/CompositeStorage.cxx | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/storage/CompositeStorage.cxx b/src/storage/CompositeStorage.cxx
+index f93452b700..fdca07c4c4 100644
+--- a/src/storage/CompositeStorage.cxx
++++ b/src/storage/CompositeStorage.cxx
+@@ -120,8 +120,7 @@ CompositeStorage::Directory::Make(std::string_view uri)
+ 		if (name.empty())
+ 			continue;
+ 
+-		auto i = directory->children.emplace(std::move(name),
+-						     Directory());
++		auto i = directory->children.emplace(name, Directory());
+ 		directory = &i.first->second;
+ 	}
+ 

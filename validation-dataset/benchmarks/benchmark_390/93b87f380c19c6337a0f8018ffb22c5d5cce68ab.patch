@@ -1,0 +1,25 @@
+From 93b87f380c19c6337a0f8018ffb22c5d5cce68ab Mon Sep 17 00:00:00 2001
+From: Karl Tomlinson <karlt+@karlt.net>
+Date: Tue, 2 Feb 2010 18:19:44 +1300
+Subject: [PATCH] b=537870 avoid initialized declaration in for-statement
+ conditional for VC7.1 r=roc
+
+---
+ widget/src/xpwidgets/nsBaseWidget.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/widget/src/xpwidgets/nsBaseWidget.cpp b/widget/src/xpwidgets/nsBaseWidget.cpp
+index f4e1216d398..01b3e5df76a 100644
+--- a/widget/src/xpwidgets/nsBaseWidget.cpp
++++ b/widget/src/xpwidgets/nsBaseWidget.cpp
+@@ -1002,8 +1002,8 @@ void ScrollRectIterBase::Move(ScrollRect** aUnmovedLink)
+   // which adds an O(n^2) cost to this algorithm (where n is the number of
+   // rectangles across x).  The reverse-x ordering from InitialSortComparator
+   // avoids this for the case when rectangles are aligned in y.
+-  for (ScrollRect** nextLink = aUnmovedLink;
+-       ScrollRect* otherRect = *nextLink; ) {
++  for (ScrollRect** nextLink = aUnmovedLink; *nextLink; ) {
++    ScrollRect* otherRect = *nextLink;
+     NS_ASSERTION(otherRect->y >= rect->y, "Scroll rectangles out of order");
+     if (otherRect->y >= rect->YMost()) // doesn't overlap vertically
+       break;

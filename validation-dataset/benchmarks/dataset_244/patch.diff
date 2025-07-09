@@ -1,0 +1,26 @@
+From a5b833bed0c5a6bd22e31cecf93634cabc87b2ef Mon Sep 17 00:00:00 2001
+From: NotCompsky <adammarkgray@gmail.com>
+Date: Tue, 28 Jul 2020 12:56:05 +0100
+Subject: [PATCH] Performance		Replace with 'WHERE NOT EXISTS' as per
+ advice here: 		
+ https://old.reddit.com/r/programming/comments/hyv0xh/some_sql_tricks_of_an_application_dba/fzghzpf/
+
+---
+ wangle-server/src/qry.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/wangle-server/src/qry.cpp b/wangle-server/src/qry.cpp
+index ba7a489f..4f4669a9 100644
+--- a/wangle-server/src/qry.cpp
++++ b/wangle-server/src/qry.cpp
+@@ -1001,9 +1001,8 @@ successness::ReturnType parse_into(char* itr,  const char* qry,  const std::stri
+ 			"X.id\n"
+ 		"FROM ", tbl_full_name(which_tbl), " X\n",
+ 		join.c_str(),
+-		"LEFT JOIN(", user_disallowed_X_tbl_filter_inner_pre, user_id, ")A ON A.id=X.id\n"
+ 		"WHERE ", where.c_str(), "\n"
+-		  "AND A.id IS NULL\n"
++		  "AND NOT EXISTS(", user_disallowed_X_tbl_filter_inner_pre, user_id, ")"
+ 		"ORDER BY ", ((order_by.empty()) ? "NULL" : order_by.c_str()), "\n"
+ 		"LIMIT ", limit, "\n"
+ 		"OFFSET ", offset,

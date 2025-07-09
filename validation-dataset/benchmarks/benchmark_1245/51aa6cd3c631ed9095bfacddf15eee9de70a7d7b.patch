@@ -1,0 +1,37 @@
+From 51aa6cd3c631ed9095bfacddf15eee9de70a7d7b Mon Sep 17 00:00:00 2001
+From: mcfi <niuben003@gmail.com>
+Date: Sun, 5 Jul 2015 16:34:54 -0400
+Subject: [PATCH] Duplicated return address activations are performed as nops.
+
+---
+ runtime/src/runtime.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/runtime/src/runtime.c b/runtime/src/runtime.c
+index 6a27be69..781b9a0c 100644
+--- a/runtime/src/runtime.c
++++ b/runtime/src/runtime.c
+@@ -272,6 +272,7 @@ void patch_entry(unsigned long patchpoint) {
+ void patch_call(unsigned long patchpoint) {
+ #ifndef NO_ONLINE_PATCHING
+   //dprintf(STDERR_FILENO, "patched call %lx\n", patchpoint);
++  static dict* patched_ra = 0;
+   code_module *m;
+   int found = FALSE;
+   DL_FOREACH(modules, m) {
+@@ -285,6 +286,15 @@ void patch_call(unsigned long patchpoint) {
+   assert(patchpoint % 8 == 0 ||
+          (patchpoint + 3) % 8 == 0||
+          (patchpoint + 2) % 8 == 0);
++
++  /* Different CPU cores might cache the same unpatched
++   * instructions. So any duplicated run will be a nop.
++   */
++  if (dict_find(patched_ra, (void*)patchpoint))
++    return;
++
++  dict_add(&patched_ra, (void*)patchpoint, (void*)0);
++
+ #ifdef COLLECT_STAT
+   if (patchpoint % 8 == 0)
+     ++radc_patch_count;

@@ -1,0 +1,43 @@
+From 2389b93b7991e96dc189e44cf5ea7ca894224d30 Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@qt.io>
+Date: Wed, 21 Jun 2023 07:44:10 +0200
+Subject: [PATCH] QMessageBox: use optional<> instead of unique_ptr
+
+... to hold the optional QApplication.
+
+Saves a memory allocation, and is more readable.
+
+Amends 408fbd3f2d7a6b87521f5b3c27ecf6341dc06e13.
+
+Pick-to: 6.6
+Change-Id: I390b9cfa367d01feb59bb5deadc5383c8e678749
+Reviewed-by: Axel Spoerl <axel.spoerl@qt.io>
+---
+ src/widgets/dialogs/qmessagebox.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/widgets/dialogs/qmessagebox.cpp b/src/widgets/dialogs/qmessagebox.cpp
+index 0e7ef44808f0..b6094372e00e 100644
+--- a/src/widgets/dialogs/qmessagebox.cpp
++++ b/src/widgets/dialogs/qmessagebox.cpp
+@@ -39,7 +39,7 @@
+ #include <qpa/qplatformnativeinterface.h>
+ #endif
+ 
+-#include <memory>
++#include <optional>
+ 
+ QT_BEGIN_NAMESPACE
+ 
+@@ -2853,9 +2853,9 @@ Q_WIDGETS_EXPORT void _q_requireVersion(int argc, char *argv[], QAnyStringView r
+     const auto current = QVersionNumber::fromString(qVersion()).normalized();
+     if (current >= required)
+         return;
+-    std::unique_ptr<QApplication> application;
++    std::optional<QApplication> application;
+     if (!qApp)
+-        application = std::make_unique<QApplication>(argc, argv);
++        application.emplace(argc, argv);
+     const QString message = QApplication::tr("Application \"%1\" requires Qt %2, found Qt %3.")
+                                     .arg(qAppName(), required.toString(), current.toString());
+     QMessageBox::critical(nullptr, QApplication::tr("Incompatible Qt Library Error"),

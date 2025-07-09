@@ -1,0 +1,30 @@
+From 83308da479551e057a2f9e038bbe7d84aac3f397 Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Sun, 13 Dec 2020 15:04:03 -0700
+Subject: [PATCH] Optimize ListBox to only display items in view
+
+This will be much more efficient for large lists. Draw efficiency should
+be maintained even if the list contains thousands of items.
+---
+ OPHD/UI/Core/ListBox.cpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/OPHD/UI/Core/ListBox.cpp b/OPHD/UI/Core/ListBox.cpp
+index dd279409f..24c188f4b 100644
+--- a/OPHD/UI/Core/ListBox.cpp
++++ b/OPHD/UI/Core/ListBox.cpp
+@@ -188,9 +188,12 @@ void ListBox::update()
+ 	}
+ 
+ 	// display actuals values that are meant to be
++	const auto firstVisibleIndex = mScrollOffsetInPixels / mLineHeight;
++	const auto lastVisibleIndex = (mScrollOffsetInPixels + mScrollArea.height + (mLineHeight - 1)) / mLineHeight;
++	const auto endVisibleIndex = std::min(lastVisibleIndex, mItems.size());
+ 	auto textPosition = mScrollArea.startPoint();
+-	textPosition += {constants::MARGIN_TIGHT, -static_cast<int>(mScrollOffsetInPixels)};
+-	for(std::size_t i = 0; i < mItems.size(); i++)
++	textPosition += {constants::MARGIN_TIGHT, -static_cast<int>(mScrollOffsetInPixels % mLineHeight)};
++	for(std::size_t i = firstVisibleIndex; i < endVisibleIndex; i++)
+ 	{
+ 		const auto textColor = (i == mHighlightIndex) ? mTextColorMouseHover : mTextColorNormal;
+ 		renderer.drawTextShadow(mFont, mItems[i].text, textPosition, {1, 1}, textColor, NAS2D::Color::Black);

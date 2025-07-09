@@ -1,0 +1,31 @@
+From 1902eb141bfaf6efb6dab19f021d7e18cc84258a Mon Sep 17 00:00:00 2001
+From: Duncan Sands <baldrick@free.fr>
+Date: Mon, 4 Apr 2011 09:49:20 +0000
+Subject: [PATCH] Map constants to the global variable realizing them using a
+ DenseMap rather than a std::map.
+
+---
+ dragonegg/Constants.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/dragonegg/Constants.cpp b/dragonegg/Constants.cpp
+index dc9a2b741b80..d1f277b41b8f 100644
+--- a/dragonegg/Constants.cpp
++++ b/dragonegg/Constants.cpp
+@@ -35,7 +35,6 @@
+ 
+ // System headers
+ #include <gmp.h>
+-#include <map>
+ 
+ // GCC headers
+ extern "C" {
+@@ -1164,7 +1163,7 @@ static Constant *AddressOfCST(tree exp) {
+ 
+   // Cache the constants to avoid making obvious duplicates that have to be
+   // folded by the optimizer.
+-  static std::map<Constant*, GlobalVariable*> CSTCache;
++  static DenseMap<Constant*, GlobalVariable*> CSTCache;
+   GlobalVariable *&Slot = CSTCache[Init];
+   if (Slot)
+     return Slot;

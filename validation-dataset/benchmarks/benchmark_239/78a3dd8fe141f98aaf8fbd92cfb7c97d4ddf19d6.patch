@@ -1,0 +1,26 @@
+From 78a3dd8fe141f98aaf8fbd92cfb7c97d4ddf19d6 Mon Sep 17 00:00:00 2001
+From: Daniel Dunbar <daniel@zuster.org>
+Date: Wed, 29 Jul 2009 06:45:14 +0000
+Subject: [PATCH] raw_ostream: Follow the 32-bit path when printing "small"
+ decimal numbers.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@77444 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Support/raw_ostream.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/lib/Support/raw_ostream.cpp b/lib/Support/raw_ostream.cpp
+index 992c11a8220..d2d0f4ef2a2 100644
+--- a/lib/Support/raw_ostream.cpp
++++ b/lib/Support/raw_ostream.cpp
+@@ -89,6 +89,10 @@ raw_ostream &raw_ostream::operator<<(long N) {
+ }
+ 
+ raw_ostream &raw_ostream::operator<<(unsigned long long N) {
++  // Output using 32-bit div/mod when possible.
++  if (N == static_cast<unsigned long>(N))
++    return this->operator<<(static_cast<unsigned long>(N));
++
+   // Zero is a special case.
+   if (N == 0)
+     return *this << '0';

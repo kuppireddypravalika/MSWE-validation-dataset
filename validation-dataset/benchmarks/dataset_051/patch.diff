@@ -1,0 +1,36 @@
+From 938d6718cfdef6b21f0043a8aaab8e5db6978494 Mon Sep 17 00:00:00 2001
+From: Adrian Astley <adastley@gmail.com>
+Date: Fri, 22 May 2015 11:56:28 -0500
+Subject: [PATCH] FIBER_TASKING_LIB: Optimize task erase to a move operation
+
+As suggested by ryeguy on reddit. There is a nice explanation of the optimization
+here: http://stackoverflow.com/questions/4442477/remove-ith-item-from-c-stdvector/4442529#4442529
+---
+ source/fiber_tasking_lib/task_scheduler.cpp | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/source/fiber_tasking_lib/task_scheduler.cpp b/source/fiber_tasking_lib/task_scheduler.cpp
+index 054ba001..5346da73 100644
+--- a/source/fiber_tasking_lib/task_scheduler.cpp
++++ b/source/fiber_tasking_lib/task_scheduler.cpp
+@@ -66,7 +66,19 @@ void TaskScheduler::FiberStart(void *arg) {
+ 		}
+ 		if (waitingTaskReady) {
+ 			waitingTask = *iter;
+-			taskScheduler->m_waitingTasks.erase(iter);
++			
++			// Optimization for removing an item from a vector as suggested by ryeguy on reddit
++			// Explained here: http://stackoverflow.com/questions/4442477/remove-ith-item-from-c-stdvector/4442529#4442529
++			// Essentially, rather than forcing a memcpy to shift all the remaining elements down after the erase,
++			// we move the last element into the place where the erased element was. Then we pop off the last element
++			
++			// Check that we're not already the last item
++			// Move assignment to self is not defined
++			if (iter != (--taskScheduler->m_waitingTasks.end())) {
++				*iter = std::move(taskScheduler->m_waitingTasks.back());
++			}
++			taskScheduler->m_waitingTasks.pop_back();
++
+ 		}
+ 		LeaveCriticalSection(&taskScheduler->m_waitingTaskLock);
+ 

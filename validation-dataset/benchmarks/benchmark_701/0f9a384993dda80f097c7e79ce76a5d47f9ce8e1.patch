@@ -1,0 +1,37 @@
+From 0f9a384993dda80f097c7e79ce76a5d47f9ce8e1 Mon Sep 17 00:00:00 2001
+From: spacy51 <spacy51@a31d4220-a93d-0410-bf67-fe4944624d44>
+Date: Sun, 2 Dec 2007 00:18:52 +0000
+Subject: [PATCH] assembler routine now activated with #ifndef C_CORE instead
+ of #ifdef ASM
+
+---
+ src/win32/display.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/src/win32/display.cpp b/src/win32/display.cpp
+index bd6ffa3f7..43c13ecb2 100644
+--- a/src/win32/display.cpp
++++ b/src/win32/display.cpp
+@@ -21,7 +21,7 @@
+ 
+ void copyImage( void *source, void *destination, unsigned int width, unsigned int height, unsigned int destinationPitch, unsigned int colorDepth )
+ {
+-#ifdef ASM
++#ifndef C_CORE
+ 
+ 	// Copy the image at [source] to the locked Direct3D texture
+ 	__asm
+@@ -75,7 +75,7 @@ void copyImage( void *source, void *destination, unsigned int width, unsigned in
+ gbaLoopEnd:
+ 	}
+ 
+-#else // #ifdef ASM
++#else // #ifndef C_CORE
+ 
+ 	// optimized C version
+ 	register unsigned int lineSize;
+@@ -120,4 +120,3 @@ void copyImage( void *source, void *destination, unsigned int width, unsigned in
+ 
+ #endif
+ }
+-

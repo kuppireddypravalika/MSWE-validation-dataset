@@ -1,0 +1,38 @@
+From a34c88da857974d8d40ae0858b5bbb8b6513bd9d Mon Sep 17 00:00:00 2001
+From: Kimish Patel <kimishpatel@fb.com>
+Date: Wed, 6 Nov 2019 09:12:28 -0800
+Subject: [PATCH] Fixed the call to schedule for quantized gemm. Without this
+ we end up (#139)
+
+calling the default schedule which is pretty slow.
+
+Summary:
+
+Test Plan:
+
+Reviewers:
+
+Subscribers:
+
+Tasks:
+
+Tags:
+---
+ torch_tvm/custom_tvm_ops/cpp/topi/custom_topi_ops.cc | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/torch_tvm/custom_tvm_ops/cpp/topi/custom_topi_ops.cc b/torch_tvm/custom_tvm_ops/cpp/topi/custom_topi_ops.cc
+index 7c53234..a941a87 100644
+--- a/torch_tvm/custom_tvm_ops/cpp/topi/custom_topi_ops.cc
++++ b/torch_tvm/custom_tvm_ops/cpp/topi/custom_topi_ops.cc
+@@ -205,7 +205,9 @@ class CustomTOPIOpRegisterer {
+             [](const tvm::Attrs& attrs,
+                const tvm::Array<tvm::Tensor>& outs,
+                const tvm::Target& target) -> tvm::Schedule {
+-              return  topi::generic::schedule_quantized_mm_dequantize(target, outs);
++              auto schedule_quantized_mm_dequantize =
++                  tvm::GenericFunc::Get("schedule_quantized_mm_dequantize");
++              return  schedule_quantized_mm_dequantize(outs);
+             }),
+         10);
+   }

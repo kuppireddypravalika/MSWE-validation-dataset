@@ -1,0 +1,47 @@
+From 4c912a2a066593772b39bd2ac970d7383c0b7ca5 Mon Sep 17 00:00:00 2001
+From: Juli Mallett <juli@clockworksquid.com>
+Date: Fri, 4 Jun 2010 11:25:25 +0000
+Subject: [PATCH] Add a thread-unsafe but much more snappy lseek+writev
+ implementation of pwritev.
+
+---
+ io/io_system.cc | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+
+diff --git a/io/io_system.cc b/io/io_system.cc
+index 6c361d6..6ec2b1b 100644
+--- a/io/io_system.cc
++++ b/io/io_system.cc
+@@ -292,6 +292,24 @@ IOSystem::Handle::write_callback(Event e)
+ 		if (len > 0)
+ 			write_offset_ += len;
+ #else
++		/*
++		 * XXX
++		 * Thread unsafe.
++		 */
++		off_t off = lseek(fd_, write_offset_, SEEK_SET);
++		if (off == -1) {
++			len = -1;
++		} else {
++			len = ::writev(fd_, iov, iovcnt);
++			if (len > 0)
++				write_offset_ += len;
++		}
++
++		/*
++		 * XXX
++		 * Slow!
++		 */
++#if 0
+ 		unsigned i;
+ 
+ 		if (iovcnt == 0) {
+@@ -317,6 +335,7 @@ IOSystem::Handle::write_callback(Event e)
+ 			if ((size_t)len != iovp->iov_len)
+ 				break;
+ 		}
++#endif
+ #endif
+ 	}
+ 	if (len == -1) {

@@ -1,0 +1,28 @@
+From 7f7ea08e6afe6d82fd465022b1330439664a04df Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Wed, 9 Nov 2016 22:03:07 -0500
+Subject: [PATCH] [libromdata] ImageDecoder::fromDreamcastARGB4444(): Use the
+ correct source data.
+
+We were decoding *px_dest as if it was the source data.
+Use le16_to_cpu(*img_buf), which is the correct value.
+
+TODO: Does this result in two dereferences, or does the compiler
+end up optimizing it away?
+---
+ src/libromdata/img/ImageDecoder.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/libromdata/img/ImageDecoder.cpp b/src/libromdata/img/ImageDecoder.cpp
+index 88c6aca79e..2fc6f414b2 100644
+--- a/src/libromdata/img/ImageDecoder.cpp
++++ b/src/libromdata/img/ImageDecoder.cpp
+@@ -562,7 +562,7 @@ rp_image *ImageDecoder::fromDreamcastARGB4444(int width, int height,
+ 	for (int y = 0; y < height; y++) {
+ 		uint32_t *px_dest = static_cast<uint32_t*>(img->scanLine(y));
+ 		for (int x = width; x > 0; x--) {
+-			*px_dest = ImageDecoderPrivate::ARGB4444_to_ARGB32(*px_dest);
++			*px_dest = ImageDecoderPrivate::ARGB4444_to_ARGB32(le16_to_cpu(*img_buf));
+ 			img_buf++;
+ 			px_dest++;
+ 		}

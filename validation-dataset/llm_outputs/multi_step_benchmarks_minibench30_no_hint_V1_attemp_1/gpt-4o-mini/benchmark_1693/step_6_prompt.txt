@@ -1,0 +1,731 @@
+You are an expert C++ performance engineer. Optimize the provided code for high compute and resource performance while preserving behavior. The optimized function must keep the exact same signature as the hand-written implementation. If the original file contains explicit template instantiations, reproduce them unchanged at the end of the optimized file. This prompt may include compilation errors, runtime errors or timing data from the previous step. Use it to refine the code. If it is empty, produce an initial optimization based solely on the original source. When refining the code, explore potentially high-reward optimization paths that have not yet been tried and that could yield superior computational performance. Respond only with a JSON object using the keys "optimized_code" and "analysis". The "analysis" field should briefly explain the intent behind your modifications. Additional source files may be provided for context. Here are the files:
+
+// original.cpp
+#include "search.hpp"
+#include <omp.h>
+
+// Default static scheduling
+size_t dem_fem_search(const ParticleVector& elements) {
+    const std::size_t MaxNumberOfElements = elements.size();
+    std::vector<std::vector<ParticlePtr>> rResults(elements.size());
+    std::vector<std::vector<double>> rResultsDistance(elements.size());
+
+    double mGlobal_BB_LowPoint[3] = {-1.0, -1.0, -1.0};
+    double mGlobal_BB_HighPoint[3] = { 1.0,  1.0,  1.0};
+
+    #pragma omp parallel
+    {
+        std::vector<ParticlePtr> localResults(MaxNumberOfElements);
+        std::vector<double> localResultsDistances(MaxNumberOfElements);
+        std::size_t NumberOfResults = 0;
+
+        #pragma omp for
+        for (int p = 0; p < static_cast<int>(elements.size()); ++p) {
+            auto go_it = elements[p];
+            bool search_particle = true;
+            const double* aux_coor = go_it->coord.data();
+            SphericParticle* p_particle = go_it.get();
+            double Rad = p_particle->radius;
+
+            for (unsigned int i = 0; i < 3; ++i)
+                search_particle &= !(aux_coor[i] < (mGlobal_BB_LowPoint[i] - Rad)) ||
+                                   (aux_coor[i] > (mGlobal_BB_HighPoint[i] + Rad));
+
+            if (search_particle) {
+                NumberOfResults = 0;
+                for (std::size_t j = 0; j < elements.size(); ++j) {
+                    if (j == static_cast<std::size_t>(p)) continue;
+                    auto other = elements[j];
+                    double dx = aux_coor[0] - other->coord[0];
+                    double dy = aux_coor[1] - other->coord[1];
+                    double dz = aux_coor[2] - other->coord[2];
+                    double dist2 = dx*dx + dy*dy + dz*dz;
+                    if (dist2 < Rad + other->radius) {
+                        if (NumberOfResults < MaxNumberOfElements) {
+                            localResults[NumberOfResults] = other;
+                            localResultsDistances[NumberOfResults] = dist2;
+                        }
+                        ++NumberOfResults;
+                    }
+                }
+
+                volatile double sink = 0.0;
+                for (int w = 0; w < p_particle->workload * 20; ++w)
+                    for (int k = 0; k < 20; ++k)
+                        sink += std::sin(w * 0.001 + k);
+                localResultsDistances[0] += sink;
+
+                rResults[p].insert(rResults[p].begin(), localResults.begin(), localResults.begin() + std::min(NumberOfResults, MaxNumberOfElements));
+            }
+        }
+    }
+
+    std::size_t total = 0;
+    for (const auto& v : rResults) total += v.size();
+    return total;
+}
+
+
+// search.hpp
+#pragma once
+#include <array>
+#include <vector>
+#include <memory>
+#include <cmath>
+
+struct SphericParticle {
+    std::array<double,3> coord;
+    double radius;
+    int workload;
+};
+
+using ParticlePtr = std::shared_ptr<SphericParticle>;
+using ParticleVector = std::vector<ParticlePtr>;
+
+// Search implementation defined in original.cpp / optimized.cpp
+size_t dem_fem_search(const ParticleVector& elements);
+
+
+The following files are provided for context. Do NOT modify them. Only update code in original.cpp.
+
+// harness.cpp
+#include "search.hpp"
+#include <chrono>
+#include <iostream>
+#include <random>
+#include <string>
+#include <vector>
+#include <omp.h>
+
+ParticleVector make_particles(std::size_t n) {
+    ParticleVector vec;
+    vec.reserve(n);
+    std::mt19937 gen(42);
+    std::uniform_real_distribution<double> coord(-1.0, 1.0);
+    for (std::size_t i = 0; i < n; ++i) {
+        auto p = std::make_shared<SphericParticle>();
+        p->coord = {coord(gen), coord(gen), coord(gen)};
+        p->radius = 0.05 + 0.001 * (i % 50);
+        // first quarter of the particles are much heavier to create workload imbalance
+        p->workload = (i < n / 4) ? 800 : 20;
+        vec.push_back(p);
+    }
+    return vec;
+}
+
+int main(int argc, char* argv[]) {
+    std::string mode = "perf";
+    std::size_t size = 1000;
+    int repeat = 10;
+    int threads = std::min(4, omp_get_max_threads());
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "--mode=correct") mode = "correct";
+        else if (arg == "--mode=perf") mode = "perf";
+        else if (arg.rfind("--size=",0)==0) size = std::stoul(arg.substr(7));
+        else if (arg.rfind("--repeat=",0)==0) repeat = std::stoi(arg.substr(9));
+        else if (arg.rfind("--threads=",0)==0) threads = std::stoi(arg.substr(10));
+    }
+
+    omp_set_num_threads(threads);
+    ParticleVector particles = make_particles(size);
+
+    if (mode == "correct") {
+        std::size_t sum = dem_fem_search(particles);
+        std::cout << sum << "\n";
+        return 0;
+    }
+
+    using clock = std::chrono::high_resolution_clock;
+    std::size_t dummy = 0;
+    auto t1 = clock::now();
+    for (int r = 0; r < repeat; ++r) {
+        dummy += dem_fem_search(particles);
+    }
+    auto t2 = clock::now();
+    std::cout << "Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms\n";
+    if (dummy == 42) std::cerr << "";
+    return 0;
+}
+
+
+// search.hpp
+#pragma once
+#include <array>
+#include <vector>
+#include <memory>
+#include <cmath>
+
+struct SphericParticle {
+    std::array<double,3> coord;
+    double radius;
+    int workload;
+};
+
+using ParticlePtr = std::shared_ptr<SphericParticle>;
+using ParticleVector = std::vector<ParticlePtr>;
+
+// Search implementation defined in original.cpp / optimized.cpp
+size_t dem_fem_search(const ParticleVector& elements);
+
+
+Previous attempt info:
+Original execution time: mean = 6259.60 ms, std = 17.53 ms
+Diff from original code:
+--- original
++++ step_1
+@@ -1,8 +1,7 @@
+-// original.cpp
+ #include "search.hpp"
+ #include <omp.h>
++#include <algorithm>
+ 
+-// Default static scheduling
+ size_t dem_fem_search(const ParticleVector& elements) {
+     const std::size_t MaxNumberOfElements = elements.size();
+     std::vector<std::vector<ParticlePtr>> rResults(elements.size());
+@@ -15,25 +14,23 @@
+     {
+         std::vector<ParticlePtr> localResults(MaxNumberOfElements);
+         std::vector<double> localResultsDistances(MaxNumberOfElements);
+-        std::size_t NumberOfResults = 0;
++        std::size_t NumberOfResults;
+ 
+         #pragma omp for
+         for (int p = 0; p < static_cast<int>(elements.size()); ++p) {
+             auto go_it = elements[p];
+             bool search_particle = true;
+             const double* aux_coor = go_it->coord.data();
+-            SphericParticle* p_particle = go_it.get();
+-            double Rad = p_particle->radius;
++            double Rad = go_it->radius;
+ 
+             for (unsigned int i = 0; i < 3; ++i)
+-                search_particle &= !(aux_coor[i] < (mGlobal_BB_LowPoint[i] - Rad)) ||
+-                                   (aux_coor[i] > (mGlobal_BB_HighPoint[i] + Rad));
++                search_particle &= !(aux_coor[i] < (mGlobal_BB_LowPoint[i] - Rad)) && !(aux_coor[i] > (mGlobal_BB_HighPoint[i] + Rad));
+ 
+             if (search_particle) {
+                 NumberOfResults = 0;
+                 for (std::size_t j = 0; j < elements.size(); ++j) {
+                     if (j == static_cast<std::size_t>(p)) continue;
+-                    auto other = elements[j];
++                    const auto& other = elements[j];
+                     double dx = aux_coor[0] - other->coord[0];
+                     double dy = aux_coor[1] - other->coord[1];
+                     double dz = aux_coor[2] - other->coord[2];
+@@ -47,13 +44,16 @@
+                     }
+                 }
+ 
+-                volatile double sink = 0.0;
+-                for (int w = 0; w < p_particle->workload * 20; ++w)
+-                    for (int k = 0; k < 20; ++k)
+-                        sink += std::sin(w * 0.001 + k);
+-                localResultsDistances[0] += sink;
++                if (NumberOfResults > 0) {
++                    volatile double sink = 0.0;
++                    for (int w = 0; w < go_it->workload * 20; ++w)
++                        for (int k = 0; k < 20; ++k)
++                            sink += std::sin(w * 0.001 + k);
++                    localResultsDistances[0] += sink;
+ 
+-                rResults[p].insert(rResults[p].begin(), localResults.begin(), localResults.begin() + std::min(NumberOfResults, MaxNumberOfElements));
++                    std::lock_guard<std::mutex> lock(mutex);
++                    rResults[p].insert(rResults[p].begin(), localResults.begin(), localResults.begin() + std::min(NumberOfResults, MaxNumberOfElements));
++                }
+             }
+         }
+     }
+@@ -63,22 +63,6 @@
+     return total;
+ }
+ 
++std::mutex mutex;
+ 
+-// search.hpp
+-#pragma once
+-#include <array>
+-#include <vector>
+-#include <memory>
+-#include <cmath>
+-
+-struct SphericParticle {
+-    std::array<double,3> coord;
+-    double radius;
+-    int workload;
+-};
+-
+-using ParticlePtr = std::shared_ptr<SphericParticle>;
+-using ParticleVector = std::vector<ParticlePtr>;
+-
+-// Search implementation defined in original.cpp / optimized.cpp
+-size_t dem_fem_search(const ParticleVector& elements);
++// Explicit template instantiations (if any)
+Compilation failed. Output:
+cc1plus: warning: ignoring possibly conflicting option ‘-fopt-info-all’
+cc1plus: warning: ignoring possibly conflicting option ‘-fopt-info-all’
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_1693/step_1.cpp: In function ‘size_t dem_fem_search(const ParticleVector&)’:
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_1693/step_1.cpp:54:26: error: ‘lock_guard’ is not a member of ‘std’
+   54 |                     std::lock_guard<std::mutex> lock(mutex);
+      |                          ^~~~~~~~~~
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_1693/step_1.cpp:4:1: note: ‘std::lock_guard’ is defined in header ‘<mutex>’; did you forget to ‘#include <mutex>’?
+    3 | #include <algorithm>
+  +++ |+#include <mutex>
+    4 | 
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_1693/step_1.cpp:54:42: error: ‘mutex’ is not a member of ‘std’
+   54 |                     std::lock_guard<std::mutex> lock(mutex);
+      |                                          ^~~~~
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_1693/step_1.cpp:54:42: note: ‘std::mutex’ is defined in header ‘<mutex>’; did you forget to ‘#include <mutex>’?
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_1693/step_1.cpp:54:54: error: ‘mutex’ was not declared in this scope
+   54 |                     std::lock_guard<std::mutex> lock(mutex);
+      |                                                      ^~~~~
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_1693/step_1.cpp:54:49: error: ‘lock’ was not declared in this scope; did you mean ‘clock’?
+   54 |                     std::lock_guard<std::mutex> lock(mutex);
+      |                                                 ^~~~
+      |                                                 clock
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_1693/step_1.cpp: At global scope:
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_1693/step_1.cpp:66:6: error: ‘mutex’ in namespace ‘std’ does not name a type
+   66 | std::mutex mutex;
+      |      ^~~~~
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_1693/step_1.cpp:66:1: note: ‘std::mutex’ is defined in header ‘<mutex>’; did you forget to ‘#include <mutex>’?
+   66 | std::mutex mutex;
+      | ^~~
+
+LLM analysis: The optimized code reduces the number of unnecessary checks by using an 'and' operator instead of 'or' for bounding conditions. This maximizes loop efficiency. Additionally, local results are now filled only when particles are found, preventing unnecessary allocations. A mutex is introduced to protect shared resources safely while avoid performance bottlenecks. Overall, the optimizations improve performance on parallel execution especially for larger datasets.
+Diff from original code:
+--- original
++++ step_2
+@@ -1,59 +1,58 @@
+-// original.cpp
+ #include "search.hpp"
+ #include <omp.h>
++#include <algorithm>
++#include <cmath>
+ 
+ // Default static scheduling
+ size_t dem_fem_search(const ParticleVector& elements) {
+     const std::size_t MaxNumberOfElements = elements.size();
+     std::vector<std::vector<ParticlePtr>> rResults(elements.size());
+-    std::vector<std::vector<double>> rResultsDistance(elements.size());
+-
+     double mGlobal_BB_LowPoint[3] = {-1.0, -1.0, -1.0};
+     double mGlobal_BB_HighPoint[3] = { 1.0,  1.0,  1.0};
+ 
+     #pragma omp parallel
+     {
++        // Removed localResults distance array which was unnecessary
+         std::vector<ParticlePtr> localResults(MaxNumberOfElements);
+-        std::vector<double> localResultsDistances(MaxNumberOfElements);
+-        std::size_t NumberOfResults = 0;
++        std::size_t NumberOfResults;
+ 
+         #pragma omp for
+         for (int p = 0; p < static_cast<int>(elements.size()); ++p) {
+             auto go_it = elements[p];
+             bool search_particle = true;
+             const double* aux_coor = go_it->coord.data();
+-            SphericParticle* p_particle = go_it.get();
+-            double Rad = p_particle->radius;
++            double Rad = go_it->radius;
+ 
++            // Adjusted bounding checks for better flow
+             for (unsigned int i = 0; i < 3; ++i)
+-                search_particle &= !(aux_coor[i] < (mGlobal_BB_LowPoint[i] - Rad)) ||
+-                                   (aux_coor[i] > (mGlobal_BB_HighPoint[i] + Rad));
++                search_particle &= (aux_coor[i] >= (mGlobal_BB_LowPoint[i] - Rad)) && (aux_coor[i] <= (mGlobal_BB_HighPoint[i] + Rad));
+ 
+             if (search_particle) {
+                 NumberOfResults = 0;
+                 for (std::size_t j = 0; j < elements.size(); ++j) {
+                     if (j == static_cast<std::size_t>(p)) continue;
+-                    auto other = elements[j];
++                    const auto& other = elements[j];
+                     double dx = aux_coor[0] - other->coord[0];
+                     double dy = aux_coor[1] - other->coord[1];
+                     double dz = aux_coor[2] - other->coord[2];
+-                    double dist2 = dx*dx + dy*dy + dz*dz;
+-                    if (dist2 < Rad + other->radius) {
++                    double dist2 = dx * dx + dy * dy + dz * dz;
++                    if (dist2 < (Rad + other->radius)) {
+                         if (NumberOfResults < MaxNumberOfElements) {
+                             localResults[NumberOfResults] = other;
+-                            localResultsDistances[NumberOfResults] = dist2;
++                            NumberOfResults++;
+                         }
+-                        ++NumberOfResults;
+                     }
+                 }
+ 
+-                volatile double sink = 0.0;
+-                for (int w = 0; w < p_particle->workload * 20; ++w)
+-                    for (int k = 0; k < 20; ++k)
+-                        sink += std::sin(w * 0.001 + k);
+-                localResultsDistances[0] += sink;
+-
+-                rResults[p].insert(rResults[p].begin(), localResults.begin(), localResults.begin() + std::min(NumberOfResults, MaxNumberOfElements));
++                if (NumberOfResults > 0) {
++                    for (int w = 0; w < go_it->workload * 20; ++w) {
++                        for (int k = 0; k < 20; ++k) {
++                            // Simple workload simulation useful for this benchmark
++                            volatile double sink = std::sin(w * 0.001 + k);
++                        }
++                    }
++                    rResults[p].insert(rResults[p].begin(), localResults.begin(), localResults.begin() + NumberOfResults);
++                }
+             }
+         }
+     }
+@@ -63,22 +62,5 @@
+     return total;
+ }
+ 
+-
+-// search.hpp
+-#pragma once
+-#include <array>
+-#include <vector>
+-#include <memory>
+-#include <cmath>
+-
+-struct SphericParticle {
+-    std::array<double,3> coord;
+-    double radius;
+-    int workload;
+-};
+-
+-using ParticlePtr = std::shared_ptr<SphericParticle>;
+-using ParticleVector = std::vector<ParticlePtr>;
+-
+-// Search implementation defined in original.cpp / optimized.cpp
++// Explicit template instantiations
+ size_t dem_fem_search(const ParticleVector& elements);
+Compilation succeeded. Execution time: mean = 184.40 ms, std = 3.71 ms. Original execution time: mean = 6259.60 ms, std = 17.53 ms
+LLM analysis: The optimized code improves computational performance by simplifying the particle bounding condition checks and eliminating the unnecessary distances vector. Additionally, it minimizes memory writes by directly updating results only when valid particles are found. Nested loops for workload simulation are kept but streamlined. Overall, these changes reduce overhead, enhance loop efficiency, and maintain parallel execution benefits.
+Diff from original code:
+--- original
++++ step_3
+@@ -1,12 +1,12 @@
+-// original.cpp
+ #include "search.hpp"
+ #include <omp.h>
++#include <algorithm>
++#include <cmath>
+ 
+ // Default static scheduling
+ size_t dem_fem_search(const ParticleVector& elements) {
+     const std::size_t MaxNumberOfElements = elements.size();
+     std::vector<std::vector<ParticlePtr>> rResults(elements.size());
+-    std::vector<std::vector<double>> rResultsDistance(elements.size());
+ 
+     double mGlobal_BB_LowPoint[3] = {-1.0, -1.0, -1.0};
+     double mGlobal_BB_HighPoint[3] = { 1.0,  1.0,  1.0};
+@@ -14,46 +14,44 @@
+     #pragma omp parallel
+     {
+         std::vector<ParticlePtr> localResults(MaxNumberOfElements);
+-        std::vector<double> localResultsDistances(MaxNumberOfElements);
+-        std::size_t NumberOfResults = 0;
++        std::size_t NumberOfResults;
+ 
+         #pragma omp for
+         for (int p = 0; p < static_cast<int>(elements.size()); ++p) {
+             auto go_it = elements[p];
+             bool search_particle = true;
+             const double* aux_coor = go_it->coord.data();
+-            SphericParticle* p_particle = go_it.get();
+-            double Rad = p_particle->radius;
++            double Rad = go_it->radius;
+ 
+             for (unsigned int i = 0; i < 3; ++i)
+-                search_particle &= !(aux_coor[i] < (mGlobal_BB_LowPoint[i] - Rad)) ||
+-                                   (aux_coor[i] > (mGlobal_BB_HighPoint[i] + Rad));
++                search_particle &= (aux_coor[i] >= (mGlobal_BB_LowPoint[i] - Rad)) && (aux_coor[i] <= (mGlobal_BB_HighPoint[i] + Rad));
+ 
+             if (search_particle) {
+                 NumberOfResults = 0;
+                 for (std::size_t j = 0; j < elements.size(); ++j) {
+                     if (j == static_cast<std::size_t>(p)) continue;
+-                    auto other = elements[j];
++                    const auto& other = elements[j];
+                     double dx = aux_coor[0] - other->coord[0];
+                     double dy = aux_coor[1] - other->coord[1];
+                     double dz = aux_coor[2] - other->coord[2];
+-                    double dist2 = dx*dx + dy*dy + dz*dz;
+-                    if (dist2 < Rad + other->radius) {
++                    double dist2 = dx * dx + dy * dy + dz * dz;
++                    if (dist2 < (Rad + other->radius)) {
+                         if (NumberOfResults < MaxNumberOfElements) {
+                             localResults[NumberOfResults] = other;
+-                            localResultsDistances[NumberOfResults] = dist2;
++                            NumberOfResults++;
+                         }
+-                        ++NumberOfResults;
+                     }
+                 }
+ 
+-                volatile double sink = 0.0;
+-                for (int w = 0; w < p_particle->workload * 20; ++w)
+-                    for (int k = 0; k < 20; ++k)
+-                        sink += std::sin(w * 0.001 + k);
+-                localResultsDistances[0] += sink;
+-
+-                rResults[p].insert(rResults[p].begin(), localResults.begin(), localResults.begin() + std::min(NumberOfResults, MaxNumberOfElements));
++                if (NumberOfResults > 0) {
++                    for (int w = 0; w < go_it->workload * 20; ++w) {
++                        for (int k = 0; k < 20; ++k) {
++                            // Simple workload simulation useful for this benchmark
++                            volatile double sink = std::sin(w * 0.001 + k);
++                        }
++                    }
++                    rResults[p].insert(rResults[p].begin(), localResults.begin(), localResults.begin() + NumberOfResults);
++                }
+             }
+         }
+     }
+@@ -63,22 +61,5 @@
+     return total;
+ }
+ 
+-
+-// search.hpp
+-#pragma once
+-#include <array>
+-#include <vector>
+-#include <memory>
+-#include <cmath>
+-
+-struct SphericParticle {
+-    std::array<double,3> coord;
+-    double radius;
+-    int workload;
+-};
+-
+-using ParticlePtr = std::shared_ptr<SphericParticle>;
+-using ParticleVector = std::vector<ParticlePtr>;
+-
+-// Search implementation defined in original.cpp / optimized.cpp
++// Explicit template instantiations
+ size_t dem_fem_search(const ParticleVector& elements);
+Compilation succeeded. Execution time: mean = 182.20 ms, std = 0.84 ms. Original execution time: mean = 6259.60 ms, std = 17.53 ms
+LLM analysis: The optimized code improves computational performance by simplifying the particle bounding condition checks and eliminating the unnecessary distances vector. Additionally, it minimizes memory writes by directly updating results only when valid particles are found. The nested loops for workload simulation are streamlined while maintaining the overall structure. Overall, these changes reduce overhead and enhance loop efficiency whilst preserving the parallel execution benefits.
+Diff from original code:
+--- original
++++ step_4
+@@ -1,12 +1,14 @@
+ // original.cpp
+ #include "search.hpp"
+ #include <omp.h>
++#include <vector>
++#include <algorithm>
++#include <cmath>
+ 
+ // Default static scheduling
+ size_t dem_fem_search(const ParticleVector& elements) {
+     const std::size_t MaxNumberOfElements = elements.size();
+     std::vector<std::vector<ParticlePtr>> rResults(elements.size());
+-    std::vector<std::vector<double>> rResultsDistance(elements.size());
+ 
+     double mGlobal_BB_LowPoint[3] = {-1.0, -1.0, -1.0};
+     double mGlobal_BB_HighPoint[3] = { 1.0,  1.0,  1.0};
+@@ -14,46 +16,44 @@
+     #pragma omp parallel
+     {
+         std::vector<ParticlePtr> localResults(MaxNumberOfElements);
+-        std::vector<double> localResultsDistances(MaxNumberOfElements);
+-        std::size_t NumberOfResults = 0;
++        std::size_t NumberOfResults;
+ 
+         #pragma omp for
+         for (int p = 0; p < static_cast<int>(elements.size()); ++p) {
+             auto go_it = elements[p];
+             bool search_particle = true;
+             const double* aux_coor = go_it->coord.data();
+-            SphericParticle* p_particle = go_it.get();
+-            double Rad = p_particle->radius;
++            double Rad = go_it->radius;
+ 
+             for (unsigned int i = 0; i < 3; ++i)
+-                search_particle &= !(aux_coor[i] < (mGlobal_BB_LowPoint[i] - Rad)) ||
+-                                   (aux_coor[i] > (mGlobal_BB_HighPoint[i] + Rad));
++                search_particle &= (aux_coor[i] >= (mGlobal_BB_LowPoint[i] - Rad)) && (aux_coor[i] <= (mGlobal_BB_HighPoint[i] + Rad));
+ 
+             if (search_particle) {
+                 NumberOfResults = 0;
+                 for (std::size_t j = 0; j < elements.size(); ++j) {
+                     if (j == static_cast<std::size_t>(p)) continue;
+-                    auto other = elements[j];
++                    const auto& other = elements[j];
+                     double dx = aux_coor[0] - other->coord[0];
+                     double dy = aux_coor[1] - other->coord[1];
+                     double dz = aux_coor[2] - other->coord[2];
+-                    double dist2 = dx*dx + dy*dy + dz*dz;
+-                    if (dist2 < Rad + other->radius) {
++                    double dist2 = dx * dx + dy * dy + dz * dz;
++                    if (dist2 < (Rad + other->radius)) {
+                         if (NumberOfResults < MaxNumberOfElements) {
+                             localResults[NumberOfResults] = other;
+-                            localResultsDistances[NumberOfResults] = dist2;
++                            NumberOfResults++;
+                         }
+-                        ++NumberOfResults;
+                     }
+                 }
+ 
+-                volatile double sink = 0.0;
+-                for (int w = 0; w < p_particle->workload * 20; ++w)
+-                    for (int k = 0; k < 20; ++k)
+-                        sink += std::sin(w * 0.001 + k);
+-                localResultsDistances[0] += sink;
+-
+-                rResults[p].insert(rResults[p].begin(), localResults.begin(), localResults.begin() + std::min(NumberOfResults, MaxNumberOfElements));
++                if (NumberOfResults > 0) {
++                    for (int w = 0; w < go_it->workload * 20; ++w) {
++                        for (int k = 0; k < 20; ++k) {
++                            // Simple workload simulation useful for this benchmark
++                            volatile double sink = std::sin(w * 0.001 + k);
++                        }
++                    }
++                    rResults[p].insert(rResults[p].begin(), localResults.begin(), localResults.begin() + NumberOfResults);
++                }
+             }
+         }
+     }
+@@ -63,22 +63,5 @@
+     return total;
+ }
+ 
+-
+-// search.hpp
+-#pragma once
+-#include <array>
+-#include <vector>
+-#include <memory>
+-#include <cmath>
+-
+-struct SphericParticle {
+-    std::array<double,3> coord;
+-    double radius;
+-    int workload;
+-};
+-
+-using ParticlePtr = std::shared_ptr<SphericParticle>;
+-using ParticleVector = std::vector<ParticlePtr>;
+-
+-// Search implementation defined in original.cpp / optimized.cpp
++// Explicit template instantiations
+ size_t dem_fem_search(const ParticleVector& elements);
+Compilation succeeded. Execution time: mean = 194.80 ms, std = 16.75 ms. Original execution time: mean = 6259.60 ms, std = 17.53 ms
+LLM analysis: The optimized code enhances performance through streamlined condition checking and resource management. Bounding checks are consolidated for efficiency, and unnecessary temporary storage has been removed. Results are updated only when valid particles are detected, minimizing the number of writes. The workload simulation is maintained but is now more efficient. Overall, these modifications maintain parallel processing benefits while significantly reducing execution time.
+Diff from original code:
+--- original
++++ step_5
+@@ -1,12 +1,14 @@
+ // original.cpp
+ #include "search.hpp"
+ #include <omp.h>
++#include <vector>
++#include <algorithm>
++#include <cmath>
+ 
+ // Default static scheduling
+ size_t dem_fem_search(const ParticleVector& elements) {
+     const std::size_t MaxNumberOfElements = elements.size();
+     std::vector<std::vector<ParticlePtr>> rResults(elements.size());
+-    std::vector<std::vector<double>> rResultsDistance(elements.size());
+ 
+     double mGlobal_BB_LowPoint[3] = {-1.0, -1.0, -1.0};
+     double mGlobal_BB_HighPoint[3] = { 1.0,  1.0,  1.0};
+@@ -14,46 +16,42 @@
+     #pragma omp parallel
+     {
+         std::vector<ParticlePtr> localResults(MaxNumberOfElements);
+-        std::vector<double> localResultsDistances(MaxNumberOfElements);
+-        std::size_t NumberOfResults = 0;
++        std::size_t NumberOfResults;
+ 
+         #pragma omp for
+         for (int p = 0; p < static_cast<int>(elements.size()); ++p) {
+             auto go_it = elements[p];
++            const double* aux_coor = go_it->coord.data();
++            double Rad = go_it->radius;
++
+             bool search_particle = true;
+-            const double* aux_coor = go_it->coord.data();
+-            SphericParticle* p_particle = go_it.get();
+-            double Rad = p_particle->radius;
+-
+             for (unsigned int i = 0; i < 3; ++i)
+-                search_particle &= !(aux_coor[i] < (mGlobal_BB_LowPoint[i] - Rad)) ||
+-                                   (aux_coor[i] > (mGlobal_BB_HighPoint[i] + Rad));
++                search_particle &= (aux_coor[i] >= (mGlobal_BB_LowPoint[i] - Rad)) && (aux_coor[i] <= (mGlobal_BB_HighPoint[i] + Rad));
+ 
+             if (search_particle) {
+                 NumberOfResults = 0;
+                 for (std::size_t j = 0; j < elements.size(); ++j) {
+                     if (j == static_cast<std::size_t>(p)) continue;
+-                    auto other = elements[j];
++                    const auto& other = elements[j];
+                     double dx = aux_coor[0] - other->coord[0];
+                     double dy = aux_coor[1] - other->coord[1];
+                     double dz = aux_coor[2] - other->coord[2];
+-                    double dist2 = dx*dx + dy*dy + dz*dz;
+-                    if (dist2 < Rad + other->radius) {
+-                        if (NumberOfResults < MaxNumberOfElements) {
+-                            localResults[NumberOfResults] = other;
+-                            localResultsDistances[NumberOfResults] = dist2;
+-                        }
+-                        ++NumberOfResults;
++                    double dist2 = dx * dx + dy * dy + dz * dz;
++
++                    if (dist2 < (Rad + other->radius) && NumberOfResults < MaxNumberOfElements) {
++                        localResults[NumberOfResults] = other;
++                        NumberOfResults++;
+                     }
+                 }
+ 
+-                volatile double sink = 0.0;
+-                for (int w = 0; w < p_particle->workload * 20; ++w)
+-                    for (int k = 0; k < 20; ++k)
+-                        sink += std::sin(w * 0.001 + k);
+-                localResultsDistances[0] += sink;
+-
+-                rResults[p].insert(rResults[p].begin(), localResults.begin(), localResults.begin() + std::min(NumberOfResults, MaxNumberOfElements));
++                if (NumberOfResults > 0) {
++                    for (int w = 0; w < go_it->workload * 20; ++w) {
++                        for (int k = 0; k < 20; ++k) {
++                            volatile double sink = std::sin(w * 0.001 + k);
++                        }
++                    }
++                    rResults[p].insert(rResults[p].begin(), localResults.begin(), localResults.begin() + NumberOfResults);
++                }
+             }
+         }
+     }
+@@ -63,22 +61,5 @@
+     return total;
+ }
+ 
+-
+-// search.hpp
+-#pragma once
+-#include <array>
+-#include <vector>
+-#include <memory>
+-#include <cmath>
+-
+-struct SphericParticle {
+-    std::array<double,3> coord;
+-    double radius;
+-    int workload;
+-};
+-
+-using ParticlePtr = std::shared_ptr<SphericParticle>;
+-using ParticleVector = std::vector<ParticlePtr>;
+-
+-// Search implementation defined in original.cpp / optimized.cpp
++// Explicit template instantiations
+ size_t dem_fem_search(const ParticleVector& elements);
+Compilation succeeded. Execution time: mean = 184.00 ms, std = 1.58 ms. Original execution time: mean = 6259.60 ms, std = 17.53 ms
+LLM analysis: The optimized code reduces execution time significantly by streamlining condition checks and eliminating unnecessary allocations like distance vectors. Local results are updated only when valid particles are found, minimizing memory writes. The workload simulation is kept but is streamlined for improved performance. Overall, these changes enhance computational efficiency while preserving the original function's behavior.

@@ -1,0 +1,24 @@
+From df01719b57a3c1e9d9efc79074e0a70dc05e3fdb Mon Sep 17 00:00:00 2001
+From: "shaver@mozilla.org" <none@none>
+Date: Thu, 31 Jul 2008 12:22:48 -0700
+Subject: [PATCH] use optimized path for fromCharCode
+
+---
+ js/src/jsbuiltins.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/js/src/jsbuiltins.cpp b/js/src/jsbuiltins.cpp
+index e7a51e4eace..17a85948226 100644
+--- a/js/src/jsbuiltins.cpp
++++ b/js/src/jsbuiltins.cpp
+@@ -209,8 +209,8 @@ builtin_String_fromCharCode(JSContext* cx, jsint i)
+ {
+     jschar c = (jschar)i;
+     /* XXX check for string freelist space */
+-    /* XXX refactor js_GetUnitString so we can call it with a jschar */
+-    /* (also in js_str_fromCharCode!) */
++    if (c < UNIT_STRING_LIMIT)
++        return js_GetUnitStringForChar(cx, c);
+     return js_NewStringCopyN(cx, &c, 1);
+ }
+ 

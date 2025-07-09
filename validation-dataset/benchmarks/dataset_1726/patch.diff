@@ -1,0 +1,46 @@
+From e8e09918c01f14e9d8a7019b16ab3cef9bc7f8cd Mon Sep 17 00:00:00 2001
+From: Anton Kudryavtsev <a.kudryavtsev@netris.ru>
+Date: Wed, 30 Mar 2016 17:18:24 +0300
+Subject: [PATCH] QDir: use QString::splitRef on all platforms
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+... to avoid unnecessary allocations with
+both case sensitive and case insensitive paths.
+
+Optimize 4413254ff603fa19f4fa22d4936e69f4a6dbbc2b
+
+Change-Id: I4288831d641f7a0ee67f2efd2f5d4f023df0d39c
+Reviewed-by: Jędrzej Nowacki <jedrzej.nowacki@theqtcompany.com>
+Reviewed-by: Marc Mutz <marc.mutz@kdab.com>
+Reviewed-by: Edward Welbourne <edward.welbourne@theqtcompany.com>
+Reviewed-by: Lars Knoll <lars.knoll@theqtcompany.com>
+---
+ src/corelib/io/qdir.cpp | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/src/corelib/io/qdir.cpp b/src/corelib/io/qdir.cpp
+index 2c2bdd579eb5..d0527282b5f6 100644
+--- a/src/corelib/io/qdir.cpp
++++ b/src/corelib/io/qdir.cpp
+@@ -756,17 +756,13 @@ QString QDir::relativeFilePath(const QString &fileName) const
+ #endif
+ 
+     QString result;
+-#if defined(Q_OS_WIN)
+-    QStringList dirElts = dir.split(QLatin1Char('/'), QString::SkipEmptyParts);
+-    QStringList fileElts = file.split(QLatin1Char('/'), QString::SkipEmptyParts);
+-#else
+     QVector<QStringRef> dirElts = dir.splitRef(QLatin1Char('/'), QString::SkipEmptyParts);
+     QVector<QStringRef> fileElts = file.splitRef(QLatin1Char('/'), QString::SkipEmptyParts);
+-#endif
++
+     int i = 0;
+     while (i < dirElts.size() && i < fileElts.size() &&
+ #if defined(Q_OS_WIN)
+-           dirElts.at(i).toLower() == fileElts.at(i).toLower())
++           dirElts.at(i).compare(fileElts.at(i), Qt::CaseInsensitive) == 0)
+ #else
+            dirElts.at(i) == fileElts.at(i))
+ #endif

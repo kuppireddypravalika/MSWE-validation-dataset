@@ -1,0 +1,40 @@
+From 971523fb8f9308bb4bb37d9c6ae963be179bcf89 Mon Sep 17 00:00:00 2001
+From: Sam Clegg <sbc@chromium.org>
+Date: Wed, 21 Feb 2018 18:37:44 +0000
+Subject: [PATCH] [WebAssembly] Use make<> rather then make_unique<>. NFC.
+
+lld uses an arena allocator to one of allocations
+like these can just use make<>.
+
+Differential Revision: https://reviews.llvm.org/D43587
+---
+ lld/wasm/Writer.cpp | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/lld/wasm/Writer.cpp b/lld/wasm/Writer.cpp
+index c553d0aafdf5..8a8381f75ab1 100644
+--- a/lld/wasm/Writer.cpp
++++ b/lld/wasm/Writer.cpp
+@@ -131,7 +131,6 @@ class Writer {
+   std::vector<OutputSection *> OutputSections;
+ 
+   std::unique_ptr<FileOutputBuffer> Buffer;
+-  std::unique_ptr<SyntheticFunction> CtorFunction;
+   std::string CtorFunctionBody;
+ 
+   std::vector<OutputSegment *> Segments;
+@@ -852,10 +851,10 @@ void Writer::createCtorFunction() {
+   ArrayRef<uint8_t> BodyArray(
+       reinterpret_cast<const uint8_t *>(CtorFunctionBody.data()),
+       CtorFunctionBody.size());
+-  CtorFunction = llvm::make_unique<SyntheticFunction>(
+-      Signature, BodyArray, WasmSym::CallCtors->getName());
+-  CtorFunction->setOutputIndex(FunctionIndex);
+-  InputFunctions.emplace_back(CtorFunction.get());
++  SyntheticFunction *F = make<SyntheticFunction>(Signature, BodyArray,
++                                                 WasmSym::CallCtors->getName());
++  F->setOutputIndex(FunctionIndex);
++  InputFunctions.emplace_back(F);
+ }
+ 
+ // Populate InitFunctions vector with init functions from all input objects.

@@ -1,0 +1,25 @@
+From e786bfa598fb1882a2edc93d0e56a594c146a9d2 Mon Sep 17 00:00:00 2001
+From: Curtis Gedak <gedakc@gmail.com>
+Date: Fri, 5 Mar 2010 13:56:56 -0700
+Subject: [PATCH] Enhance erase_filesytem_signatures() for sector sizes > 512
+ bytes
+
+---
+ src/GParted_Core.cc | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/GParted_Core.cc b/src/GParted_Core.cc
+index 4c584ee8..01336928 100644
+--- a/src/GParted_Core.cc
++++ b/src/GParted_Core.cc
+@@ -2646,8 +2646,8 @@ bool GParted_Core::erase_filesystem_signatures( const Partition & partition )
+ 			//file systems not yet supported by libparted
+ 			if ( ped_device_open( lp_device ) )
+ 			{
+-				//reiser4 stores "ReIsEr4" at sector 128
+-				return_value = ped_geometry_write( & lp_partition ->geom, "0000000", 128, 1 ) ;
++				//reiser4 stores "ReIsEr4" at sector 128 with a sector size of 512 bytes
++				return_value = ped_geometry_write( & lp_partition ->geom, "0000000", (65536 / lp_device ->sector_size), 1 ) ;
+ 
+ 				ped_device_close( lp_device ) ;
+ 			}

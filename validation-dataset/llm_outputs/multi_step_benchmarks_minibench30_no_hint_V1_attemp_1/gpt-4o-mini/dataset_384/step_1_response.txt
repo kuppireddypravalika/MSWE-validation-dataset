@@ -1,0 +1,6 @@
+```json
+{
+  "optimized_code": "#include <cctype>\n#include <cstddef>\n#include <cstring>\nextern \"C\" int bstr_util_mem_index_of_mem_nocasenorzero(const void *data1,size_t len1,const void *data2,size_t len2){\n    const unsigned char* d1 = static_cast<const unsigned char*>(data1);\n    const unsigned char* d2 = static_cast<const unsigned char*>(data2);\n    size_t i, j;\n\n    for (i = 0; i < len1; ++i) {\n        size_t k = i;\n        j = 0;\n        while (j < len2 && k < len1) {\n            if (d1[k] == 0) {\n                ++k; // Skip the zero character and continue\n                continue;\n            }\n            if (std::toupper(d1[k]) != std::toupper(d2[j])) break;\n            ++j;\n            ++k;\n        }\n        if (j == len2) return i;\n    }\n    return -1;\n}\n\n",
+  "analysis": "The optimization focuses on improving the inner loop performance by minimizing iterations. I replaced the inner for-loop with a while-loop and combined the increment statements. This reduces the number of iterations and branches encountered when encountering zero characters. Using static_cast also improves clarity and type safety. Overall, this version aims to streamline the character comparisons and allows the compiler to potentially optimize for better pipelining of instructions."
+}
+```

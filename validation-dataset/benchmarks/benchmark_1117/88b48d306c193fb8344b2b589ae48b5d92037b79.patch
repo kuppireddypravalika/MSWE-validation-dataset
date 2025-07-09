@@ -1,0 +1,21 @@
+From 88b48d306c193fb8344b2b589ae48b5d92037b79 Mon Sep 17 00:00:00 2001
+From: Guido Tack <guido.tack@monash.edu>
+Date: Fri, 14 Apr 2017 18:26:18 +1000
+Subject: [PATCH] Reserve stack for marking during GC (speeds up GC a lot)
+
+---
+ lib/ast.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/lib/ast.cpp b/lib/ast.cpp
+index b10378b7e..37afbd93a 100644
+--- a/lib/ast.cpp
++++ b/lib/ast.cpp
+@@ -70,6 +70,7 @@ namespace MiniZinc {
+   Expression::mark(Expression* e) {
+     if (e==NULL || e->isUnboxedInt()) return;
+     std::vector<const Expression*> stack;
++    stack.reserve(1000);
+     stack.push_back(e);
+     while (!stack.empty()) {
+       const Expression* cur = stack.back(); stack.pop_back();

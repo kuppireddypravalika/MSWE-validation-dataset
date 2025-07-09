@@ -1,0 +1,29 @@
+From fb227fdacb439366bf4c0b7150fe5cb4bfa6c74b Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@gmail.com>
+Date: Fri, 28 Apr 2017 16:57:55 +0000
+Subject: [PATCH] [ValueTracking] Use APInt::isSubsetOf and APInt::intersects.
+ NFC
+
+---
+ llvm/lib/Analysis/ValueTracking.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/llvm/lib/Analysis/ValueTracking.cpp b/llvm/lib/Analysis/ValueTracking.cpp
+index aeb8fcfc2b1a..2f3b1139ac0e 100644
+--- a/llvm/lib/Analysis/ValueTracking.cpp
++++ b/llvm/lib/Analysis/ValueTracking.cpp
+@@ -1162,12 +1162,12 @@ static void computeKnownBitsFromOperator(const Operator *I, KnownBits &Known,
+ 
+         // If the first operand is non-negative or has all low bits zero, then
+         // the upper bits are all zero.
+-        if (Known2.Zero.isSignBitSet() || ((Known2.Zero & LowBits) == LowBits))
++        if (Known2.Zero.isSignBitSet() || LowBits.isSubsetOf(Known2.Zero))
+           Known.Zero |= ~LowBits;
+ 
+         // If the first operand is negative and not all low bits are zero, then
+         // the upper bits are all one.
+-        if (Known2.One.isSignBitSet() && ((Known2.One & LowBits) != 0))
++        if (Known2.One.isSignBitSet() && LowBits.intersects(Known2.One))
+           Known.One |= ~LowBits;
+ 
+         assert((Known.Zero & Known.One) == 0 && "Bits known to be one AND zero?");

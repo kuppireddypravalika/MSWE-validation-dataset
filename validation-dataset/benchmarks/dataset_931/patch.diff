@@ -1,0 +1,33 @@
+From 8deefa9802706a2df44a2d31a24d1661b8a508cc Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Luk=C3=A1=C5=A1=20Karas?= <lukas.karas@centrum.cz>
+Date: Sat, 31 Oct 2020 23:34:43 +0100
+Subject: [PATCH] use std::vector as pool storage
+
+---
+ libosmscout/include/osmscout/util/ObjectPool.h | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/libosmscout/include/osmscout/util/ObjectPool.h b/libosmscout/include/osmscout/util/ObjectPool.h
+index 2d68730a2..6b03cb0b0 100644
+--- a/libosmscout/include/osmscout/util/ObjectPool.h
++++ b/libosmscout/include/osmscout/util/ObjectPool.h
+@@ -31,7 +31,7 @@ namespace osmscout {
+   template<typename T>
+   class ObjectPool {
+   private:
+-    std::list<T*> pool;
++    std::vector<T*> pool;
+     size_t maxSize;
+     std::mutex mutex;
+ 
+@@ -52,7 +52,9 @@ namespace osmscout {
+   public:
+     explicit ObjectPool(size_t maxSize):
+         maxSize(maxSize)
+-    {}
++    {
++      pool.reserve(std::min((size_t)100, maxSize));
++    }
+ 
+     virtual ~ObjectPool(){
+       Clear();

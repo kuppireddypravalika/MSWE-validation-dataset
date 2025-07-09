@@ -1,0 +1,30 @@
+From b4985215df767c14ddd888cbb2919be3a7617cfd Mon Sep 17 00:00:00 2001
+From: Peter Hartmann <phartmann@blackberry.com>
+Date: Mon, 22 Apr 2013 17:28:04 +0200
+Subject: [PATCH] QNX host lookup: do not try to load libresolv.so, it is not
+ there
+
+Not trying to load the lib saves 30 - 50ms upon an apps' 1st host
+lookup.
+
+Task-number: QTBUG-30809
+Change-Id: Id893cec09ff57494776625700c93f7efe96fcc6b
+Reviewed-by: Thomas McGuire <thomas.mcguire@kdab.com>
+Reviewed-by: Rafael Roquetto <rafael.roquetto@kdab.com>
+---
+ src/network/kernel/qhostinfo_unix.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/network/kernel/qhostinfo_unix.cpp b/src/network/kernel/qhostinfo_unix.cpp
+index fac83b922b24..04daf2ecdd9d 100644
+--- a/src/network/kernel/qhostinfo_unix.cpp
++++ b/src/network/kernel/qhostinfo_unix.cpp
+@@ -92,7 +92,7 @@ static res_state_ptr local_res = 0;
+ 
+ static void resolveLibrary()
+ {
+-#ifndef QT_NO_LIBRARY
++#if !defined(QT_NO_LIBRARY) && !defined(Q_OS_QNX)
+     QLibrary lib(QLatin1String("resolv"));
+     if (!lib.load())
+         return;

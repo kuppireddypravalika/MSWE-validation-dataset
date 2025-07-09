@@ -1,0 +1,37 @@
+From a39b4701a748f618550f2939d182a7073396e0a9 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Devernay?= <frederic.devernay@m4x.org>
+Date: Fri, 25 Sep 2015 15:17:07 +0200
+Subject: [PATCH] ScaleSliderQWidget::paintEvent(): avoid unnecessary
+ computation
+
+---
+ Gui/ScaleSliderQWidget.cpp | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/Gui/ScaleSliderQWidget.cpp b/Gui/ScaleSliderQWidget.cpp
+index b21824f987..73eb629496 100644
+--- a/Gui/ScaleSliderQWidget.cpp
++++ b/Gui/ScaleSliderQWidget.cpp
+@@ -416,6 +416,10 @@ ScaleSliderQWidget::paintEvent(QPaintEvent* /*e*/)
+     double smallTickSize;
+     bool half_tick;
+     ticks_size(range_min, range_max, rangePixel, smallestTickSizePixel, &smallTickSize, &half_tick);
++    if (_imp->dataType == eDataTypeInt && smallTickSize < 1.) {
++        smallTickSize = 1.;
++        half_tick = false;
++    }
+     int m1, m2;
+     const int ticks_max = 1000;
+     double offset;
+@@ -435,8 +439,10 @@ ScaleSliderQWidget::paintEvent(QPaintEvent* /*e*/)
+         QPen pen(color);
+         pen.setWidthF(1.9);
+         p.setPen(pen);
+-        
++
++        // for Int slider, because smallTickSize is at least 1, isFloating can never be true
+         bool isFloating = std::abs(std::floor(0.5 + value) - value) != 0.;
++        assert(!(_imp->dataType == eDataTypeInt && isFloating));
+         bool renderFloating = _imp->dataType == eDataTypeDouble || !isFloating;
+ 
+         if (renderFloating) {

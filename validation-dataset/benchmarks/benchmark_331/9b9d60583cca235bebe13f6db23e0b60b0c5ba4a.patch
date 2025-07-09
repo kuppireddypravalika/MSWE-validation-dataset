@@ -1,0 +1,29 @@
+From 9b9d60583cca235bebe13f6db23e0b60b0c5ba4a Mon Sep 17 00:00:00 2001
+From: Andreas Gal <gal@mozilla.com>
+Date: Wed, 30 Jul 2008 16:05:51 -0700
+Subject: [PATCH] Use isGlobal to distinguish whether a value is a global slot
+ instead of scanning the table every time.
+
+---
+ js/src/jstracer.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/js/src/jstracer.cpp b/js/src/jstracer.cpp
+index 4a2dca02fa3..e4b580512fb 100644
+--- a/js/src/jstracer.cpp
++++ b/js/src/jstracer.cpp
+@@ -928,12 +928,11 @@ TraceRecorder::set(jsval* p, LIns* i, bool initializing)
+        the same source address (p) and use the same offset/base. */
+     LIns* x;
+     if ((x = nativeFrameTracker.get(p)) == NULL) {
+-        ptrdiff_t offset = nativeGlobalOffset(p);
+-        nativeFrameTracker.set(p, (offset == -1) /* not a global */
++        nativeFrameTracker.set(p, !isGlobal(p) /* not a global */
+                 ? lir->insStorei(i, lirbuf->sp,
+                         -treeInfo->nativeStackBase + nativeStackOffset(p) + 8)
+                 : lir->insStorei(i, gp_ins,
+-                        offset));
++                        nativeGlobalOffset(p)));
+     } else {
+ #define ASSERT_VALID_CACHE_HIT(base, offset)                                  \
+     JS_ASSERT(base == lirbuf->sp || base == gp_ins);                          \

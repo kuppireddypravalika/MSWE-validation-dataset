@@ -1,0 +1,54 @@
+From ad5850868ac5d1c9693ea8e6addb0213711c057f Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Wed, 19 Oct 2016 01:24:19 -0400
+Subject: [PATCH] [libromdata] KeyManager: Moved the static instance variable
+ to the instance() function.
+
+Same effect as the previous static initialization, but it only gets
+initialized once instance() is called, and no mutex is required.
+
+Removed the unique_ptr<>, since the Singleton instance will never
+change once it's initialized.
+---
+ src/libromdata/crypto/KeyManager.cpp | 14 +++-----------
+ 1 file changed, 3 insertions(+), 11 deletions(-)
+
+diff --git a/src/libromdata/crypto/KeyManager.cpp b/src/libromdata/crypto/KeyManager.cpp
+index 1ac0b4679e..a93f7dba05 100644
+--- a/src/libromdata/crypto/KeyManager.cpp
++++ b/src/libromdata/crypto/KeyManager.cpp
+@@ -51,9 +51,6 @@ class KeyManagerPrivate
+ 		KeyManagerPrivate &operator=(const KeyManagerPrivate &other);
+ 
+ 	public:
+-		// Singleton instance.
+-		static unique_ptr<KeyManager> instance;
+-
+ 		// Encryption key data.
+ 		// Managed as a single block in order to reduce
+ 		// memory allocations.
+@@ -92,9 +89,6 @@ class KeyManagerPrivate
+ 
+ /** KeyManagerPrivate **/
+ 
+-// Singleton instance.
+-unique_ptr<KeyManager> KeyManagerPrivate::instance;
+-
+ KeyManagerPrivate::KeyManagerPrivate()
+ 	: cfg_isInKeysSection(false)
+ 	, conf_was_found(false)
+@@ -393,11 +387,9 @@ KeyManager::~KeyManager()
+  */
+ KeyManager *KeyManager::instance(void)
+ {
+-	// FIXME: Mutex?
+-	if (!KeyManagerPrivate::instance) {
+-		KeyManagerPrivate::instance.reset(new KeyManager());
+-	}
+-	return KeyManagerPrivate::instance.get();
++	// Singleton instance.
++	static KeyManager *const instance = new KeyManager();
++	return instance;
+ }
+ 
+ /**

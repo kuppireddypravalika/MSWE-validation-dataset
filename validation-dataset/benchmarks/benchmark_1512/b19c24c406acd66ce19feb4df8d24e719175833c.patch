@@ -1,0 +1,23 @@
+From b19c24c406acd66ce19feb4df8d24e719175833c Mon Sep 17 00:00:00 2001
+From: Bill McCloskey <wmccloskey@mozilla.com>
+Date: Wed, 16 Nov 2011 17:31:28 -0800
+Subject: [PATCH] Bug 699668 - Increase JS type arena size for faster GC sweeps
+ (r=njn)
+
+---
+ js/src/jscompartment.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/js/src/jscompartment.h b/js/src/jscompartment.h
+index fa0e023bb31..a253314756f 100644
+--- a/js/src/jscompartment.h
++++ b/js/src/jscompartment.h
+@@ -420,7 +420,7 @@ struct JS_FRIEND_API(JSCompartment) {
+      * Cleared on every GC, unless the GC happens during analysis (indicated
+      * by activeAnalysis, which is implied by activeInference).
+      */
+-    static const size_t TYPE_LIFO_ALLOC_PRIMARY_CHUNK_SIZE = 1 << 12;
++    static const size_t TYPE_LIFO_ALLOC_PRIMARY_CHUNK_SIZE = 256 * 1024;
+     js::LifoAlloc                typeLifoAlloc;
+     bool                         activeAnalysis;
+     bool                         activeInference;

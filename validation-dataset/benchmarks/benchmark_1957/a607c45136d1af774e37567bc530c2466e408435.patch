@@ -1,0 +1,39 @@
+From a607c45136d1af774e37567bc530c2466e408435 Mon Sep 17 00:00:00 2001
+From: Filip Jeremic <fjeremic@ca.ibm.com>
+Date: Fri, 22 May 2020 12:16:11 -0400
+Subject: [PATCH] Change XPLINK call descriptor compilation failure to fatal
+ assert
+
+Since the change in #4890 we now always encode the XPLINK call
+descriptor inline right after the call to handle large methods which
+are common on z/OS 31-bit. To avoid silent performance problems of
+outside factors we turn the compilation failure into a fatal assert to
+ensure we never hit this code path.
+
+The reason we are making this change here is due to the previous
+commit. We had a bug where we remove an instruction (NOP alignment)
+while binary encoding the instruction itself. Since we now nullify the
+previous and next pointers the binary encoder will stop encoding
+subsequent instructions. It then proceeds to try and encode the
+snippets and it fails because the pointers are not properly setup.
+These were silent failures as the compilation would fail, however we
+are still able to proceed.
+
+Signed-off-by: Filip Jeremic <fjeremic@ca.ibm.com>
+---
+ compiler/z/codegen/SystemLinkagezOS.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/compiler/z/codegen/SystemLinkagezOS.cpp b/compiler/z/codegen/SystemLinkagezOS.cpp
+index cd3a2b22af..f17279bd3f 100644
+--- a/compiler/z/codegen/SystemLinkagezOS.cpp
++++ b/compiler/z/codegen/SystemLinkagezOS.cpp
+@@ -1330,7 +1330,7 @@ TR::S390zOSSystemLinkage::XPLINKCallDescriptorRelocation::apply(TR::CodeGenerato
+ 
+    if (offsetToCallDescriptor < std::numeric_limits<int16_t>::min() || offsetToCallDescriptor > std::numeric_limits<int16_t>::max())
+       {
+-      cg->comp()->failCompilation<TR::ExcessiveComplexity>("Unable to encode offset to XPLINK call descriptor");
++      TR_ASSERT_FATAL_WITH_INSTRUCTION(_nop, false, "Unable to encode offset to XPLINK call descriptor");
+       }
+ 
+    uint8_t* p = getUpdateLocation();

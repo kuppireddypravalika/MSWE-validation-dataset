@@ -1,0 +1,23 @@
+From f45aaea4d4ad2708228150c541bc31cea39d94e3 Mon Sep 17 00:00:00 2001
+From: Wolfgang Sourdeau <wolfgang@datacratic.com>
+Date: Thu, 6 Jun 2013 13:11:04 -0400
+Subject: [PATCH] do not write unsigned long long as int as this may elide the
+ upper 32 bit words
+
+---
+ types/basic_value_descriptions.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/types/basic_value_descriptions.h b/types/basic_value_descriptions.h
+index 8cac74f42..2c66ec408 100644
+--- a/types/basic_value_descriptions.h
++++ b/types/basic_value_descriptions.h
+@@ -32,7 +32,7 @@ struct DefaultDescription<Datacratic::Id>
+     {
+         if (val->type == Id::Type::INT64DEC
+             || val->type == Id::Type::BIGDEC) {
+-            context.writeInt(val->toInt());
++            context.writeUnsignedLongLong(val->toInt());
+         }
+         else {
+             context.writeString(val->toString());

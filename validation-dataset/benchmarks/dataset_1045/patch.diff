@@ -1,0 +1,25 @@
+From 8ce581fc13286bd10efeb3f7df14a59eff5d39dc Mon Sep 17 00:00:00 2001
+From: Peter Oschwald <oschwaldp@ociweb.com>
+Date: Mon, 1 Jun 2015 15:51:39 -0500
+Subject: [PATCH] Use receiver reference instead of accessing through
+ entities.receivers each time
+
+---
+ dds/FACE/FaceTSS.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/dds/FACE/FaceTSS.cpp b/dds/FACE/FaceTSS.cpp
+index 1e6e8ad30ab..b764ecc11c7 100644
+--- a/dds/FACE/FaceTSS.cpp
++++ b/dds/FACE/FaceTSS.cpp
+@@ -202,8 +202,8 @@ void Get_Connection_Parameters(CONNECTION_NAME_TYPE& connection_name,
+         return;
+       }
+       cur_status.LAST_MSG_VALIDITY = receiver.last_msg_header.message_validity;
+-      if (entities.receivers_[connection_id]->total_msgs_recvd != 0) {
+-        cur_status.REFRESH_PERIOD = entities.receivers_[connection_id]->sum_recvd_msgs_latency/entities.receivers_[connection_id]->total_msgs_recvd;
++      if (receiver.total_msgs_recvd != 0) {
++        cur_status.REFRESH_PERIOD = receiver.sum_recvd_msgs_latency/receiver.total_msgs_recvd;
+       } else {
+         cur_status.REFRESH_PERIOD = 0;
+       }

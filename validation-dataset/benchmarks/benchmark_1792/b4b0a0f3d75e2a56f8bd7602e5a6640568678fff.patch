@@ -1,0 +1,38 @@
+From b4b0a0f3d75e2a56f8bd7602e5a6640568678fff Mon Sep 17 00:00:00 2001
+From: Bradley Lowekamp <blowekamp@mail.nih.gov>
+Date: Fri, 8 Jul 2011 12:08:17 -0400
+Subject: [PATCH] COMP: implicit conversion from 32 to 64 bit integer after
+ shift
+
+Added explicit cast.
+
+This patch should address the following warning:
+384>..\..\..\ITK\Examples\Filtering\FFTDirectInverse.cxx(105) :
+warning C4334: '<<' : result of 32-bit shift implicitly converted to
+64 bits (was 64-bit shift intended?)
+
+Change-Id: I493561b1dacb54cb03399da7beccec8b21f09788
+---
+ Examples/Filtering/FFTDirectInverse.cxx | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Examples/Filtering/FFTDirectInverse.cxx b/Examples/Filtering/FFTDirectInverse.cxx
+index 039867bd6d9..ecb27fcb3ea 100644
+--- a/Examples/Filtering/FFTDirectInverse.cxx
++++ b/Examples/Filtering/FFTDirectInverse.cxx
+@@ -96,13 +96,13 @@ int main( int argc, char * argv[] )
+   // worksize is the nearest multiple of 2 larger than the input
+   for( unsigned int i=0; i < 2; i++ )
+     {
+-    int n=0;
++    unsigned int n=0;
+     worksize[i] = inputsize[i];
+     while( worksize[i] >>= 1 )
+       {
+       n++;
+       }
+-    worksize[i] = 1 << (n+1);
++    worksize[i] = static_cast<IOImageType::SizeType> ( 1 << (n+1) );
+ 
+     std::cout << "inputsize[" << i << "]=" << inputsize[i] << std::endl;
+     std::cout << "worksize[" << i << "]=" << worksize[i] << std::endl;

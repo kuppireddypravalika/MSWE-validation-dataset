@@ -1,0 +1,22 @@
+From 904af1f02e24d4fe118f4ddf8b199981f9b5896e Mon Sep 17 00:00:00 2001
+From: Warboy <neo_nihilist@hotmail.com>
+Date: Tue, 4 Feb 2014 17:25:08 +1100
+Subject: [PATCH] xcom operatives: more efficient than we thought.
+
+---
+ src/Geoscape/GeoscapeState.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/Geoscape/GeoscapeState.cpp b/src/Geoscape/GeoscapeState.cpp
+index 731629b280..c6a3115a78 100644
+--- a/src/Geoscape/GeoscapeState.cpp
++++ b/src/Geoscape/GeoscapeState.cpp
+@@ -1646,7 +1646,7 @@ void GeoscapeState::time1Month()
+ 	{
+ 		for(std::vector<AlienBase*>::const_iterator b = _game->getSavedGame()->getAlienBases()->begin(); b != _game->getSavedGame()->getAlienBases()->end(); ++b)
+ 		{
+-			if(!(*b)->isDiscovered() && RNG::percent(5))
++			if(!(*b)->isDiscovered() && RNG::percent(20))
+ 			{
+ 				(*b)->setDiscovered(true);
+ 				popup(new AlienBaseState(_game, *b, this));

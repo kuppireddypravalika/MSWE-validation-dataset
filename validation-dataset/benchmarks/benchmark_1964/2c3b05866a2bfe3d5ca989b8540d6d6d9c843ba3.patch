@@ -1,0 +1,30 @@
+From 2c3b05866a2bfe3d5ca989b8540d6d6d9c843ba3 Mon Sep 17 00:00:00 2001
+From: Unknown Author <unknown@fmi.fi>
+Date: Fri, 9 May 2014 06:45:07 +0000
+Subject: [PATCH] Change pow to exp10
+
+---
+ himan-lib/include/metutil.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/himan-lib/include/metutil.h b/himan-lib/include/metutil.h
+index d92d3ba20..a3f556271 100644
+--- a/himan-lib/include/metutil.h
++++ b/himan-lib/include/metutil.h
+@@ -477,13 +477,13 @@ double himan::metutil::Es_(double T)
+ 
+ 	if (T > -5)
+ 	{
+-		Es = 6.107 * pow(10., (7.5*T/(237.0+T)));
++		Es = 6.107 * exp10(7.5*T/(237.0+T));
+ 	}
+ 	else
+ 	{
+-		Es = 6.107 * pow(10., (9.5*T/(265.5+T)));
++		Es = 6.107 * exp10(9.5*T/(265.5+T));
+ 	}
+-
++	
+ 	assert(Es == Es); // check NaN
+ 
+ 	return 100 * Es; // Pa

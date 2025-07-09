@@ -1,0 +1,34 @@
+From 1db6782d6081fa54e7c951c21ac7c8953d2c9bfb Mon Sep 17 00:00:00 2001
+From: Richard Moe Gustavsen <richard.gustavsen@qt.io>
+Date: Mon, 1 Apr 2019 13:10:35 +0200
+Subject: [PATCH] QQuickTableView: optimize forceLayout() to start updating
+ from the root
+
+Change-Id: Ib2f195780415836ebb03c151a6586fd7b0fb77b8
+Reviewed-by: Mitch Curtis <mitch.curtis@qt.io>
+---
+ src/quick/items/qquicktableview.cpp | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/src/quick/items/qquicktableview.cpp b/src/quick/items/qquicktableview.cpp
+index 8f5130fc17d..9e795f3c8cb 100644
+--- a/src/quick/items/qquicktableview.cpp
++++ b/src/quick/items/qquicktableview.cpp
+@@ -770,13 +770,12 @@ void QQuickTableViewPrivate::forceLayout()
+ 
+     scheduleRebuildTable(rebuildOptions);
+ 
+-    if (polishing) {
++    auto rootView = rootSyncView();
++    const bool updated = rootView->d_func()->updateTableRecursive();
++    if (!updated) {
+         qWarning() << "TableView::forceLayout(): Cannot do an immediate re-layout during an ongoing layout!";
+-        q_func()->polish();
+-        return;
++        rootView->polish();
+     }
+-
+-    updatePolish();
+ }
+ 
+ void QQuickTableViewPrivate::syncLoadedTableFromLoadRequest()

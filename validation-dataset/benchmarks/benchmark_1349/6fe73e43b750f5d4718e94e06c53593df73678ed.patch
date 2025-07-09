@@ -1,0 +1,47 @@
+From 6fe73e43b750f5d4718e94e06c53593df73678ed Mon Sep 17 00:00:00 2001
+From: Waldemar Brodkorb <wbx@uclibc-ng.org>
+Date: Mon, 26 Sep 2016 00:00:00 +0000
+Subject: [PATCH] uclibc/linuxthreads: use tkill syscall for raise
+
+Seems better and more stable.
+
+Change-Id: I11e0a1bd18d431002138b7fd0ce987061b3658bd
+---
+ .../uclibc/libpthread/linuxthreads/signals.c   | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/uclibc/lib/contrib/uclibc/libpthread/linuxthreads/signals.c b/uclibc/lib/contrib/uclibc/libpthread/linuxthreads/signals.c
+index d8dbc78bd..0c0f2b6b1 100644
+--- a/uclibc/lib/contrib/uclibc/libpthread/linuxthreads/signals.c
++++ b/uclibc/lib/contrib/uclibc/libpthread/linuxthreads/signals.c
+@@ -17,6 +17,7 @@
+ #include <errno.h>
+ #include <signal.h>
+ #include <stdio.h>
++#include <sys/syscall.h>
+ #include "pthread.h"
+ #include "internals.h"
+ #include "spinlock.h"
+@@ -233,14 +234,13 @@ int sigwait(const sigset_t * set, int * sig)
+ /* Redefine raise() to send signal to calling thread only,
+    as per POSIX 1003.1c */
+ libpthread_hidden_proto(raise)
+-int raise (int sig)
+-{
+-  int retcode = pthread_kill(pthread_self(), sig);
+-  if (retcode == 0)
+-    return 0;
+-  else {
+-    errno = retcode;
+-    return -1;
+-  }
++int raise (int sig) {
++  int ret;
++  pid_t tid;
++
++  tid = INLINE_SYSCALL(gettid, 0);
++  ret = INLINE_SYSCALL(tkill, 2, tid, sig);
++
++  return ret;
+ }
+ libpthread_hidden_def(raise)

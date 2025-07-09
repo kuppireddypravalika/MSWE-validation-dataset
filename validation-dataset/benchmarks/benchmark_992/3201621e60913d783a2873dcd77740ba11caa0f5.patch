@@ -1,0 +1,33 @@
+From 3201621e60913d783a2873dcd77740ba11caa0f5 Mon Sep 17 00:00:00 2001
+From: Mario Lang <mlang@debian.org>
+Date: Sat, 10 Mar 2012 14:21:15 +0100
+Subject: [PATCH] Eliminate another use of BOOST_FOREACH in favour of C++11
+ range-based for loops.
+
+---
+ compiler.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/compiler.cpp b/compiler.cpp
+index 1e3bfaf..b532966 100644
+--- a/compiler.cpp
++++ b/compiler.cpp
+@@ -7,7 +7,6 @@
+ #include "compiler.hpp"
+ #include <cmath>
+ #include <sstream>
+-#include <boost/foreach.hpp>
+ #include <boost/range/numeric.hpp>
+ #include <boost/range/algorithm_ext/insert.hpp>
+ 
+@@ -20,8 +19,8 @@ compiler::operator()(ambiguous::score& score)
+     global_time_signature = *score.time_sig;
+   }
+ 
+-  BOOST_FOREACH(ambiguous::part& part, score.parts) {
+-    BOOST_FOREACH(ambiguous::staff& staff, part) {
++  for (ambiguous::part& part: score.parts) {
++    for (ambiguous::staff& staff: part) {
+       calculate_alterations.set(score.key_sig);
+       bool ok = true;
+       ambiguous::staff::iterator iterator(staff.begin());

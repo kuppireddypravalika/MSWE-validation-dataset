@@ -1,0 +1,38 @@
+From fd6b6bbc8450b643f6f2c45f055a3c07fa16b80a Mon Sep 17 00:00:00 2001
+From: Muck van Weerdenburg <m.j.van.weerdenburg@tue.nl>
+Date: Mon, 15 Jan 2007 15:31:08 +0000
+Subject: [PATCH] Changed usage of variable-length array to DECL_A.
+
+git-svn-id: https://svn.win.tue.nl/repos/MCRL2/trunk@2441 21252fe5-60e8-0310-8ff0-c1ae1001594e
+---
+ src/libraries/lts/source/tree_set.cpp | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/src/libraries/lts/source/tree_set.cpp b/src/libraries/lts/source/tree_set.cpp
+index f7889d5756..11d698d1e9 100644
+--- a/src/libraries/lts/source/tree_set.cpp
++++ b/src/libraries/lts/source/tree_set.cpp
+@@ -114,9 +114,9 @@ int tree_set_store::find_set(int child_l,int child_r) {
+ 
+ int tree_set_store::create_set(vector<unsigned int> &elems) {
+ 	if (elems.size() == 0) {
+-    return EMPTY_SET;
+-  }
+-	int nodes[elems.size()];
++		return EMPTY_SET;
++	}
++	DECL_A(nodes,int,elems.size());
+ 	unsigned int node_size = 0;
+ 	unsigned int i,j;
+ 	for (i=0; i < elems.size(); ++i) {
+@@ -136,7 +136,9 @@ int tree_set_store::create_set(vector<unsigned int> &elems) {
+ 		}
+ 		node_size = j;
+ 	}
+-	return nodes[0];
++	unsigned int r = nodes[0];
++	FREE_A(nodes);
++	return r;
+ }
+ 
+ unsigned int tree_set_store::get_next_tag() {

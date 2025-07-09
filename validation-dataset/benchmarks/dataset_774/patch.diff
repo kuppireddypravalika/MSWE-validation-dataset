@@ -1,0 +1,26 @@
+From 211f5a60f6a21622879a98c052b71033b3200b51 Mon Sep 17 00:00:00 2001
+From: toxie <toxie@ainc.de>
+Date: Thu, 20 Jun 2019 21:47:25 +0000
+Subject: [PATCH] small optimization computing normals
+
+git-svn-id: https://svn.code.sf.net/p/vpinball/code/trunk@3730 14438d79-0ffd-4333-8ae7-ea2bdd901387
+---
+ inc/progmesh.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/inc/progmesh.cpp b/inc/progmesh.cpp
+index b48b703f31..b4084e323a 100644
+--- a/inc/progmesh.cpp
++++ b/inc/progmesh.cpp
+@@ -117,8 +117,9 @@ __forceinline void Triangle::ComputeNormal()
+ 	const float3 v1 = vertex[1]->position;
+ 	const float3 v2 = vertex[2]->position;
+ 	normal = cross(v1 - v0, v2 - v1);
+-	if (magnitude(normal) > FLT_MIN)
+-		normal = normalize(normal);
++	const float l = magnitude(normal);
++	if (l > FLT_MIN)
++		normal = normal / l;
+ }
+ 
+ inline void Triangle::ReplaceVertex(Vertex * const vold, Vertex * const vnew)

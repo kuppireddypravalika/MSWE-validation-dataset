@@ -1,0 +1,24 @@
+From 54d8f03974c108ef8fd0f26568cd9eb086165568 Mon Sep 17 00:00:00 2001
+From: Protobuf Team Bot <protobuf-github-bot@google.com>
+Date: Fri, 7 Jun 2024 13:11:27 -0700
+Subject: [PATCH] LSC: Move expensive variables on their last use to avoid
+ copies.
+
+PiperOrigin-RevId: 641336948
+---
+ src/google/protobuf/text_format.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/google/protobuf/text_format.cc b/src/google/protobuf/text_format.cc
+index d05c8fa4b0998..51e31e48e730d 100644
+--- a/src/google/protobuf/text_format.cc
++++ b/src/google/protobuf/text_format.cc
+@@ -910,7 +910,7 @@ class TextFormat::Parser::ParserImpl {
+       case FieldDescriptor::CPPTYPE_STRING: {
+         std::string value;
+         DO(ConsumeString(&value));
+-        SET_FIELD(String, string, value);
++        SET_FIELD(String, string, std::move(value));
+         break;
+       }
+ 

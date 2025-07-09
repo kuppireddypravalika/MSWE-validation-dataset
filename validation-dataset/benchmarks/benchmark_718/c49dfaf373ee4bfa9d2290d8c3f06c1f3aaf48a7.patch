@@ -1,0 +1,23 @@
+From c49dfaf373ee4bfa9d2290d8c3f06c1f3aaf48a7 Mon Sep 17 00:00:00 2001
+From: Nil Geisweiller <ngeiswei@gmail.com>
+Date: Tue, 25 Jun 2013 18:16:05 +0300
+Subject: [PATCH] Put packed attribute for builtin. Provides 2x RAM
+ optimization!
+
+---
+ opencog/comboreduct/combo/vertex.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/opencog/comboreduct/combo/vertex.h b/opencog/comboreduct/combo/vertex.h
+index 9509798ca4..a1674801e9 100644
+--- a/opencog/comboreduct/combo/vertex.h
++++ b/opencog/comboreduct/combo/vertex.h
+@@ -66,7 +66,7 @@ namespace id {
+ // leads to nightmarish errors. It might also that the new standard
+ // C++0x fixes that that problem all by itself since in that standard
+ // 2 different enums are considered to be different types.
+-enum builtin
++enum __attribute__ ((packed)) builtin
+ {
+     null_vertex = 0,
+ 

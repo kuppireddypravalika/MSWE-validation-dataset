@@ -1,0 +1,23 @@
+From a006f38d1086f7730e3d9fc642e6dac2761cf4f9 Mon Sep 17 00:00:00 2001
+From: srhm501 <srhm501@york.ac.uk>
+Date: Tue, 7 Feb 2017 18:55:21 +0000
+Subject: [PATCH] Add optimisation flags for building kernels
+
+---
+ src/opencl/build_kernels.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/opencl/build_kernels.cpp b/src/opencl/build_kernels.cpp
+index 48b1da724..e306612f1 100644
+--- a/src/opencl/build_kernels.cpp
++++ b/src/opencl/build_kernels.cpp
+@@ -30,6 +30,9 @@ namespace vopencl
+       void build_kernels(void) noexcept
+       {
+          std::string default_opts("-Isrc/opencl/cl "
++                                  "-cl-mad-enable "
++                                  "-cl-fast-relaxed-math "
++                                  "-cl-no-signed-zeros "
+ #ifdef OPENCL_DP
+                                   "-DOPENCL_DP "
+ #endif

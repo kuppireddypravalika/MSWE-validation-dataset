@@ -1,0 +1,23 @@
+From 6007fd630fb15c4682bee8d21ac7765bcee7bc18 Mon Sep 17 00:00:00 2001
+From: Eladash <elad3356p@gmail.com>
+Date: Thu, 21 Jul 2022 08:48:17 +0300
+Subject: [PATCH] Do not use lv2_obj::g_waiting when not needed in
+ sys_timer_usleep
+
+---
+ rpcs3/Emu/Cell/lv2/sys_timer.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/rpcs3/Emu/Cell/lv2/sys_timer.cpp b/rpcs3/Emu/Cell/lv2/sys_timer.cpp
+index 6a62f78539122..648d9d0597323 100644
+--- a/rpcs3/Emu/Cell/lv2/sys_timer.cpp
++++ b/rpcs3/Emu/Cell/lv2/sys_timer.cpp
+@@ -395,7 +395,7 @@ error_code sys_timer_usleep(ppu_thread& ppu, u64 sleep_time)
+ 
+ 	if (sleep_time)
+ 	{
+-		lv2_obj::sleep(ppu, sleep_time);
++		lv2_obj::sleep(ppu, g_cfg.core.sleep_timers_accuracy < sleep_timers_accuracy_level::_usleep ? sleep_time : 0);
+ 
+ 		if (!lv2_obj::wait_timeout<true>(sleep_time))
+ 		{

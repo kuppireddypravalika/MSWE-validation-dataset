@@ -1,0 +1,30 @@
+From 46ae866f61084856dadf13b5a4d763bfa599e8f2 Mon Sep 17 00:00:00 2001
+From: mike31 <michael.rozantsev@gmail.com>
+Date: Wed, 6 May 2020 14:58:31 +0300
+Subject: [PATCH] Miner precheck optimization for long chain extension
+
+---
+ src/core/main.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/core/main.cpp b/src/core/main.cpp
+index 67be7fa3..4332ff26 100644
+--- a/src/core/main.cpp
++++ b/src/core/main.cpp
+@@ -3227,6 +3227,7 @@ static CBlockIndex* FindMostWorkChain() {
+                     if(work == max_work)
+                     {
+                         max_count++;
++                        VerifyBlockMiner(NULL,pindex);                          // Optimization in case of very long forks - start from the end
+                     }                            
+                 }
+                 if(max_count>1)
+@@ -3301,7 +3302,7 @@ static CBlockIndex* FindMostWorkChain() {
+                         setDirtyBlockIndex.insert(pindexCandidate);
+                     }
+                 }
+-        
++
+                 
+ //                if(!fLocked)
+                 if(pindexCandidate->fPassedMinerPrecheck)

@@ -1,0 +1,25 @@
+From f2b4afe78bc8b65877ce779a16188007fb05bda3 Mon Sep 17 00:00:00 2001
+From: Radfordhound <grahamlrscott@gmail.com>
+Date: Wed, 24 Jul 2019 02:34:29 -0500
+Subject: [PATCH] HedgeArcPack optimization: Manually specify type The type's
+ already been computed at this point so it makes no sense to compute it again.
+
+---
+ HedgeTools/HedgeArcPack/src/main.cpp | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/HedgeTools/HedgeArcPack/src/main.cpp b/HedgeTools/HedgeArcPack/src/main.cpp
+index f3ec3c10..edeba842 100644
+--- a/HedgeTools/HedgeArcPack/src/main.cpp
++++ b/HedgeTools/HedgeArcPack/src/main.cpp
+@@ -304,9 +304,7 @@ int main(int argc, char* argv[])
+     if (mode == HAP_MODE_EXTRACT)
+     {
+         std::cout << "Extracting..." << std::endl;
+-
+-        // TODO: Use type specified by type flag
+-        hl_ExtractArchives(input, outputDir); // TODO: Check result
++        hl_ExtractArchivesOfType(input, outputDir, type); // TODO: Check result
+     }
+ 
+     // Pack archive from directory

@@ -1,0 +1,29 @@
+From ee902f9cab6038944c844ef35ecd80b268a271bc Mon Sep 17 00:00:00 2001
+From: Vladimir Vyskocil <vladimir.vyskocil@gmail.com>
+Date: Sat, 27 Sep 2014 15:39:00 +0200
+Subject: [PATCH] Use Load method to reload the style file instead of
+ recreating the object
+
+---
+ StyleEditor/src/DBThread.cpp | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/StyleEditor/src/DBThread.cpp b/StyleEditor/src/DBThread.cpp
+index 03841d309..4c0018093 100644
+--- a/StyleEditor/src/DBThread.cpp
++++ b/StyleEditor/src/DBThread.cpp
+@@ -172,12 +172,9 @@ void DBThread::ReloadStyle(const QString &suffix){
+     if(m_stylesheetFilename.isNull()){
+         return;
+     }
+-    styleConfig = NULL;
+-    if(painter){
+-        delete painter;
+-        painter = NULL;
++    if(styleConfig.Invalid()){
++        styleConfig=new osmscout::StyleConfig(database->GetTypeConfig());
+     }
+-    styleConfig=new osmscout::StyleConfig(database->GetTypeConfig());
+     if (!styleConfig->Load((m_stylesheetFilename+suffix).toLocal8Bit().data())) {
+         delete styleConfig;
+         styleConfig=NULL;

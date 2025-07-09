@@ -1,0 +1,22 @@
+From f9b038b994f9f89fe7f6ff233fccf4a26d7b44b2 Mon Sep 17 00:00:00 2001
+From: Charles-Henri Bruyand <charles-henri.bruyand@open-xchange.com>
+Date: Tue, 29 Jun 2021 16:45:56 +0200
+Subject: [PATCH] move meta content instead of copying
+
+---
+ pdns/pdns_recursor.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/pdns/pdns_recursor.cc b/pdns/pdns_recursor.cc
+index 542a9754f3db..7d5b385ac5e6 100644
+--- a/pdns/pdns_recursor.cc
++++ b/pdns/pdns_recursor.cc
+@@ -1750,7 +1750,7 @@ static void startDoResolve(void *p)
+     dq.proxyProtocolValues = &dc->d_proxyProtocolValues;
+     dq.extendedErrorCode = &dc->d_extendedErrorCode;
+     dq.extendedErrorExtra = &dc->d_extendedErrorExtra;
+-    dq.meta = dc->d_meta;
++    dq.meta = std::move(dc->d_meta);
+ 
+     if(ednsExtRCode != 0) {
+       goto sendit;

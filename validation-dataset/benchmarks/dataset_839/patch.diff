@@ -1,0 +1,31 @@
+From 757fc01b781d1ca9370fb086d39ae22a0fba0485 Mon Sep 17 00:00:00 2001
+From: KimLS <KLS@peqtgc.com>
+Date: Mon, 1 Apr 2013 14:23:54 -0700
+Subject: [PATCH] Patch for: -Perl blessing of exported variables is causing
+ the SVs to be overwritten but never freed by the Perl GC.  I'm not sure if
+ this is a feature or a bug in Perl as the documentation sucks.
+
+Addressed by setting the blessed SVs in question to be undefined at the end of every script.  Caused a noticeable drop in memory for zones with a lot of quest events firing but it's probably not perfect.
+---
+ zone/perlparser.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/zone/perlparser.cpp b/zone/perlparser.cpp
+index 148e501540..871551b103 100644
+--- a/zone/perlparser.cpp
++++ b/zone/perlparser.cpp
+@@ -158,6 +158,14 @@ void PerlXSParser::SendCommands(const char * pkgprefix, const char *event, uint3
+ 		//now call the requested sub
+ 		perl->dosub(std::string(pkgprefix).append("::").append(event).c_str());
+ 
++#ifdef EMBPERL_XS_CLASSES
++	    std::string eval_str = (std::string)"$" + (std::string)pkgprefix + (std::string)"::client = undef;";
++		eval_str += (std::string)"$" + (std::string)pkgprefix + (std::string)"::npc = undef;";
++		eval_str += (std::string)"$" + (std::string)pkgprefix + (std::string)"::questitem = undef;";
++		eval_str += (std::string)"$" + (std::string)pkgprefix + (std::string)"::entity_list = undef;";
++		perl->eval(eval_str.c_str());
++#endif
++
+ 	} catch(const char * err) {
+ 
+ 		//try to reduce some of the console spam...

@@ -1,0 +1,31 @@
+From 470497d86891c4867c071c78eeddc2da20d5911e Mon Sep 17 00:00:00 2001
+From: Gymnasiast <m.o.steenbeek@gmail.com>
+Date: Wed, 15 Jul 2020 13:59:08 +0200
+Subject: [PATCH] Limit S6 Importer object lookup to ride types that need
+ conversion
+
+---
+ src/openrct2/rct2/S6Importer.cpp | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/src/openrct2/rct2/S6Importer.cpp b/src/openrct2/rct2/S6Importer.cpp
+index b41e41e47537..2efeadb13b62 100644
+--- a/src/openrct2/rct2/S6Importer.cpp
++++ b/src/openrct2/rct2/S6Importer.cpp
+@@ -508,9 +508,14 @@ class S6Importer final : public IParkImporter
+         *dst = {};
+         dst->id = rideIndex;
+ 
++        ObjectEntryIndex rideType = src->type;
++        if (RCT2RideTypeNeedsConversion(src->type))
++        {
++            auto* rideEntry = get_ride_entry(src->subtype);
++            rideType = RCT2RideTypeToOpenRCT2RideType(src->type, rideEntry);
++        }
++        dst->type = rideType;
+         dst->subtype = src->subtype;
+-        auto* rideEntry = get_ride_entry(src->subtype);
+-        dst->type = RCT2RideTypeToOpenRCT2RideType(src->type, rideEntry);
+         // pad_002;
+         dst->mode = src->mode;
+         dst->colour_scheme_type = src->colour_scheme_type;

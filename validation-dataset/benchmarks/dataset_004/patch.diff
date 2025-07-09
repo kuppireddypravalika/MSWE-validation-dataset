@@ -1,0 +1,23 @@
+From cbf670cc909d3d3b6d2957ed00e839ef8eac4a1d Mon Sep 17 00:00:00 2001
+From: Petr Ohlidal <petr@ohlidal.cz>
+Date: Sun, 4 Feb 2024 11:51:03 +0100
+Subject: [PATCH] Tuning: use exact filename lookup for tuneups.
+
+---
+ source/main/resources/CacheSystem.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/source/main/resources/CacheSystem.cpp b/source/main/resources/CacheSystem.cpp
+index 08c8f9cc0f..13896a3246 100644
+--- a/source/main/resources/CacheSystem.cpp
++++ b/source/main/resources/CacheSystem.cpp
+@@ -1523,8 +1523,7 @@ CacheEntryPtr CacheSystem::CreateProject(CreateProjectRequest* request)
+         bool project_entry_created = false;
+         if (request->cpr_overwrite)
+         {
+-            // `partial=true` because `cpr_name` is without extension
+-            project_entry = this->FindEntryByFilename(LT_Tuneup, /*partial:*/true, request->cpr_name);
++            project_entry = this->FindEntryByFilename(LT_Tuneup, /*partial:*/false, fmt::format("{}.tuneup", request->cpr_name));
+             this->LoadResource(project_entry); // This fills `entry.resource_group`
+         }
+ 

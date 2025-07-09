@@ -1,0 +1,33 @@
+From fc0549c3919031efa52f04389fd130cf19e1d968 Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Tue, 11 Sep 2018 16:29:54 -0400
+Subject: [PATCH] [librpbase] RpFile_stdio.cpp: delete d_ptr; on deletion.
+
+Otherwise, the files are never closed.
+
+This never seemed to be a serious problem on Linux, since thumbnails are
+run out of process and files aren't locked when they're opened, but the
+property pages are run *in* process, so it's entirely possible that the
+file handle leaks could cause an EMFILE (Too many open files) error.
+
+This happened when running `rpcli` on N64 ROM headers, which failed on
+the 1,023rd file. (Limit of 1,024 open files?)
+---
+ src/librpbase/file/RpFile_stdio.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/librpbase/file/RpFile_stdio.cpp b/src/librpbase/file/RpFile_stdio.cpp
+index 52bec0b541..82dcc40257 100644
+--- a/src/librpbase/file/RpFile_stdio.cpp
++++ b/src/librpbase/file/RpFile_stdio.cpp
+@@ -290,7 +290,9 @@ void RpFile::init(void)
+ }
+ 
+ RpFile::~RpFile()
+-{ }
++{
++	delete d_ptr;
++}
+ 
+ /**
+  * Copy constructor.

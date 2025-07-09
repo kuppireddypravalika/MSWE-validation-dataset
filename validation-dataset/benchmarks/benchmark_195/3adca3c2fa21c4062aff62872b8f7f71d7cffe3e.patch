@@ -1,0 +1,24 @@
+From 3adca3c2fa21c4062aff62872b8f7f71d7cffe3e Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@duempel.org>
+Date: Thu, 29 Jan 2015 08:37:23 +0100
+Subject: [PATCH] db/update/Walk: use std::unique_ptr instead of std::auto_ptr
+
+std::auto_ptr is deprecated, and std::unique_ptr is much better
+anyway.
+---
+ src/db/update/Walk.cxx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/db/update/Walk.cxx b/src/db/update/Walk.cxx
+index f71faa86de..9fdb5bbdfc 100644
+--- a/src/db/update/Walk.cxx
++++ b/src/db/update/Walk.cxx
+@@ -334,7 +334,7 @@ UpdateWalk::UpdateDirectory(Directory &directory, const FileInfo &info)
+ 	directory_set_stat(directory, info);
+ 
+ 	Error error;
+-	const std::auto_ptr<StorageDirectoryReader> reader(storage.OpenDirectory(directory.GetPath(), error));
++	const std::unique_ptr<StorageDirectoryReader> reader(storage.OpenDirectory(directory.GetPath(), error));
+ 	if (reader.get() == nullptr) {
+ 		LogError(error);
+ 		return false;

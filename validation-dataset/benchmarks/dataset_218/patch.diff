@@ -1,0 +1,31 @@
+From cc835f893567a90e37a1a68a7b4b9848355da65d Mon Sep 17 00:00:00 2001
+From: Bert Hubert <bert.hubert@netherlabs.nl>
+Date: Wed, 22 Mar 2006 06:53:16 +0000
+Subject: [PATCH] slight speedup to the processing of unknown records, which is
+ still bound to be slow. added a check that might have prevented a crash of
+ the recursor
+
+git-svn-id: svn://svn.powerdns.com/pdns/trunk/pdns@611 d19b8d6e-7fed-0310-83ef-9ca221ded41b
+---
+ pdns/dnsparser.cc | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/pdns/dnsparser.cc b/pdns/dnsparser.cc
+index 4a098052ca94..8bc75eff0849 100644
+--- a/pdns/dnsparser.cc
++++ b/pdns/dnsparser.cc
+@@ -54,11 +54,14 @@ class UnknownRecordContent : public DNSRecordContent
+     string tmp((char*)&*d_record.begin(), (char*)&*d_record.end());
+     vector<string> parts;
+     stringtok(parts, tmp);
++    if(parts.size()!=3)
++      throw MOADNSException("Unknown record was stored incorrectly, need 3 fields, got "+lexical_cast<string>(parts.size()));
+     const string& relevant=parts[2];
+     unsigned int total=atoi(parts[1].c_str());
+     if(relevant.size()!=2*total)
+       throw runtime_error("invalid unknown record");
+     string out;
++    out.reserve(total+1);
+     for(unsigned int n=0; n < total; ++n) {
+       int c;
+       sscanf(relevant.c_str()+2*n, "%02x", &c);

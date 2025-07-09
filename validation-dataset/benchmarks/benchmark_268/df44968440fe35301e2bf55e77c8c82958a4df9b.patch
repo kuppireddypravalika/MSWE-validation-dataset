@@ -1,0 +1,28 @@
+From df44968440fe35301e2bf55e77c8c82958a4df9b Mon Sep 17 00:00:00 2001
+From: Dhruv Chopra <Dhruv.C.Chopra@ibm.com>
+Date: Fri, 10 Nov 2023 23:11:51 -0500
+Subject: [PATCH] Make globalReg clobberable in Z iRegStoreEvaluator
+
+If the iRegStoreEvaluator generates an LGFR to sign extend, it is
+incorrect to assume that the iRegStore's child is clobberable. We must
+preserve the original value when sign extending. This commit fixes
+this issue by using the gprClobberEvaluate routine so that the sign
+extension is performed in a different register, and we don't potentially
+overwrite the upper-half data in the original register.
+---
+ compiler/z/codegen/OMRTreeEvaluator.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/compiler/z/codegen/OMRTreeEvaluator.cpp b/compiler/z/codegen/OMRTreeEvaluator.cpp
+index 69de7b771b..ea9c62b85c 100644
+--- a/compiler/z/codegen/OMRTreeEvaluator.cpp
++++ b/compiler/z/codegen/OMRTreeEvaluator.cpp
+@@ -13787,7 +13787,7 @@ OMR::Z::TreeEvaluator::iRegStoreEvaluator(TR::Node * node, TR::CodeGenerator * c
+ 
+    if (!useLGHI)
+       {
+-      globalReg = cg->evaluate(value);
++      globalReg = needsLGFR && noLGFgenerated ? cg->gprClobberEvaluate(value) : cg->evaluate(value);
+       }
+    else
+       {

@@ -1,0 +1,27 @@
+From 3541ed5199f2a55da56d4e3dcd5cccfe355db54e Mon Sep 17 00:00:00 2001
+From: jimmyk <jimmyk@ca.ibm.com>
+Date: Sun, 1 Sep 2024 15:18:42 -0400
+Subject: [PATCH] Accelerate Unsafe CAS Intrinsics on Z
+
+Support for acceleration of compareAndExchange[Int|Long|Reference] has
+been extended to Z. As a result, the check in
+callDoesAnImplicitAsyncCheck needs to be updated as well.
+
+Signed-off-by: jimmyk <jimmyk@ca.ibm.com>
+---
+ compiler/optimizer/RedundantAsyncCheckRemoval.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/compiler/optimizer/RedundantAsyncCheckRemoval.cpp b/compiler/optimizer/RedundantAsyncCheckRemoval.cpp
+index 72a74de74..d337ce3bd 100644
+--- a/compiler/optimizer/RedundantAsyncCheckRemoval.cpp
++++ b/compiler/optimizer/RedundantAsyncCheckRemoval.cpp
+@@ -435,7 +435,7 @@ bool TR_RedundantAsyncCheckRemoval::callDoesAnImplicitAsyncCheck(TR::Node *callN
+       return false;
+ 
+    if (symbol->isNative() &&
+-       (comp()->target().cpu.isPower() || comp()->target().cpu.isX86()) &&
++       (comp()->target().cpu.isPower() || comp()->target().cpu.isX86() || comp()->target().cpu.isZ()) &&
+        ((symbol->getRecognizedMethod()==TR::jdk_internal_misc_Unsafe_compareAndExchangeInt) ||
+         (symbol->getRecognizedMethod()==TR::jdk_internal_misc_Unsafe_compareAndExchangeLong) ||
+         (symbol->getRecognizedMethod()==TR::jdk_internal_misc_Unsafe_compareAndExchangeObject) ||

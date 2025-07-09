@@ -1,0 +1,166 @@
+You are an expert C++ performance engineer. Optimize the provided code for high compute and resource performance while preserving behavior. The optimized function must keep the exact same signature as the hand-written implementation. If the original file contains explicit template instantiations, reproduce them unchanged at the end of the optimized file. This prompt may include compilation errors, runtime errors or timing data from the previous step. Use it to refine the code. If it is empty, produce an initial optimization based solely on the original source. When refining the code, explore potentially high-reward optimization paths that have not yet been tried and that could yield superior computational performance. Respond only with a JSON object using the keys "optimized_code" and "analysis". The "analysis" field should briefly explain the intent behind your modifications. Additional source files may be provided for context. Here are the files:
+
+// original.cpp
+#include <vector>
+#include <string>
+#include <algorithm>
+
+long long render(const std::vector<std::string>& items,
+                 std::size_t scrollOffset,
+                 int lineHeight,
+                 int areaHeight)
+{
+    long long sum = 0;
+    int y = -static_cast<int>(scrollOffset);
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        bool visible = (y + lineHeight > 0) && (y < areaHeight);
+        if (visible) {
+            for (char c : items[i]) sum += c;
+            sum += y;
+        }
+        y += lineHeight;
+    }
+    return sum;
+}
+
+
+The following files are provided for context. Do NOT modify them. Only update code in original.cpp.
+
+// harness.cpp
+#include <chrono>
+#include <iostream>
+#include <string>
+#include <vector>
+
+long long render(const std::vector<std::string>& items, std::size_t scrollOffset, int lineHeight, int areaHeight);
+
+std::vector<std::string> make_items(std::size_t n) {
+    std::vector<std::string> items(n);
+    for (std::size_t i = 0; i < n; ++i) {
+        items[i] = "Item" + std::to_string(i);
+    }
+    return items;
+}
+
+int main(int argc, char* argv[]) {
+    std::string mode = "perf";
+    std::size_t size = 1000000; // number of list items
+    int repeat = 25000;         // number of frames
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "--mode=correct") mode = "correct";
+        else if (arg == "--mode=perf") mode = "perf";
+        else if (arg.rfind("--size=",0)==0) size = static_cast<std::size_t>(std::stoul(arg.substr(7)));
+        else if (arg.rfind("--repeat=",0)==0) repeat = std::stoi(arg.substr(9));
+    }
+
+    const int lineHeight = 16;
+    const int areaHeight = 480;
+    const std::size_t scrollOffset = 200; // pixels scrolled
+
+    std::vector<std::string> items = make_items(size);
+
+    if (mode == "correct") {
+        long long result = render(items, scrollOffset, lineHeight, areaHeight);
+        std::cout << result << '\n';
+    } else {
+        using clock = std::chrono::high_resolution_clock;
+        long long dummy = 0;
+        auto t1 = clock::now();
+        for (int i = 0; i < repeat; ++i) {
+            dummy += render(items, scrollOffset, lineHeight, areaHeight);
+        }
+        auto t2 = clock::now();
+        std::cout << "Time: "
+                  << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count()
+                  << " ms\n";
+        if (dummy == 123456789) std::cerr << "";
+    }
+    return 0;
+}
+
+
+Previous attempt info:
+Original execution time: mean = 11110.20 ms, std = 106.71 ms
+Diff from original code:
+--- original
++++ step_1
+@@ -1,4 +1,3 @@
+-// original.cpp
+ #include <vector>
+ #include <string>
+ #include <algorithm>
+@@ -10,13 +9,25 @@
+ {
+     long long sum = 0;
+     int y = -static_cast<int>(scrollOffset);
+-    for (std::size_t i = 0; i < items.size(); ++i) {
+-        bool visible = (y + lineHeight > 0) && (y < areaHeight);
+-        if (visible) {
++    const std::size_t itemCount = items.size();
++
++    // Pre-compute variables to avoid recalculating in each iteration
++    const int areaBottom = areaHeight;
++    const int lineBottomBoundary = (areaBottom / lineHeight) + 1;
++
++    // Limit loop to visible item indices only
++    std::size_t startIndex = std::max(0, (y / lineHeight));
++    std::size_t endIndex = std::min(itemCount, static_cast<std::size_t>(lineBottomBoundary));
++
++    for (std::size_t i = startIndex; i < endIndex; ++i) {
++        int currentY = y + (i * lineHeight);
++        if (currentY + lineHeight > 0) { // Only add if visible
+             for (char c : items[i]) sum += c;
+-            sum += y;
++            sum += currentY;
+         }
+-        y += lineHeight;
+     }
+     return sum;
+ }
++
++
++// Explicit template instantiations (if any) would go here
+Correctness check failed.
+LLM analysis: The optimized code reduces unnecessary computations by pre-calculating the boundaries for visible items based on scroll offsets and line heights, which minimizes the number of iterations in the main loop. This improves performance by focusing on only the relevant items and limiting the checks for visibility.
+Diff from original code:
+--- original
++++ step_2
+@@ -1,4 +1,3 @@
+-// original.cpp
+ #include <vector>
+ #include <string>
+ #include <algorithm>
+@@ -10,13 +9,24 @@
+ {
+     long long sum = 0;
+     int y = -static_cast<int>(scrollOffset);
+-    for (std::size_t i = 0; i < items.size(); ++i) {
+-        bool visible = (y + lineHeight > 0) && (y < areaHeight);
+-        if (visible) {
++    const std::size_t itemCount = items.size();
++    
++    // Pre-compute variables to avoid recalculating in each iteration
++    const int areaBottom = areaHeight;
++    const int lineBottomBoundary = (areaBottom / lineHeight) + 1;
++    
++    // Limit loop to visible item indices only
++    std::size_t startIndex = std::max<std::size_t>(0, static_cast<std::size_t>(y / lineHeight));
++    std::size_t endIndex = std::min(itemCount, static_cast<std::size_t>(startIndex + lineBottomBoundary));
++    
++    for (std::size_t i = startIndex; i < endIndex; ++i) {
++        int currentY = y + (i * lineHeight);
++        if (currentY + lineHeight > 0) { // Only add if visible
+             for (char c : items[i]) sum += c;
+-            sum += y;
++            sum += currentY;
+         }
+-        y += lineHeight;
+     }
+     return sum;
+ }
++
++// Explicit template instantiations (if any) would go here
+Correctness check failed.
+LLM analysis: The optimized code improves performance by limiting iterations to only the visible items in the rendering area, reducing unnecessary computations. Calculating `startIndex` and `endIndex` based on the scroll offset and area height allows the function to skip items that do not influence the output, thus reducing the workload in scenarios with large item counts. Additionally, removing the inner visibility checks within the loop leads to a clearer and faster computation of sums.

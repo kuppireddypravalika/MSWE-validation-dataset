@@ -1,0 +1,37 @@
+From 19d0c6a0166019a3c30c9b5d5091d21065c77db0 Mon Sep 17 00:00:00 2001
+From: Silas Boyd-Wickizer <sbw@mit.edu>
+Date: Mon, 5 Dec 2011 22:28:27 -0500
+Subject: [PATCH] Use 2MByte super pages for kernel mappings.
+
+---
+ hwvm.c | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
+
+diff --git a/hwvm.c b/hwvm.c
+index f650e21bf..ac60d635b 100644
+--- a/hwvm.c
++++ b/hwvm.c
+@@ -88,18 +88,17 @@ pgmap(void *va, void *last, paddr pa)
+ {
+   pme_t *pdp;
+   pme_t *pd;
+-  pme_t *pt;
++  pme_t *sp;
+ 
+   for (;;) {
+     pdp = descend(kpml4, va, 0, 1, 3);
+     pd = descend(pdp, va, 0, 1, 2);
+-    pt = descend(pd, va, 0, 1, 1);
+-    pt = &pt[PX(0,va)];
+-    *pt = pa | PTE_W | PTE_P;
++    sp = &pd[PX(1,va)];
++    *sp = pa | PTE_W | PTE_P | PTE_PS;
+     if(va == last)
+       break;
+-    va += PGSIZE;
+-    pa += PGSIZE;
++    va += PGSIZE*512;
++    pa += PGSIZE*512;
+   }
+ }
+ 

@@ -1,0 +1,33 @@
+From 7e4e9772b44459ea9b848f1c913621dc01bbfa4b Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Sat, 18 Feb 2017 21:41:41 -0500
+Subject: [PATCH] [libromdata] PEResourceReader: Fix some memory allocation
+ issues.
+
+- Use new[] with unique_ptr<>, not malloc().
+- Rearrange keyData_len calculation so we allocate the correct amount
+  of memory with new[].
+
+This fixes some assertions triggered by the MSVC debug CRT as well as
+some Valgrind errors.
+---
+ src/libromdata/disc/PEResourceReader.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/libromdata/disc/PEResourceReader.cpp b/src/libromdata/disc/PEResourceReader.cpp
+index 372b75aacb..7ed1405cd8 100644
+--- a/src/libromdata/disc/PEResourceReader.cpp
++++ b/src/libromdata/disc/PEResourceReader.cpp
+@@ -374,10 +374,10 @@ int PEResourceReaderPrivate::load_VS_VERSION_INFO_header(IRpFile *file, const ch
+ 
+ 	// Check the key name.
+ 	unsigned int key_len = u16_strlen(key);
+-	unsigned int keyData_len = (key_len+1) * sizeof(char16_t);
+-	unique_ptr<char16_t> keyData(static_cast<char16_t*>(malloc(keyData_len)));
+ 	// DWORD alignment: Make sure we end on a multiple of 4 bytes.
++	unsigned int keyData_len = (key_len+1) * sizeof(char16_t);
+ 	keyData_len = ((keyData_len + sizeof(fields) + 3) & ~3) - sizeof(fields);
++	unique_ptr<char16_t[]> keyData(new char16_t[keyData_len/sizeof(char16_t)]);
+ 	size = file->read(keyData.get(), keyData_len);
+ 	if (size != keyData_len) {
+ 		// Read error.

@@ -1,0 +1,31 @@
+From 6128bac943efb109123e3e00bd88c0b19a6386d1 Mon Sep 17 00:00:00 2001
+From: Danilo Piparo <danilo.piparo@cern.ch>
+Date: Mon, 30 Jun 2014 17:29:53 +0200
+Subject: [PATCH] Produce protoclasses also for proxied collections
+
+for example, in presence of a vector<MyClass>, autoparsing also in case of
+IO operation was triggered. This clearly implies autoparsing for MyClass
+even if no method is actually called.
+---
+ core/utils/src/rootclingTCling.cxx | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/core/utils/src/rootclingTCling.cxx b/core/utils/src/rootclingTCling.cxx
+index 1fdb709997c0f..e2d981eb5ded6 100644
+--- a/core/utils/src/rootclingTCling.cxx
++++ b/core/utils/src/rootclingTCling.cxx
+@@ -85,9 +85,12 @@ bool CloseStreamerInfoROOTFile()
+       // If the class is not persistent we return success.
+       if (cl->GetClassVersion() == 0)
+          continue;
++
++      // Let's include also proxied collections in order to delay parsing as long as possible.
++      // In the first implementations, proxied collections did not result in a protoclass.
+       // If this is a proxied collection then offsets are not needed.
+-      if (cl->GetCollectionProxy())
+-         continue;
++//       if (cl->GetCollectionProxy())
++//          continue;
+       cl->Property(); // Force initialization of the bits and property fields.
+ 
+       protoClasses.AddLast(new TProtoClass(cl));

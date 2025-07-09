@@ -1,0 +1,23 @@
+From 880c702e09412d3da84e34e9554c42f0357930af Mon Sep 17 00:00:00 2001
+From: Kai Sommerfeld <kai.sommerfeld@gmx.com>
+Date: Sun, 3 Apr 2022 12:01:52 +0200
+Subject: [PATCH] [PVR] Speedup PVR startup. No need to load prev/current/next
+ epg tags synchronously during startup. Will be done on demand anyways.
+
+---
+ xbmc/pvr/epg/EpgContainer.cpp | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/xbmc/pvr/epg/EpgContainer.cpp b/xbmc/pvr/epg/EpgContainer.cpp
+index 8c05ce803d70d..4365c5c2381de 100644
+--- a/xbmc/pvr/epg/EpgContainer.cpp
++++ b/xbmc/pvr/epg/EpgContainer.cpp
+@@ -147,8 +147,6 @@ void CPVREpgContainer::Start()
+     std::unique_lock<CCriticalSection> lock(m_critSection);
+     m_bIsInitialising = true;
+ 
+-    CheckPlayingEvents();
+-
+     Create();
+     SetPriority(ThreadPriority::BELOW_NORMAL);
+ 

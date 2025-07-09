@@ -1,0 +1,25 @@
+From 0939d0786e897d189f89b528697a52a3cf772895 Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Wed, 8 Feb 2017 23:35:07 -0500
+Subject: [PATCH] [rpcli] properties.cpp, ListDataField: Fixed a
+ signed/unsigned comparison warning.
+
+Use a countdown loop instead of a count-up loop. (Minor optimization;
+comparing to 0 is faster than comparing to a variable.)
+---
+ src/rpcli/properties.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/rpcli/properties.cpp b/src/rpcli/properties.cpp
+index 5a76f61120..a4c9c58127 100644
+--- a/src/rpcli/properties.cpp
++++ b/src/rpcli/properties.cpp
+@@ -189,7 +189,7 @@ class ListDataField {
+ 		const size_t fieldCount = listDataDesc.names->size();
+ 		unique_ptr<size_t[]> colSize(new size_t[fieldCount]());
+ 		size_t totalWidth = fieldCount + 1;
+-		for (int i = 0; i < fieldCount; i++) {
++		for (int i = (int)fieldCount - 1; i >= 0; i--) {
+ 			colSize[i] = listDataDesc.names->at(i).size();
+ 		}
+ 		for (auto it = romField->data.list_data->begin();

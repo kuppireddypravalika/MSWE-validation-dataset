@@ -1,0 +1,23 @@
+From 04a1693dce886db6980c11f10163330f4036b932 Mon Sep 17 00:00:00 2001
+From: JeroMiya <bell.jeremy@gmail.com>
+Date: Tue, 3 May 2016 12:54:12 -0400
+Subject: [PATCH] Setting r.FinishCurrentFrame to 0 instead of 1. Performance
+ improvement.
+
+---
+ OSVRUnreal/Plugins/OSVR/Source/OSVR/Private/OSVRHMD.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/OSVRUnreal/Plugins/OSVR/Source/OSVR/Private/OSVRHMD.cpp b/OSVRUnreal/Plugins/OSVR/Source/OSVR/Private/OSVRHMD.cpp
+index b512466..09f1e94 100644
+--- a/OSVRUnreal/Plugins/OSVR/Source/OSVR/Private/OSVRHMD.cpp
++++ b/OSVRUnreal/Plugins/OSVR/Source/OSVR/Private/OSVRHMD.cpp
+@@ -182,7 +182,7 @@ bool FOSVRHMD::OnStartGameFrame(FWorldContext& WorldContext)
+     static auto sFinishCurrentFrame = IConsoleManager::Get().FindConsoleVariable(TEXT("r.FinishCurrentFrame"));
+     if (!bHmdOverridesApplied)
+     {
+-        sFinishCurrentFrame->Set(1);
++        sFinishCurrentFrame->Set(0);
+         bHmdOverridesApplied = true;
+     }
+     return true;

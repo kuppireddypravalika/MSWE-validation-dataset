@@ -1,0 +1,29 @@
+From 1ca1d06d67c1bb1518ce5a96e49fb1cdf64d940b Mon Sep 17 00:00:00 2001
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Date: Wed, 12 Jun 2024 00:14:27 +0300
+Subject: [PATCH] ipa: rkisp1: goc: Mark default gamma table as static
+ constexpr
+
+The values for the default gamma table are stored in an array that is
+never modified. Mark it as static constexpr to facilitate optimizations.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Stefan Klug <stefan.klug@ideasonboard.com>
+Reviewed-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+---
+ src/ipa/rkisp1/algorithms/goc.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/ipa/rkisp1/algorithms/goc.cpp b/src/ipa/rkisp1/algorithms/goc.cpp
+index 65460eb45..e98c95267 100644
+--- a/src/ipa/rkisp1/algorithms/goc.cpp
++++ b/src/ipa/rkisp1/algorithms/goc.cpp
+@@ -108,7 +108,7 @@ void GammaOutCorrection::prepare(IPAContext &context,
+ 	 * The logarithmic segments as specified in the reference.
+ 	 * Plus an additional 0 to make the loop easier
+ 	 */
+-	std::array<unsigned, RKISP1_CIF_ISP_GAMMA_OUT_MAX_SAMPLES_V10> segments = {
++	static constexpr std::array<unsigned int, RKISP1_CIF_ISP_GAMMA_OUT_MAX_SAMPLES_V10> segments = {
+ 		64, 64, 64, 64, 128, 128, 128, 128, 256,
+ 		256, 256, 512, 512, 512, 512, 512, 0
+ 	};

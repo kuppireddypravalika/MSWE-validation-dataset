@@ -1,0 +1,31 @@
+From eb5514af5b60d6897a4db620e757414dbab8b71a Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Can=20B=C3=B6l=C3=BCk?= <can.boluk89@gmail.com>
+Date: Sun, 12 Jul 2020 07:35:49 +0200
+Subject: [PATCH] Change from map to unordered_map.
+
+---
+ VTIL-Architecture/symex/batch_translator.hpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/VTIL-Architecture/symex/batch_translator.hpp b/VTIL-Architecture/symex/batch_translator.hpp
+index 468c67a3..992203db 100644
+--- a/VTIL-Architecture/symex/batch_translator.hpp
++++ b/VTIL-Architecture/symex/batch_translator.hpp
+@@ -40,7 +40,7 @@ namespace vtil
+ 
+ 		// The expression cache.
+ 		//
+-		std::map<symbolic::boxed_expression, operand> translation_cache;
++		std::unordered_map<symbolic::boxed_expression, operand, hasher<>> translation_cache;
+ 		
+ 		// Constructed by binding to a block.
+ 		//
+@@ -50,7 +50,7 @@ namespace vtil
+ 		//
+ 		operand operator<<( const symbolic::expression& exp )
+ 		{
+-			operand& op = translation_cache[ exp ];
++			operand& op = translation_cache[ ( symbolic::boxed_expression& ) exp ];
+ 			if ( !op.is_valid() )
+ 			{
+ 				op = translate_expression(

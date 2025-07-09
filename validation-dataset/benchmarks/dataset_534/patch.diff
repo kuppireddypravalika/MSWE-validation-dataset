@@ -1,0 +1,36 @@
+From f628fa1c387cc5679ca08ba66bbc8280bbf6ed6a Mon Sep 17 00:00:00 2001
+From: Eric Wong <normalperson@yhbt.net>
+Date: Mon, 5 Dec 2005 01:21:03 +0000
+Subject: [PATCH] optimize away a boatload of strdups during update
+
+git-svn-id: https://svn.musicpd.org/mpd/trunk@3718 09075e82-0dd4-0310-85a5-a0d7c8717e4f
+---
+ src/charConv.c | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
+
+diff --git a/src/charConv.c b/src/charConv.c
+index 85eba7e88b..b12bfb7511 100644
+--- a/src/charConv.c
++++ b/src/charConv.c
+@@ -42,10 +42,17 @@ mpd_sint8 char_conv_latin1ToUtf8 = 0;
+ #define BUFFER_SIZE	1024
+ 
+ int setCharSetConversion(char * to, char * from) {
+-	if(char_conv_to && strcmp(to,char_conv_to)==0 &&
+-			char_conv_from && strcmp(from,char_conv_from)==0)
+-	{ 
+-		return 0;
++	if(char_conv_to && char_conv_from) {
++		if (strcmp(from,char_conv_to)==0 &&
++					strcmp(to,char_conv_from)==0) { 
++			char * swap = char_conv_from;
++			char_conv_from = char_conv_to;
++			char_conv_to = swap;
++			return 0;
++		} else if (strcmp(to,char_conv_to)==0 &&
++					strcmp(from,char_conv_from)==0) { 
++			return 0;
++		}
+ 	}
+ 
+ 	closeCharSetConversion();

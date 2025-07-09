@@ -1,0 +1,37 @@
+From be3d4ebcbfd36c15c3fe53a8377ba93cb763e30a Mon Sep 17 00:00:00 2001
+From: Kai Koehne <kai.koehne@theqtcompany.com>
+Date: Wed, 18 Mar 2015 09:27:15 +0100
+Subject: [PATCH] QVarLengthArray: Do not require operator!= for element
+ comparison
+
+The documentation claims that operator== is needed, not operator!=.
+While at it, we can also replace the loop with std::equal, which
+might even allow STL implementations to choose a hand-optimized
+version of the algorithm for C++ builtin types ...
+
+Change-Id: I988b326d6af3b767526952e303468e18ff6594f9
+Reviewed-by: Marc Mutz <marc.mutz@kdab.com>
+---
+ src/corelib/tools/qvarlengtharray.h | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/src/corelib/tools/qvarlengtharray.h b/src/corelib/tools/qvarlengtharray.h
+index 32f621c809c..95cd0447d85 100644
+--- a/src/corelib/tools/qvarlengtharray.h
++++ b/src/corelib/tools/qvarlengtharray.h
+@@ -468,11 +468,10 @@ bool operator==(const QVarLengthArray<T, Prealloc1> &l, const QVarLengthArray<T,
+ {
+     if (l.size() != r.size())
+         return false;
+-    for (int i = 0; i < l.size(); i++) {
+-        if (l.at(i) != r.at(i))
+-            return false;
+-    }
+-    return true;
++    const T *rb = r.begin();
++    const T *b  = l.begin();
++    const T *e  = l.end();
++    return std::equal(b, e, rb);
+ }
+ 
+ template <typename T, int Prealloc1, int Prealloc2>

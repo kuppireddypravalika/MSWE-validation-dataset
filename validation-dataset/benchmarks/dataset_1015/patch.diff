@@ -1,0 +1,51 @@
+From 4713025951fd894fbe3d482ceec676e255d44e69 Mon Sep 17 00:00:00 2001
+From: Benjamin Kehlet <benjamik@ifi.uio.no>
+Date: Fri, 27 Mar 2009 17:54:43 +0100
+Subject: [PATCH] Use std::ofstream instead of FILE handler
+
+---
+ dolfin/ode/TimeSlab.cpp | 20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
+
+diff --git a/dolfin/ode/TimeSlab.cpp b/dolfin/ode/TimeSlab.cpp
+index f8f3bbd03ab..085b6b9c911 100644
+--- a/dolfin/ode/TimeSlab.cpp
++++ b/dolfin/ode/TimeSlab.cpp
+@@ -12,6 +12,10 @@
+ #include "cGqMethod.h"
+ #include "dGqMethod.h"
+ #include "TimeSlab.h"
++#include <iostream>
++#include <fstream>
++#include <iomanip>
++
+ 
+ using namespace dolfin;
+ 
+@@ -98,17 +102,19 @@ void TimeSlab::write(uint N, const real* u)
+   std::string filename = "solution.data";
+   
+   message("Saving solution at final time to file \"%s\".", filename.c_str());
+-  #ifdef HAS_GMP
+-    warning("Precision in solution file lost. Saving with double precision");
+-  #endif
+ 
+-  FILE* fp = fopen(filename.c_str(), "w");
++  std::ofstream fp(filename.c_str());
++  if (!fp.is_open())
++    error("Unable to open file %s", filename.c_str());
++
++  fp << std::setprecision(real_decimal_prec());
++
+   for (uint i = 0; i < N; i++)
+   {  
+-    fprintf(fp, "%.15e ", to_double(u[i]));
++    fp << u[i] << " ";
+   }
+-  fprintf(fp, "\n");
+-  fclose(fp);
++  fp << std::endl;
++  fp.close();
+ }
+ //-----------------------------------------------------------------------------
+ void TimeSlab::copy(const real x[], uint xoffset, real y[], uint yoffset, uint n)

@@ -1,0 +1,31 @@
+From d63886190fae0cf16034a35a48a3ab024244cb2e Mon Sep 17 00:00:00 2001
+From: Qingchuan Shi <qingchuan.shi@amd.com>
+Date: Tue, 7 Jan 2020 21:15:34 -0500
+Subject: [PATCH] fix  optimize(0) for clang.
+
+Change-Id: I83bc57d42815f37445ae97bf6950147e3358ac45
+---
+ runtime/hsa-runtime/loader/executable.cpp | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/runtime/hsa-runtime/loader/executable.cpp b/runtime/hsa-runtime/loader/executable.cpp
+index dc5352096..20619ba33 100644
+--- a/runtime/hsa-runtime/loader/executable.cpp
++++ b/runtime/hsa-runtime/loader/executable.cpp
+@@ -62,7 +62,15 @@
+ using namespace amd::hsa;
+ using namespace amd::hsa::common;
+ 
+-static void __attribute__((noinline, optimize(0))) _loader_debug_state() {};
++#ifdef __GNUC__
++#define NONOPTIMIZE __attribute__((noinline, optimize(0)))
++#elif defined __clang__
++#define NONOPTIMIZE __attribute__((noinline, optnone))
++#else
++#define NONOPTIMIZE __attribute__((noinline, optimize(0)))
++#endif
++
++NONOPTIMIZE static void _loader_debug_state() {};
+ r_debug _amdgpu_r_debug __attribute__((visibility("default"))) = {1,
+                                                                   nullptr,
+                                                                   reinterpret_cast<uintptr_t>(&_loader_debug_state),

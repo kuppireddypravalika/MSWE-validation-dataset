@@ -1,0 +1,35 @@
+From d20e2b58ad4045caf3706e23ab6a374866aa50b7 Mon Sep 17 00:00:00 2001
+From: Klaus Iglberger <klaus.iglberger@gmail.com>
+Date: Tue, 11 Mar 2014 18:24:54 +0100
+Subject: [PATCH] Fix the reduction operation of the dense vector/dense vector
+ inner product ('TDVecDVecMultExpr')
+
+---
+ blaze/math/expressions/TDVecDVecMultExpr.h | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/blaze/math/expressions/TDVecDVecMultExpr.h b/blaze/math/expressions/TDVecDVecMultExpr.h
+index 94c4e6ae1..947c375cc 100644
+--- a/blaze/math/expressions/TDVecDVecMultExpr.h
++++ b/blaze/math/expressions/TDVecDVecMultExpr.h
+@@ -207,7 +207,6 @@ inline typename EnableIf< TDVecDVecMultExprHelper<T1,T2>,
+    Rhs right( ~rhs );
+ 
+    typename IT::Type xmm1, xmm2, xmm3, xmm4;
+-   MultType sp( 0 );
+ 
+    const size_t N  ( left.size() );
+    const size_t end( N - N % (IT::size*4UL) );
+@@ -219,11 +218,8 @@ inline typename EnableIf< TDVecDVecMultExprHelper<T1,T2>,
+       xmm4 = xmm4 + ( left.load(i+IT::size*3UL) * right.load(i+IT::size*3UL) );
+    }
+ 
+-   MultType array[IT::size];
+-   store( array, xmm1 + xmm2 + xmm3 + xmm4 );
++   MultType sp( sum( xmm1 + xmm2 + xmm3 + xmm4 ) );
+ 
+-   for( size_t i=0UL; i<IT::size; ++i )
+-      sp += array[i];
+    for( size_t i=end; i<N; ++i )
+       sp += left[i] * right[i];
+ 

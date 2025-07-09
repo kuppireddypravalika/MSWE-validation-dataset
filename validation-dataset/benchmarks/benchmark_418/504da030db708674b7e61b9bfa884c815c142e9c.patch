@@ -1,0 +1,22 @@
+From 504da030db708674b7e61b9bfa884c815c142e9c Mon Sep 17 00:00:00 2001
+From: Morwenn <morwenn29@hotmail.fr>
+Date: Fri, 8 Feb 2019 00:01:03 +0100
+Subject: [PATCH] Use pdqsort and not pdq_sort in split_sort
+
+---
+ include/cpp-sort/detail/split_sort.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/cpp-sort/detail/split_sort.h b/include/cpp-sort/detail/split_sort.h
+index 36c6c219..6331c01e 100644
+--- a/include/cpp-sort/detail/split_sort.h
++++ b/include/cpp-sort/detail/split_sort.h
+@@ -70,7 +70,7 @@ namespace detail
+         }
+ 
+         // Sort second part of the collection and merge
+-        pdq_sort(middle, last, compare, projection);
++        pdqsort(middle, last, compare, projection);
+         inplace_merge(first, middle, last, std::move(compare), std::move(projection));
+     }
+ }}

@@ -1,0 +1,32 @@
+From 38780a41be80e013dfcc96003423ce863cdccdf5 Mon Sep 17 00:00:00 2001
+From: Rodrigo Rojo <rodrigo.rojo@me.com>
+Date: Wed, 27 Jun 2018 13:41:21 -0700
+Subject: [PATCH] cxxcore: replace memset with c++ std::fill fn (#519)
+
+---
+ libopaecxx/src/shared_buffer.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/libopaecxx/src/shared_buffer.cpp b/libopaecxx/src/shared_buffer.cpp
+index 2c960b3be30d..da571dc41838 100644
+--- a/libopaecxx/src/shared_buffer.cpp
++++ b/libopaecxx/src/shared_buffer.cpp
+@@ -24,6 +24,7 @@
+ // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,  EVEN IF ADVISED OF THE
+ // POSSIBILITY OF SUCH DAMAGE.
+ #include <cstring>
++#include <algorithm>
+ 
+ #include <opae/cxx/core/shared_buffer.h>
+ #include <exception>
+@@ -95,7 +96,9 @@ void shared_buffer::release() {
+   }
+ }
+ 
+-void shared_buffer::fill(int c) { ::memset(virt_, c, len_); }
++void shared_buffer::fill(int c) {
++  std::fill(virt_, virt_+len_, c);
++}
+ 
+ int shared_buffer::compare(shared_buffer::ptr_t other, size_t len) const {
+   return ::memcmp(virt_, other->virt_, len);

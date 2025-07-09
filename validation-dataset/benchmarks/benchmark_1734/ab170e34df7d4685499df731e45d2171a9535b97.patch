@@ -1,0 +1,26 @@
+From ab170e34df7d4685499df731e45d2171a9535b97 Mon Sep 17 00:00:00 2001
+From: Rosen Penev <rosenp@gmail.com>
+Date: Fri, 27 Sep 2019 20:31:21 -0700
+Subject: [PATCH] [clang-tidy] Use const reference instead of initializing
+ string
+
+Found with performance-unnecessary-copy-initialization
+
+Signed-off-by: Rosen Penev <rosenp@gmail.com>
+---
+ src/sort.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/sort.cpp b/src/sort.cpp
+index 3f13f9201..df71a1804 100644
+--- a/src/sort.cpp
++++ b/src/sort.cpp
+@@ -242,7 +242,7 @@ static bool sort_compare (int left, int right)
+     // UDAs.
+     else if ((column = Context::getContext ().columns[field]) != nullptr)
+     {
+-      std::string type = column->type ();
++      const std::string& type = column->type ();
+       if (type == "numeric")
+       {
+         auto left_real  = strtof (((*global_data)[left].get_ref  (field)).c_str (), nullptr);

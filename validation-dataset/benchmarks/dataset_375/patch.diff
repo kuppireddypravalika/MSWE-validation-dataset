@@ -1,0 +1,43 @@
+From 9cd762b1a645a99e76afb0f3fbf0b54cd3aaa7f9 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Micha=C5=82=20Janiszewski?= <janisozaur@gmail.com>
+Date: Sat, 14 May 2016 11:08:54 +0200
+Subject: [PATCH] Use memset/memcpy functions for RLE chunk decoding
+
+Reduces time spent in `decode_chunk_rle` by 4-5x.
+---
+ src/util/sawyercoding.c | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/src/util/sawyercoding.c b/src/util/sawyercoding.c
+index 0dddaf8da2b6..cf9bce9ca2de 100644
+--- a/src/util/sawyercoding.c
++++ b/src/util/sawyercoding.c
+@@ -293,21 +293,22 @@ int sawyercoding_validate_track_checksum(const uint8* src, size_t length){
+  */
+ static size_t decode_chunk_rle(const uint8* src_buffer, uint8* dst_buffer, size_t length)
+ {
+-	size_t i, j, count;
++	size_t count;
+ 	uint8 *dst, rleCodeByte;
+ 
+ 	dst = dst_buffer;
+ 
+-	for (i = 0; i < length; i++) {
++	for (int i = 0; i < length; i++) {
+ 		rleCodeByte = src_buffer[i];
+ 		if (rleCodeByte & 128) {
+ 			i++;
+ 			count = 257 - rleCodeByte;
+-			for (j = 0; j < count; j++)
+-				*dst++ = src_buffer[i];
++			memset(dst, src_buffer[i], count);
++			dst = (uint8*)((uintptr_t)dst + count);
+ 		} else {
+-			for (j = 0; j <= rleCodeByte; j++)
+-				*dst++ = src_buffer[++i];
++			memcpy(dst, src_buffer + i + 1, rleCodeByte + 1);
++			dst = (uint8*)((uintptr_t)dst + rleCodeByte + 1);
++			i += rleCodeByte + 1;
+ 		}
+ 	}
+ 

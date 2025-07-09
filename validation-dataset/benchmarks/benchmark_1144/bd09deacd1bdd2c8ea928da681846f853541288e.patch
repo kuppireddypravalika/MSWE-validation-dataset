@@ -1,0 +1,25 @@
+From bd09deacd1bdd2c8ea928da681846f853541288e Mon Sep 17 00:00:00 2001
+From: Kris Thielemans <k.thielemans@ucl.ac.uk>
+Date: Wed, 12 Aug 2015 21:31:45 +0100
+Subject: [PATCH] [OPENMP] use dynamic scheduling for FBP2D loop
+
+Inside the loop, some views are "trivial" (i.e. the non-basic ones
+for the symmetries of the backprojector), so the default schedule could
+be slow.
+---
+ src/analytic/FBP2D/FBP2DReconstruction.cxx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/analytic/FBP2D/FBP2DReconstruction.cxx b/src/analytic/FBP2D/FBP2DReconstruction.cxx
+index c194e19cb0..40f302d527 100644
+--- a/src/analytic/FBP2D/FBP2DReconstruction.cxx
++++ b/src/analytic/FBP2D/FBP2DReconstruction.cxx
+@@ -327,7 +327,7 @@ actual_reconstruct(shared_ptr<DiscretisedDensity<3,float> > const & density_ptr)
+ #endif
+ 
+ #ifdef STIR_OPENMP
+-#pragma omp parallel for shared(empty_density_ptr)
++#pragma omp parallel for shared(empty_density_ptr) schedule(dynamic)
+ #endif
+   for (int view_num=proj_data_ptr->get_min_view_num(); view_num <= proj_data_ptr->get_max_view_num(); ++view_num) 
+   {         

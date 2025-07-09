@@ -1,0 +1,49 @@
+From 26e13b4f5f59699ba723214e0c8d1bb202c2db6a Mon Sep 17 00:00:00 2001
+From: Nekotekina <nekotekina@gmail.com>
+Date: Tue, 29 Aug 2017 17:11:36 +0300
+Subject: [PATCH] Compress log to RPCS3.log.gz
+
+---
+ Utilities/Log.cpp | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+
+diff --git a/Utilities/Log.cpp b/Utilities/Log.cpp
+index a863c851fb706..8a749779639cc 100644
+--- a/Utilities/Log.cpp
++++ b/Utilities/Log.cpp
+@@ -16,6 +16,8 @@
+ #include <sys/mman.h>
+ #endif
+ 
++#include <zlib.h>
++
+ static std::string empty_string()
+ {
+ 	return {};
+@@ -319,6 +321,26 @@ logs::file_writer::~file_writer()
+ 		m_size = std::min<std::size_t>(+m_pos, s_log_size);
+ 	}
+ 
++	// Compress
++	z_stream zs{};
++	if (deflateInit2(&zs, 9, Z_DEFLATED, 16 + 15, 9, Z_DEFAULT_STRATEGY) == Z_OK)
++	{
++		auto buf = std::make_unique<uchar[]>(s_log_size);
++		zs.avail_in  = ::narrow<u32>(m_size);
++		zs.avail_out = s_log_size;
++		zs.next_in   = m_fptr;
++		zs.next_out  = buf.get();
++
++		if (deflate(&zs, Z_FINISH) != Z_STREAM_ERROR)
++		{
++			fs::file(m_name + ".gz", fs::rewrite).write(buf.get(), zs.total_out);
++		}
++
++		if (deflateEnd(&zs) != Z_OK)
++		{
++		}
++	}
++
+ #ifdef _WIN32
+ 	UnmapViewOfFile(m_fptr);
+ 	CloseHandle(m_fmap);

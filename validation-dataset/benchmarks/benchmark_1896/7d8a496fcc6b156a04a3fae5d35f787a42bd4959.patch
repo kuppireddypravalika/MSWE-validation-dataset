@@ -1,0 +1,26 @@
+From 7d8a496fcc6b156a04a3fae5d35f787a42bd4959 Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@gmail.com>
+Date: Sun, 29 Jan 2017 04:38:21 +0000
+Subject: [PATCH] [DAGCombiner] Use unsigned for a constant vector index
+ instead of APInt.
+
+The type system requires that the number of vector elements should fit in 32-bits so this should be safe.
+---
+ llvm/lib/CodeGen/SelectionDAG/DAGCombiner.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/llvm/lib/CodeGen/SelectionDAG/DAGCombiner.cpp b/llvm/lib/CodeGen/SelectionDAG/DAGCombiner.cpp
+index 3ef801f52a4c..33863ca16f9e 100644
+--- a/llvm/lib/CodeGen/SelectionDAG/DAGCombiner.cpp
++++ b/llvm/lib/CodeGen/SelectionDAG/DAGCombiner.cpp
+@@ -14543,8 +14543,8 @@ SDValue DAGCombiner::visitINSERT_SUBVECTOR(SDNode *N) {
+   // If the input vector is a concatenation, and the insert replaces
+   // one of the halves, we can optimize into a single concat_vectors.
+   if (N0.getOpcode() == ISD::CONCAT_VECTORS && N0->getNumOperands() == 2 &&
+-      N2.getOpcode() == ISD::Constant) {
+-    APInt InsIdx = cast<ConstantSDNode>(N2)->getAPIntValue();
++      isa<ConstantSDNode>(N2)) {
++    unsigned InsIdx = cast<ConstantSDNode>(N2)->getZExtValue();
+ 
+     // Lower half: fold (insert_subvector (concat_vectors X, Y), Z) ->
+     // (concat_vectors Z, Y)

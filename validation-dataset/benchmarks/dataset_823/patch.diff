@@ -1,0 +1,25 @@
+From dadc0e1865aa821645b37a73525658dad6bcbfc9 Mon Sep 17 00:00:00 2001
+From: Giles Bathgate <gilesbathgate@gmail.com>
+Date: Tue, 6 Apr 2021 21:32:01 +0100
+Subject: [PATCH] Fix performance of transform
+
+---
+ src/cgalprimitive.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/cgalprimitive.cpp b/src/cgalprimitive.cpp
+index ad2d76cf..fce3f70a 100644
+--- a/src/cgalprimitive.cpp
++++ b/src/cgalprimitive.cpp
+@@ -643,8 +643,10 @@ void CGALPrimitive::transform(TransformMatrix* matrix)
+ 		points=nps;
+ 	}
+ 
++	//Only transform auxilliary modules children.
+ 	for(Primitive* p: children)
+-		p->transform(matrix);
++		if(!dynamic_cast<CGALPrimitive*>(p))
++			p->transform(matrix);
+ }
+ 
+ QList<Polygon*> CGALPrimitive::getPolygons() const

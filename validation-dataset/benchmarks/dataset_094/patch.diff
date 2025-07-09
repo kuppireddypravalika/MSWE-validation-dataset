@@ -1,0 +1,36 @@
+From b03b13ca6eac1e39d9819cd6cd34442fc869a993 Mon Sep 17 00:00:00 2001
+From: Ravbug <ravbuganimations@gmail.com>
+Date: Fri, 8 Jan 2021 21:21:47 -0800
+Subject: [PATCH] Improve input latency App.cpp ~ move input ticking to after
+ world and before draw
+
+---
+ src/App.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/App.cpp b/src/App.cpp
+index 507e7cb2a..079347afa 100644
+--- a/src/App.cpp
++++ b/src/App.cpp
+@@ -108,9 +108,7 @@ int App::run(int argc, char** argv) {
+ 			}
+ 			
+ 		}
+-		if (inputManager){
+-			inputManager->Tick();
+-		}
++	
+ #ifdef _DEBUG
+ 		RenderEngine::debuggerInput->Tick();
+ #endif
+@@ -121,7 +119,9 @@ int App::run(int argc, char** argv) {
+ 		while (main_tasks.try_dequeue(front)){
+ 			front();
+ 		}
+-		
++		if (inputManager){
++			inputManager->Tick();
++		}
+ 		Renderer->Draw(currentWorld);
+ 
+ #ifdef LIMIT_TICK

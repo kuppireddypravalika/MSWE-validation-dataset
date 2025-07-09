@@ -1,0 +1,22 @@
+From 7bad50773a65c45b0b3f88eca7eddc6aa0f7f174 Mon Sep 17 00:00:00 2001
+From: Joona Kiiski <joona.kiiski@gmail.com>
+Date: Sat, 30 Mar 2013 20:01:49 +0000
+Subject: [PATCH] Make use of asymmetric SEE
+
+---
+ src/search.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/search.cpp b/src/search.cpp
+index 60667c87..ab346734 100644
+--- a/src/search.cpp
++++ b/src/search.cpp
+@@ -1228,7 +1228,7 @@ namespace {
+           // Prune moves with negative or equal SEE
+           if (   futilityBase < beta
+               && depth < DEPTH_ZERO
+-              && pos.see(move) <= 0)
++              && pos.see_asymm(move, beta - futilityBase) <= 0)
+           {
+               bestValue = std::max(bestValue, futilityBase);
+               continue;

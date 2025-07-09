@@ -1,0 +1,24 @@
+From 6fe0df2abb9269d4c8377f2497281abc88baf543 Mon Sep 17 00:00:00 2001
+From: Dan Gohman <gohman@apple.com>
+Date: Fri, 26 Feb 2010 16:49:27 +0000
+Subject: [PATCH] movl is a cheaper way to materialize 0 without clobbering
+ EFLAGS than movabsq.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@97227 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Target/X86/X86InstrInfo.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/Target/X86/X86InstrInfo.cpp b/lib/Target/X86/X86InstrInfo.cpp
+index baf6b63e5de..494949fab38 100644
+--- a/lib/Target/X86/X86InstrInfo.cpp
++++ b/lib/Target/X86/X86InstrInfo.cpp
+@@ -1083,7 +1083,7 @@ void X86InstrInfo::reMaterialize(MachineBasicBlock &MBB,
+       case X86::MOV8r0:  Opc = X86::MOV8ri;  break;
+       case X86::MOV16r0: Opc = X86::MOV16ri; break;
+       case X86::MOV32r0: Opc = X86::MOV32ri; break;
+-      case X86::MOV64r0: Opc = X86::MOV64ri; break;
++      case X86::MOV64r0: Opc = X86::MOV64ri64i32; break;
+       }
+       Clone = false;
+     }

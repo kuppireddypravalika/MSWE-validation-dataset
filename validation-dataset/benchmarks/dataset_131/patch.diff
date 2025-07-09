@@ -1,0 +1,25 @@
+From d0779e7ed73e5102965935de8c9da6aaf2fd5125 Mon Sep 17 00:00:00 2001
+From: Thomas Goyne <plorkyeran@aegisub.org>
+Date: Thu, 11 Jul 2013 20:18:41 -0700
+Subject: [PATCH] Make DialogTranslation::UpdateDisplay a bit less slow
+
+---
+ aegisub/src/dialog_translation.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/aegisub/src/dialog_translation.cpp b/aegisub/src/dialog_translation.cpp
+index bb26a24c9..7ccf8b757 100644
+--- a/aegisub/src/dialog_translation.cpp
++++ b/aegisub/src/dialog_translation.cpp
+@@ -247,9 +247,10 @@ void DialogTranslation::UpdateDisplay() {
+ 	size_t i = 0;
+ 	for (auto& block : blocks) {
+ 		if (block.GetType() == AssBlockType::PLAIN) {
+-			int cur_size = original_text->GetReverseUnicodePosition(original_text->GetLength());
++			int initial_pos = original_text->GetLength();
+ 			original_text->AppendTextRaw(block.GetText().c_str());
+ 			if (i == cur_block) {
++				int cur_size = original_text->GetReverseUnicodePosition(initial_pos);
+ 				original_text->StartUnicodeStyling(cur_size);
+ 				original_text->SetUnicodeStyling(cur_size, block.GetText().size(), 1);
+ 			}

@@ -1,0 +1,28 @@
+From 538bc7351bcc1f1cc5b031423349145566a08847 Mon Sep 17 00:00:00 2001
+From: Pilow <pierre.laupretre@gmail.com>
+Date: Wed, 26 Jul 2017 19:55:47 +0200
+Subject: [PATCH] [prefix-expression] Use Compiler::insn_neg for minus operator
+
+---
+ src/compiler/value/PrefixExpression.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/compiler/value/PrefixExpression.cpp b/src/compiler/value/PrefixExpression.cpp
+index 233c502a..66f938c2 100644
+--- a/src/compiler/value/PrefixExpression.cpp
++++ b/src/compiler/value/PrefixExpression.cpp
+@@ -196,11 +196,11 @@ Compiler::value PrefixExpression::compile(Compiler& c) const {
+ 				return r;
+ 			} else if (expression->type.nature == Nature::VALUE) {
+ 				auto x = expression->compile(c);
+-				jit_value_t r = jit_insn_neg(c.F, x.v);
++				auto r = c.insn_neg(x);
+ 				if (type.nature == Nature::POINTER) {
+-					return c.insn_to_pointer({r, expression->type});
++					return c.insn_to_pointer(r);
+ 				}
+-				return {r, type};
++				return r;
+ 			} else {
+ 				arg = expression->compile(c);
+ 				func = (void*) jit_minus;

@@ -1,0 +1,38 @@
+From 17d4ded378a9d871c84f9f43c43a64b412117b2f Mon Sep 17 00:00:00 2001
+From: vitamin-caig <vitamin.caig@gmail.com>
+Date: Mon, 25 Feb 2019 01:18:06 +0300
+Subject: [PATCH] zxtune-android: more precise performance measure.
+
+---
+ .../zxtune/src/main/jni/player.cpp               | 16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
+
+diff --git a/apps/zxtune-android/zxtune/src/main/jni/player.cpp b/apps/zxtune-android/zxtune/src/main/jni/player.cpp
+index ed579ed1db..aea2cf64f9 100644
+--- a/apps/zxtune-android/zxtune/src/main/jni/player.cpp
++++ b/apps/zxtune-android/zxtune/src/main/jni/player.cpp
+@@ -109,15 +109,17 @@ namespace
+     
+     uint_t Measure(uint64_t totalSamples, uint_t sampleRate) const
+     {
+-      if (const uint64_t totalClocks = Clocks + Frames / 2) //compensate measuring error
++      const uint_t MIN_DURATION_SEC = 1;
++      const uint_t minSamples = sampleRate * MIN_DURATION_SEC;
++      if (totalSamples >= minSamples)
+       {
+-        // 100 * (totalSamples / sampleRate) / (totalClocks / CLOCKS_PER_SEC)
+-        return (totalSamples * CLOCKS_PER_SEC * 100) / (totalClocks * sampleRate);
+-      }
+-      else
+-      {
+-        return 0;
++        if (const uint64_t totalClocks = Clocks + Frames / 2) //compensate measuring error
++        {
++          // 100 * (totalSamples / sampleRate) / (totalClocks / CLOCKS_PER_SEC)
++          return (totalSamples * CLOCKS_PER_SEC * 100) / (totalClocks * sampleRate);
++        }
+       }
++      return 0;
+     }
+   private:
+     std::clock_t LastStart = 0;

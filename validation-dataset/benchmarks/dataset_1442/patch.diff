@@ -1,0 +1,24 @@
+From 181351ef45c6a80bc71e014be25e5775854c33f9 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Yao=20Wei=20Tjong=20=E5=A7=9A=E4=BC=9F=E5=BF=A0?=
+ <weitjong@gmail.com>
+Date: Fri, 7 Feb 2014 00:56:53 +0800
+Subject: [PATCH] Reserve the vector's initial capacity instead of size.
+
+---
+ Source/Engine/Resource/ResourceCache.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/Source/Engine/Resource/ResourceCache.cpp b/Source/Engine/Resource/ResourceCache.cpp
+index f773b990e6..680f427ab3 100644
+--- a/Source/Engine/Resource/ResourceCache.cpp
++++ b/Source/Engine/Resource/ResourceCache.cpp
+@@ -764,7 +764,8 @@ void ResourceCache::HandleBeginFrame(StringHash eventType, VariantMap& eventData
+                 {
+                     // Reloading a resource may modify the dependency tracking structure. Therefore collect the
+                     // resources we need to reload first
+-                    Vector<SharedPtr<Resource> > dependents(j->second_.Size());
++                    Vector<SharedPtr<Resource> > dependents;
++                    dependents.Reserve(j->second_.Size());
+                     
+                     for (HashSet<StringHash>::ConstIterator k = j->second_.Begin(); k != j->second_.End(); ++k)
+                     {

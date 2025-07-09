@@ -1,0 +1,27 @@
+From ef6e96f91fd812ba9ead6fdef3975abb1139c123 Mon Sep 17 00:00:00 2001
+From: Daniel Dunbar <daniel@zuster.org>
+Date: Tue, 23 Mar 2010 23:47:07 +0000
+Subject: [PATCH] llvm-mc: Fast path EvaluateAbsolute of constants.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@99348 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/MC/MCExpr.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/lib/MC/MCExpr.cpp b/lib/MC/MCExpr.cpp
+index 275994431ee..d0025f3f3f6 100644
+--- a/lib/MC/MCExpr.cpp
++++ b/lib/MC/MCExpr.cpp
+@@ -194,6 +194,12 @@ void MCTargetExpr::Anchor() {}
+ bool MCExpr::EvaluateAsAbsolute(int64_t &Res, const MCAsmLayout *Layout) const {
+   MCValue Value;
+ 
++  // Fast path constants.
++  if (const MCConstantExpr *CE = dyn_cast<MCConstantExpr>(this)) {
++    Res = CE->getValue();
++    return true;
++  }
++
+   if (!EvaluateAsRelocatable(Value, Layout) || !Value.isAbsolute())
+     return false;
+ 

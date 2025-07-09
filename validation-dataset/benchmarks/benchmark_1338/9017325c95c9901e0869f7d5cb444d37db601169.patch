@@ -1,0 +1,26 @@
+From 9017325c95c9901e0869f7d5cb444d37db601169 Mon Sep 17 00:00:00 2001
+From: Lioncache <mai.iam2048@gmail.com>
+Date: Tue, 13 Jun 2023 19:21:12 -0400
+Subject: [PATCH] CPUID: Signify support for XSAVE if AVX is enabled
+
+Now that XSAVE and XRSTOR are implemented, we can enable the
+CPUID bits for them when AVX support is enabled.
+---
+ External/FEXCore/Source/Interface/Core/CPUID.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/External/FEXCore/Source/Interface/Core/CPUID.cpp b/External/FEXCore/Source/Interface/Core/CPUID.cpp
+index b1a7c70c72..837c6d80eb 100644
+--- a/External/FEXCore/Source/Interface/Core/CPUID.cpp
++++ b/External/FEXCore/Source/Interface/Core/CPUID.cpp
+@@ -433,8 +433,8 @@ FEXCore::CPUID::FunctionResults CPUIDEmu::Function_01h(uint32_t Leaf) {
+     (1 << 23) | // POPCNT
+     (0 << 24) | // APIC TSC-Deadline
+     (CTX->HostFeatures.SupportsAES << 25) | // AES
+-    (0 << 26) | // XSAVE
+-    (0 << 27) | // OSXSAVE
++    (SupportsAVX() << 26) | // XSAVE
++    (SupportsAVX() << 27) | // OSXSAVE
+     (SupportsAVX() << 28) | // AVX
+     (0 << 29) | // F16C
+     (CTX->HostFeatures.SupportsRAND << 30) | // RDRAND

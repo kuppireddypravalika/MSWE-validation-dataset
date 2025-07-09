@@ -1,0 +1,28 @@
+From 810d9f7f4851ad0e4585a75d34a48ed4024ad882 Mon Sep 17 00:00:00 2001
+From: Rafael Espindola <rafael.espindola@gmail.com>
+Date: Wed, 6 Dec 2017 18:31:11 +0000
+Subject: [PATCH] Don't allocate an error message when there is no error.
+
+According to heaptrack this takes "bytes allocated in total" when
+linking clang-fsds from 405.69MB to 342.08MB.
+---
+ lld/ELF/InputFiles.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/lld/ELF/InputFiles.cpp b/lld/ELF/InputFiles.cpp
+index 115de3f8cd8a..a4ef07c92a78 100644
+--- a/lld/ELF/InputFiles.cpp
++++ b/lld/ELF/InputFiles.cpp
+@@ -209,8 +209,10 @@ typename ELFT::SymRange ELFFileBase<ELFT>::getGlobalELFSyms() {
+ 
+ template <class ELFT>
+ uint32_t ELFFileBase<ELFT>::getSectionIndex(const Elf_Sym &Sym) const {
+-  return check(getObj().getSectionIndex(&Sym, ELFSyms, SymtabSHNDX),
+-               toString(this));
++  auto RetOrErr = getObj().getSectionIndex(&Sym, ELFSyms, SymtabSHNDX);
++  if (RetOrErr)
++    return *RetOrErr;
++  fatal(toString(this) + ": " + toString(RetOrErr.takeError()));
+ }
+ 
+ template <class ELFT>

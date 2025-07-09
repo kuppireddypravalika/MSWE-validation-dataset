@@ -1,0 +1,38 @@
+From 615d120e5a3ccbda82dfa6eeaa445c613adc7ca2 Mon Sep 17 00:00:00 2001
+From: Andreas Aardal Hanssen <andreas@hanssen.name>
+Date: Fri, 15 Feb 2013 18:10:42 +0100
+Subject: [PATCH] Fix crash in somewhat faulty QGraphicsProxyWidget unit test.
+
+The crash is deep inside QGraphicsSceneIndex, which calls boundingRect()
+on the item that is being destroyed. The vtable is busted, resulting in
+a pure virtual function call. There's a more proper fix for this lying
+around somewhere but in this particular case we can get the test to
+not crash by guarding based on whether the item has a cursor set. This
+also happens to speed up QGraphicsItem destruction a bit so I figured
+it's a win-win situation to fix it. This case will still crash if the
+item actually had a cursor set but that makes the case even more narrow.
+
+Generally speaking, creating objects partially on the stack and
+partially on the heap, mixing parent/child relationships and then
+deleting one of the heap objects is quite sketchy and I doubt it happens
+much outside of this unit test.
+
+Change-Id: I25393d2cafb1256269ab6681519bd554cc380bfd
+Reviewed-by: Friedemann Kleint <Friedemann.Kleint@digia.com>
+---
+ src/widgets/graphicsview/qgraphicsitem.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/widgets/graphicsview/qgraphicsitem.cpp b/src/widgets/graphicsview/qgraphicsitem.cpp
+index 87f5f175314b..86fd3ce04ab5 100644
+--- a/src/widgets/graphicsview/qgraphicsitem.cpp
++++ b/src/widgets/graphicsview/qgraphicsitem.cpp
+@@ -2147,6 +2147,8 @@ bool QGraphicsItem::hasCursor() const
+ */
+ void QGraphicsItem::unsetCursor()
+ {
++    if (!d_ptr->hasCursor)
++        return;
+     d_ptr->unsetExtra(QGraphicsItemPrivate::ExtraCursor);
+     d_ptr->hasCursor = 0;
+     if (d_ptr->scene) {

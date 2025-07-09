@@ -1,0 +1,44 @@
+From 7b966059e379570288ce821ad98ad150f46818de Mon Sep 17 00:00:00 2001
+From: turley <michael.volz81@googlemail.com>
+Date: Mon, 1 May 2017 16:56:06 +0200
+Subject: [PATCH] Save a few bits per instance due to padding.
+
+---
+ pol-core/pol/baseobject.h | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/pol-core/pol/baseobject.h b/pol-core/pol/baseobject.h
+index d609462ba5..fd0d721d77 100644
+--- a/pol-core/pol/baseobject.h
++++ b/pol-core/pol/baseobject.h
+@@ -53,27 +53,26 @@ class ULWObject
+   u8 look_height() const;  // where you're looking from, or to
+ 
+ public:
++  Realms::Realm* realm;
+   u32 serial;
+   u16 graphic;
+   u16 x;
+   u16 y;
+   s8 z;
+-
+   u8 height;
+-  Realms::Realm* realm;
+ 
+ protected:
+   const UOBJ_CLASS uobj_class_;
+ };
+ 
+ inline ULWObject::ULWObject( UOBJ_CLASS uobj_class )
+-    : serial( 0 ),
++    : realm( nullptr ),
++      serial( 0 ),
+       graphic( 0 ),
+       x( 0 ),
+       y( 0 ),
+       z( 0 ),
+       height( 0 ),
+-      realm( nullptr ),
+       uobj_class_( uobj_class )
+ {
+ }

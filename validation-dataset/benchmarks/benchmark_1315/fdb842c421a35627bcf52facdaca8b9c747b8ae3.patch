@@ -1,0 +1,28 @@
+From fdb842c421a35627bcf52facdaca8b9c747b8ae3 Mon Sep 17 00:00:00 2001
+From: Lukas Werner <lks.werner@fau.de>
+Date: Thu, 29 Oct 2020 15:22:36 +0100
+Subject: [PATCH] Use std::move in constructor of SubCyclingManager
+
+---
+ src/lbm_mesapd_coupling/utility/SubCyclingManager.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/lbm_mesapd_coupling/utility/SubCyclingManager.cpp b/src/lbm_mesapd_coupling/utility/SubCyclingManager.cpp
+index ca5c531d..c9e09bed 100644
+--- a/src/lbm_mesapd_coupling/utility/SubCyclingManager.cpp
++++ b/src/lbm_mesapd_coupling/utility/SubCyclingManager.cpp
+@@ -21,11 +21,13 @@
+ 
+ #include "SubCyclingManager.h"
+ 
++#include <utility>
++
+ namespace walberla {
+ namespace lbm_mesapd_coupling {
+ 
+ SubCyclingManager::SubCyclingManager(size_t numberOfSubCycles, shared_ptr<WcTimingPool> timingPool)
+-   : numberOfSubCycles_(numberOfSubCycles), timingPool_(timingPool), currentTimeStep_(0) {}
++   : numberOfSubCycles_(numberOfSubCycles), timingPool_(std::move(timingPool)), currentTimeStep_(0) {}
+ 
+ void SubCyclingManager::operator()() {
+    executeBeforeFunctions();

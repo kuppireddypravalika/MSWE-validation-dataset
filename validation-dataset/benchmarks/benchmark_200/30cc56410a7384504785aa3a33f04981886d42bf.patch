@@ -1,0 +1,27 @@
+From 30cc56410a7384504785aa3a33f04981886d42bf Mon Sep 17 00:00:00 2001
+From: Matthew Woehlke <matthew.woehlke@kitware.com>
+Date: Tue, 15 Jan 2019 15:34:51 -0500
+Subject: [PATCH] Avoid foreach on STL container
+
+Don't use foreach in GroundControlPointsHelper. The container this is
+operating on is an STL container, not a Qt container, which is very,
+very bad... or would be, if qtExtensions didn't replace Qt's foreach
+with a range-based for. At any rate, we should be avoiding foreach these
+days.
+---
+ gui/GroundControlPointsHelper.cxx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gui/GroundControlPointsHelper.cxx b/gui/GroundControlPointsHelper.cxx
+index 4a43f4e4e..783772b93 100644
+--- a/gui/GroundControlPointsHelper.cxx
++++ b/gui/GroundControlPointsHelper.cxx
+@@ -522,7 +522,7 @@ void GroundControlPointsHelper::setGroundControlPoints(
+   worldWidget->clearPoints();
+ 
+   auto const& groundControlPoints = gcpm.ground_control_points();
+-  foreach (auto const& gcp, groundControlPoints)
++  for (auto const& gcp : groundControlPoints)
+   {
+     auto const& pos = gcp.second->loc();
+ 

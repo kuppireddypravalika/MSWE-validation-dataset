@@ -1,0 +1,29 @@
+From f380a7c5381f4160b909579fae8a74d95391a385 Mon Sep 17 00:00:00 2001
+From: Victor Coda <victor.coda@gmail.com>
+Date: Mon, 28 May 2018 23:39:49 +0300
+Subject: [PATCH] Use std::move() for optimization
+
+---
+ helpers/immediateRender.cpp | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/helpers/immediateRender.cpp b/helpers/immediateRender.cpp
+index 2d85345b6..8ef16a2b8 100644
+--- a/helpers/immediateRender.cpp
++++ b/helpers/immediateRender.cpp
+@@ -35,11 +35,10 @@ ImmediateRender::ImmediateRender(uint32_t maxVertexCount,
+     std::shared_ptr<RenderPass> renderPass,
+     std::shared_ptr<IAllocator> allocator /* nullptr */):
+     maxVertexCount(maxVertexCount),
+-    device(device),
+-    layout(layout),
+-    cache(cache),
+-    renderPass(renderPass),
+-    vertexBuffer(std::make_shared<VertexBuffer>(device, nullptr, sizeof(Vertex) * maxVertexCount, 0, allocator)),
++    device(std::move(device)),
++    layout(std::move(layout)),
++    cache(std::move(cache)),
++    renderPass(std::move(renderPass)),
+     allocator(std::move(allocator)),
+     vertexBuffer(std::make_shared<VertexBuffer>(this->device, nullptr, sizeof(Vertex) * maxVertexCount, 0, this->allocator)),
+     vertexShader(VertexShaderStage(createVertexShader(), "main")),

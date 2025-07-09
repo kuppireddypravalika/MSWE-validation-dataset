@@ -1,0 +1,23 @@
+From d489c0a4b128062c4e665e6f9f1e870a94796029 Mon Sep 17 00:00:00 2001
+From: Harald Lang <harald.lang@in.tum.de>
+Date: Thu, 9 May 2019 15:53:25 +0200
+Subject: [PATCH] fix fast path in skip_to(pos)
+
+---
+ src/dtl/bitmap/teb.hpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/dtl/bitmap/teb.hpp b/src/dtl/bitmap/teb.hpp
+index 890d6d07..bec0222b 100644
+--- a/src/dtl/bitmap/teb.hpp
++++ b/src/dtl/bitmap/teb.hpp
+@@ -972,7 +972,8 @@ class teb<optimization_level_>::iter {
+     // Fast path. If the skip distance is larger than the range spanned by
+     // the current subtree, we immediately start navigating downwards from the
+     // root node.  Thus, we do not need to compute the common ancestor node.
+-    if ((to_pos - pos_) > (1ull << (tree_height_ - perfect_levels_ + 1) )) {
++    const auto u = tree_height_ - (perfect_levels_ - 1);
++    if (pos_ >> u != to_pos >> u) {
+       nav_from_root_to(to_pos);
+       return;
+     }

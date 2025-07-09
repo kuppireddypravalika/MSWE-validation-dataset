@@ -1,0 +1,30 @@
+From b157cae61229abb1914a738fc7bbced3d3d1feeb Mon Sep 17 00:00:00 2001
+From: Ryan Santhirarajan <rsanth@ca.ibm.com>
+Date: Wed, 26 Apr 2017 16:43:06 -0400
+Subject: [PATCH] Disabled Inlined Array Copy on Power
+
+When the array length is not known at compile time, a sequence of close
+to 300 instructions is needed to cover all cases of the array copy.
+Inlining this is very costly in terms of performance for small arrays.
+Given that most of the arrays seen are a few dozen bytes, it is not
+worth inlining. When the length of the array is known at compile time,
+inlining can still occur.
+
+Signed-off-by: Ryan Santhirarajan <rsanth@ca.ibm.com>
+---
+ compiler/p/codegen/OMRTreeEvaluator.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/compiler/p/codegen/OMRTreeEvaluator.cpp b/compiler/p/codegen/OMRTreeEvaluator.cpp
+index d1aeef5e5a..77ee4169f3 100644
+--- a/compiler/p/codegen/OMRTreeEvaluator.cpp
++++ b/compiler/p/codegen/OMRTreeEvaluator.cpp
+@@ -4576,7 +4576,7 @@ TR::Register *OMR::Power::TreeEvaluator::arraycopyEvaluator(TR::Node *node, TR::
+    bool  supportsVSX = (processor >= TR_PPCp8) && !disableVSXArrayCopy && TR::Compiler->target.cpu.getPPCSupportsVSX();
+ 
+    static bool disableLEArrayCopyHelper  = (feGetEnv("TR_disableLEArrayCopyHelper") != NULL);
+-   static bool disableVSXArrayCopyInlining = (feGetEnv("TR_disableVSXArrayCopyInlining") != NULL);
++   static bool disableVSXArrayCopyInlining = (feGetEnv("TR_enableVSXArrayCopyInlining") == NULL); // Disabling due to a performance regression
+ 
+    bool  supportsLEArrayCopy = !disableLEArrayCopyHelper && TR::Compiler->target.cpu.isLittleEndian() && TR::Compiler->target.cpu.hasFPU();
+ 

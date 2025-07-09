@@ -1,0 +1,28 @@
+From 0f5650376d857f14eb7a28d285a7f0d3304c8ea4 Mon Sep 17 00:00:00 2001
+From: Ghabry <gabriel+github@mastergk.de>
+Date: Fri, 6 May 2016 17:31:34 +0200
+Subject: [PATCH] Fix fmmidi speed issues for different buffer sizes
+
+---
+ src/decoder_fmmidi.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/decoder_fmmidi.cpp b/src/decoder_fmmidi.cpp
+index f89c45af20..ff6567c30e 100644
+--- a/src/decoder_fmmidi.cpp
++++ b/src/decoder_fmmidi.cpp
+@@ -90,10 +90,12 @@ int FmMidiDecoder::GetTicks() {
+ }
+ 
+ int FmMidiDecoder::FillBuffer(uint8_t* buffer, int length) {
+-	double delta = (double)2048 / (frequency * pitch);
++	size_t samples = (size_t)length / sizeof(int_least16_t) / 2;
++
++	double delta = (double)samples / (frequency * pitch);
+ 
+ 	seq->play(mtime, this);
+-	synthesize(reinterpret_cast<int_least16_t*>(buffer), (size_t)length / sizeof(int_least16_t) / 2, frequency * pitch);
++	synthesize(reinterpret_cast<int_least16_t*>(buffer), samples, frequency * pitch);
+ 	mtime += delta;
+ 
+ 	return length;

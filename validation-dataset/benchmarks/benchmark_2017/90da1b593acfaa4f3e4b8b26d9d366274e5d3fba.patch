@@ -1,0 +1,34 @@
+From 90da1b593acfaa4f3e4b8b26d9d366274e5d3fba Mon Sep 17 00:00:00 2001
+From: Tristan Brindle <t.c.brindle@gmail.com>
+Date: Thu, 29 Aug 2024 16:52:39 +0100
+Subject: [PATCH] Fix constexpr checked_neg() with MSVC
+
+It seems like MSVC doesn't consider -INT_MIN to overflow even in constexpr mode.
+
+This version generates better code with Clang and GCC anyway, so that's good.
+---
+ include/flux/core/numeric.hpp | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
+
+diff --git a/include/flux/core/numeric.hpp b/include/flux/core/numeric.hpp
+index 437f7971..4e41f1e9 100644
+--- a/include/flux/core/numeric.hpp
++++ b/include/flux/core/numeric.hpp
+@@ -498,13 +498,11 @@ struct checked_neg_fn {
+                               std::source_location loc = std::source_location::current()) const
+         -> T
+     {
+-        // If T is at least as large as int, we already get a check
+-        // when in constant evaluation
+-        if ((!std::is_constant_evaluated() || (sizeof(T) < sizeof(int))) &&
+-            val == std::numeric_limits<T>::lowest()) {
+-            flux::runtime_error("overflow in signed negation", loc);
++        auto [r, o] = overflowing_neg_fn{}(val);
++        if (o) {
++            flux::runtime_error("Overflow in signed negation", loc);
+         }
+-        return unchecked_neg_fn{}(val);
++        return r;
+     }
+ };
+ 

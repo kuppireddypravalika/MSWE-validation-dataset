@@ -1,0 +1,24 @@
+From 208f8a626028ed2af0322fa559f0e6fcdcbc152f Mon Sep 17 00:00:00 2001
+From: mb <mb@plaxis.com>
+Date: Thu, 23 May 2019 16:23:22 +0200
+Subject: [PATCH] Obtain column beforehand to avoid one vector access in the
+ loop.
+
+---
+ src/getfem/bgeot_poly_composite.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/getfem/bgeot_poly_composite.h b/src/getfem/bgeot_poly_composite.h
+index 2546bbad9..38dce95cb 100644
+--- a/src/getfem/bgeot_poly_composite.h
++++ b/src/getfem/bgeot_poly_composite.h
+@@ -131,7 +131,8 @@ namespace bgeot {
+     const base_matrix &M, const ITER &it, const base_node &p1, base_node &p2) {
+     for (dim_type d = 0; d < p2.size(); ++d) {
+       p2[d] = 0;
+-      for (dim_type i = 0; i < p1.size(); ++i) p2[d] += M(i, d) * (*(it + i) - p1[i]);
++      auto &col = mat_col(M, d);
++      for (dim_type i = 0; i < p1.size(); ++i) p2[d] += col[i] * (*(it + i) - p1[i]);
+     }
+   }
+ 

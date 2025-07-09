@@ -1,0 +1,23 @@
+From 0ecc4cf7a4f0cdb63d1167784fe3f634e0a14299 Mon Sep 17 00:00:00 2001
+From: Stephen G Tuggy <sgt@stephengtuggy.com>
+Date: Fri, 23 Oct 2020 09:21:16 -0700
+Subject: [PATCH] CSopcodecollider.cpp: pairs.resize() instead of
+ pairs.reserve()
+
+---
+ engine/src/cmd/collide2/CSopcodecollider.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/engine/src/cmd/collide2/CSopcodecollider.cpp b/engine/src/cmd/collide2/CSopcodecollider.cpp
+index a344523d20..7f5a0cf28a 100644
+--- a/engine/src/cmd/collide2/CSopcodecollider.cpp
++++ b/engine/src/cmd/collide2/CSopcodecollider.cpp
+@@ -292,7 +292,7 @@ void csOPCODECollider::CopyCollisionPairs(csOPCODECollider* col1,
+     Point* vertholder1 = col2->vertholder;
+     int j;
+     size_t oldlen = pairs.size();
+-    pairs.reserve(oldlen + N_pairs);
++    pairs.resize(oldlen + N_pairs);
+ 
+     for (unsigned int i = 0 ; i < N_pairs ; ++i) {
+         j = 3 * colPairs[i].id0;

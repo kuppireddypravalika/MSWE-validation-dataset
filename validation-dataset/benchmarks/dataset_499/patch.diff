@@ -1,0 +1,22 @@
+From c47676e3a846efa3f83f674d7670562a0eead312 Mon Sep 17 00:00:00 2001
+From: Dmitry Tsarevich <dimhotepus@gmail.com>
+Date: Thu, 24 Sep 2020 21:48:02 +0300
+Subject: [PATCH] [perf] Emplace vertex instead of insert
+
+---
+ src/xrAICore/Navigation/graph_abstract_inline.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/xrAICore/Navigation/graph_abstract_inline.h b/src/xrAICore/Navigation/graph_abstract_inline.h
+index 3e1c0ccb5b6..52d7242f643 100644
+--- a/src/xrAICore/Navigation/graph_abstract_inline.h
++++ b/src/xrAICore/Navigation/graph_abstract_inline.h
+@@ -25,7 +25,7 @@ TEMPLATE_SPECIALIZATION
+ IC void CAbstractGraph::add_vertex(const _data_type& data, const _vertex_id_type& vertex_id)
+ {
+     VERIFY(!vertex(vertex_id));
+-    m_vertices.insert(std::make_pair(vertex_id, xr_new<CVertex>(data, vertex_id, &m_edge_count)));
++    m_vertices.emplace(vertex_id, xr_new<CVertex>(data, vertex_id, &m_edge_count));
+ }
+ 
+ TEMPLATE_SPECIALIZATION

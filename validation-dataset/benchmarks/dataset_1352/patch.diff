@@ -1,0 +1,24 @@
+From ade094e5e1fe99a051c761f54ea0d3bc10854660 Mon Sep 17 00:00:00 2001
+From: jcid <devnull@localhost>
+Date: Wed, 18 Jun 2008 14:54:56 +0200
+Subject: [PATCH] - Made https dpi flush after sending data (faster for
+ dialups).
+
+---
+ dpi/https.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/dpi/https.c b/dpi/https.c
+index bbfc7ae46..c9c8c78c7 100644
+--- a/dpi/https.c
++++ b/dpi/https.c
+@@ -251,7 +251,8 @@ static void yes_ssl_support(void)
+       /*Send remaining data*/
+ 
+       while ((retval = SSL_read(ssl_connection, buf, 4096)) > 0 ){
+-         sock_handler_write(sh, 0, buf, (size_t)retval);
++         /* flush is good for dialup speed */
++         sock_handler_write(sh, 1, buf, (size_t)retval);
+       }
+    }
+ 

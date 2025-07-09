@@ -1,0 +1,22 @@
+From 0a3ad006b7b69cedacdf1c4995071159d1a83ee2 Mon Sep 17 00:00:00 2001
+From: drmortalwombat <90205530+drmortalwombat@users.noreply.github.com>
+Date: Sun, 22 Oct 2023 19:50:26 +0200
+Subject: [PATCH] Fix simple struct member optimization for array cases
+
+---
+ oscar64/InterCodeGenerator.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/oscar64/InterCodeGenerator.cpp b/oscar64/InterCodeGenerator.cpp
+index efd1855..9cbc742 100644
+--- a/oscar64/InterCodeGenerator.cpp
++++ b/oscar64/InterCodeGenerator.cpp
+@@ -1396,7 +1396,7 @@ void InterCodeGenerator::CopyStructSimple(InterCodeProcedure* proc, Expression *
+ 		Declaration* dec = vl.mType->mParams;
+ 		while (dec)
+ 		{
+-			if (dec->mType == DT_ELEMENT && !(dec->mFlags & DTF_STATIC))
++			if (dec->mType == DT_ELEMENT && !(dec->mFlags & DTF_STATIC) && dec->mBase->IsSimpleType())
+ 			{
+ 				mdec = dec->mBase;
+ 				ne++;

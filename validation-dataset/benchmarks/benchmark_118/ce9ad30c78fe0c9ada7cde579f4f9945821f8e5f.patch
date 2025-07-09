@@ -1,0 +1,31 @@
+From ce9ad30c78fe0c9ada7cde579f4f9945821f8e5f Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Mon, 4 May 2015 13:43:02 +0200
+Subject: [PATCH] QQuaternion: optimize op*
+
+Swap subexpressions around so the expressions involving w
+(the first member in memory order) execute first.
+
+And no, compilers don't do that automatically. Well, GCC 4.9 doesn't.
+
+Change-Id: I918ecc27a9ac9775fa91968c0548d182d7ad28e3
+Reviewed-by: Sean Harmer <sean.harmer@kdab.com>
+---
+ src/gui/math3d/qquaternion.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/gui/math3d/qquaternion.h b/src/gui/math3d/qquaternion.h
+index 1fbd8b826c4..5b0006ac567 100644
+--- a/src/gui/math3d/qquaternion.h
++++ b/src/gui/math3d/qquaternion.h
+@@ -240,9 +240,9 @@ inline QQuaternion &QQuaternion::operator*=(float factor)
+ 
+ inline const QQuaternion operator*(const QQuaternion &q1, const QQuaternion& q2)
+ {
+-    float ww = (q1.zp + q1.xp) * (q2.xp + q2.yp);
+     float yy = (q1.wp - q1.yp) * (q2.wp + q2.zp);
+     float zz = (q1.wp + q1.yp) * (q2.wp - q2.zp);
++    float ww = (q1.zp + q1.xp) * (q2.xp + q2.yp);
+     float xx = ww + yy + zz;
+     float qq = 0.5 * (xx + (q1.zp - q1.xp) * (q2.xp - q2.yp));
+ 

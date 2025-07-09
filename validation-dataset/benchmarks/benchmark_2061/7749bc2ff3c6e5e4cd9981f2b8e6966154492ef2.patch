@@ -1,0 +1,32 @@
+From 7749bc2ff3c6e5e4cd9981f2b8e6966154492ef2 Mon Sep 17 00:00:00 2001
+From: Roman Lebedev <lebedev.ri@gmail.com>
+Date: Sun, 30 Oct 2016 10:41:23 +0300
+Subject: [PATCH] BitPumpMSB: peekBitsNoFill(): don't load uint32 from
+ misaligned addresses.
+
+When loading NEF:
+0x7ffc93af4e49: note: pointer points here
+ 5c 33 d6  f2 ea fb ea 00 00 00 00  10 24 21 f3 45 7f 00 00  f4 e0 ff 00 60 55 00 00  0c 00 00 00 00
+              ^
+/home/lebedevri/darktable/src/external/rawspeed/RawSpeed/BitPumpMSB.h:53:51: runtime error: load of misaligned address 0x7ffc93af4e4a for type 'uint32', which requires 4 byte alignment
+0x7ffc93af4e4a: note: pointer points here
+ 33 d6  f2 ea fb ea 00 00 00 00  10 24 21 f3 45 7f 00 00  f4 e0 ff 00 60 55 00 00  0c 00 00 00 00 00
+              ^
+---
+ RawSpeed/BitPumpMSB.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/RawSpeed/BitPumpMSB.h b/RawSpeed/BitPumpMSB.h
+index 25e6df1..d5f1a8c 100644
+--- a/RawSpeed/BitPumpMSB.h
++++ b/RawSpeed/BitPumpMSB.h
+@@ -50,7 +50,8 @@ class BitPumpMSB
+  __inline uint32 peekBitsNoFill( uint32 nbits )
+  {
+    int shift = mLeft-nbits;
+-   uint32 ret = *(uint32*)&current_buffer[shift>>3];
++   uint32 ret;
++   memcpy(&ret, (uint32*)&current_buffer[shift>>3], sizeof(uint32));
+    ret >>= shift & 7;
+    return ret & ((1 << nbits) - 1);
+  }

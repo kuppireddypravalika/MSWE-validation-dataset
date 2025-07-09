@@ -1,0 +1,22 @@
+From dfc9c5d7362aed12b60c3e835e10089fe94e25f4 Mon Sep 17 00:00:00 2001
+From: Zachary Ferguson <zfergus@nyu.edu>
+Date: Thu, 19 Jan 2023 04:14:57 -0500
+Subject: [PATCH] reduce split culling activation
+
+---
+ src/polyfem/mesh/remesh/WildRemesher.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/polyfem/mesh/remesh/WildRemesher.cpp b/src/polyfem/mesh/remesh/WildRemesher.cpp
+index 19d52c6412..6aa0cbaafd 100644
+--- a/src/polyfem/mesh/remesh/WildRemesher.cpp
++++ b/src/polyfem/mesh/remesh/WildRemesher.cpp
+@@ -69,7 +69,7 @@ namespace polyfem::mesh
+ 		const double top_element_threshold = sorted_energies[int(sorted_energies.size() * threshold)];
+ 		const double bottom_element_threshold = sorted_energies[int(sorted_energies.size() * (1 - threshold))];
+ 
+-		const double top_threshold = std::max(std::min(top_energy_threshold, top_element_threshold), 1e-12);
++		const double top_threshold = std::max(std::min(top_energy_threshold, top_element_threshold), std::min(1e-12, split_tol));
+ 		const double bottom_threshold = bottom_energy_threshold;
+ 		assert(bottom_threshold < top_threshold);
+ 

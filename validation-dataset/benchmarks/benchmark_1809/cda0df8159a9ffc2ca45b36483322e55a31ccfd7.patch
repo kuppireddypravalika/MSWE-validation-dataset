@@ -1,0 +1,24 @@
+From cda0df8159a9ffc2ca45b36483322e55a31ccfd7 Mon Sep 17 00:00:00 2001
+From: Jeroen Keiren <j.j.a.keiren@tue.nl>
+Date: Thu, 17 Apr 2008 17:58:54 +0000
+Subject: [PATCH] Use optimized or_ in lpsbinary. This removes annoying false
+ disjuncts from the tool output.
+
+git-svn-id: https://svn.win.tue.nl/repos/MCRL2/trunk@4449 21252fe5-60e8-0310-8ff0-c1ae1001594e
+---
+ libraries/lps/source/binary.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libraries/lps/source/binary.cpp b/libraries/lps/source/binary.cpp
+index 51f575cee4..1a5816032c 100644
+--- a/libraries/lps/source/binary.cpp
++++ b/libraries/lps/source/binary.cpp
+@@ -321,7 +321,7 @@ data_assignment_list replace_enumerated_parameter_in_data_assignment(const data_
+       {
+         if (!elts.empty())
+         {
+-          r = or_(r, data::data_expr::equal_to(arg, elts.front()));
++          r = optimized::or_(r, data::data_expr::equal_to(arg, elts.front()));
+           elts = pop_front(elts);
+         }
+       }

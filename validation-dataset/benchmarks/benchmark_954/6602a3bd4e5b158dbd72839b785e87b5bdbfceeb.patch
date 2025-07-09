@@ -1,0 +1,36 @@
+From 6602a3bd4e5b158dbd72839b785e87b5bdbfceeb Mon Sep 17 00:00:00 2001
+From: JamesKingdon <jkingdon@ca.ibm.com>
+Date: Mon, 24 Jul 2017 15:51:56 -0400
+Subject: [PATCH] Only run the unimportant block test at <=warm
+
+It was found that the test for unimportant blocks based on block
+frequency in TR_LoopVersioner::detectChecksToBeEliminated was
+detrimental to performance at higher optimisation levels. An
+additional test was added to restrict the code path to optlevels
+warm and lower. The new behaviour is gated by the Xjit option
+enableAggressiveLoopVersioning added by PR #1369
+
+Signed-off-by: JamesKingdon <jkingdon@ca.ibm.com>
+---
+ compiler/optimizer/LoopVersioner.cpp | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/compiler/optimizer/LoopVersioner.cpp b/compiler/optimizer/LoopVersioner.cpp
+index a592a48510..a9a33a9e6e 100644
+--- a/compiler/optimizer/LoopVersioner.cpp
++++ b/compiler/optimizer/LoopVersioner.cpp
+@@ -3134,7 +3134,13 @@ bool TR_LoopVersioner::detectChecksToBeEliminated(TR_RegionStructure *whileLoop,
+          int32_t unimportantFrequencyRatio = unimportantFrequencyRatioStr ? atoi(unimportantFrequencyRatioStr) : 20;
+          int16_t blockFrequency = nextBlock->getFrequency();
+          int16_t loopFrequency = whileLoop->getEntryBlock()->getFrequency();
+-         if ( blockFrequency >= 0 // frequency must be valid
++
++         // If the aggressive loop versioning flag is set, only do the unimportant block test
++         // at lower optlevels
++         bool aggressive = TR::Options::getCmdLineOptions()->getOption(TR_EnableAggressiveLoopVersioning);
++
++         if ( (!aggressive || comp()->getMethodHotness() <= warm)
++              && blockFrequency >= 0 // frequency must be valid
+               && blockFrequency < loopFrequency / unimportantFrequencyRatio
+               && performTransformation(comp(), "%sDisregard unimportant block_%d frequency %d < loop %d frequency %d\n",
+                  OPT_DETAILS_LOOP_VERSIONER, nextBlock->getNumber(), blockFrequency, whileLoop->getNumber(), loopFrequency)

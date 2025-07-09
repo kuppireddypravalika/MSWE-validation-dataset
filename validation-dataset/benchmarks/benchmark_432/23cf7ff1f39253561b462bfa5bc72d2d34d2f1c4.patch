@@ -1,0 +1,23 @@
+From 23cf7ff1f39253561b462bfa5bc72d2d34d2f1c4 Mon Sep 17 00:00:00 2001
+From: Fons Rademakers <Fons.Rademakers@cern.ch>
+Date: Tue, 15 Jan 2008 17:29:53 +0000
+Subject: [PATCH] use static_cast<> instead of reinterpret_cast<>.
+
+git-svn-id: http://root.cern.ch/svn/root/trunk@21720 27541ba8-7e3a-0410-8455-c3a389f83636
+---
+ rpdutils/src/net.cxx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/rpdutils/src/net.cxx b/rpdutils/src/net.cxx
+index a1e5caddf0366..7a357b930e984 100644
+--- a/rpdutils/src/net.cxx
++++ b/rpdutils/src/net.cxx
+@@ -304,7 +304,7 @@ int NetRecv(char *msg, int len, EMessageTypes &kind)
+    void *tmpbuf = 0;
+    if (NetRecvAllocate(tmpbuf, mlen, kind) < 0)
+       return -1;
+-   char *buf = reinterpret_cast<char *> (tmpbuf);
++   char *buf = static_cast<char *>(tmpbuf);
+ 
+    if (mlen == 0) {
+       msg[0] = 0;

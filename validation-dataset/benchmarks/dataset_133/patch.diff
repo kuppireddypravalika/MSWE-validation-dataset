@@ -1,0 +1,29 @@
+From 07ad40dd3f410f4d91369d37e1118468612667cb Mon Sep 17 00:00:00 2001
+From: Thomas Goyne <plorkyeran@aegisub.org>
+Date: Thu, 26 Sep 2013 16:10:20 -0700
+Subject: [PATCH] Improve audio loading progress reporting
+
+Even without the animation the reported progress was an average of 1.5
+blocks behind the actual progress, and with the animation it was two
+blocks behind. Assuming constant-speed audio decoding it should now be
+nearly accurate (it still ignores that the last block may be smaller
+than the rest).
+---
+ aegisub/src/audio_provider_ram.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/aegisub/src/audio_provider_ram.cpp b/aegisub/src/audio_provider_ram.cpp
+index 9fd8dcffb..ba80eddf9 100644
+--- a/aegisub/src/audio_provider_ram.cpp
++++ b/aegisub/src/audio_provider_ram.cpp
+@@ -70,9 +70,9 @@ void RAMAudioProvider::FillCache(AudioProvider *source, agi::ProgressSink *ps) {
+ 
+ 	int64_t readsize = CacheBlockSize / source->GetBytesPerSample();
+ 	for (size_t i = 0; i < blockcache.size(); i++) {
++		ps->SetProgress(i + 1, blockcache.size());
+ 		source->GetAudio(&blockcache[i][0], i * readsize, std::min<int64_t>(readsize, num_samples - i * readsize));
+ 
+-		ps->SetProgress(i, blockcache.size() - 1);
+ 		if (ps->IsCancelled()) {
+ 			return;
+ 		}

@@ -1,0 +1,22 @@
+From 18b1677d5e1f30fa754300b7334353d317703b0a Mon Sep 17 00:00:00 2001
+From: Eugene Golushkov <e.golushkov@nospam-gmail.com>
+Date: Tue, 4 Oct 2022 20:07:11 +0200
+Subject: [PATCH] Fixed "Code readability and performance 'insert' -> 'emplace'
+ C++11 (#335)"
+
+---
+ OgreMain/src/OgreEdgeListBuilder.cpp | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/OgreMain/src/OgreEdgeListBuilder.cpp b/OgreMain/src/OgreEdgeListBuilder.cpp
+index 5586f1b5115..56a2703cbc7 100644
+--- a/OgreMain/src/OgreEdgeListBuilder.cpp
++++ b/OgreMain/src/OgreEdgeListBuilder.cpp
+@@ -392,7 +392,6 @@ namespace Ogre
+             // Hint: We can use quantize method for welding almost same position vertex fastest.
+             std::pair<CommonVertexMap::iterator, bool> inserted =
+                 mCommonVertexMap.emplace( vec, mVertices.size() );
+-            mCommonVertexMap.emplace( vec, mVertices.size() );
+             if( !inserted.second )
+             {
+                 // Already existing, return old one

@@ -1,0 +1,41 @@
+From 65fc468ff93b4ce609c46b8b1bfb3bfc304df5b6 Mon Sep 17 00:00:00 2001
+From: Matthieu Brucher <matthieu.brucher@gmail.com>
+Date: Sat, 21 Jul 2018 19:48:19 +0100
+Subject: [PATCH] Trying to add optimization passes
+
+---
+ ATK/Modelling/StaticModelFilter.cpp | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/ATK/Modelling/StaticModelFilter.cpp b/ATK/Modelling/StaticModelFilter.cpp
+index 775449c..aa5df5e 100644
+--- a/ATK/Modelling/StaticModelFilter.cpp
++++ b/ATK/Modelling/StaticModelFilter.cpp
+@@ -39,7 +39,10 @@ namespace fs=std::filesystem;
+ #include <llvm/ExecutionEngine/ExecutionEngine.h>
+ #include <llvm/ExecutionEngine/MCJIT.h>
+ #include <llvm/ExecutionEngine/SectionMemoryManager.h>
++#include <llvm/IR/DataLayout.h>
+ #include <llvm/IR/LLVMContext.h>
++#include <llvm/IR/PassManager.h>
++#include <llvm/Passes/PassBuilder.h>
+ #include <llvm/Support/MemoryBuffer.h>
+ #include <llvm/Support/TargetSelect.h>
+ #include <llvm/Support/raw_ostream.h>
+@@ -181,6 +184,16 @@ namespace ATK
+     }
+ 
+     std::unique_ptr<llvm::Module> module = action->takeModule();
++    if (!module)
++    {
++      throw ATK::RuntimeError("Failed to retrieve module");
++    }
++
++    llvm::PassBuilder passBuilder;
++    llvm::ModulePassManager modulePassManager = passBuilder.buildPerModuleDefaultPipeline(llvm::PassBuilder::OptimizationLevel::O3);
++    llvm::ModuleAnalysisManager moduleAnalysisManager;
++    passBuilder.registerModuleAnalyses(moduleAnalysisManager);
++    modulePassManager.run(*module, moduleAnalysisManager);
+     
+     llvm::EngineBuilder builder(std::move(module));
+     builder.setMCJITMemoryManager(std::make_unique<llvm::SectionMemoryManager>());

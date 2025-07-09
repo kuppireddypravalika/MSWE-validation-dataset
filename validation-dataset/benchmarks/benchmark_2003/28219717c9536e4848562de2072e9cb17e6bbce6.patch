@@ -1,0 +1,22 @@
+From 28219717c9536e4848562de2072e9cb17e6bbce6 Mon Sep 17 00:00:00 2001
+From: Tobias Grosser <tobias@grosser.es>
+Date: Mon, 21 Nov 2016 09:07:30 +0000
+Subject: [PATCH] [ScopDetect] Use mayReadOrWriteMemory to shorten condition
+
+---
+ polly/lib/Analysis/ScopDetection.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/polly/lib/Analysis/ScopDetection.cpp b/polly/lib/Analysis/ScopDetection.cpp
+index 336ae504fdb1..70fa3aaf2645 100644
+--- a/polly/lib/Analysis/ScopDetection.cpp
++++ b/polly/lib/Analysis/ScopDetection.cpp
+@@ -943,7 +943,7 @@ bool ScopDetection::isValidInstruction(Instruction &Inst,
+     return invalid<ReportFuncCall>(Context, /*Assert=*/true, &Inst);
+   }
+ 
+-  if (!Inst.mayWriteToMemory() && !Inst.mayReadFromMemory()) {
++  if (!Inst.mayReadOrWriteMemory()) {
+     if (!isa<AllocaInst>(Inst))
+       return true;
+ 

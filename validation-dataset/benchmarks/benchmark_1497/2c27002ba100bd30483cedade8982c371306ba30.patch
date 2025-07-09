@@ -1,0 +1,28 @@
+From 2c27002ba100bd30483cedade8982c371306ba30 Mon Sep 17 00:00:00 2001
+From: Paul Russo <russo@fnal.gov>
+Date: Mon, 14 Jul 2008 16:52:26 +0000
+Subject: [PATCH] The CTOR_SETGVP bytecode generation was moving the previously
+ generated LD_FUNC instruction down by six bytes, but it should have only
+ moved it down by four bytes (the size of a CTOR_SETGVP instruction).
+
+-- Paul Russo
+
+
+git-svn-id: http://root.cern.ch/svn/root/trunk@24819 27541ba8-7e3a-0410-8455-c3a389f83636
+---
+ cint/cint7/src/var.cxx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/cint/cint7/src/var.cxx b/cint/cint7/src/var.cxx
+index 308af40912b27..e71c19b7bf7e5 100644
+--- a/cint/cint7/src/var.cxx
++++ b/cint/cint7/src/var.cxx
+@@ -4196,7 +4196,7 @@ static G__value Cint::Internal::G__allocvariable(G__value result, G__value para[
+                // Move LD_FUNC instruction
+                G__inc_cp_asm(-6, 0);
+                for (int i = 5; i > -1; --i) {
+-                  G__asm_inst[G__asm_cp+i+5] = G__asm_inst[G__asm_cp+i];
++                  G__asm_inst[G__asm_cp+i+4] = G__asm_inst[G__asm_cp+i];
+                }
+ #ifdef G__ASM_DBG
+                if (G__asm_dbg) {

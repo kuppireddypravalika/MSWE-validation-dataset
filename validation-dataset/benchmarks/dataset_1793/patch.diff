@@ -1,0 +1,28 @@
+From 9655c888627dc81e1006822a773d242e770a909d Mon Sep 17 00:00:00 2001
+From: David Schulz <david.schulz@qt.io>
+Date: Fri, 24 Feb 2023 07:32:23 +0100
+Subject: [PATCH] LanguageClient: do not delay requesting symbols in the
+ locator filter
+
+This qualifies as a user interaction and the results should be collected
+as fast as possible.
+
+Change-Id: Ia83893fab87c253b9939cfee928aa12866087aa0
+Reviewed-by: Christian Kandeler <christian.kandeler@qt.io>
+---
+ src/plugins/languageclient/locatorfilter.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/plugins/languageclient/locatorfilter.cpp b/src/plugins/languageclient/locatorfilter.cpp
+index 2c933c12204f..ddcfc6b43bc7 100644
+--- a/src/plugins/languageclient/locatorfilter.cpp
++++ b/src/plugins/languageclient/locatorfilter.cpp
+@@ -171,7 +171,7 @@ void DocumentLocatorFilter::prepareSearch(const QString &/*entry*/)
+     QMutexLocker locker(&m_mutex);
+     if (m_symbolCache && !m_currentSymbols.has_value()) {
+         locker.unlock();
+-        m_symbolCache->requestSymbols(m_currentUri, Schedule::Delayed);
++        m_symbolCache->requestSymbols(m_currentUri, Schedule::Now);
+     }
+ }
+ 

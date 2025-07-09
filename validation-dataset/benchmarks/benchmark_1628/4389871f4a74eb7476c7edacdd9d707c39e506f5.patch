@@ -1,0 +1,26 @@
+From 4389871f4a74eb7476c7edacdd9d707c39e506f5 Mon Sep 17 00:00:00 2001
+From: Philippe Canal <pcanal@fnal.gov>
+Date: Tue, 11 Dec 2012 10:20:02 +0000
+Subject: [PATCH] Move the qualifiers on the outer type (avoid 'std::const
+ string'\!)
+
+git-svn-id: http://root.cern.ch/svn/root/trunk@47963 27541ba8-7e3a-0410-8455-c3a389f83636
+---
+ core/metautils/src/TMetaUtils.cxx | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/core/metautils/src/TMetaUtils.cxx b/core/metautils/src/TMetaUtils.cxx
+index e55abd2cd11fa..a862bfd36b2f9 100644
+--- a/core/metautils/src/TMetaUtils.cxx
++++ b/core/metautils/src/TMetaUtils.cxx
+@@ -873,6 +873,10 @@ clang::QualType GetFullyQualifiedType(const clang::ASTContext& Ctx,
+       // Create a nested name specifier if needed (i.e. if the decl context
+       // is not the global scope.
+       prefix = CreateNestedNameSpecifierForScopeOf(Ctx,QT.getTypePtr());
++
++      // move the qualifiers on the outer type (avoid 'std::const string'!)
++      prefix_qualifiers = QT.getLocalQualifiers();
++      QT = clang::QualType(QT.getTypePtr(),0);
+    }
+    
+    // In case of template specializations iterate over the arguments and 

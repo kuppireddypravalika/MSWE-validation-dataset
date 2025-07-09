@@ -1,0 +1,23 @@
+From db3696da01b9739c3f473b6439472a909fcca6bd Mon Sep 17 00:00:00 2001
+From: Romain Janvier <romain.janvier@hotmail.fr>
+Date: Tue, 16 Apr 2024 10:09:56 +0200
+Subject: [PATCH] Use selfAdjointEigenSolver
+
+covariance matrix is selfAdjoint. The solver is slighty faster and have a better precision.
+---
+ include/pca.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/pca.hpp b/include/pca.hpp
+index 18f225e..906c0e7 100644
+--- a/include/pca.hpp
++++ b/include/pca.hpp
+@@ -73,7 +73,7 @@ static inline PCAResult<real_t> pca_from_pointcloud(const PointCloud<real_t>& cl
+     const Eigen::Matrix<real_t, 3, 3> cov = (centered_cloud.adjoint() * centered_cloud) / real_t(cloud.rows());
+ 
+     // Compute the eigenvalues and eigenvectors of the covariance
+-    Eigen::EigenSolver<Eigen::Matrix<real_t, 3, 3>> es(cov);
++    Eigen::SelfAdjointEigenSolver<Eigen::Matrix<real_t, 3, 3>> es(cov);
+ 
+     // Sort the values and vectors in order of increasing eigenvalue
+     const auto ev = es.eigenvalues().real();

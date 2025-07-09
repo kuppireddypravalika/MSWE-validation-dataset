@@ -1,0 +1,28 @@
+From ffa211a8c723d2c7893e329c328442a9bd276abe Mon Sep 17 00:00:00 2001
+From: Asias He <asias@scylladb.com>
+Date: Tue, 22 Jun 2021 14:44:56 +0800
+Subject: [PATCH] repair: Avoid copy rows in apply_rows_on_master_in_thread
+
+The rows are not used after the call to to_repair_rows_list. Use
+std::move() to avoid copying.
+
+Fixes #8902
+
+Closes #8903
+---
+ repair/row_level.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/repair/row_level.cc b/repair/row_level.cc
+index 1db694827481..4db1fc9dacc7 100644
+--- a/repair/row_level.cc
++++ b/repair/row_level.cc
+@@ -1379,7 +1379,7 @@ class repair_meta {
+         if (rows.empty()) {
+             return;
+         }
+-        auto row_diff = to_repair_rows_list(rows).get0();
++        auto row_diff = to_repair_rows_list(std::move(rows)).get0();
+         auto sz = get_repair_rows_size(row_diff).get0();
+         stats().rx_row_bytes += sz;
+         stats().rx_row_nr += row_diff.size();

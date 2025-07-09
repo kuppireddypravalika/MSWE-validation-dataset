@@ -1,0 +1,32 @@
+From 5a291761e01d70b1fbf4f2e1ffe481cbf5ebc7cd Mon Sep 17 00:00:00 2001
+From: Anton Kudryavtsev <anton.kudryavtsev@vk.team>
+Date: Fri, 25 Aug 2023 17:32:15 +0300
+Subject: [PATCH] QNAM: use _ba literals more
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+to reduce allocations
+
+Change-Id: I4e03d7d51380e14b4c2aa50c5836d09f2aaf608d
+Reviewed-by: Mårten Nordheim <marten.nordheim@qt.io>
+---
+ src/network/access/qnetworkaccessmanager.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/network/access/qnetworkaccessmanager.cpp b/src/network/access/qnetworkaccessmanager.cpp
+index b83f2561d38b..1c604a01ecba 100644
+--- a/src/network/access/qnetworkaccessmanager.cpp
++++ b/src/network/access/qnetworkaccessmanager.cpp
+@@ -1676,9 +1676,9 @@ QNetworkRequest QNetworkAccessManagerPrivate::prepareMultipart(const QNetworkReq
+ 
+     // add MIME-Version header if not there already (we must include the header
+     // if the message conforms to RFC 2045, see section 4 of that RFC)
+-    QByteArray mimeHeader("MIME-Version");
++    auto mimeHeader = "MIME-Version"_ba;
+     if (!request.hasRawHeader(mimeHeader))
+-        newRequest.setRawHeader(mimeHeader, QByteArray("1.0"));
++        newRequest.setRawHeader(mimeHeader, "1.0"_ba);
+ 
+     QIODevice *device = multiPart->d_func()->device;
+     if (!device->isReadable()) {

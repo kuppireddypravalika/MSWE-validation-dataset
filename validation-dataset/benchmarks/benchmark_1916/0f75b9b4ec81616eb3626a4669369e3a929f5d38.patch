@@ -1,0 +1,31 @@
+From 0f75b9b4ec81616eb3626a4669369e3a929f5d38 Mon Sep 17 00:00:00 2001
+From: Julian Stecklina <jsteckli@os.inf.tu-dresden.de>
+Date: Tue, 19 Apr 2011 17:51:45 +0200
+Subject: [PATCH] Force stack and memory to be 16-byte aligned and tell the
+ compiler about it (for SSE). (s0 binary shrinks 12K!)
+
+---
+ vancouver/apps/sigma0/sigma0.cc | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/vancouver/apps/sigma0/sigma0.cc b/vancouver/apps/sigma0/sigma0.cc
+index 1432a8e1..5f31029e 100644
+--- a/vancouver/apps/sigma0/sigma0.cc
++++ b/vancouver/apps/sigma0/sigma0.cc
+@@ -480,11 +480,14 @@ struct Sigma0 : public Sigma0Base, public NovaProgram, public StaticReceiver<Sig
+ 
+ 
+   /**
+-   * Request memory from the memmap.
++   * Request memory from the memmap. Minimum alignment is 16-bytes
++   * (for SSE stuff).
+    */
+   static void *sigma0_memalloc(unsigned long size, unsigned long align) {
+     if (!size) return 0;
+-    if (align < sizeof(unsigned long)) align = sizeof(unsigned long);
++    if (align < 0xF) align = 0xF;
++
++    size = (size + 0xF) & ~0xF;
+ 
+     unsigned long pmem;
+     {

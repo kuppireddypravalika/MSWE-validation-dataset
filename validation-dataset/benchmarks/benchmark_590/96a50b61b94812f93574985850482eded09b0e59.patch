@@ -1,0 +1,26 @@
+From 96a50b61b94812f93574985850482eded09b0e59 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Thu, 31 Dec 2015 20:48:19 +0000
+Subject: [PATCH] MITAB: avoid int32 overflow in TABIDFile::Open()
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@32615 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/ogr/ogrsf_frmts/mitab/mitab_idfile.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/gdal/ogr/ogrsf_frmts/mitab/mitab_idfile.cpp b/gdal/ogr/ogrsf_frmts/mitab/mitab_idfile.cpp
+index 20918dfdddee..e2428fd524eb 100644
+--- a/gdal/ogr/ogrsf_frmts/mitab/mitab_idfile.cpp
++++ b/gdal/ogr/ogrsf_frmts/mitab/mitab_idfile.cpp
+@@ -208,7 +208,10 @@ int TABIDFile::Open(const char *pszFname, TABAccess eAccess)
+             return -1;
+         }
+ 
+-        m_nMaxId = (int)(sStatBuf.st_size/4);
++        if( static_cast<vsi_l_offset>(sStatBuf.st_size) > static_cast<vsi_l_offset>(INT_MAX / 4) )
++            m_nMaxId = INT_MAX / 4;
++        else
++            m_nMaxId = (int)(sStatBuf.st_size/4);
+         m_nBlockSize = MIN(1024, m_nMaxId*4);
+ 
+         /*-------------------------------------------------------------

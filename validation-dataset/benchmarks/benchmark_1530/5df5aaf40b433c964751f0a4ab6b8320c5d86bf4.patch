@@ -1,0 +1,23 @@
+From 5df5aaf40b433c964751f0a4ab6b8320c5d86bf4 Mon Sep 17 00:00:00 2001
+From: Mike Owen <mikeowen@llnl.gov>
+Date: Thu, 16 Nov 2017 16:34:37 -0800
+Subject: [PATCH] Dynamic scheduling works a bit better with lots (> 10) of
+ threads here.
+
+---
+ src/Neighbor/ConnectivityMap.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/Neighbor/ConnectivityMap.cc b/src/Neighbor/ConnectivityMap.cc
+index 8bafce0e6..0f9e59774 100644
+--- a/src/Neighbor/ConnectivityMap.cc
++++ b/src/Neighbor/ConnectivityMap.cc
+@@ -103,7 +103,7 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
+       vector<pair<int, Key>> keys_thread;
+ 
+       // Patch the traversal ordering and connectivity for this NodeList.
+-#pragma omp for
++#pragma omp for schedule(dynamic)
+       for (auto i = 0; i < numNodes; ++i) {
+ 
+         // Should we patch this set of neighbors?

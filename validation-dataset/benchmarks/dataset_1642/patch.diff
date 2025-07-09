@@ -1,0 +1,30 @@
+From 238d8795b1484a0aeff81b2221e76a51b279f595 Mon Sep 17 00:00:00 2001
+From: Anton Kudryavtsev <anton.kudryavtsev@vk.team>
+Date: Mon, 4 Sep 2023 14:50:43 +0300
+Subject: [PATCH] qt_getImageTextFromDescription: use tokenize instead of split
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+to avoid creation of tmp list
+
+Change-Id: I53917263fe9e904596ccc5af6a72bb3d906b21dc
+Reviewed-by: Mårten Nordheim <marten.nordheim@qt.io>
+---
+ src/gui/image/qimage.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/gui/image/qimage.cpp b/src/gui/image/qimage.cpp
+index 91292d01d1f6..d913dfa2ec73 100644
+--- a/src/gui/image/qimage.cpp
++++ b/src/gui/image/qimage.cpp
+@@ -5764,8 +5764,7 @@ QMap<QString, QString> qt_getImageText(const QImage &image, const QString &descr
+ QMap<QString, QString> qt_getImageTextFromDescription(const QString &description)
+ {
+     QMap<QString, QString> text;
+-    const auto pairs = QStringView{description}.split(u"\n\n");
+-    for (const auto &pair : pairs) {
++    for (const auto &pair : QStringView{description}.tokenize(u"\n\n")) {
+         int index = pair.indexOf(u':');
+         if (index >= 0 && pair.indexOf(u' ') < index) {
+             if (!pair.trimmed().isEmpty())

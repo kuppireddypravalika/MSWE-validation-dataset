@@ -1,0 +1,34 @@
+From a9c1beed7a442da051b2e457940dda97cc7886c5 Mon Sep 17 00:00:00 2001
+From: Marcus Tillmanns <marcus.tillmanns@qt.io>
+Date: Fri, 2 Dec 2022 13:37:21 +0100
+Subject: [PATCH] iOS: Cache xcrun location
+
+runSimCtlCommand() is called quite often when the
+user is in the settings. Trying to start a command without
+a full path makes QtcProcess search for the file in all PATH
+directories every time.
+
+Change-Id: I7eac4226a74c78269ae66ab8d2a2af3589a98e36
+Reviewed-by: Eike Ziller <eike.ziller@qt.io>
+Reviewed-by: <github-actions-qt-creator@cristianadam.eu>
+---
+ src/plugins/ios/simulatorcontrol.cpp | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/plugins/ios/simulatorcontrol.cpp b/src/plugins/ios/simulatorcontrol.cpp
+index 742cbf60755..4e19bf734cc 100644
+--- a/src/plugins/ios/simulatorcontrol.cpp
++++ b/src/plugins/ios/simulatorcontrol.cpp
+@@ -72,7 +72,11 @@ static bool runCommand(const CommandLine &command, QString *stdOutput, QString *
+ static bool runSimCtlCommand(QStringList args, QString *output, QString *allOutput = nullptr)
+ {
+     args.prepend("simctl");
+-    return runCommand({"xcrun", args}, output, allOutput);
++
++    // Cache xcrun's path, as this function will be called often.
++    static FilePath xcrun = FilePath::fromString("xcrun").searchInPath();
++    QTC_ASSERT(!xcrun.isEmpty() && xcrun.isExecutableFile(), xcrun.clear(); return false);
++    return runCommand({xcrun, args}, output, allOutput);
+ }
+ 
+ static bool launchSimulator(const QString &simUdid) {

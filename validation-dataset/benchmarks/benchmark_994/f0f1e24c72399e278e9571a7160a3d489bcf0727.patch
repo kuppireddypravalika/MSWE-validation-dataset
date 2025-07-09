@@ -1,0 +1,23 @@
+From f0f1e24c72399e278e9571a7160a3d489bcf0727 Mon Sep 17 00:00:00 2001
+From: Filip Jeremic <fjeremic@ca.ibm.com>
+Date: Fri, 2 Nov 2018 16:00:43 -0400
+Subject: [PATCH] Use MINDISP macro instead of hardcoding 0
+
+Signed-off-by: Filip Jeremic <fjeremic@ca.ibm.com>
+---
+ compiler/z/codegen/OMRMemoryReference.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/compiler/z/codegen/OMRMemoryReference.cpp b/compiler/z/codegen/OMRMemoryReference.cpp
+index 4d0aecbdc3..cdf6e957a5 100644
+--- a/compiler/z/codegen/OMRMemoryReference.cpp
++++ b/compiler/z/codegen/OMRMemoryReference.cpp
+@@ -2948,7 +2948,7 @@ OMR::Z::MemoryReference::generateBinaryEncoding(uint8_t * cursor, TR::CodeGenera
+    // us to reach binary encoding without knowing a displacement will be large. A typical example of this is when 
+    // referencing stack symbols whose displacement will be unknown until the stack is mapped; an operation that happens
+    // after instruction selection and before binary encoding.
+-   if (displacement < 0 || displacement >= MAXDISP)
++   if (displacement < MINDISP || displacement >= MAXDISP)
+       {
+       auto longDisplacementMnemonic = TR::Instruction::opCodeCanBeAdjustedTo(instr->getOpCodeValue());
+ 

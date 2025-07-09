@@ -1,0 +1,29 @@
+From 2a2b7b47be6ee3ff3ebd20810614bdf481b60dc6 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Andreas=20Sch=C3=A4fer?= <gentryx@gmx.de>
+Date: Mon, 13 Feb 2017 15:25:44 +0100
+Subject: [PATCH] get rid of modulo operation in loop peeler
+
+---
+ src/storage/test/unit/unstructuredupdatefunctortest.h | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/src/storage/test/unit/unstructuredupdatefunctortest.h b/src/storage/test/unit/unstructuredupdatefunctortest.h
+index 8db608e71..a18decde1 100644
+--- a/src/storage/test/unit/unstructuredupdatefunctortest.h
++++ b/src/storage/test/unit/unstructuredupdatefunctortest.h
+@@ -112,13 +112,12 @@ class SimpleUnstructuredSoATestCell
+             sibling_short_vec_switch<SHORT_VEC_TYPE, 1>::VALUE
+             lfa_local_scalar;
+ 
+-        // fixme: get rid of % operator by using & with (SHORT_VEC_TYPE::ARITY - 1)
+         COUNTER_TYPE1 nextStop = *counter;
+-        COUNTER_TYPE1 remainder = *counter % SHORT_VEC_TYPE::ARITY;
++        COUNTER_TYPE1 remainder = *counter & (SHORT_VEC_TYPE::ARITY - 1);
+         if (remainder != 0) {
+             nextStop += SHORT_VEC_TYPE::ARITY - remainder;
+         }
+-        COUNTER_TYPE1 lastStop = end - end % SHORT_VEC_TYPE::ARITY;
++        COUNTER_TYPE1 lastStop = end - end & (SHORT_VEC_TYPE::ARITY - 1);
+ 
+         typedef UnstructuredSoANeighborhoodHelpers::WrappedNeighborhood<HOOD_OLD> WrappedHood;
+         WrappedHood wrappedHood(hoodOld);

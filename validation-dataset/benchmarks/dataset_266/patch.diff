@@ -1,0 +1,25 @@
+From 709c37d1feec815529b0f9123b4d5513418540fd Mon Sep 17 00:00:00 2001
+From: Alan Griffiths <alan@octopull.co.uk>
+Date: Tue, 24 Sep 2013 20:26:48 +0100
+Subject: [PATCH] Don't block waiting for the client
+
+---
+ examples/basic_server.cpp | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/examples/basic_server.cpp b/examples/basic_server.cpp
+index 9d5cd55ea6c..8ae2b672adc 100644
+--- a/examples/basic_server.cpp
++++ b/examples/basic_server.cpp
+@@ -46,10 +46,7 @@ struct ServerConfiguration : mir::examples::ServerConfiguration
+             char buffer[128] = {0};
+             sprintf(buffer, "fd://%d", the_connector()->client_socket_fd());
+             setenv("MIR_SOCKET", buffer, 1);
+-            std::cerr <<
+-                "$MIR_SOCKET=" << buffer <<
+-                ", launch=\"" << the_options()->get(launch_child_opt, "").c_str() << '\"' << std::endl;
+-            system(the_options()->get(launch_child_opt, "").c_str());
++            system((the_options()->get(launch_child_opt, "") + "&").c_str());
+         }
+     }
+ 

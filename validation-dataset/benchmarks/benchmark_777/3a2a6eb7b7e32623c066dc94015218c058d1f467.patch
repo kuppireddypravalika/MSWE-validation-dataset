@@ -1,0 +1,31 @@
+From 3a2a6eb7b7e32623c066dc94015218c058d1f467 Mon Sep 17 00:00:00 2001
+From: kmurray <k.murray@utoronto.ca>
+Date: Tue, 7 Jun 2016 16:18:33 -0400
+Subject: [PATCH] Fix unused input counting in
+ get_free_molecule_with_most_ext_inputs_for_cluster()
+
+Previously the number of used (instead of unused) inputs were counted.
+Since this function is only used as a fallback during packing (to pick
+unrelated logic to fill-up a cluster) it has a relatively small QoR
+impact.
+
+Quick checks show there is no significant impact on Qor with the VTR
+benchmarks, but there can be some reduction in DSP block usage on the
+Titan benchmarks (e.g. 47 to 44 DSP blocks on des90).
+---
+ vpr/SRC/pack/cluster.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/vpr/SRC/pack/cluster.c b/vpr/SRC/pack/cluster.c
+index be090284f51..2aeb792cb01 100755
+--- a/vpr/SRC/pack/cluster.c
++++ b/vpr/SRC/pack/cluster.c
+@@ -1125,7 +1125,7 @@ static t_pack_molecule *get_free_molecule_with_most_ext_inputs_for_cluster(
+ 
+ 	for (i = 0; i < cur_pb->pb_graph_node->num_input_pin_class; i++) {
+ 		for (j = 0; j < cur_pb->pb_graph_node->input_pin_class_size[i]; j++) {
+-			if (cur_pb->pb_stats->input_pins_used[i][j] != OPEN)
++			if (cur_pb->pb_stats->input_pins_used[i][j] == OPEN)
+ 				inputs_avail++;
+ 		}
+ 	}

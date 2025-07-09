@@ -1,0 +1,28 @@
+From b5c86cb8f6d4cebd1068a776b61c7b3350cffdea Mon Sep 17 00:00:00 2001
+From: Avi Kivity <avi@scylladb.com>
+Date: Thu, 22 Nov 2018 15:43:49 +0200
+Subject: [PATCH] reactor: use thread cputime clock for stall detection
+
+Using the thread cputime clock prevents false positives due to an overcommitted
+processor, and this improves the quality of the reports.
+
+It could also generate false negatives if system calls block (since the cputime
+clock is stopped when a thread switches contexts voluntarily), but these events
+are rarer these days and are better investigated using the other latency detector.
+---
+ src/core/reactor.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/core/reactor.cc b/src/core/reactor.cc
+index 31b4463cab7..c75fe9a3370 100644
+--- a/src/core/reactor.cc
++++ b/src/core/reactor.cc
+@@ -629,7 +629,7 @@ cpu_stall_detector::cpu_stall_detector(reactor* r, cpu_stall_detector_config cfg
+     sev.sigev_notify = SIGEV_THREAD_ID;
+     sev.sigev_signo = signal_number();
+     sev._sigev_un._tid = syscall(SYS_gettid);
+-    int err = timer_create(CLOCK_MONOTONIC, &sev, &_timer);
++    int err = timer_create(CLOCK_THREAD_CPUTIME_ID, &sev, &_timer);
+     if (err) {
+         throw std::system_error(std::error_code(err, std::system_category()));
+     }

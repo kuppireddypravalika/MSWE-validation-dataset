@@ -1,0 +1,45 @@
+From 4bbf086a883bc6ef9bdf1dd49d2f6ae69bf0958a Mon Sep 17 00:00:00 2001
+From: blacksun
+ <blacksun@r5936  blacksun  2019-06-24 19:44:37 +0200 (lun. 24 juin 2019)>
+Date: Tue, 2 Apr 2019 17:36:32 +0000
+Subject: [PATCH] Improvement : minimize the unwanted gap of the top right
+ folio of the view
+
+git-svn-id: svn+ssh://svn.tuxfamily.org/svnroot/qet/qet/trunk@5819 bfdf4180-ca20-0410-9c96-a3a8aa849046
+---
+ sources/elementsmover.cpp | 22 +++++++++++++++-------
+ 1 file changed, 15 insertions(+), 7 deletions(-)
+
+diff --git a/sources/elementsmover.cpp b/sources/elementsmover.cpp
+index d584e0ef22..4ea68f3227 100644
+--- a/sources/elementsmover.cpp
++++ b/sources/elementsmover.cpp
+@@ -124,13 +124,21 @@ void ElementsMover::continueMovement(const QPointF &movement) {
+ 	}
+ 	
+ 	// Move some conductors
+-	foreach(Conductor *conductor, m_moved_content.m_conductors_to_move) {
+-		conductor -> setPos(conductor -> pos() + movement);
+-	}
+-	
+-	// Recalcul the path of other conductors
+-	foreach(Conductor *conductor, m_moved_content.m_conductors_to_update) {
+-		conductor -> updatePath();
++	QList<Conductor *> c_list;
++	c_list.append(m_moved_content.m_conductors_to_move);
++	c_list.append(m_moved_content.m_conductors_to_update);
++
++	for (Conductor *c : c_list)
++	{
++			//Due to a weird behavior, we must to ensure that the position of the conductor is to (0,0).
++			//If not, in some unknown case the function QGraphicsScene::itemsBoundingRect() return a rectangle
++			//that take in acount the pos() of the conductor, even if the bounding rect returned by the conductor is not in the pos().
++			//For the user this situation appear when the top right of the folio is not at the top right of the graphicsview,
++			//but displaced to the right and/or bottom.
++		if (c->pos() != QPointF(0,0)) {
++			c->setPos(0,0);
++		}
++		c->updatePath();
+ 	}
+ }
+ 

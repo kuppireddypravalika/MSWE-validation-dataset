@@ -1,0 +1,38 @@
+From 987929ff9d6c32aaca522eb3d8b88d8f456fbeff Mon Sep 17 00:00:00 2001
+From: Manlio Morini <morinim@gmail.com>
+Date: Thu, 19 Jul 2012 19:33:37 +0200
+Subject: [PATCH] Faster unsafe_any_cast for double.h
+
+---
+ kernel/primitive/double.h | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/kernel/primitive/double.h b/kernel/primitive/double.h
+index 4dec4136..0a041a59 100644
+--- a/kernel/primitive/double.h
++++ b/kernel/primitive/double.h
+@@ -3,7 +3,7 @@
+  *  \file double.h
+  *  \remark This file is part of VITA.
+  *
+- *  Copyright (C) 2011 EOS di Manlio Morini.
++ *  Copyright (C) 2011, 2012 EOS di Manlio Morini.
+  *
+  *  This Source Code Form is subject to the terms of the Mozilla Public
+  *  License, v. 2.0. If a copy of the MPL was not distributed with this file,
+@@ -44,7 +44,14 @@ namespace vita
+     ///
+     /// Just a simple shortcut.
+     inline
+-    base_t cast(const boost::any &v) { return boost::any_cast<base_t>(v); }
++    base_t cast(const boost::any &v)
++    {
++#if defined(NDEBUG)
++      return boost::unsafe_any_cast<base_t>(v);
++#else
++      return boost::any_cast<base_t>(v);
++#endif
++    }
+ 
+     ///
+     /// It is assumed that the creation of floating-point constants is

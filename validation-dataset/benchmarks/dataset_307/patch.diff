@@ -1,0 +1,30 @@
+From 82c803f5cf4881f86329e04486b9c2547a374289 Mon Sep 17 00:00:00 2001
+From: James Almer <jamrial@gmail.com>
+Date: Sat, 17 Aug 2013 14:48:33 -0300
+Subject: [PATCH] matroskadec: Improve TTA duration calculation
+
+Calculate the duration as accurately as possible to improve decoding of samples
+where the last frame is smaller than the rest.
+
+Signed-off-by: James Almer <jamrial@gmail.com>
+Approved-by: Paul B Mahol <onemda@gmail.com>
+Signed-off-by: Michael Niedermayer <michaelni@gmx.at>
+(cherry picked from commit af248fa1174200acb537a6ab1198bb2fed38e884)
+Signed-off-by: Jean-Yves Avenard <jyavenard@mythtv.org>
+---
+ mythtv/external/FFmpeg/libavformat/matroskadec.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/mythtv/external/FFmpeg/libavformat/matroskadec.c b/mythtv/external/FFmpeg/libavformat/matroskadec.c
+index 51c55c3d350..4caf5ac320a 100644
+--- a/mythtv/external/FFmpeg/libavformat/matroskadec.c
++++ b/mythtv/external/FFmpeg/libavformat/matroskadec.c
+@@ -1690,7 +1690,7 @@ static int matroska_read_header(AVFormatContext *s)
+             avio_wl16(&b, track->audio.channels);
+             avio_wl16(&b, track->audio.bitdepth);
+             avio_wl32(&b, track->audio.out_samplerate);
+-            avio_wl32(&b, matroska->ctx->duration * track->audio.out_samplerate);
++            avio_wl32(&b, av_rescale((matroska->duration * matroska->time_scale), track->audio.out_samplerate, AV_TIME_BASE * 1000));
+         } else if (codec_id == AV_CODEC_ID_RV10 || codec_id == AV_CODEC_ID_RV20 ||
+                    codec_id == AV_CODEC_ID_RV30 || codec_id == AV_CODEC_ID_RV40) {
+             extradata_offset = 26;

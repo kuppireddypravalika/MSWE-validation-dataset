@@ -1,0 +1,24 @@
+From 0938566a97dadf5925cf9fb35503eee3f71f0c8d Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Gunter=20K=C3=B6nigsmann?= <gunter@peterpall.de>
+Date: Tue, 7 Jul 2020 13:05:54 +0200
+Subject: [PATCH] A missing recalculating command
+
+Missing recalculation commands were always hidden by excess recalculation
+in many places. Now that we optimize everything for performance we don't
+use excess recalculation any more...
+---
+ src/ParenCell.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/ParenCell.cpp b/src/ParenCell.cpp
+index 5d4bbd2528..a6eba24972 100644
+--- a/src/ParenCell.cpp
++++ b/src/ParenCell.cpp
+@@ -230,6 +230,7 @@ void ParenCell::RecalculateHeight(int fontsize)
+     m_charHeight1 = 2;
+ 
+   m_open->RecalculateHeightList(fontsize);
++  m_innerCell->RecalculateHeightList(fontsize);
+   m_close->RecalculateHeightList(fontsize);
+ 
+   if (m_isBrokenIntoLines)

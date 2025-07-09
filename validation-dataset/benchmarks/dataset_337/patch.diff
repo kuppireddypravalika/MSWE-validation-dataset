@@ -1,0 +1,30 @@
+From 6eebd01bd4458604ebbf488111821916f57d01ca Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?B=C3=A5rd=20Skaflestad?= <Bard.Skaflestad@sintef.no>
+Date: Thu, 26 Jan 2023 17:13:50 +0100
+Subject: [PATCH] Look Up Time Step Object Exactly Once
+
+Using .contains() followed by .at() with the same argument will
+perform the same map lookup twice.
+---
+ .../Flow/RimWellAllocationOverTimeCollection.cpp           | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/ApplicationLibCode/ProjectDataModel/Flow/RimWellAllocationOverTimeCollection.cpp b/ApplicationLibCode/ProjectDataModel/Flow/RimWellAllocationOverTimeCollection.cpp
+index e7e83f51980..e2601347011 100644
+--- a/ApplicationLibCode/ProjectDataModel/Flow/RimWellAllocationOverTimeCollection.cpp
++++ b/ApplicationLibCode/ProjectDataModel/Flow/RimWellAllocationOverTimeCollection.cpp
+@@ -48,10 +48,11 @@ RimWellAllocationOverTimeCollection::RimWellAllocationOverTimeCollection(
+     QDateTime prevValidTimeStep;
+     for ( auto it = m_timeStepDates.rbegin(); it != m_timeStepDates.rend(); ++it )
+     {
+-        const QDateTime& timeStep = *it;
+-        if ( timeStepAndCalculatorPairs.contains( timeStep ) )
++        const QDateTime& timeStep             = *it;
++        auto             timeStepCalculatorIt = timeStepAndCalculatorPairs.find( timeStep );
++        if ( timeStepCalculatorIt != timeStepAndCalculatorPairs.end() )
+         {
+-            m_timeStepAndCalculatorPairs.emplace( timeStep, timeStepAndCalculatorPairs.at( timeStep ) );
++            m_timeStepAndCalculatorPairs.emplace( timeStep, timeStepCalculatorIt->second );
+             prevValidTimeStep = timeStep;
+         }
+         else if ( prevValidTimeStep.isValid() )

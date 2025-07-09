@@ -1,0 +1,24 @@
+From 943bce240e43e573db682a72f08e5bd92645882b Mon Sep 17 00:00:00 2001
+From: GJDuck <gregory@comp.nus.edu.sg>
+Date: Tue, 29 Jun 2021 15:15:14 +0800
+Subject: [PATCH] Make -O2 the default optimization level
+
+After much testing, it seems stable, and is a lot
+faster.
+---
+ src/e9tool/e9tool.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/e9tool/e9tool.cpp b/src/e9tool/e9tool.cpp
+index 07a7141..fd8f970 100644
+--- a/src/e9tool/e9tool.cpp
++++ b/src/e9tool/e9tool.cpp
+@@ -2248,7 +2248,7 @@ int main(int argc, char **argv)
+     option_is_tty = isatty(STDERR_FILENO);
+     std::vector<const char *> option_options;
+     unsigned option_compression_level = 9;
+-    char option_optimization_level = '1';
++    char option_optimization_level = '2';
+     ssize_t option_sync = -1;
+     bool option_executable = false, option_shared = false,
+         option_static_loader = false;

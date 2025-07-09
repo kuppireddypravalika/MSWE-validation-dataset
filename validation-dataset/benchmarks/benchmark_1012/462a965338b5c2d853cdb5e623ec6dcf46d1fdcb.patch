@@ -1,0 +1,26 @@
+From 462a965338b5c2d853cdb5e623ec6dcf46d1fdcb Mon Sep 17 00:00:00 2001
+From: Jonas Rembser <jonas.rembser@cern.ch>
+Date: Sun, 29 May 2022 18:59:22 +0200
+Subject: [PATCH] [RF] Avoid virtual functin call in
+ RooUniformBinning::binCenter()
+
+To get the bin center, this function uses the `virtual` averageBinWidth()
+member function. But since the binCenter() function is uses so often, it
+is benefitial to optimize this and use `_binw` directly.
+---
+ roofit/roofitcore/src/RooUniformBinning.cxx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/roofit/roofitcore/src/RooUniformBinning.cxx b/roofit/roofitcore/src/RooUniformBinning.cxx
+index 8f50b60755be1..864a738bea3de 100644
+--- a/roofit/roofitcore/src/RooUniformBinning.cxx
++++ b/roofit/roofitcore/src/RooUniformBinning.cxx
+@@ -135,7 +135,7 @@ double RooUniformBinning::binCenter(Int_t i) const
+     return 0 ;
+   }
+ 
+-  return _xlo + (i + 0.5)*averageBinWidth() ;
++  return _xlo + (i + 0.5) * _binw;
+ }
+ 
+ 

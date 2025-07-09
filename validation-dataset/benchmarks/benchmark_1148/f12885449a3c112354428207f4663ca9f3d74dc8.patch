@@ -1,0 +1,28 @@
+From f12885449a3c112354428207f4663ca9f3d74dc8 Mon Sep 17 00:00:00 2001
+From: Vadim Zeitlin <vadim@wxwidgets.org>
+Date: Fri, 15 Oct 2004 20:35:39 +0000
+Subject: [PATCH] use wxPtrToUInt instead of (lossy) wxPtrToULong
+
+git-svn-id: https://svn.wxwidgets.org/svn/wx/wxWidgets/trunk@29894 c3d73ce0-8a6f-49c7-b76d-6d57e0e08775
+---
+ include/wx/hashmap.h | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/include/wx/hashmap.h b/include/wx/hashmap.h
+index 89601b6ec334..8c234228f23d 100644
+--- a/include/wx/hashmap.h
++++ b/include/wx/hashmap.h
+@@ -512,12 +512,10 @@ class WXDLLIMPEXP_BASE wxPointerHash
+ public:
+     wxPointerHash() { }
+ 
+-    // TODO: this might not work well on architectures with 64 bit pointers but
+-    //       32 bit longs, we should use % ULONG_MAX there
+ #if wxUSE_STL && defined(HAVE_STL_HASH_MAP)
+     size_t operator()( const void* k ) const { return (size_t)k; }
+ #else
+-    unsigned long operator()( const void* k ) const { return (unsigned long)wxPtrToULong(k); }
++    wxUIntPtr operator()( const void* k ) const { return wxPtrToUInt(k); }
+ #endif
+ 
+     wxPointerHash& operator=(const wxPointerHash&) { return *this; }

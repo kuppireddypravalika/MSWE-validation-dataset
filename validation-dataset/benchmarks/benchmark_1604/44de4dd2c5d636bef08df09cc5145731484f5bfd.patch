@@ -1,0 +1,31 @@
+From 44de4dd2c5d636bef08df09cc5145731484f5bfd Mon Sep 17 00:00:00 2001
+From: LADSoft <touchstone222@runbox.com>
+Date: Tue, 25 Jul 2023 11:01:43 -0400
+Subject: [PATCH] Slight performance improvement for linker
+
+---
+ src/olink/LinkRegion.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/olink/LinkRegion.cpp b/src/olink/LinkRegion.cpp
+index 036ffca83..9de185da7 100644
+--- a/src/olink/LinkRegion.cpp
++++ b/src/olink/LinkRegion.cpp
+@@ -407,7 +407,7 @@ ObjInt LinkRegion::ArrangeOverlayed(LinkManager* manager, NamedSection* data, Ob
+     }
+     ObjSection* curSection = nullptr;
+     ObjFile* curFile = nullptr;
+-    for (auto item : data->sections)
++    for (auto&& item : data->sections)
+     {
+         ObjSection* sect = item.section;
+         if (!curSection || sect->GetAbsSize() > curSection->GetAbsSize())
+@@ -418,7 +418,7 @@ ObjInt LinkRegion::ArrangeOverlayed(LinkManager* manager, NamedSection* data, Ob
+     }
+     if (!curSection)
+         return 0;
+-    for (auto item : data->sections)
++    for (auto&& item : data->sections)
+     {
+         ObjSection* sect = item.section;
+         sect->SetAliasFor(curSection);

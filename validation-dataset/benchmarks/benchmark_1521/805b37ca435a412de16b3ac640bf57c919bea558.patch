@@ -1,0 +1,26 @@
+From 805b37ca435a412de16b3ac640bf57c919bea558 Mon Sep 17 00:00:00 2001
+From: Devang Patel <dpatel@apple.com>
+Date: Tue, 2 Sep 2008 21:46:44 +0000
+Subject: [PATCH] Use bitwise AND.
+
+llvm-svn: 55656
+---
+ llvm/lib/VMCore/AsmWriter.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/llvm/lib/VMCore/AsmWriter.cpp b/llvm/lib/VMCore/AsmWriter.cpp
+index 05c37a48656..724b34f460e 100644
+--- a/llvm/lib/VMCore/AsmWriter.cpp
++++ b/llvm/lib/VMCore/AsmWriter.cpp
+@@ -1398,9 +1398,9 @@ void AssemblyWriter::printFunction(const Function *F) {
+   FunctionNotes FNotes = F->getNotes();
+   if (FNotes != FP_None) {
+     Out << " notes(";
+-    if (FNotes && FP_AlwaysInline)
++    if (FNotes & FP_AlwaysInline)
+       Out << "inline=always";
+-    else if (FNotes && FP_NoInline)
++    else if (FNotes & FP_NoInline)
+       Out << "inline=never";
+     Out << ")";
+   }

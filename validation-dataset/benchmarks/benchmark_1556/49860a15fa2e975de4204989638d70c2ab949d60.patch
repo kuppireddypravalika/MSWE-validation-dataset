@@ -1,0 +1,31 @@
+From 49860a15fa2e975de4204989638d70c2ab949d60 Mon Sep 17 00:00:00 2001
+From: Christian Sandberg <christiansandberg@me.com>
+Date: Fri, 3 Jul 2020 13:22:18 +0200
+Subject: [PATCH] Eliminate 64-bit operations on 32-bit machines
+
+---
+ miniz_tinfl.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/miniz_tinfl.c b/miniz_tinfl.c
+index d5d512f..557a7f2 100644
+--- a/miniz_tinfl.c
++++ b/miniz_tinfl.c
+@@ -580,7 +580,7 @@ tinfl_status tinfl_decompress(tinfl_decompressor *r, const mz_uint8 *pIn_buf_nex
+         --pIn_buf_cur;
+         num_bits -= 8;
+     }
+-    bit_buf &= (tinfl_bit_buf_t)((((mz_uint64)1) << num_bits) - (mz_uint64)1);
++    bit_buf &= ~(~(tinfl_bit_buf_t)0 << num_bits);
+     MZ_ASSERT(!num_bits); /* if this assert fires then we've read beyond the end of non-deflate/zlib streams with following data (such as gzip streams). */
+ 
+     if (decomp_flags & TINFL_FLAG_PARSE_ZLIB_HEADER)
+@@ -612,7 +612,7 @@ tinfl_status tinfl_decompress(tinfl_decompressor *r, const mz_uint8 *pIn_buf_nex
+         }
+     }
+     r->m_num_bits = num_bits;
+-    r->m_bit_buf = bit_buf & (tinfl_bit_buf_t)((((mz_uint64)1) << num_bits) - (mz_uint64)1);
++    r->m_bit_buf = bit_buf & ~(~(tinfl_bit_buf_t)0 << num_bits);
+     r->m_dist = dist;
+     r->m_counter = counter;
+     r->m_num_extra = num_extra;

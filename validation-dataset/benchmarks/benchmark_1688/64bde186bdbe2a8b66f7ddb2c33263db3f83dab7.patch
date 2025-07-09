@@ -1,0 +1,31 @@
+From 64bde186bdbe2a8b66f7ddb2c33263db3f83dab7 Mon Sep 17 00:00:00 2001
+From: Daniel Kroening <dkr@amazon.com>
+Date: Sat, 16 Sep 2023 14:28:40 -0700
+Subject: [PATCH] avoid constructing type-inconsistent equality
+
+This avoids constructing an equal_exprt that is temporarily
+type-inconsistent.  Instead, the operands are type-casted before calling the
+constructor of equal_exprt.
+---
+ src/verilog/verilog_synthesis.cpp | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/src/verilog/verilog_synthesis.cpp b/src/verilog/verilog_synthesis.cpp
+index 8a5acd9c6..f8a23aab2 100644
+--- a/src/verilog/verilog_synthesis.cpp
++++ b/src/verilog/verilog_synthesis.cpp
+@@ -946,12 +946,8 @@ void verilog_synthesist::instantiate_port(
+     throw 0;
+   }
+ 
+-  equal_exprt equality(it->second, value);
+-
+-  if(equality.op0().type()!=equality.op1().type())
+-    equality.op0() = typecast_exprt{equality.op0(), equality.op1().type()};
+-
+-  trans.invar().add_to_operands(std::move(equality));
++  trans.invar().add_to_operands(equal_exprt(
++    typecast_exprt::conditional_cast(it->second, value.type()), value));
+ }
+ 
+ /*******************************************************************\

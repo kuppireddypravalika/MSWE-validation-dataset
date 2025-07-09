@@ -1,0 +1,37 @@
+From d8b0f8a7c66d6474cb3bf7e7cbd7db6af6a59547 Mon Sep 17 00:00:00 2001
+From: Andrea Stacchiotti <andrea_stacchiotti@hotmail.it>
+Date: Mon, 27 Apr 2015 20:53:54 +0200
+Subject: [PATCH] Cosmetic change to managem_utils
+
+---
+ include/managem_utils.h | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/include/managem_utils.h b/include/managem_utils.h
+index 9bd59b3..2daaf10 100644
+--- a/include/managem_utils.h
++++ b/include/managem_utils.h
+@@ -13,6 +13,11 @@ struct Gem_OB {
+ 
+ #include "gem_utils.h"
+ 
++inline double gem_power(gem gem1)
++{
++	return gem1.leech*gem1.bbound;
++}
++
+ inline int gem_more_powerful(gem gem1, gem gem2)
+ {
+ 	return (gem1.leech*gem1.bbound > gem2.leech*gem2.bbound);		// optimization at infinity hits (hit lv infinity)
+@@ -196,11 +201,6 @@ void gem_sort_exact (gem* gems, int len)
+ 	ins_sort_exact (gems, len);      // finish the nearly sorted array
+ }
+ 
+-inline double gem_power(gem gem1)
+-{
+-	return gem1.leech*gem1.bbound;
+-}
+-
+ char gem_color(gem* p_gem)
+ {
+ 	if (p_gem->leech==0 && p_gem->bbound==0) return 'r';

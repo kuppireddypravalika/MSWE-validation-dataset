@@ -1,0 +1,29 @@
+From 5b0c9f04edc3bc6a72cd2e18d8af5fd291a2e14d Mon Sep 17 00:00:00 2001
+From: Martin Michelsen <mjem@wildblue.net>
+Date: Thu, 16 Mar 2017 21:34:27 -0700
+Subject: [PATCH] don't verify the allocator state after every allocate/free
+
+---
+ LogarithmicAllocator.cc | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/LogarithmicAllocator.cc b/LogarithmicAllocator.cc
+index d573c4b..5659524 100644
+--- a/LogarithmicAllocator.cc
++++ b/LogarithmicAllocator.cc
+@@ -152,7 +152,6 @@ uint64_t LogarithmicAllocator::allocate(size_t size) {
+ 
+     // return the new block
+     block->allocated.size_allocated = size | (1ULL << 63);
+-    this->verify();
+     return block_offset + sizeof(AllocatedBlock);
+   }
+ 
+@@ -276,7 +275,6 @@ uint64_t LogarithmicAllocator::allocate(size_t size) {
+   // update counts and we're done
+   data->bytes_allocated += size;
+   data->bytes_committed += size_for_order(needed_order);
+-  this->verify();
+   return allocated_block_offset + sizeof(AllocatedBlock);
+ }
+ 

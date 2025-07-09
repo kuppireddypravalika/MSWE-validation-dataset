@@ -1,0 +1,22 @@
+From cc0691f48cc733986ea6fa52d1a7e1625828e33f Mon Sep 17 00:00:00 2001
+From: Kristian Bendiksen <kristian.bendiksen@gmail.com>
+Date: Fri, 14 Apr 2023 15:41:50 +0200
+Subject: [PATCH] Use correct OpenMP directive for INDEX_I/J/K results.
+
+---
+ .../ReservoirDataModel/RigCaseCellResultsData.cpp               | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ApplicationLibCode/ReservoirDataModel/RigCaseCellResultsData.cpp b/ApplicationLibCode/ReservoirDataModel/RigCaseCellResultsData.cpp
+index 9ac93007415..42ce47660f4 100644
+--- a/ApplicationLibCode/ReservoirDataModel/RigCaseCellResultsData.cpp
++++ b/ApplicationLibCode/ReservoirDataModel/RigCaseCellResultsData.cpp
+@@ -1976,7 +1976,7 @@ void RigCaseCellResultsData::computeIndexResults()
+ 
+     const std::vector<RigCell>& globalCellArray = m_ownerMainGrid->globalCellArray();
+     long long                   numCells        = static_cast<long long>( globalCellArray.size() );
+-#pragma omp for
++#pragma omp parallel for
+     for ( long long cellIdx = 0; cellIdx < numCells; cellIdx++ )
+     {
+         const RigCell& cell = globalCellArray[cellIdx];

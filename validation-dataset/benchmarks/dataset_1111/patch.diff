@@ -1,0 +1,23 @@
+From 04397c5290ef4de8ac3ed412e3cd04ebf32ec9cb Mon Sep 17 00:00:00 2001
+From: Peter Caspers <peter.caspers@lseg.com>
+Date: Thu, 7 Mar 2024 18:20:31 +0100
+Subject: [PATCH] QPR-12372 simpler and faster
+
+---
+ QuantExt/qle/pricingengines/mcmultilegbaseengine.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/QuantExt/qle/pricingengines/mcmultilegbaseengine.cpp b/QuantExt/qle/pricingengines/mcmultilegbaseengine.cpp
+index f28bddf562..e48c0a4f4b 100644
+--- a/QuantExt/qle/pricingengines/mcmultilegbaseengine.cpp
++++ b/QuantExt/qle/pricingengines/mcmultilegbaseengine.cpp
+@@ -718,8 +718,7 @@ void McMultiLegBaseEngine::calculate() const {
+         Size cashflowNo = 0;
+         for (auto const& cashflow : leg) {
+             // we can skip cashflows that are paid
+-            if ((includeSettlementDateFlows_ == false && cashflow->date() <= today_) ||
+-                (includeSettlementDateFlows_ == true && cashflow->date() < today_))
++            if (cashflow->date() < today_ || (!includeSettlementDateFlows_ && cashflow->date() == today))
+                 continue;
+             // for an alive cashflow, populate the data
+             cashflowInfo.push_back(createCashflowInfo(cashflow, currency, payer, legNo, cashflowNo));

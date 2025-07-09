@@ -1,0 +1,41 @@
+From 9506083cbf6aab07f0b1e2b12db72a46a41dc865 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@spatialys.com>
+Date: Fri, 10 Mar 2023 18:49:38 +0100
+Subject: [PATCH] =?UTF-8?q?RAW:=20fix=20performance=20issue=20when=20readi?=
+ =?UTF-8?q?ng=20files=20with=20very=20small=20width=20(fixes=C2=A0#1140)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ gcore/rawdataset.cpp | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/gcore/rawdataset.cpp b/gcore/rawdataset.cpp
+index f69828e09e76..d4cc18c38710 100644
+--- a/gcore/rawdataset.cpp
++++ b/gcore/rawdataset.cpp
+@@ -955,6 +955,11 @@ int RawRasterBand::CanUseDirectIO(int /* nXOff */, int nYOff, int nXSize,
+     //
+     // or
+     //
++    // the raster width is so small that the cost of a GDALRasterBlock is
++    // significant
++    //
++    // or
++    //
+     // the length of a scanline on disk is more than 50000 bytes, and the
+     // width of the requested chunk is less than 40% of the whole scanline and
+     // no significant number of requested scanlines are already in the cache.
+@@ -986,6 +991,11 @@ int RawRasterBand::CanUseDirectIO(int /* nXOff */, int nYOff, int nXSize,
+                 oldCachedCPLOneBigReadOption, newCachedCPLOneBigReadOption);
+         }
+ 
++        if (nRasterXSize <= 64)
++        {
++            return TRUE;
++        }
++
+         if (nLineSize < 50000 || nXSize > nLineSize / nPixelOffset / 5 * 2 ||
+             IsSignificantNumberOfLinesLoaded(nYOff, nYSize))
+         {

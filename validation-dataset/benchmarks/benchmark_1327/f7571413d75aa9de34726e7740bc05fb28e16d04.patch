@@ -1,0 +1,23 @@
+From f7571413d75aa9de34726e7740bc05fb28e16d04 Mon Sep 17 00:00:00 2001
+From: Carl Schwan <carl@carlschwan.eu>
+Date: Fri, 23 Aug 2024 23:27:01 +0200
+Subject: [PATCH] Use static QFileInfo::exists
+
+It's documented as faster
+---
+ braindump/braindumpcore/StatesRegistry.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/braindump/braindumpcore/StatesRegistry.cpp b/braindump/braindumpcore/StatesRegistry.cpp
+index 1e3c169077c..89305f0197f 100644
+--- a/braindump/braindumpcore/StatesRegistry.cpp
++++ b/braindump/braindumpcore/StatesRegistry.cpp
+@@ -79,7 +79,7 @@ void StatesRegistry::Private::parseStatesRC(const QString &_filename)
+                                 qCritical() << "Missing attribute: id = " << stateId << " name = " << stateName << " filename = " << stateFilename;
+                             } else {
+                                 QString file = directory.absoluteFilePath(stateFilename);
+-                                if (QFileInfo(file).exists()) {
++                                if (QFileInfo::exists(file)) {
+                                     if (category->d->states.contains(stateId)) {
+                                         delete category->d->states[stateId];
+                                     }

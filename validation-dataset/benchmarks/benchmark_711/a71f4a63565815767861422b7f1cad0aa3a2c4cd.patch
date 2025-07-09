@@ -1,0 +1,41 @@
+From a71f4a63565815767861422b7f1cad0aa3a2c4cd Mon Sep 17 00:00:00 2001
+From: Razakhel <romain.milbert@gmail.com>
+Date: Thu, 31 Jan 2019 22:28:49 +0100
+Subject: [PATCH] [Utils/Bitset] Used auto&& for range-based loop in Bitset's
+ functions
+
+- This syntax allows the bitset to make use of the optimized packing of std::vector<bool>
+- Bitset::operator~() doesn't have to call setBit() anymore, which saves a size check
+
+Signed-off-by: Razakhel <romain.milbert@gmail.com>
+---
+ src/RaZ/Utils/Bitset.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/RaZ/Utils/Bitset.cpp b/src/RaZ/Utils/Bitset.cpp
+index 1fc67b0d..2b1d8570 100644
+--- a/src/RaZ/Utils/Bitset.cpp
++++ b/src/RaZ/Utils/Bitset.cpp
+@@ -5,7 +5,7 @@
+ namespace Raz {
+ 
+ bool Bitset::isEmpty() const {
+-  for (auto bit : m_bits) {
++  for (auto&& bit : m_bits) {
+     if (bit)
+       return false;
+   }
+@@ -21,10 +21,10 @@ void Bitset::setBit(std::size_t position, bool value) {
+ }
+ 
+ Bitset Bitset::operator~() const {
+-  Bitset res(m_bits.size());
++  Bitset res = *this;
+ 
+-  for (std::size_t bitIndex = 0; bitIndex < m_bits.size(); ++bitIndex)
+-    res.setBit(bitIndex, !m_bits[bitIndex]);
++  for (auto&& bit : res.getBits())
++    bit = !bit;
+ 
+   return res;
+ }

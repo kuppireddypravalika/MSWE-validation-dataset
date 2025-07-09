@@ -1,0 +1,23 @@
+From 392db9333bb2f82cbea8f170fd61f82483788549 Mon Sep 17 00:00:00 2001
+From: David Anderson <danderson@mozilla.com>
+Date: Thu, 4 Sep 2008 11:56:54 -0700
+Subject: [PATCH] Improved AMD64 allocation for float ops that get stored back
+ into memory.
+
+---
+ nanojit/Nativei386.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/nanojit/Nativei386.cpp b/nanojit/Nativei386.cpp
+index 62bd1a1..ce455a5 100644
+--- a/nanojit/Nativei386.cpp
++++ b/nanojit/Nativei386.cpp
+@@ -708,6 +708,8 @@ namespace nanojit
+              */
+             if (value->isop(LIR_u2f) 
+                 || value->isop(LIR_i2f)
++                || (value->opcode() >= LIR_fneg && value->opcode() <= LIR_fmul)
++                || value->opcode() == LIR_fdiv
+                 || value->opcode() == LIR_fcall) {
+                 rv = findRegFor(value, XmmRegs);
+                 SSE_STQ(dr, rb, rv);

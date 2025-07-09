@@ -1,0 +1,40 @@
+From 7e701979ad20796bc930b21de3888ccfa0d8b33d Mon Sep 17 00:00:00 2001
+From: Bob Wilson <bob.wilson@apple.com>
+Date: Mon, 30 Aug 2010 18:10:48 +0000
+Subject: [PATCH] When expanding NEON VST pseudo instructions, if the original
+ super-register operand is killed, add it to the expanded instruction as an
+ implicit kill operand instead of marking the individual subregs with kill
+ flags.  This should work better in general and also handles the case for VST3
+ where one of the subregs was not referenced in the expanded instruction and
+ so was not marked killed.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@112494 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Target/ARM/ARMExpandPseudoInsts.cpp | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/lib/Target/ARM/ARMExpandPseudoInsts.cpp b/lib/Target/ARM/ARMExpandPseudoInsts.cpp
+index f39e00e4bae..285674d64d3 100644
+--- a/lib/Target/ARM/ARMExpandPseudoInsts.cpp
++++ b/lib/Target/ARM/ARMExpandPseudoInsts.cpp
+@@ -118,14 +118,16 @@ void ARMExpandPseudo::ExpandVST(MachineBasicBlock::iterator &MBBI,
+     D3 = TRI->getSubReg(SrcReg, ARM::dsub_7);
+   } 
+ 
+-  MIB.addReg(D0, getKillRegState(SrcIsKill))
+-    .addReg(D1, getKillRegState(SrcIsKill));
++  MIB.addReg(D0).addReg(D1);
+   if (NumRegs > 2)
+-    MIB.addReg(D2, getKillRegState(SrcIsKill));
++    MIB.addReg(D2);
+   if (NumRegs > 3)
+-    MIB.addReg(D3, getKillRegState(SrcIsKill));
++    MIB.addReg(D3);
+   MIB = AddDefaultPred(MIB);
+   TransferImpOps(MI, MIB, MIB);
++  if (SrcIsKill)
++    // Add an implicit kill for the super-reg.
++    (*MIB).addRegisterKilled(SrcReg, TRI, true);
+   MI.eraseFromParent();
+ }
+ 

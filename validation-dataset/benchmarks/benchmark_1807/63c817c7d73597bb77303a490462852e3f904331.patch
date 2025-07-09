@@ -1,0 +1,32 @@
+From 63c817c7d73597bb77303a490462852e3f904331 Mon Sep 17 00:00:00 2001
+From: gitamohr <gitamohr@users.noreply.github.com>
+Date: Mon, 10 Jan 2022 10:06:30 -0800
+Subject: [PATCH] sdf: Use the memcpy trick to effect a swap in 64-bit movs
+ rather than twice as many 32-bit movs on x86-64.
+
+(Internal change: 2208684)
+---
+ pxr/usd/sdf/path.h | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/pxr/usd/sdf/path.h b/pxr/usd/sdf/path.h
+index 27c13e69b7..c4299b7851 100644
+--- a/pxr/usd/sdf/path.h
++++ b/pxr/usd/sdf/path.h
+@@ -1013,8 +1013,14 @@ class SdfPath : boost::totally_ordered<SdfPath>
+     }
+ 
+     friend void swap(SdfPath &lhs, SdfPath &rhs) {
+-        lhs._primPart.swap(rhs._primPart);
+-        lhs._propPart.swap(rhs._propPart);
++        // This memcpy approach compiles to 4 64-bit register <-> memory movs on
++        // x86-64.  The clear and obvious approach of swapping each member
++        // compiles to 8 32-bit register <-> memory movs.
++        static_assert(sizeof(lhs) == sizeof(uint64_t), "");
++        uint64_t tmp;
++        std::memcpy(&tmp, &lhs, sizeof(lhs));
++        std::memcpy(&lhs, &rhs, sizeof(rhs));
++        std::memcpy(&rhs, &tmp, sizeof(tmp));
+     }
+ 
+     Sdf_PathPrimNodeHandle _primPart;

@@ -1,0 +1,30 @@
+From 0cb145853a48970a826dfb38e58a7e7fc196054f Mon Sep 17 00:00:00 2001
+From: Jason Luu <jasonkailuu@gmail.com>
+Date: Thu, 31 Jul 2014 21:39:45 +0000
+Subject: [PATCH] Continue optimizing router runtime.  The resolution of
+ logically equivalent output pins can take a long time but after the first few
+ iterations, which pin to take is basically known so we can force one pin to
+ be used.
+
+git-svn-id: https://vtr-verilog-to-routing.googlecode.com/svn/trunk@4423 8e3573b8-cf2c-4f14-ef6d-137439e28b8b
+---
+ vpr/SRC/route/route_timing.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/vpr/SRC/route/route_timing.c b/vpr/SRC/route/route_timing.c
+index 19037b22930..dbe55922dbf 100755
+--- a/vpr/SRC/route/route_timing.c
++++ b/vpr/SRC/route/route_timing.c
+@@ -493,6 +493,12 @@ boolean timing_driven_route_net(int inet, int itry, float pres_fac, float max_cr
+ 		highfanout_rlim = mark_node_expansion_by_bin(inet, target_node,
+ 				rt_root);
+ 
++		if (itarget > 1 && itry > 5) {
++			/* Enough iterations given to determine opin, to speed up legal solution, do not let net use two opins */
++			assert(rr_node[rt_root->inode].type == SOURCE);
++			rt_root->re_expand = FALSE;
++		}
++
+ 		add_route_tree_to_heap(rt_root, target_node, target_criticality,
+ 				astar_fac);
+ 

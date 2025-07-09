@@ -1,0 +1,40 @@
+From 472e7df16e462498a644c1e0dfae6e1ea4266ea0 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Tue, 13 Mar 2018 10:59:40 +0000
+Subject: [PATCH] g2clib: avoid int overflow. Hopefully fixes
+ https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=6870. Credit to OSS
+ Fuzz
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@41770 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/frmts/grib/degrib/g2clib/pack_gp.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/gdal/frmts/grib/degrib/g2clib/pack_gp.c b/gdal/frmts/grib/degrib/g2clib/pack_gp.c
+index 8878035523bb..aa7895d18c59 100644
+--- a/gdal/frmts/grib/degrib/g2clib/pack_gp.c
++++ b/gdal/frmts/grib/degrib/g2clib/pack_gp.c
+@@ -11,6 +11,8 @@
+ */
+ 
+ /*#include "f2c.h"*/
++#include "cpl_port.h"
++#include <limits.h>
+ #include <stdlib.h>
+ #include "grib2.h"
+ typedef g2int logical;
+@@ -774,6 +776,14 @@ typedef g2int logical;
+ /*        CALCULATED. */
+ 
+ L165:
++    if( (GIntBig)maxb - minb < INT_MIN ||
++        (GIntBig)maxb - minb > INT_MAX )
++    {
++        *ier = -1;
++        free(misslx);
++        return 0;
++    }
++
+     for (ibitb = ibitbs; ibitb <= 30; ++ibitb) {
+ 	if (maxb - minb < ibxx2[ibitb] - lmiss) {
+ 	    goto L170;

@@ -1,0 +1,28 @@
+From 978ffba6d0bf0a95955cd2b873ccdc8ce9323c5b Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@intel.com>
+Date: Sat, 21 Oct 2017 16:35:41 +0000
+Subject: [PATCH] [ValueTracking] Remove unnecessary temporary APInt from
+ computeNumSignBitsVectorConstant.
+
+We can just use getNumSignBits instead of inverting negative numbers.
+---
+ llvm/lib/Analysis/ValueTracking.cpp | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/llvm/lib/Analysis/ValueTracking.cpp b/llvm/lib/Analysis/ValueTracking.cpp
+index 244bc7d66160..182377d39c0c 100644
+--- a/llvm/lib/Analysis/ValueTracking.cpp
++++ b/llvm/lib/Analysis/ValueTracking.cpp
+@@ -2097,11 +2097,7 @@ static unsigned computeNumSignBitsVectorConstant(const Value *V,
+     if (!Elt)
+       return 0;
+ 
+-    // If the sign bit is 1, flip the bits, so we always count leading zeros.
+-    APInt EltVal = Elt->getValue();
+-    if (EltVal.isNegative())
+-      EltVal = ~EltVal;
+-    MinSignBits = std::min(MinSignBits, EltVal.countLeadingZeros());
++    MinSignBits = std::min(MinSignBits, Elt->getValue().getNumSignBits());
+   }
+ 
+   return MinSignBits;

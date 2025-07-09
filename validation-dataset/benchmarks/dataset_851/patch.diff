@@ -1,0 +1,44 @@
+From 9bc09e127bf15ce81a445e34fa8c91e3617f2807 Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Sat, 27 May 2017 01:34:10 -0400
+Subject: [PATCH] [libcachemgr] CurlDownloader: Set connect timeout to 2s and
+ total timeout to 20s.
+
+cURL's default connect timeout is 300s, and its total timeout is 0
+(unlimited). 300s is way too high, especially if a system is connected
+to a LAN with no Internet access.
+
+TODO: User configuration?
+---
+ src/libcachemgr/CurlDownloader.cpp | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/src/libcachemgr/CurlDownloader.cpp b/src/libcachemgr/CurlDownloader.cpp
+index 0fd68d5e9e..d2c1d07290 100644
+--- a/src/libcachemgr/CurlDownloader.cpp
++++ b/src/libcachemgr/CurlDownloader.cpp
+@@ -210,11 +210,24 @@ int CurlDownloader::download(void)
+ 	curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
+ 	// Redirection is required for http://amiibo.life/nfc/%08X-%08X
+ 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, true);
++
+ 	// Header and data functions.
+ 	curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, parse_header);
+ 	curl_easy_setopt(curl, CURLOPT_HEADERDATA, this);
+ 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
+ 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, this);
++
++	// Don't use signals. We're running as a plugin, so using
++	// signals might interfere.
++	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
++
++	// Set timeouts to ensure we don't take forever.
++	// TODO: User configuration?
++	// - Connect timeout: 2 seconds.
++	// - Total timeout: 20 seconds.
++	curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 2);
++	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 20);
++
+ 	// TODO: Set the User-Agent?
+ 	CURLcode res = curl_easy_perform(curl);
+ 	curl_easy_cleanup(curl);

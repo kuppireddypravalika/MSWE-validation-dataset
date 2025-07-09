@@ -1,0 +1,30 @@
+From ffc11e49dff73b00aa8861769342174994c8b4d1 Mon Sep 17 00:00:00 2001
+From: gitamohr <gitamohr@users.noreply.github.com>
+Date: Thu, 19 Sep 2019 00:54:15 -0700
+Subject: [PATCH] tf: Use TfType::GetNBaseTypes() to avoid overhead in copying
+ vectors. Profiling shows the vector creation/destruction to be a significant
+ overhead cost to notice sending.
+
+(Internal change: 2004577)
+---
+ pxr/base/lib/tf/noticeRegistry.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/pxr/base/lib/tf/noticeRegistry.cpp b/pxr/base/lib/tf/noticeRegistry.cpp
+index c906441e56..13a8f03c66 100644
+--- a/pxr/base/lib/tf/noticeRegistry.cpp
++++ b/pxr/base/lib/tf/noticeRegistry.cpp
+@@ -258,10 +258,10 @@ Tf_NoticeRegistry::_Send(const TfNotice &n, const TfType & noticeType,
+         }
+ 
+         // Chain up base types to find listeners interested in them
+-        const vector<TfType> & parents = t.GetBaseTypes();
+-        if (parents.size() != 1)
++        size_t numParents = t.GetNBaseTypes(&t, 1);
++        if (numParents != 1) {
+             _BadTypeFatalMsg(t, typeid(n));
+-        t = parents[0];
++        }
+     } while (t != TfType::GetRoot());
+ 
+     if (doProbing) {

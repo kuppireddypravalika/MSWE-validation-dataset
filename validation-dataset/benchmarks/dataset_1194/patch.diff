@@ -1,0 +1,32 @@
+From beff930fd8f6b4d614032a2dae3ef5805b99f6fe Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Sat, 4 Jul 2020 21:12:16 -0600
+Subject: [PATCH] Reorder to make better use of cached new depth
+
+---
+ OPHD/States/MapViewStateEvent.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/OPHD/States/MapViewStateEvent.cpp b/OPHD/States/MapViewStateEvent.cpp
+index 783cda93e..add11e275 100644
+--- a/OPHD/States/MapViewStateEvent.cpp
++++ b/OPHD/States/MapViewStateEvent.cpp
+@@ -207,15 +207,15 @@ void MapViewState::diggerTaskFinished(Robot* robot)
+ 
+ 	if(dir == Direction::DIR_DOWN)
+ 	{
++		++newDepth;
++
+ 		AirShaft* as1 = new AirShaft();
+ 		if (t->depth() > 0) { as1->ug(); }
+ 		NAS2D::Utility<StructureManager>::get().addStructure(as1, t);
+ 
+ 		AirShaft* as2 = new AirShaft();
+ 		as2->ug();
+-		NAS2D::Utility<StructureManager>::get().addStructure(as2, mTileMap->getTile(origin, t->depth() + 1));
+-
+-		++newDepth;
++		NAS2D::Utility<StructureManager>::get().addStructure(as2, mTileMap->getTile(origin, newDepth));
+ 
+ 		mTileMap->getTile(origin, t->depth())->index(TerrainType::TERRAIN_DOZED);
+ 		mTileMap->getTile(origin, newDepth)->index(TerrainType::TERRAIN_DOZED);

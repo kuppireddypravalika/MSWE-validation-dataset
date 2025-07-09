@@ -1,0 +1,40 @@
+From c4d7fa212c90c725122abb3e195713bb15ed2fe7 Mon Sep 17 00:00:00 2001
+From: Pierre Gergondet <pierre.gergondet@gmail.com>
+Date: Wed, 25 Sep 2019 12:14:51 +0800
+Subject: [PATCH] Always use locale-free variant of strtod
+
+---
+ hrplib/hrpUtil/EasyScanner.cpp | 13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
+
+diff --git a/hrplib/hrpUtil/EasyScanner.cpp b/hrplib/hrpUtil/EasyScanner.cpp
+index 7c80a0ec0..0f6a1ee35 100644
+--- a/hrplib/hrpUtil/EasyScanner.cpp
++++ b/hrplib/hrpUtil/EasyScanner.cpp
+@@ -19,11 +19,9 @@ using namespace boost;
+ using namespace hrp;
+ 
+ 
+-// Replacement for 'strtod()' function in Visual C++
+-// This is neccessary because the implementation of VC++6.0 uses 'strlen()' in the function,
+-// so that it becomes too slow for a string buffer which has long length.
+-#ifdef _MSC_VER
+-static double mystrtod(const char* nptr, char** endptr)
++// Replacement for 'strtod()' function
++// This is necessary for a locale-free version
++static inline double mystrtod(const char* nptr, char** endptr)
+ {
+     const char* org = nptr;
+     bool valid = false;
+@@ -83,11 +81,6 @@ static double mystrtod(const char* nptr, char** endptr)
+     }
+     return sign * value;
+ }
+-#else
+-static inline double mystrtod(const char* nptr, char** endptr) {
+-    return strtod(nptr, endptr);
+-}
+-#endif
+ 
+ 
+ std::string EasyScanner::Exception::getFullMessage()

@@ -1,0 +1,30 @@
+From 0bebb0619b3476e7e89eb1af48d6590edb1b4ce6 Mon Sep 17 00:00:00 2001
+From: Reid Kleckner <rnk@google.com>
+Date: Fri, 4 Aug 2017 21:52:25 +0000
+Subject: [PATCH] [libclang] Determinize order of platform availability attrs
+
+Previously this code was doing std::sort on IdentifierInfo pointers. Now
+it sorts alphabetically by platform name.
+
+This should de-flake clang/test/Index/availability.c, which was failing
+non-deterministically for me.
+
+git-svn-id: https://llvm.org/svn/llvm-project/cfe/trunk@310138 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ tools/libclang/CIndex.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/tools/libclang/CIndex.cpp b/tools/libclang/CIndex.cpp
+index 1815fdf5bd8..ca21b6c6f68 100644
+--- a/tools/libclang/CIndex.cpp
++++ b/tools/libclang/CIndex.cpp
+@@ -7303,7 +7303,8 @@ static void getCursorPlatformAvailabilityForDecl(
+ 
+   std::sort(AvailabilityAttrs.begin(), AvailabilityAttrs.end(),
+             [](AvailabilityAttr *LHS, AvailabilityAttr *RHS) {
+-              return LHS->getPlatform() > RHS->getPlatform();
++              return LHS->getPlatform()->getName() <
++                     RHS->getPlatform()->getName();
+             });
+   ASTContext &Ctx = D->getASTContext();
+   auto It = std::unique(

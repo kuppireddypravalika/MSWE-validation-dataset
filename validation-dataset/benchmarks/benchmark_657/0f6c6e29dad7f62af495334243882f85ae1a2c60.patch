@@ -1,0 +1,29 @@
+From 0f6c6e29dad7f62af495334243882f85ae1a2c60 Mon Sep 17 00:00:00 2001
+From: Daryl Maier <maier@ca.ibm.com>
+Date: Mon, 9 Mar 2020 19:37:27 -0400
+Subject: [PATCH] Do not allocate recompilation info if recompilation not
+ supported
+
+Query the CodeGenerator flag for whether recompilation is supported
+before attempting to allocate recompilation info.
+
+Signed-off-by: Daryl Maier <maier@ca.ibm.com>
+---
+ compiler/compile/OMRCompilation.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/compiler/compile/OMRCompilation.cpp b/compiler/compile/OMRCompilation.cpp
+index e32ab5491a..95af772d51 100644
+--- a/compiler/compile/OMRCompilation.cpp
++++ b/compiler/compile/OMRCompilation.cpp
+@@ -401,7 +401,9 @@ OMR::Compilation::Compilation(
+ 
+    //codegen also needs _methodSymbol
+    _codeGenerator = allocateCodeGenerator(self());
+-   _recompilationInfo = _codeGenerator->allocateRecompilationInfo();
++
++   _recompilationInfo = _codeGenerator->getSupportsRecompilation() ? _codeGenerator->allocateRecompilationInfo() : NULL;
++
+    _globalRegisterCandidates = new (self()->trHeapMemory()) TR_RegisterCandidates(self());
+ 
+ #ifdef J9_PROJECT_SPECIFIC

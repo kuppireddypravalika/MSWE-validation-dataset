@@ -1,0 +1,42 @@
+From 38428ada5459903c4e68130751478d66f90b7c6a Mon Sep 17 00:00:00 2001
+From: ajithcj <achajo@yahoo.co.in>
+Date: Thu, 8 Sep 2016 05:51:41 +0200
+Subject: [PATCH] Prune dangerous moves at low depth
+
+At very low depths prune captures,
+promotions and checks if see is negative.
+
+STC:
+LLR: 2.95 (-2.94,2.94) [0.00,5.00]
+Total: 6772 W: 1328 L: 1173 D: 4271
+
+LTC:
+LLR: 2.95 (-2.94,2.94) [0.00,5.00]
+Total: 8917 W: 1270 L: 1122 D: 6525
+
+bench: 6024713
+---
+ src/search.cpp | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/src/search.cpp b/src/search.cpp
+index a58231d2..9779aeab 100644
+--- a/src/search.cpp
++++ b/src/search.cpp
+@@ -956,6 +956,16 @@ namespace {
+                   continue;
+           }
+       }
++      else if (    depth < 3 * ONE_PLY
++               && !inCheck
++               &&  bestValue > VALUE_MATED_IN_MAX_PLY
++               && !rootNode
++               && (  captureOrPromotion
++                   || givesCheck
++                   || pos.advanced_pawn_push(move))
++               && pos.see_sign(move) < VALUE_ZERO
++               )
++          continue;
+ 
+       // Speculative prefetch as early as possible
+       prefetch(TT.first_entry(pos.key_after(move)));

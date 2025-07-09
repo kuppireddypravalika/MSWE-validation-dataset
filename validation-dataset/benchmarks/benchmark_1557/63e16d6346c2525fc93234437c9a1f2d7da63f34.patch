@@ -1,0 +1,28 @@
+From 63e16d6346c2525fc93234437c9a1f2d7da63f34 Mon Sep 17 00:00:00 2001
+From: Nikolai Kosjar <nikolai.kosjar@qt.io>
+Date: Mon, 7 Aug 2017 12:36:22 +0200
+Subject: [PATCH] C++: Limit number of nested class instantiations
+
+...to avoid out of memory crashes.
+
+Task-number: QTCREATORBUG-18649
+Change-Id: I5e121bf4be0fd0c01a97a182ed07ee7552fb68ac
+Reviewed-by: Przemyslaw Gorszkowski <pgorszkowski@gmail.com>
+Reviewed-by: Orgad Shaneh <orgads@gmail.com>
+---
+ src/libs/cplusplus/LookupContext.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/libs/cplusplus/LookupContext.cpp b/src/libs/cplusplus/LookupContext.cpp
+index 0e9fccead2d..3f09e7b1a2d 100644
+--- a/src/libs/cplusplus/LookupContext.cpp
++++ b/src/libs/cplusplus/LookupContext.cpp
+@@ -1387,6 +1387,8 @@ void ClassOrNamespace::instantiateNestedClasses(ClassOrNamespace *enclosingTempl
+ void ClassOrNamespace::NestedClassInstantiator::instantiate(ClassOrNamespace *enclosingTemplateClass,
+                                                 ClassOrNamespace *enclosingTemplateClassInstantiation)
+ {
++    if (_alreadyConsideredNestedClassInstantiations.size() >= 3)
++        return;
+     if (_alreadyConsideredNestedClassInstantiations.contains(enclosingTemplateClass))
+         return;
+     _alreadyConsideredNestedClassInstantiations.insert(enclosingTemplateClass);

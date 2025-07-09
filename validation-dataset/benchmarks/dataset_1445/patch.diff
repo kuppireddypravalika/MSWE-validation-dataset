@@ -1,0 +1,28 @@
+From e0fa4d2560058e2a3c892b4f59d8244647b5fb0c Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Lasse=20=C3=96=C3=B6rni?= <loorni@gmail.com>
+Date: Thu, 13 Nov 2014 19:42:33 +0200
+Subject: [PATCH] For a minor performance improvement, do not mark
+ AnimatedModel skinning dirty if it does not contain bones.
+
+---
+ Source/Engine/Graphics/AnimatedModel.cpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/Source/Engine/Graphics/AnimatedModel.cpp b/Source/Engine/Graphics/AnimatedModel.cpp
+index b44954c610..6e76032449 100644
+--- a/Source/Engine/Graphics/AnimatedModel.cpp
++++ b/Source/Engine/Graphics/AnimatedModel.cpp
+@@ -873,8 +873,11 @@ void AnimatedModel::OnMarkedDirty(Node* node)
+     Drawable::OnMarkedDirty(node);
+ 
+     // If the scene node or any of the bone nodes move, mark skinning and the bone bounding box dirty
+-    skinningDirty_ = true;
+-    boneBoundingBoxDirty_ = true;
++    if (skeleton_.GetNumBones())
++    {
++        skinningDirty_ = true;
++        boneBoundingBoxDirty_ = true;
++    }
+ }
+ 
+ void AnimatedModel::OnWorldBoundingBoxUpdate()

@@ -1,0 +1,31 @@
+From 4a3059f50969fd84ad6d1a0a51b46cd1e86db928 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@musicpd.org>
+Date: Sat, 2 Dec 2017 16:25:32 +0100
+Subject: [PATCH] queue/PlaylistControl: don't skip highest priority song on
+ "play"
+
+When starting playback with a specific song which does not have the
+highest priority, the previous highest priority song was skipped
+completely because its order was "swapped".  This commit changes to a
+more expensive operation which inserts the selected song into the
+order list.
+
+This fixes a small part of #165
+---
+ src/queue/PlaylistControl.cxx | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/queue/PlaylistControl.cxx b/src/queue/PlaylistControl.cxx
+index 4b17386ae4..018ddcbb73 100644
+--- a/src/queue/PlaylistControl.cxx
++++ b/src/queue/PlaylistControl.cxx
+@@ -75,8 +75,7 @@ playlist::MoveOrderToCurrent(unsigned old_order)
+ 	} else {
+ 		/* not playing anything: move the specified song to
+ 		   the front */
+-		queue.SwapOrders(old_order, 0);
+-		return 0;
++		return queue.MoveOrderBefore(old_order, 0);
+ 	}
+ }
+ 

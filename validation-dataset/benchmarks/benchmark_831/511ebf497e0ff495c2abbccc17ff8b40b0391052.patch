@@ -1,0 +1,34 @@
+From 511ebf497e0ff495c2abbccc17ff8b40b0391052 Mon Sep 17 00:00:00 2001
+From: George Burgess IV <george.burgess.iv@gmail.com>
+Date: Sun, 5 Aug 2018 01:37:07 +0000
+Subject: [PATCH] Use Optional instead of unique_ptr; NFC
+
+Looks like the only reason we use a unique_ptr here is so that we can
+conditionally construct a LogicalErrorHandler. It's a small type, and
+Optional can do the same thing with 100% fewer heap allocations.
+
+
+git-svn-id: https://llvm.org/svn/llvm-project/cfe/trunk@338962 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Sema/AnalysisBasedWarnings.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/lib/Sema/AnalysisBasedWarnings.cpp b/lib/Sema/AnalysisBasedWarnings.cpp
+index ed240f4ed2..15a0adb3cd 100644
+--- a/lib/Sema/AnalysisBasedWarnings.cpp
++++ b/lib/Sema/AnalysisBasedWarnings.cpp
+@@ -2068,11 +2068,11 @@ AnalysisBasedWarnings::IssueWarnings(sema::AnalysisBasedWarnings::Policy P,
+   }
+ 
+   // Install the logical handler for -Wtautological-overlap-compare
+-  std::unique_ptr<LogicalErrorHandler> LEH;
++  llvm::Optional<LogicalErrorHandler> LEH;
+   if (!Diags.isIgnored(diag::warn_tautological_overlap_comparison,
+                        D->getLocStart())) {
+-    LEH.reset(new LogicalErrorHandler(S));
+-    AC.getCFGBuildOptions().Observer = LEH.get();
++    LEH.emplace(S);
++    AC.getCFGBuildOptions().Observer = &*LEH;
+   }
+ 
+   // Emit delayed diagnostics.

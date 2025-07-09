@@ -1,0 +1,30 @@
+From b34ba6ee126752081bbeaf23453366b2cdc1b77e Mon Sep 17 00:00:00 2001
+From: Pilow <pierre.laupretre@gmail.com>
+Date: Wed, 5 Apr 2017 23:07:39 +0200
+Subject: [PATCH] [compiler] Optimize insn_delete method
+
+---
+ src/compiler/Compiler.cpp | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/src/compiler/Compiler.cpp b/src/compiler/Compiler.cpp
+index 2d4a72b9..6dcf59b9 100644
+--- a/src/compiler/Compiler.cpp
++++ b/src/compiler/Compiler.cpp
+@@ -294,7 +294,15 @@ Compiler::value Compiler::insn_class_of(Compiler::value v) const {
+ 
+ void Compiler::insn_delete(Compiler::value v) const {
+ 	if (v.t.must_manage_memory()) {
+-		insn_call(Type::VOID, {v}, (void*) &LSValue::delete_ref);
++		// insn_call(Type::VOID, {v}, (void*) &LSValue::delete_ref);
++		insn_if_not(insn_native(v), [&]() {
++			auto refs = insn_refs(v);
++			insn_if(refs, [&]() {
++				insn_if_not(insn_dec_refs(v, refs), [&]() {
++					insn_call(Type::VOID, {v}, (void*) &LSValue::free);
++				});
++			});
++		});
+ 	} else if (v.t.not_temporary() == Type::MPZ) {
+ 		insn_delete_mpz(v);
+ 	}

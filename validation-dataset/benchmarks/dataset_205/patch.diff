@@ -1,0 +1,24 @@
+From 2c6119e3555034f181e1ff2dece02a926c4bd758 Mon Sep 17 00:00:00 2001
+From: Lorenz Meier <lm@inf.ethz.ch>
+Date: Mon, 28 Mar 2016 13:05:36 +0200
+Subject: [PATCH] SRF02: Use shorter perf names
+
+---
+ src/drivers/srf02/srf02.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/drivers/srf02/srf02.cpp b/src/drivers/srf02/srf02.cpp
+index e3f6ad7d08e3..f585acb6a641 100644
+--- a/src/drivers/srf02/srf02.cpp
++++ b/src/drivers/srf02/srf02.cpp
+@@ -213,8 +213,8 @@ SRF02::SRF02(int bus, int address) :
+ 	_orb_class_instance(-1),
+ 	_distance_sensor_topic(nullptr),
+ 	_sample_perf(perf_alloc(PC_ELAPSED, "srf02_read")),
+-	_comms_errors(perf_alloc(PC_COUNT, "srf02_comms_errors")),
+-	_buffer_overflows(perf_alloc(PC_COUNT, "srf02_buffer_overflows")),
++	_comms_errors(perf_alloc(PC_COUNT, "srf02_com_err")),
++	_buffer_overflows(perf_alloc(PC_COUNT, "srf02_buf_of")),
+ 	_cycle_counter(0),	/* initialising counter for cycling function to zero */
+ 	_cycling_rate(0),	/* initialising cycling rate (which can differ depending on one sonar or multiple) */
+ 	_index_counter(0) 	/* initialising temp sonar i2c address to zero */

@@ -1,0 +1,43 @@
+From 742d27285fd342474d2823d41d96f01eb2261c98 Mon Sep 17 00:00:00 2001
+From: Blake Kaplan <mrbkap@gmail.com>
+Date: Wed, 23 Jul 2008 12:55:57 -0400
+Subject: [PATCH] Attempt to make XPC_XOW_ClassNeedsXOW faster. bug 444779,
+ r=jorendorff/jst sr=jst
+
+---
+ js/src/xpconnect/src/XPCWrapper.h | 22 +++++++++++++++++-----
+ 1 file changed, 17 insertions(+), 5 deletions(-)
+
+diff --git a/js/src/xpconnect/src/XPCWrapper.h b/js/src/xpconnect/src/XPCWrapper.h
+index aaf9ea390ac..78b99ec3ba5 100644
+--- a/js/src/xpconnect/src/XPCWrapper.h
++++ b/js/src/xpconnect/src/XPCWrapper.h
+@@ -84,11 +84,23 @@ CanAccessWrapper(JSContext *cx, JSObject *wrappedObj);
+ inline JSBool
+ XPC_XOW_ClassNeedsXOW(const char *name)
+ {
+-  // TODO Make a perfect hash of these and use that?
+-  return !strcmp(name, "Window")            ||
+-         !strcmp(name, "Location")          ||
+-         !strcmp(name, "HTMLIFrameElement") ||
+-         !strcmp(name, "HTMLFrameElement");
++  switch (*name) {
++    case 'W':
++      return strcmp(++name, "indow") == 0;
++    case 'L':
++      return strcmp(++name, "ocation") == 0;
++    case 'H':
++      if (strncmp(++name, "TML", 3))
++        break;
++      name += 3;
++      if (*name == 'I')
++        ++name;
++      return strcmp(name, "FrameElement") == 0;
++    default:
++      break;
++  }
++
++  return JS_FALSE;
+ }
+ 
+ extern JSExtendedClass sXPC_XOW_JSClass;

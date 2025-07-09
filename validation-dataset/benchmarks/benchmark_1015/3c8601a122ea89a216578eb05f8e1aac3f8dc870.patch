@@ -1,0 +1,39 @@
+From 3c8601a122ea89a216578eb05f8e1aac3f8dc870 Mon Sep 17 00:00:00 2001
+From: Roland Schulz <roland.schulz@intel.com>
+Date: Thu, 9 Nov 2017 15:02:41 -0800
+Subject: [PATCH] AVX: Improve load1DualHsimd
+
+instr+uop: 4->3, throughput/port-pressure(on 5): 3->1
+(IACA numbers for IVB-SKL)
+
+Change-Id: Id768cb951dcbace1473448fcd63fa7d40b0e7da6
+---
+ .../simd/impl_x86_avx_256/impl_x86_avx_256_util_float.h   | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/src/gromacs/simd/impl_x86_avx_256/impl_x86_avx_256_util_float.h b/src/gromacs/simd/impl_x86_avx_256/impl_x86_avx_256_util_float.h
+index 828e4ec181..9507128f18 100644
+--- a/src/gromacs/simd/impl_x86_avx_256/impl_x86_avx_256_util_float.h
++++ b/src/gromacs/simd/impl_x86_avx_256/impl_x86_avx_256_util_float.h
+@@ -1,7 +1,7 @@
+ /*
+  * This file is part of the GROMACS molecular simulation package.
+  *
+- * Copyright (c) 2014,2015, by the GROMACS development team, led by
++ * Copyright (c) 2014,2015,2017, by the GROMACS development team, led by
+  * Mark Abraham, David van der Spoel, Berk Hess, and Erik Lindahl,
+  * and including many others, as listed in the AUTHORS file in the
+  * top-level source directory and at http://www.gromacs.org.
+@@ -589,10 +589,8 @@ static inline SimdFloat gmx_simdcall
+ load1DualHsimd(const float * m)
+ {
+     __m128 t0, t1;
+-    t0 = _mm_loadl_pi(_mm_setzero_ps(), reinterpret_cast<const __m64 *>(m));
+-    t1 = _mm_permute_ps(t0, _MM_SHUFFLE(1, 1, 1, 1));
+-    t0 = _mm_permute_ps(t0, _MM_SHUFFLE(0, 0, 0, 0));
+-
++    t0 = _mm_broadcast_ss(m);
++    t1 = _mm_broadcast_ss(m+1);
+     return {
+                _mm256_insertf128_ps(_mm256_castps128_ps256(t0), t1, 0x1)
+     };

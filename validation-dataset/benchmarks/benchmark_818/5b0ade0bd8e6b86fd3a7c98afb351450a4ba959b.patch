@@ -1,0 +1,31 @@
+From 5b0ade0bd8e6b86fd3a7c98afb351450a4ba959b Mon Sep 17 00:00:00 2001
+From: Scott Mansell <phiren@gmail.com>
+Date: Sun, 7 Feb 2021 18:49:47 +1300
+Subject: [PATCH] Fix power of 2 OP_MUL optimisation
+
+The new left-shift that replaced the multiply takes
+it's size from arg[0]. If arg[0] was 64bit and the original
+OP_MUL was 32bit, then the original code would truncate
+upper bits, and the replacement code wouldn't.
+
+This bug broke the SSL cert checking code in geekbench,
+causing it to fail to upload results.
+Fixes #647
+---
+ External/FEXCore/Source/Interface/IR/Passes/ConstProp.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/External/FEXCore/Source/Interface/IR/Passes/ConstProp.cpp b/External/FEXCore/Source/Interface/IR/Passes/ConstProp.cpp
+index e84569aac4..1fa84529ac 100644
+--- a/External/FEXCore/Source/Interface/IR/Passes/ConstProp.cpp
++++ b/External/FEXCore/Source/Interface/IR/Passes/ConstProp.cpp
+@@ -712,7 +712,9 @@ bool ConstProp::Run(IREmitter *IREmit) {
+           uint64_t amt = __builtin_ctzl(Constant2);
+           IREmit->SetWriteCursor(CodeNode);
+           auto shift = IREmit->_Lshl(CurrentIR.GetNode(Op->Header.Args[0]), IREmit->_Constant(amt));
++          shift.first->Header.Size = IROp->Size; // force Lshl to be the same size as the original Mul
+           IREmit->ReplaceAllUsesWith(CodeNode, shift);
++          Changed = true;
+         }
+       }
+       break;

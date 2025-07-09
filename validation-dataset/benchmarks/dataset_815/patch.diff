@@ -1,0 +1,32 @@
+From 5b5b3507c4e1aef84eac12a24ac7c3c2930ff37a Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Tue, 2 Apr 2024 23:04:43 -0400
+Subject: [PATCH] [libromdata] NintendoDS_BNR: Validate that reserved1[] is all
+ zeroes first.
+
+Faster than CRC16, and should eliminate more unsupported files
+more quickly.
+---
+ src/libromdata/Handheld/NintendoDS_BNR.cpp | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/src/libromdata/Handheld/NintendoDS_BNR.cpp b/src/libromdata/Handheld/NintendoDS_BNR.cpp
+index 147817ddc1..45fec86b63 100644
+--- a/src/libromdata/Handheld/NintendoDS_BNR.cpp
++++ b/src/libromdata/Handheld/NintendoDS_BNR.cpp
+@@ -413,6 +413,15 @@ NintendoDS_BNR::NintendoDS_BNR(const IRpFilePtr &file)
+ 		return;
+ 	}
+ 
++	// Validate the "reserved" section. (Should be 0.)
++	for (unsigned int i = 0; i < sizeof(d->nds_icon_title.reserved1); i++) {
++		if (d->nds_icon_title.reserved1[i] != 0) {
++			// Non-zero. This is an error.
++			d->file.reset();
++			return;
++		}
++	}
++
+ 	// Validate all CRC16s.
+ 	// NOTE: Unused CRC16s should be 0.
+ 	// NOTE 2: Using cpu_to_le16() so we can memcmp() against nds_icon_title directly.

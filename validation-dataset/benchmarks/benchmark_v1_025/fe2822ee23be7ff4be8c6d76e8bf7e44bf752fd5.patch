@@ -1,0 +1,22 @@
+From fe2822ee23be7ff4be8c6d76e8bf7e44bf752fd5 Mon Sep 17 00:00:00 2001
+From: dsharlet-intel <dillon.sharlet@intel.com>
+Date: Wed, 11 Dec 2013 16:11:16 -0800
+Subject: [PATCH] Turned on FP_CONTRACT for OpenCL programs.
+
+Former-commit-id: be72c7f40021117cb23e997067c4349e6ce45cd1
+---
+ src/CodeGen_OpenCL_Dev.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/CodeGen_OpenCL_Dev.cpp b/src/CodeGen_OpenCL_Dev.cpp
+index 743427710d..e104780200 100644
+--- a/src/CodeGen_OpenCL_Dev.cpp
++++ b/src/CodeGen_OpenCL_Dev.cpp
+@@ -164,6 +164,7 @@ void CodeGen_OpenCL_Dev::init_module() {
+ #ifdef ENABLE_CL_KHR_FP64
+     src_stream << "#pragma OPENCL EXTENSION cl_khr_fp64 : enable" << std::endl;
+ #endif
++    src_stream << "#pragma OPENCL FP_CONTRACT ON" << std::endl;
+ 
+     // Write out the Halide math functions.
+     src_stream << "float nan_f32() { return NAN; }" << std::endl;

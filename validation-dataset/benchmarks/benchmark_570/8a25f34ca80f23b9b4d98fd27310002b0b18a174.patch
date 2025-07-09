@@ -1,0 +1,22 @@
+From 8a25f34ca80f23b9b4d98fd27310002b0b18a174 Mon Sep 17 00:00:00 2001
+From: evoskuil <eric@voskuil.org>
+Date: Mon, 22 Mar 2021 21:36:54 -0700
+Subject: [PATCH] Use const ref to avoid range loop copy.
+
+---
+ include/bitcoin/network/p2p.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/bitcoin/network/p2p.hpp b/include/bitcoin/network/p2p.hpp
+index 3ffbcb32f..6bae5743c 100644
+--- a/include/bitcoin/network/p2p.hpp
++++ b/include/bitcoin/network/p2p.hpp
+@@ -76,7 +76,7 @@ class BCT_API p2p
+             "p2p_join", system::synchronizer_terminate::on_count);
+ 
+         // No pre-serialize, channels may have different protocol versions.
+-        for (const auto channel: channels)
++        for (const auto& channel: channels)
+             channel->send(message, std::bind(&p2p::handle_send, this,
+                 std::placeholders::_1, channel, handle_channel, join_handler));
+     }

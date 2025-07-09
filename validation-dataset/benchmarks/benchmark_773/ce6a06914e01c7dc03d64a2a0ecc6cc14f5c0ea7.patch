@@ -1,0 +1,30 @@
+From ce6a06914e01c7dc03d64a2a0ecc6cc14f5c0ea7 Mon Sep 17 00:00:00 2001
+From: Peter Collingbourne <peter@pcc.me.uk>
+Date: Fri, 9 Dec 2016 20:51:33 +0000
+Subject: [PATCH] COFF: Move a call to toString() out of the hot path.
+
+Profiling revealed that we were spending 5% of our time linking
+chrome_child.dll just in this call to toString().
+
+Differential Revision: https://reviews.llvm.org/D27628
+---
+ lld/COFF/InputFiles.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/lld/COFF/InputFiles.cpp b/lld/COFF/InputFiles.cpp
+index 087d7e2614d4..d2146c2f97c8 100644
+--- a/lld/COFF/InputFiles.cpp
++++ b/lld/COFF/InputFiles.cpp
+@@ -171,8 +171,10 @@ void ObjectFile::initializeSymbols() {
+   int32_t LastSectionNumber = 0;
+   for (uint32_t I = 0; I < NumSymbols; ++I) {
+     // Get a COFFSymbolRef object.
+-    COFFSymbolRef Sym =
+-        check(COFFObj->getSymbol(I), "broken object file: " + toString(this));
++    ErrorOr<COFFSymbolRef> SymOrErr = COFFObj->getSymbol(I);
++    if (!SymOrErr)
++      fatal(SymOrErr.getError(), "broken object file: " + toString(this));
++    COFFSymbolRef Sym = *SymOrErr;
+ 
+     const void *AuxP = nullptr;
+     if (Sym.getNumberOfAuxSymbols())

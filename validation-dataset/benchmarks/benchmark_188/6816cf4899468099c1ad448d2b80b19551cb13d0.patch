@@ -1,0 +1,31 @@
+From 6816cf4899468099c1ad448d2b80b19551cb13d0 Mon Sep 17 00:00:00 2001
+From: Miles Stoudenmire <miles.stoudenmire@gmail.com>
+Date: Tue, 27 Oct 2015 13:37:43 -0400
+Subject: [PATCH] More efficient ITCplx contraction using alpha argument of
+ dgemm
+
+---
+ itensor/itdata/itcplx.cc | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
+
+diff --git a/itensor/itdata/itcplx.cc b/itensor/itdata/itcplx.cc
+index 51b09c974..45a98b0e4 100644
+--- a/itensor/itdata/itcplx.cc
++++ b/itensor/itdata/itcplx.cc
+@@ -85,12 +85,10 @@ doTask(Contract<Index>& C,
+     auto trr = makeTenRef(nd->rstart(),nd->csize(),&C.Nis),
+          tri = makeTenRef(nd->istart(),nd->csize(),&C.Nis);
+ 
+-    contract(t1i,Lind,t2i,Rind,trr,Nind,1,1);
+-    for(auto p = nd->rstart(); p < nd->istart(); ++p) *p *= -1;
+-    contract(t1r,Lind,t2r,Rind,trr,Nind,1,1);
+-
+-    contract(t1i,Lind,t2r,Rind,tri,Nind,1,1);
+-    contract(t1r,Lind,t2i,Rind,tri,Nind,1,1);
++    contract(t1i,Lind,t2i,Rind,trr,Nind,-1,0);
++    contract(t1r,Lind,t2r,Rind,trr,Nind,+1,1);
++    contract(t1i,Lind,t2r,Rind,tri,Nind,+1,0);
++    contract(t1r,Lind,t2i,Rind,tri,Nind,+1,1);
+ 
+     //contractloop(t1i,Lind,t2i,Rind,trr,Nind);
+     //for(auto p = nd->rstart(); p < nd->istart(); ++p) *p *= -1;

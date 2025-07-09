@@ -1,0 +1,36 @@
+From 2f329cf7b59bed4d674948d695fd0f8267c390b0 Mon Sep 17 00:00:00 2001
+From: Nekotekina <nekotekina@gmail.com>
+Date: Sun, 11 Oct 2020 17:13:32 +0300
+Subject: [PATCH] PPU: minor improvement for LWARX/LDARX
+
+Improve chances of loading actual data in memory.
+---
+ rpcs3/Emu/Cell/PPUThread.cpp | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/rpcs3/Emu/Cell/PPUThread.cpp b/rpcs3/Emu/Cell/PPUThread.cpp
+index 6b827026fe51..6fcded1cc5ce 100644
+--- a/rpcs3/Emu/Cell/PPUThread.cpp
++++ b/rpcs3/Emu/Cell/PPUThread.cpp
+@@ -1197,14 +1197,18 @@ static T ppu_load_acquire_reservation(ppu_thread& ppu, u32 addr)
+ 
+ 			if (!ppu.use_full_rdata)
+ 			{
++				if (ppu.rtime & vm::rsrv_shared_mask)
++				{
++					// Let the ongoing operation some tiny time to complete
++					busy_wait(100);
++					ppu.rtime &= ~vm::rsrv_shared_mask;
++				}
++
+ 				if (data.load() != rdata)
+ 				{
+ 					continue;
+ 				}
+ 
+-				// Clear some possible lock bits which are permitted
+-				ppu.rtime &= -128;
+-
+ 				// Store only 64 bits of reservation data
+ 				std::memcpy(&ppu.rdata[addr & 0x78], &rdata, 8);
+ 			}

@@ -1,0 +1,26 @@
+From 72d49b56cea45990f0b01787f61f2dbc8ec15447 Mon Sep 17 00:00:00 2001
+From: Lawrence Rust <lvr@softsystem.co.uk>
+Date: Mon, 11 Nov 2013 16:49:57 +0000
+Subject: [PATCH] MediaMon: Speed up recognition and autoplay of removeable
+ media
+
+Signed-off-by: Lawrence Rust <lvr@softsystem.co.uk>
+---
+ mythtv/libs/libmythbase/mythcdrom-linux.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/mythtv/libs/libmythbase/mythcdrom-linux.cpp b/mythtv/libs/libmythbase/mythcdrom-linux.cpp
+index 42d01098bcf..1ef608a8336 100644
+--- a/mythtv/libs/libmythbase/mythcdrom-linux.cpp
++++ b/mythtv/libs/libmythbase/mythcdrom-linux.cpp
+@@ -512,7 +512,9 @@ MythMediaStatus MythCDROMLinux::checkMedia()
+             return setStatus(MEDIASTAT_UNKNOWN, OpenedHere);
+     }
+ 
+-    if (mediaChanged())
++    // NB must call mediaChanged before testing m_Status otherwise will get
++    // an unwanted mediaChanged on next pass
++    if (mediaChanged() && m_Status != MEDIASTAT_UNKNOWN)
+     {
+         LOG(VB_MEDIA, LOG_INFO, m_DevicePath + " Media changed");
+         // Regardless of the actual status lie here and say

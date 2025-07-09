@@ -1,0 +1,23 @@
+From 469fdc6af3c3e6c77a2e79639f4063b6aab1e92a Mon Sep 17 00:00:00 2001
+From: Chris Lattner <sabre@nondot.org>
+Date: Fri, 24 Apr 2009 07:15:22 +0000
+Subject: [PATCH] simplification and speedup
+
+llvm-svn: 69963
+---
+ clang/lib/Lex/PPExpressions.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/clang/lib/Lex/PPExpressions.cpp b/clang/lib/Lex/PPExpressions.cpp
+index 3cba06f4603..0c3aa023610 100644
+--- a/clang/lib/Lex/PPExpressions.cpp
++++ b/clang/lib/Lex/PPExpressions.cpp
+@@ -90,7 +90,7 @@ static bool EvaluateValue(PPValue &Result, Token &PeekTok, DefinedTracker &DT,
+     // If this identifier isn't 'defined' and it wasn't macro expanded, it turns
+     // into a simple 0, unless it is the C++ keyword "true", in which case it
+     // turns into "1".
+-    if (II->getPPKeywordID() != tok::pp_defined) {
++    if (!II->isStr("defined")) {
+       if (ValueLive)
+         PP.Diag(PeekTok, diag::warn_pp_undef_identifier) << II;
+       Result.Val = II->getTokenID() == tok::kw_true;

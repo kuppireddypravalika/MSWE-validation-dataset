@@ -1,0 +1,38 @@
+From fbaaddf2e5ff3e309856023ee5c6f5738940c84a Mon Sep 17 00:00:00 2001
+From: Robert Brown <rbrown@polysync.io>
+Date: Thu, 1 Mar 2018 17:23:13 -0800
+Subject: [PATCH] Move assign into if block
+
+Prior to this commit a NULL assign was outside of an if block that checked for
+NULL. This commit moves the assign into the if block to save an assign in the
+case that the NULL already exists.
+---
+ api/src/oscc.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/api/src/oscc.c b/api/src/oscc.c
+index bbe34cba..05f5034f 100644
+--- a/api/src/oscc.c
++++ b/api/src/oscc.c
+@@ -1017,17 +1017,19 @@ oscc_result_t clear_device_names( device_names_s * const names_ptr )
+             if( names_ptr->name[i] != NULL )
+             {
+                 free( names_ptr->name[i] );
++
++                names_ptr->name[i] = NULL;
+             }
+ 
+-            names_ptr->name[i] = NULL;
+         }
+ 
+         if( names_ptr->name != NULL )
+         {
+             free( names_ptr->name );
++
++            names_ptr->name = NULL;
+         }
+ 
+-        names_ptr->name = NULL;
+     }
+ 
+     return result;

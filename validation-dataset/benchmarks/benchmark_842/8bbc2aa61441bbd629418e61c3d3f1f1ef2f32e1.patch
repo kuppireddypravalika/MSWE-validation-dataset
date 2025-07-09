@@ -1,0 +1,40 @@
+From 8bbc2aa61441bbd629418e61c3d3f1f1ef2f32e1 Mon Sep 17 00:00:00 2001
+From: Mandeep Singh Grang <mgrang@codeaurora.org>
+Date: Sun, 8 Apr 2018 16:45:04 +0000
+Subject: [PATCH] [PowerPC] Change std::sort to llvm::sort in response to
+ r327219
+
+Summary:
+r327219 added wrappers to std::sort which randomly shuffle the container before sorting.
+This will help in uncovering non-determinism caused due to undefined sorting
+order of objects having the same key.
+
+To make use of that infrastructure we need to invoke llvm::sort instead of std::sort.
+
+Note: This patch is one of a series of patches to replace *all* std::sort to llvm::sort.
+Refer the comments section in D44363 for a list of all the required patches.
+
+Reviewers: hfinkel, RKSimon
+
+Reviewed By: RKSimon
+
+Subscribers: nemanjai, kbarton, llvm-commits
+
+Differential Revision: https://reviews.llvm.org/D44870
+---
+ llvm/lib/Target/PowerPC/PPCISelDAGToDAG.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/llvm/lib/Target/PowerPC/PPCISelDAGToDAG.cpp b/llvm/lib/Target/PowerPC/PPCISelDAGToDAG.cpp
+index bb9d5244f0e8..92711e1ea3b9 100644
+--- a/llvm/lib/Target/PowerPC/PPCISelDAGToDAG.cpp
++++ b/llvm/lib/Target/PowerPC/PPCISelDAGToDAG.cpp
+@@ -1394,7 +1394,7 @@ class BitPermutationSelector {
+     for (auto &I : ValueRots) {
+       ValueRotsVec.push_back(I.second);
+     }
+-    std::sort(ValueRotsVec.begin(), ValueRotsVec.end());
++    llvm::sort(ValueRotsVec.begin(), ValueRotsVec.end());
+   }
+ 
+   // In 64-bit mode, rlwinm and friends have a rotation operator that

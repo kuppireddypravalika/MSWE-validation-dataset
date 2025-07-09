@@ -1,0 +1,27 @@
+From 3982919f94991b00a32b469d139991035c0e5ad5 Mon Sep 17 00:00:00 2001
+From: "Lewis G. Pringle, Jr" <lewis@RecordsForLiving.com>
+Date: Fri, 7 Nov 2014 21:41:07 -0500
+Subject: [PATCH] cast to int for better compare in InternetAddress::Compare ()
+ for POSIX
+
+---
+ .../Sources/Stroika/Foundation/IO/Network/InternetAddress.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Library/Sources/Stroika/Foundation/IO/Network/InternetAddress.cpp b/Library/Sources/Stroika/Foundation/IO/Network/InternetAddress.cpp
+index 68d7c8425b..8516169cd2 100644
+--- a/Library/Sources/Stroika/Foundation/IO/Network/InternetAddress.cpp
++++ b/Library/Sources/Stroika/Foundation/IO/Network/InternetAddress.cpp
+@@ -325,10 +325,10 @@ int InternetAddress::Compare (const InternetAddress& rhs) const
+                 }
+ #if     qPlatform_POSIX
+                 if (inet_netof (fV4_) != inet_netof (rhs.fV4_)) {
+-                    return inet_netof (fV4_) - inet_netof (rhs.fV4_);
++                    return static_cast<int> (inet_netof (fV4_)) - static_cast<int> (inet_netof (rhs.fV4_));
+                 }
+                 if (inet_lnaof (fV4_) != inet_lnaof (rhs.fV4_)) {
+-                    return inet_lnaof (fV4_) - inet_lnaof (rhs.fV4_);
++                    return static_cast<int> (inet_lnaof (fV4_)) - static_cast<int> (inet_lnaof (rhs.fV4_));
+                 }
+ #elif   qPlatform_Windows
+                 if (fV4_.s_net != rhs.fV4_.s_net) {

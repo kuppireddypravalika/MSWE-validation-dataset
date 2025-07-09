@@ -1,0 +1,39 @@
+From 8fca1e70e7a8b1dc21a0134b6786e84faff91823 Mon Sep 17 00:00:00 2001
+From: Lars Knoll <lars.knoll@nokia.com>
+Date: Fri, 7 Sep 2012 15:11:36 +0200
+Subject: [PATCH] Use the same hash for 8 bit strings as in QByteArray
+
+Moc still used a different and quite a bit more complicated
+algorithm to hash 8bit strings then QByteArray.
+
+Change-Id: I86efb08d5ab7de1863fc168dcfc73399e72e1331
+Reviewed-by: Qt Doc Bot <qt_docbot@qt-project.org>
+Reviewed-by: Thiago Macieira <thiago.macieira@intel.com>
+---
+ src/tools/moc/symbols.h | 13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
+
+diff --git a/src/tools/moc/symbols.h b/src/tools/moc/symbols.h
+index eadb2db875..a53cc1802e 100644
+--- a/src/tools/moc/symbols.h
++++ b/src/tools/moc/symbols.h
+@@ -72,18 +72,7 @@ struct SubArray
+ 
+ inline uint qHash(const SubArray &key)
+ {
+-    const uchar *p = reinterpret_cast<const uchar *>(key.array.data() + key.from);
+-    int n = key.len;
+-    uint h = 0;
+-    uint g;
+-
+-    while (n--) {
+-        h = (h << 4) + *p++;
+-        if ((g = (h & 0xf0000000)) != 0)
+-            h ^= g >> 23;
+-        h &= ~g;
+-    }
+-    return h;
++    return qHash(QLatin1String(key.array.constData() + key.from, key.len));
+ }
+ 
+ 

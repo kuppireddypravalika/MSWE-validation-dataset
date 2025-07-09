@@ -1,0 +1,33 @@
+From 78eaa60039d4ef0839099108c7efaea15c286f24 Mon Sep 17 00:00:00 2001
+From: Andreas Schaefer <gentryx@gmx.de>
+Date: Wed, 24 Apr 2013 08:28:45 +0200
+Subject: [PATCH] replaced wrap() in the topology subsystem to fix a
+ performacne degradation caused by the reimplementation of Topologies
+
+---
+ src/misc/topologies.h | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/src/misc/topologies.h b/src/misc/topologies.h
+index 9577caa4a..c8a4bd79b 100644
+--- a/src/misc/topologies.h
++++ b/src/misc/topologies.h
+@@ -59,9 +59,16 @@ class NormalizeEdges
+     }
+ 
+ private:
+-    int wrap(int x, int dim)
++    inline int wrap(int x, int dim)
+     {
+-        return (x + dim) % dim;
++        if (x < 0) {
++            return (x + dim) % dim;
++        }
++        if (x >= dim) {
++            return x % dim;
++        }
++
++        return x;
+     }
+ };
+ 

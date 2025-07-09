@@ -1,0 +1,34 @@
+From b73016bb41d4c2fad3126b2e0018d71a36e78331 Mon Sep 17 00:00:00 2001
+From: snicolet <cassio@free.fr>
+Date: Fri, 16 Jun 2017 19:52:38 -0700
+Subject: [PATCH] Prefetch earlier in qsearch()
+
+Closes #1139
+---
+ src/search.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/search.cpp b/src/search.cpp
+index 51d3ae8c..aafe82a9 100644
+--- a/src/search.cpp
++++ b/src/search.cpp
+@@ -1256,6 +1256,9 @@ namespace {
+     {
+       assert(is_ok(move));
+ 
++      // Speculative prefetch as early as possible
++      prefetch(TT.first_entry(pos.key_after(move)));
++
+       givesCheck =  type_of(move) == NORMAL && !pos.discovered_check_candidates()
+                   ? pos.check_squares(type_of(pos.piece_on(from_sq(move)))) & to_sq(move)
+                   : pos.gives_check(move);
+@@ -1297,9 +1300,6 @@ namespace {
+           &&  !pos.see_ge(move))
+           continue;
+ 
+-      // Speculative prefetch as early as possible
+-      prefetch(TT.first_entry(pos.key_after(move)));
+-
+       // Check for legality just before making the move
+       if (!pos.legal(move))
+       {

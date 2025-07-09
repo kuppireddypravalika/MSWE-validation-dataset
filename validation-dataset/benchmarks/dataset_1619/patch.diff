@@ -1,0 +1,23 @@
+From 287bd5c1ca271b3756d0583b8c2a4a1130ac7e2b Mon Sep 17 00:00:00 2001
+From: Jonathon Misiewicz <jonathon.paul.misiewicz@emory.edu>
+Date: Sat, 5 Jun 2021 11:31:54 -0400
+Subject: [PATCH] keep_intcos works for successful optimization
+
+---
+ psi4/src/psi4/optking/optking.cc | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/psi4/src/psi4/optking/optking.cc b/psi4/src/psi4/optking/optking.cc
+index fad3f8c1f18..c1843cd4db8 100644
+--- a/psi4/src/psi4/optking/optking.cc
++++ b/psi4/src/psi4/optking/optking.cc
+@@ -418,8 +418,7 @@ OptReturnType optking(void) {
+       p_Opt_data->reset_trust_radius();
+       delete p_Opt_data;
+       INTCO_EXCEPT::dynamic_level = options.get_int("DYNAMIC_LEVEL"); // reset for future optimizations
+-      opt_intco_dat_remove(); // rm intco definitions
+-      opt_io_remove();        // rm optimization data
++      opt_clean();
+       mol1->write_geom();  // write geometry -> chkpt file (also output for QChem)
+       print_end_out();
+ 

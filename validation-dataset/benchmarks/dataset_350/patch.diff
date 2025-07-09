@@ -1,0 +1,33 @@
+From 02123cde6bd91ac86f47073f117bdcebdb6a84d9 Mon Sep 17 00:00:00 2001
+From: Guillaume Klein <guillaume.klein@systrangroup.com>
+Date: Tue, 10 Mar 2020 17:02:15 +0100
+Subject: [PATCH] Minor cleanup and optimization when consuming a stream
+
+---
+ include/ctranslate2/translator_pool.h | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/include/ctranslate2/translator_pool.h b/include/ctranslate2/translator_pool.h
+index 6941f0f88..e0c8b4751 100644
+--- a/include/ctranslate2/translator_pool.h
++++ b/include/ctranslate2/translator_pool.h
+@@ -73,16 +73,17 @@ namespace ctranslate2 {
+       };
+ 
+       TranslationInput batch_tokens;
++      batch_tokens.reserve(read_batch_size);
+       std::vector<std::string> tokens;
+ 
+       while (reader(in, tokens)) {
+-        batch_tokens.push_back(tokens);
++        batch_tokens.emplace_back(std::move(tokens));
+         tokens.clear();
+         if (batch_tokens.size() == read_batch_size) {
+           results.emplace(post(batch_tokens, options, true));
+           batch_tokens.clear();
++          pop_results(false /* blocking */);
+         }
+-        pop_results(false /* blocking */);
+       }
+ 
+       if (!batch_tokens.empty())

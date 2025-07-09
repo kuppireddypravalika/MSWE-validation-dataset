@@ -1,0 +1,23 @@
+From eb90cc2caef6cf5518ef49398d04e7286d08772a Mon Sep 17 00:00:00 2001
+From: Lyve <lyve2909+github@gmail.com>
+Date: Tue, 13 Apr 2021 17:33:12 +0200
+Subject: [PATCH] reduce unit tests memory, which gives a great speedup at
+ startup
+
+---
+ source/dsp56kEmu/unittests.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/source/dsp56kEmu/unittests.cpp b/source/dsp56kEmu/unittests.cpp
+index 4e02ec2f..f3a4f049 100644
+--- a/source/dsp56kEmu/unittests.cpp
++++ b/source/dsp56kEmu/unittests.cpp
+@@ -10,7 +10,7 @@ namespace dsp56k
+ 
+ 	static DefaultMemoryMap g_defaultMemoryMap;
+ 	
+-	UnitTests::UnitTests() : mem(g_defaultMemoryMap), dsp(mem, &peripherals, &peripherals)
++	UnitTests::UnitTests() : mem(g_defaultMemoryMap, 0x100), dsp(mem, &peripherals, &peripherals)
+ 	{
+ 		testMoveImmediateToRegister();
+ 		testCCCC();

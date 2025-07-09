@@ -1,0 +1,29 @@
+From f6b6a37f751eb48d9438d77f940e3e2acc0171c0 Mon Sep 17 00:00:00 2001
+From: Steven Williams <stevencwilliams@gmail.com>
+Date: Wed, 10 Oct 2018 05:07:57 -0400
+Subject: [PATCH] Improve null evolution performance
+
+---
+ src/tools/nullevo/main.cc | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/tools/nullevo/main.cc b/src/tools/nullevo/main.cc
+index c3da8e7..bac3c0a 100644
+--- a/src/tools/nullevo/main.cc
++++ b/src/tools/nullevo/main.cc
+@@ -40,11 +40,13 @@ int main(int argc, char** argv) {
+     std::map<int, genome::Genome*> genomes;
+     int geneCount = genome::GenomeUtil::schema->getMutableSize();
+     std::vector<std::vector<int> > distribution(geneCount, std::vector<int>(256));
++    genome::Genome* seed = analysis::getGenome(args.run, 1);
+     for (int agent = 1; agent <= args.agents; agent++) {
+-        genome::Genome* genome = analysis::getGenome(args.run, 1);
++        genome::Genome* genome = genome::GenomeUtil::createGenome();
++        genome->copyFrom(seed);
+         genomes[agent] = genome;
+-        update(distribution, genome, 1);
+     }
++    update(distribution, seed, args.agents);
+     std::cout << 0 << " " << getDistance(distribution, args.agents) << std::endl;
+     for (int birth = 1; birth <= args.births; birth++) {
+         int agent = args.agents + birth;

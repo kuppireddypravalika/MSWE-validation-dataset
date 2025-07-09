@@ -1,0 +1,39 @@
+From 820eff05f4ea934e11382ab32e318cb1fdd6954c Mon Sep 17 00:00:00 2001
+From: Edward Welbourne <edward.welbourne@qt.io>
+Date: Mon, 12 Jun 2023 15:57:23 +0200
+Subject: [PATCH] Use atan2() in Quaternion axis-and-angle
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+It's more numerically robust than acos() - we can't hit a range error
+if we get strange rounding effects - and we've got the value of the
+sin of the angle already (it's the length of the x, y, z part), so
+might as well use it. As length is necessarily positive, atan2() will
+give an upper-half-plane resolution, matching what acos() gave us.
+
+This incidentally means that you no longer need to normalize() your
+quaternion before you ask for axis and angle.
+
+Task-number: QTBUG-114313
+Change-Id: If3fa2b371c72991f1f8f151f78ef7f9180aa87cf
+Reviewed-by: Matthias Rauter <matthias.rauter@qt.io>
+Reviewed-by: Jøger Hansegård <joger.hansegard@qt.io>
+Reviewed-by: Eirik Aavitsland <eirik.aavitsland@qt.io>
+---
+ src/gui/math3d/qquaternion.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/gui/math3d/qquaternion.cpp b/src/gui/math3d/qquaternion.cpp
+index 6998957ca1a8..f546d63a7202 100644
+--- a/src/gui/math3d/qquaternion.cpp
++++ b/src/gui/math3d/qquaternion.cpp
+@@ -386,7 +386,7 @@ void QQuaternion::getAxisAndAngle(float *x, float *y, float *z, float *angle) co
+             *y = yp / length;
+             *z = zp / length;
+         }
+-        *angle = qRadiansToDegrees(2.0f * std::acos(wp));
++        *angle = qRadiansToDegrees(2.0f * std::atan2(length, wp));
+     } else {
+         // angle is 0 (mod 2*pi), so any axis will fit
+         *x = *y = *z = *angle = 0.0f;

@@ -1,0 +1,39 @@
+From eb36bdbd7901962b453c4650207336e44eb624a7 Mon Sep 17 00:00:00 2001
+From: Andrew Mustun <andrew@qcad.org>
+Date: Sun, 7 Dec 2014 01:25:22 +0100
+Subject: [PATCH] add better algorithm for polygon contains
+
+QPainterPath::contains is unreliable, add improved
+algorithm for polygons containing only lines
+---
+ src/core/math/RPolyline.cpp | 17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
+
+diff --git a/src/core/math/RPolyline.cpp b/src/core/math/RPolyline.cpp
+index 1e3976daa9..b2f7ce0e99 100644
+--- a/src/core/math/RPolyline.cpp
++++ b/src/core/math/RPolyline.cpp
+@@ -411,8 +411,21 @@ bool RPolyline::contains(const RVector& point, bool borderIsInside, double toler
+         return borderIsInside;
+     }
+ 
+-    QPainterPath pp = toPainterPath();
+-    return pp.contains(QPointF(point.x, point.y));
++    if (hasArcSegments()) {
++        QPainterPath pp = toPainterPath();
++        return pp.contains(QPointF(point.x, point.y));
++    }
++
++    int nvert = vertices.size();
++    int i, j;
++    bool c = false;
++    for (i=0, j=nvert-1; i<nvert; j=i++) {
++        if (((vertices[i].y>point.y) != (vertices[j].y>point.y)) &&
++             (point.x < (vertices[j].x-vertices[i].x) * (point.y-vertices[i].y) / (vertices[j].y-vertices[i].y) + vertices[i].x) ) {
++            c = !c;
++        }
++    }
++    return c;
+ }
+ 
+ /*

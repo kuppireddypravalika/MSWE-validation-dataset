@@ -1,0 +1,25 @@
+From 55a3d1c274f68915658541ec812a86d64e875be9 Mon Sep 17 00:00:00 2001
+From: Dmitry Tsarevich <dimhotepus@gmail.com>
+Date: Fri, 25 Sep 2020 00:21:25 +0300
+Subject: [PATCH] [perf] Do not perform m_name empty ctor call + assignment
+
+---
+ src/xrScriptEngine/script_process.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/xrScriptEngine/script_process.cpp b/src/xrScriptEngine/script_process.cpp
+index 6511aa81ffe..40825240b87 100644
+--- a/src/xrScriptEngine/script_process.cpp
++++ b/src/xrScriptEngine/script_process.cpp
+@@ -14,10 +14,9 @@
+ 
+ string4096 g_ca_stdout; // XXX: allocate dynamically for each CScriptEngine instance
+ 
+-CScriptProcess::CScriptProcess(CScriptEngine* scriptEngine, shared_str name, shared_str scripts)
++CScriptProcess::CScriptProcess(CScriptEngine* scriptEngine, shared_str name, shared_str scripts) : m_name(name)
+ {
+     this->scriptEngine = scriptEngine;
+-    m_name = name;
+ #ifdef DEBUG
+     Msg("* Initializing %s script process", *m_name);
+ #endif

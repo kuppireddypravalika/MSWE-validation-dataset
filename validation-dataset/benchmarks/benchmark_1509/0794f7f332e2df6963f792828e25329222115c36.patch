@@ -1,0 +1,22 @@
+From 0794f7f332e2df6963f792828e25329222115c36 Mon Sep 17 00:00:00 2001
+From: Ghabry <gabelk@web.de>
+Date: Sat, 23 Mar 2013 22:30:10 +0100
+Subject: [PATCH] Fix MSVC performance warning (int-bool-cast)
+
+---
+ src/game_map.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/game_map.cpp b/src/game_map.cpp
+index 83bffbe44d..65d07cc2fd 100644
+--- a/src/game_map.cpp
++++ b/src/game_map.cpp
+@@ -319,7 +319,7 @@ bool Game_Map::IsCounter(int x, int y) {
+ 	int const tile_id = map->upper_layer[x + y * GetWidth()];
+ 	if (tile_id < BLOCK_F) return false;
+ 	int const index = map_info.lower_tiles[passages_up[tile_id - BLOCK_F]];
+-	return bool(Data::chipsets[map_info.chipset_id - 1].passable_data_upper[index] & Passable::Counter);
++	return !!(Data::chipsets[map_info.chipset_id - 1].passable_data_upper[index] & Passable::Counter);
+ }
+ 
+ int Game_Map::GetTerrainTag(int const x, int const y) {

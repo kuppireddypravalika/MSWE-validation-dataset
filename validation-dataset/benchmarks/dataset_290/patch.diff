@@ -1,0 +1,34 @@
+From e2d0dce71ef096c9c2da1d721459948def3bccff Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Sat, 10 Mar 2018 21:19:19 +0000
+Subject: [PATCH] ISO8211: avoid too frequent realloc(). Perhaps fixes
+ https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=6580 /
+ https://oss-fuzz.com/v2/testcase-detail/4656567057121280. Credit to OSS Fuzz
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@41700 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/frmts/iso8211/ddfrecord.cpp | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/gdal/frmts/iso8211/ddfrecord.cpp b/gdal/frmts/iso8211/ddfrecord.cpp
+index f9c6c15aafbb..1258b89ce1c8 100644
+--- a/gdal/frmts/iso8211/ddfrecord.cpp
++++ b/gdal/frmts/iso8211/ddfrecord.cpp
+@@ -347,11 +347,16 @@ int DDFRecord::ReadHeader()
+ /*      If we don't find a field terminator at the end of the record    */
+ /*      we will read extra bytes till we get to it.                     */
+ /* -------------------------------------------------------------------- */
++        int nDataSizeAlloc = nDataSize;
+         while( pachData[nDataSize-1] != DDF_FIELD_TERMINATOR
+                && (nDataSize < 2 || pachData[nDataSize-2] != DDF_FIELD_TERMINATOR) )
+         {
+             nDataSize++;
+-            pachData = (char *) CPLRealloc(pachData,nDataSize+1);
++            if( nDataSize > nDataSizeAlloc )
++            {
++                nDataSizeAlloc *= 2;
++                pachData = (char *) CPLRealloc(pachData,nDataSizeAlloc+1);
++            }
+             pachData[nDataSize] = '\0';
+ 
+             if( VSIFReadL( pachData + nDataSize - 1, 1, 1, poModule->GetFP() )

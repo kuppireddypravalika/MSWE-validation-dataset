@@ -1,0 +1,23 @@
+From a151d1e04d377056c8067e94a8ab7a9c9845730d Mon Sep 17 00:00:00 2001
+From: Davide Italiano <davide@freebsd.org>
+Date: Thu, 3 Sep 2015 20:25:54 +0000
+Subject: [PATCH] [ELF2] Don't allocate more SymbolBodies than needed.
+
+Differential Revision:	http://reviews.llvm.org/D12605
+---
+ lld/ELF/InputFiles.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lld/ELF/InputFiles.cpp b/lld/ELF/InputFiles.cpp
+index b856fe5d131f..5385d2e2292b 100644
+--- a/lld/ELF/InputFiles.cpp
++++ b/lld/ELF/InputFiles.cpp
+@@ -110,7 +110,7 @@ template <class ELFT> void elf2::ObjectFile<ELFT>::initializeSymbols() {
+   if (FirstNonLocal > NumSymbols)
+     error("Invalid sh_info in symbol table");
+   Syms = llvm::make_range(Syms.begin() + FirstNonLocal, Syms.end());
+-  SymbolBodies.reserve(NumSymbols);
++  SymbolBodies.reserve(NumSymbols - FirstNonLocal);
+   for (const Elf_Sym &Sym : Syms)
+     SymbolBodies.push_back(createSymbolBody(StringTable, &Sym));
+ }

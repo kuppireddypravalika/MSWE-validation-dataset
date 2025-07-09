@@ -1,0 +1,22 @@
+From eef16461d69179c179eef0b41dffe7bfb7f2147a Mon Sep 17 00:00:00 2001
+From: csoler <csoler@users.sourceforge.net>
+Date: Sun, 24 Jan 2021 22:33:23 +0100
+Subject: [PATCH] async markRead in channels to make it faster
+
+---
+ retroshare-gui/src/gui/gxschannels/GxsChannelPostsModel.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/retroshare-gui/src/gui/gxschannels/GxsChannelPostsModel.cpp b/retroshare-gui/src/gui/gxschannels/GxsChannelPostsModel.cpp
+index 7350479e43..31eef82424 100644
+--- a/retroshare-gui/src/gui/gxschannels/GxsChannelPostsModel.cpp
++++ b/retroshare-gui/src/gui/gxschannels/GxsChannelPostsModel.cpp
+@@ -796,7 +796,7 @@ void RsGxsChannelPostsModel::setAllMsgReadStatus(bool read_status)
+     // 2 - then call the async methods
+ 
+     for(uint32_t i=0;i<pairs.size();++i)
+-        RsThread::async([p=pairs[i], read_status]()
++        RsThread::async([p=pairs[i], read_status]()	// use async because each markRead() waits for the token to complete in order to properly acknowledge it.
+         {
+             if(!rsGxsChannels->markRead(p,read_status))
+                 RsErr() << "setAllMsgReadStatus: failed to change status of msg " << p.first << " in group " << p.second << " to status " << read_status << std::endl;

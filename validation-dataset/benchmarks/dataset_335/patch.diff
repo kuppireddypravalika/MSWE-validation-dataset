@@ -1,0 +1,28 @@
+From 7d440a9c2f445ed44d07f5d074b96e7527e3a1f4 Mon Sep 17 00:00:00 2001
+From: Magne Sjaastad <magne.sjaastad@ceetronsolutions.com>
+Date: Tue, 10 May 2022 10:24:52 +0200
+Subject: [PATCH] Performance: Avoid calling allSummaryCases
+
+allSummaryCases() is potentially a heavy CPU call for large ensembles. Always show the curve calculator button.
+---
+ .../RicShowSummaryCurveCalculatorFeature.cpp               | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/ApplicationLibCode/Commands/SummaryPlotCommands/RicShowSummaryCurveCalculatorFeature.cpp b/ApplicationLibCode/Commands/SummaryPlotCommands/RicShowSummaryCurveCalculatorFeature.cpp
+index 4c014494274..375c222b73c 100644
+--- a/ApplicationLibCode/Commands/SummaryPlotCommands/RicShowSummaryCurveCalculatorFeature.cpp
++++ b/ApplicationLibCode/Commands/SummaryPlotCommands/RicShowSummaryCurveCalculatorFeature.cpp
+@@ -60,12 +60,7 @@ void RicShowSummaryCurveCalculatorFeature::hideCurveCalculatorDialog()
+ //--------------------------------------------------------------------------------------------------
+ bool RicShowSummaryCurveCalculatorFeature::isCommandEnabled()
+ {
+-    RimProject* proj = RimProject::current();
+-    if ( !proj ) return false;
+-
+-    const auto& allSumCases = proj->allSummaryCases();
+-
+-    return !allSumCases.empty();
++    return true;
+ }
+ 
+ //--------------------------------------------------------------------------------------------------

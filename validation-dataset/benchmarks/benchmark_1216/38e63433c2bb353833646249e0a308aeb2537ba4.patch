@@ -1,0 +1,30 @@
+From 38e63433c2bb353833646249e0a308aeb2537ba4 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>
+Date: Thu, 6 Jun 2019 15:30:03 +0200
+Subject: [PATCH] Do not try to append to QLatin1String
+
+QLatin1String is immutable, so appending is not possible.
+
+While at it, replace the other QLatin1String with QStringLiteral to avoid
+the Latin1 -> UTF-8 conversion at run time in QStringBuilder.
+---
+ src/file/regexpcache.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/file/regexpcache.cpp b/src/file/regexpcache.cpp
+index f47757ff9..9cdf364e5 100644
+--- a/src/file/regexpcache.cpp
++++ b/src/file/regexpcache.cpp
+@@ -78,9 +78,9 @@ void RegExpCache::rebuildCacheFromFilterList(const QStringList& filters)
+     }
+ 
+     // Combine all suffixes into one large RE: "^.*(foo|bar|baz)$"
+-    auto suffixMatch = QLatin1String("^.*\\.(");
+-    suffixMatch += suffixes.join(QChar('|'));
+-    suffixMatch += QLatin1String(")$");
++    QString suffixMatch = QStringLiteral("^.*\\.(")
++        + suffixes.join(QChar('|'))
++        + QStringLiteral(")$");
+     qCDebug(BALOO) << suffixMatch;
+     m_regexpCache.prepend(QRegularExpression(suffixMatch));
+ }

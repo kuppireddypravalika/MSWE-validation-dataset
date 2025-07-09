@@ -1,0 +1,35 @@
+From ff27fdb6a6c4588ba2dace88b49f2939368edbad Mon Sep 17 00:00:00 2001
+From: Tomas Oppelstrup <oppelstrup2@llnl.gov>
+Date: Sat, 27 Oct 2012 04:28:11 +0000
+Subject: [PATCH] Removed comments around workpartition selection macro in
+ TT06Dev_Reaction.cc ( TT06Dev_Reaction::updateNonGate ). The comments
+ prevented the new work partitioning from being used, and prevented some
+ speedup related to that from being realized.
+
+git-svn-id: svn+ssh://lc-svn.llnl.gov/usr/gapps/emhm/svn/Cardioid/EP/trunk@1198 baecf98e-1e81-4516-8920-d4c889e67ea4
+---
+ src/TT06Dev_Reaction.cc | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/src/TT06Dev_Reaction.cc b/src/TT06Dev_Reaction.cc
+index 588ae7c..fbd68bb 100644
+--- a/src/TT06Dev_Reaction.cc
++++ b/src/TT06Dev_Reaction.cc
+@@ -455,15 +455,14 @@ void TT06Dev_Reaction::updateNonGate(double dt, const VectorDouble32& Vm, Vector
+ {
+   int offset,nCells; 
+ 
+-  //#ifdef LEGACY_NG_WORKPARTITION
++#ifdef LEGACY_NG_WORKPARTITION
+    nCells = nonGateWorkPartition(offset);
+-   /*
+ #else
+    const int tid = group_.teamRank();
+    offset = nonGateWork_[tid].offsetCell;
+    nCells = nonGateWork_[tid].nCell;
+ #endif
+-   */
++
+       if(PRINT_WP) {
+ 	static int inited[64] = {0};
+ 	const int tid = group_.teamRank();

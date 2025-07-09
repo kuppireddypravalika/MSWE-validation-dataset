@@ -1,0 +1,22 @@
+From 170fd813f0f34778c9b986b3824dc3a51f15c663 Mon Sep 17 00:00:00 2001
+From: kd-11 <karokidii@gmail.com>
+Date: Fri, 3 Feb 2023 03:36:32 +0300
+Subject: [PATCH] rsx/overlays: Ellide redundant clock read
+
+---
+ rpcs3/Emu/RSX/Overlays/overlay_animated_icon.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/rpcs3/Emu/RSX/Overlays/overlay_animated_icon.cpp b/rpcs3/Emu/RSX/Overlays/overlay_animated_icon.cpp
+index 7ac33906e157c..f8c35592a3674 100644
+--- a/rpcs3/Emu/RSX/Overlays/overlay_animated_icon.cpp
++++ b/rpcs3/Emu/RSX/Overlays/overlay_animated_icon.cpp
+@@ -24,7 +24,7 @@ namespace rsx
+ 			else
+ 			{
+ 				const auto now = rsx::uclock();
+-				m_current_frame_duration_us += (rsx::uclock() - m_last_update_timestamp_us);
++				m_current_frame_duration_us += (now - m_last_update_timestamp_us);
+ 				m_last_update_timestamp_us = now;
+ 			}
+ 

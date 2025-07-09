@@ -1,0 +1,34 @@
+From 63d439ec25339bd6991a46c8c5e711c7cc22921e Mon Sep 17 00:00:00 2001
+From: xiebaiyuan <xiebaiyuan@139.com>
+Date: Sun, 19 Aug 2018 16:06:04 +0800
+Subject: [PATCH] move "temp = numel / (dim[0] * dim[1]);"  out to improve
+ prelu performance
+
+---
+ src/operators/kernel/arm/prelu_kernel.cpp | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/src/operators/kernel/arm/prelu_kernel.cpp b/src/operators/kernel/arm/prelu_kernel.cpp
+index a6b2606a1b5..ec8f8e0ab6f 100644
+--- a/src/operators/kernel/arm/prelu_kernel.cpp
++++ b/src/operators/kernel/arm/prelu_kernel.cpp
+@@ -33,8 +33,6 @@ struct PReluFunctor {
+  * */
+ template <>
+ void PReluKernel<CPU, float>::Compute(const PReluParam &param) const {
+-  DLOG << "PReluKernel :Compute";
+-
+   auto *x = param.InputX();
+   auto *alpha = param.InputAlpha();
+   auto *out = param.Out();
+@@ -48,9 +46,9 @@ void PReluKernel<CPU, float>::Compute(const PReluParam &param) const {
+   int i = 0;
+   int temp = 0;
+   if (mode == "channel") {
++    temp = numel / (dim[0] * dim[1]);
+     #pragma omp parallel for
+     for (i = 0; i < numel; i++) {
+-      temp = numel / (dim[0] * dim[1]);
+       index = (i / temp) % dim[1];
+       o_ptr[i] = x_ptr[i] > 0 ? x_ptr[i] : alpha_ptr[index] * x_ptr[i];
+     }

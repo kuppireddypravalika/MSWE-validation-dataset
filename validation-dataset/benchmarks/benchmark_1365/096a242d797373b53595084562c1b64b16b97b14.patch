@@ -1,0 +1,24 @@
+From 096a242d797373b53595084562c1b64b16b97b14 Mon Sep 17 00:00:00 2001
+From: mitiguy <paul.mitiguy@tri.global>
+Date: Thu, 8 Feb 2018 13:33:55 -0800
+Subject: [PATCH] Improve efficiency per Alejandro's suggestion
+
+---
+ multibody/multibody_tree/math/transform.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/multibody/multibody_tree/math/transform.h b/multibody/multibody_tree/math/transform.h
+index 35b62f03fdd4..eeb5ed953109 100755
+--- a/multibody/multibody_tree/math/transform.h
++++ b/multibody/multibody_tree/math/transform.h
+@@ -125,8 +125,8 @@ class Transform {
+   ///  └                ┘
+   Matrix4<T> GetAsMatrix4() const {
+     Matrix4<T> pose;
+-    pose.topLeftCorner(3, 3) = rotation().matrix();
+-    pose.topRightCorner(3, 1) = translation();
++    pose.template topLeftCorner<3, 3>() = rotation().matrix();
++    pose.template topRightCorner<3, 1>() = translation();
+     pose.row(3) = Vector4<T>(0, 0, 0, 1);
+     return pose;
+   }

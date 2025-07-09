@@ -1,0 +1,24 @@
+From 4157bd9c908b38c44c03efa09971b2037a69101f Mon Sep 17 00:00:00 2001
+From: Odd Kiva <2375733-oddkiva@users.noreply.gitlab.com>
+Date: Mon, 8 Jan 2024 21:56:42 +0100
+Subject: [PATCH] WIP: save work.
+
+The performance difference is not clear cut on 4K videos with larger
+kernels.
+---
+ cpp/src/DO/Shakti/Halide/Components/SeparableConvolution.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/cpp/src/DO/Shakti/Halide/Components/SeparableConvolution.hpp b/cpp/src/DO/Shakti/Halide/Components/SeparableConvolution.hpp
+index d985ab5f7..e4c521fa2 100644
+--- a/cpp/src/DO/Shakti/Halide/Components/SeparableConvolution.hpp
++++ b/cpp/src/DO/Shakti/Halide/Components/SeparableConvolution.hpp
+@@ -148,7 +148,7 @@ namespace DO::Shakti::HalideBackend {
+         conv_x.compute_at(conv_y, x).vectorize(
+             x, 16, Halide::TailStrategy::GuardWithIf);
+ #else
+-        auto tile = Halide::Var{"tile"};
++        const auto tile = Halide::Var{"tile"};
+         conv_y
+             .tile(x, y, xo, yo, xi, yi, 64, 64,
+                   Halide::TailStrategy::GuardWithIf)

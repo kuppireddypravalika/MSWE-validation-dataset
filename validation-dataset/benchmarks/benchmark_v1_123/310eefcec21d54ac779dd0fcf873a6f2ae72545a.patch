@@ -1,0 +1,34 @@
+From 310eefcec21d54ac779dd0fcf873a6f2ae72545a Mon Sep 17 00:00:00 2001
+From: Jush Lu <Jush.Lu@mediatek.com>
+Date: Wed, 28 Dec 2011 17:17:56 +0800
+Subject: [PATCH] Perform applyPLT0 and applyPLT1 in emitSectionData.
+
+---
+ lib/Target/ARM/ARMLDBackend.cpp | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/lib/Target/ARM/ARMLDBackend.cpp b/lib/Target/ARM/ARMLDBackend.cpp
+index 93e043a1..adaa1317 100644
+--- a/lib/Target/ARM/ARMLDBackend.cpp
++++ b/lib/Target/ARM/ARMLDBackend.cpp
+@@ -469,6 +469,8 @@ uint64_t ARMGNULDBackend::emitSectionData(const LDSection& pSection,
+   uint64_t RegionSize = 0;
+ 
+   if (!std::strcmp(SectionName,".got")) {
++    assert(m_pGOT && "emitSectionData failed, m_pGOT is NULL!");
++
+     GOTEntry* got = 0;
+     EntrySize = m_pGOT->getEntryBytes();
+ 
+@@ -481,6 +483,11 @@ uint64_t ARMGNULDBackend::emitSectionData(const LDSection& pSection,
+   }
+ 
+   else if (!std::strcmp(SectionName, ".plt")) {
++    assert(m_pPLT && "emitSectionData failed, m_pPLT is NULL!");
++
++    m_pPLT->applyPLT0();
++    m_pPLT->applyPLT1();
++
+     ARMPLT::iterator it = m_pPLT->begin();
+     unsigned int plt0_size = llvm::cast<ARMPLT0>((*it)).getEntrySize();
+ 

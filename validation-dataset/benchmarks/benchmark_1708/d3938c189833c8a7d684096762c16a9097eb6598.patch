@@ -1,0 +1,37 @@
+From d3938c189833c8a7d684096762c16a9097eb6598 Mon Sep 17 00:00:00 2001
+From: Konstantin Ritt <ritt.ks@gmail.com>
+Date: Fri, 12 Apr 2013 21:01:36 +0300
+Subject: [PATCH] Fix integer overflow for very large fonts
+
+This caused glitches up to unreadable text with i.e.
+pixelSize 256 and stretch factor 4x /* ((256*4)<<16)<<6 */.
+
+Change-Id: Ib6a038a043d820a94bd2019c50390a815a2a8277
+Reviewed-by: Konstantin Ritt <ritt.ks@gmail.com>
+---
+ src/gui/text/qfontengine.cpp | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/src/gui/text/qfontengine.cpp b/src/gui/text/qfontengine.cpp
+index 47c59fb8261..fcea2a0245a 100644
+--- a/src/gui/text/qfontengine.cpp
++++ b/src/gui/text/qfontengine.cpp
+@@ -263,11 +263,15 @@ void *QFontEngine::harfbuzzFont() const
+ {
+     HB_FontRec *hbFont = (HB_FontRec *)font_;
+     if (!hbFont->x_ppem) {
+-        QFixed emSquare = emSquareSize();
++        qint64 emSquare = emSquareSize().truncate();
++        Q_ASSERT(emSquare == emSquareSize().toInt()); // ensure no truncation
++        if (emSquare == 0)
++            emSquare = 1000; // a fallback value suitable for Type1 fonts
+         hbFont->y_ppem = fontDef.pixelSize;
+         hbFont->x_ppem = fontDef.pixelSize * fontDef.stretch / 100;
+-        hbFont->x_scale = (QFixed(hbFont->x_ppem * (1 << 16)) / emSquare).value();
+-        hbFont->y_scale = (QFixed(hbFont->y_ppem * (1 << 16)) / emSquare).value();
++        // same as QFixed(x)/QFixed(emSquare) but without int32 overflow for x
++        hbFont->x_scale = (((qint64)hbFont->x_ppem << 6) * 0x10000L + (emSquare >> 1)) / emSquare;
++        hbFont->y_scale = (((qint64)hbFont->y_ppem << 6) * 0x10000L + (emSquare >> 1)) / emSquare;
+     }
+     return font_;
+ }

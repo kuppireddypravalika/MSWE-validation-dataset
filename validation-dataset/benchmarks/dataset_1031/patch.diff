@@ -1,0 +1,27 @@
+From 3a4214f10cbd9d95ebb57b3cfe39288d5dfbb88f Mon Sep 17 00:00:00 2001
+From: Tormod Landet <tormod@landet.net>
+Date: Thu, 18 Aug 2016 11:42:03 +0200
+Subject: [PATCH] Checking for null works and should be faster
+
+---
+ dolfin/mesh/MeshEntity.h | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/dolfin/mesh/MeshEntity.h b/dolfin/mesh/MeshEntity.h
+index dcab4c974b5..ff8058ca9dd 100644
+--- a/dolfin/mesh/MeshEntity.h
++++ b/dolfin/mesh/MeshEntity.h
+@@ -172,9 +172,10 @@ namespace dolfin
+     ///         The index for incident mesh entities of given dimension.
+     const unsigned int* entities(std::size_t dim) const
+     {
+-      const auto& mesh_connectivity = _mesh->topology()(_dim, dim);
+-      dolfin_assert(!mesh_connectivity.empty());
+-      return mesh_connectivity(_local_index);
++      const unsigned int* initialized_mesh_entities
++        = _mesh->topology()(_dim, dim)(_local_index);
++      dolfin_assert(initialized_mesh_entities);
++      return initialized_mesh_entities;
+     }
+ 
+     /// Return unique mesh ID

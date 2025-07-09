@@ -1,0 +1,31 @@
+From 837fcee84073fa6b2f753dd5eab60088ad1e58ed Mon Sep 17 00:00:00 2001
+From: Andreas Schaefer <gentryx@gmx.de>
+Date: Wed, 2 Jan 2013 00:46:40 +0100
+Subject: [PATCH] changed Torus coordinate wrapping, the new code yields a good
+ speedup for Stephan's LBM code
+
+---
+ src/misc/topologies.h | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/src/misc/topologies.h b/src/misc/topologies.h
+index 288522357..50690ee06 100644
+--- a/src/misc/topologies.h
++++ b/src/misc/topologies.h
+@@ -125,7 +125,15 @@ class Topologies
+             const COORD& coord, 
+             const COORD& dimensions) const
+         {
+-            return (dimensions[DIM] + coord[DIM]) % dimensions[DIM];
++            if (coord[DIM] < 0) {
++                return coord[DIM] + dimensions[DIM];
++            }
++
++            if (coord[DIM] >= dimensions[DIM]) {
++                return coord[DIM] - dimensions[DIM];
++            }
++
++            return coord[DIM];
+         }
+     };
+ 

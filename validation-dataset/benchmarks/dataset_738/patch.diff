@@ -1,0 +1,39 @@
+From 002492f93270ca27ba56cafb797f3a410e628e7a Mon Sep 17 00:00:00 2001
+From: Vadim Zeitlin <vadim@wxwidgets.org>
+Date: Tue, 20 Aug 2019 13:45:53 +0200
+Subject: [PATCH] Use iterators for string iteration instead of indices
+
+This is much more efficient when using UTF-8 representation internally.
+
+No real changes, just an optimization.
+---
+ src/msw/textmeasure.cpp | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/src/msw/textmeasure.cpp b/src/msw/textmeasure.cpp
+index 485d2e0fae7a..7b68982d27d0 100644
+--- a/src/msw/textmeasure.cpp
++++ b/src/msw/textmeasure.cpp
+@@ -172,9 +172,10 @@ bool wxTextMeasure::DoGetPartialTextExtents(const wxString& text,
+     int offset = 0;
+     int tabWidth = 0;
+     int tabHeight = 0;
+-    for ( unsigned i = 0; i < text.length(); ++i )
++    int* widthPtr = &widths[0];
++    for ( wxString::const_iterator i = text.begin(); i != text.end(); ++i )
+     {
+-        if ( text[i] == '\t' )
++        if ( *i == '\t' )
+         {
+             if ( tabWidth == 0 )
+             {
+@@ -182,7 +183,8 @@ bool wxTextMeasure::DoGetPartialTextExtents(const wxString& text,
+             }
+             offset += tabWidth;
+         }
+-        widths[i] += offset;
++
++        *widthPtr++ += offset;
+     }
+ 
+     return true;

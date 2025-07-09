@@ -1,0 +1,43 @@
+From 48bc92a72d0f15df6b55a37e20c53b310a61e40b Mon Sep 17 00:00:00 2001
+From: Artur Wieczorek <artwik@wp.pl>
+Date: Mon, 7 Jan 2019 23:21:52 +0100
+Subject: [PATCH] Use wxVector<wxPropertyGridPageState*> instead of
+ wxArrayPtrVoid
+
+---
+ src/propgrid/propgridiface.cpp | 15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
+
+diff --git a/src/propgrid/propgridiface.cpp b/src/propgrid/propgridiface.cpp
+index 307753986e9d..04b776010156 100644
+--- a/src/propgrid/propgridiface.cpp
++++ b/src/propgrid/propgridiface.cpp
+@@ -915,22 +915,19 @@ wxString wxPropertyGridInterface::SaveEditableState( int includedStates ) const
+ 
+     //
+     // Save state on page basis
+-    unsigned int pageIndex = 0;
+-    wxArrayPtrVoid pageStates;
+-
+-    for (;;)
++    wxVector<wxPropertyGridPageState*> pageStates;
++    for (int pageIndex = 0; ; pageIndex++)
+     {
+         wxPropertyGridPageState* page = GetPageState(pageIndex);
+         if ( !page ) break;
+ 
+-        pageStates.Add(page);
+-
+-        pageIndex++;
++        pageStates.push_back(page);
+     }
+ 
+-    for ( pageIndex=0; pageIndex < pageStates.size(); pageIndex++ )
++    for (wxVector<wxPropertyGridPageState*>::const_iterator it_ps = pageStates.begin();
++         it_ps != pageStates.end(); ++it_ps)
+     {
+-        wxPropertyGridPageState* pageState = (wxPropertyGridPageState*) pageStates[pageIndex];
++        wxPropertyGridPageState* pageState = *it_ps;
+ 
+         if ( includedStates & SelectionState )
+         {

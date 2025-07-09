@@ -1,0 +1,47 @@
+From 6cc01518a34e92732d932a7c77b844ebac784796 Mon Sep 17 00:00:00 2001
+From: Todd Fiala <todd.fiala@gmail.com>
+Date: Thu, 4 Sep 2014 14:16:19 +0000
+Subject: [PATCH] Use the process' ReadCStringFromMemory from
+ DYLDRendezvous::ReadStringFromMemory.
+
+Tested:
+Ubuntu 14.04 x86_64, clang-3.5-built lldb.
+MacOSX 10.9.4, Xcode6-Beta7-built lldb.
+
+Visual packet inspection on lldb <-> llgs shows significant reduction in overly-verbose
+memory read traffic on start-up when scanning shared library info.
+
+Change by Stephane Sezer.
+---
+ .../DynamicLoader/POSIX-DYLD/DYLDRendezvous.cpp    | 14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
+
+diff --git a/lldb/source/Plugins/DynamicLoader/POSIX-DYLD/DYLDRendezvous.cpp b/lldb/source/Plugins/DynamicLoader/POSIX-DYLD/DYLDRendezvous.cpp
+index 0e203fe43a79..0def391b4d19 100644
+--- a/lldb/source/Plugins/DynamicLoader/POSIX-DYLD/DYLDRendezvous.cpp
++++ b/lldb/source/Plugins/DynamicLoader/POSIX-DYLD/DYLDRendezvous.cpp
+@@ -320,23 +320,11 @@ DYLDRendezvous::ReadStringFromMemory(addr_t addr)
+ {
+     std::string str;
+     Error error;
+-    size_t size;
+-    char c;
+ 
+     if (addr == LLDB_INVALID_ADDRESS)
+         return std::string();
+ 
+-    for (;;) {
+-        size = m_process->DoReadMemory(addr, &c, 1, error);
+-        if (size != 1 || error.Fail())
+-            return std::string();
+-        if (c == 0)
+-            break;
+-        else {
+-            str.push_back(c);
+-            addr++;
+-        }
+-    }
++    m_process->ReadCStringFromMemory(addr, str, error);
+ 
+     return str;
+ }

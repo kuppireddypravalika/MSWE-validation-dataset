@@ -1,0 +1,33 @@
+From 0f8e985252d4c6b18f6ee96f751e02640e827dc7 Mon Sep 17 00:00:00 2001
+From: Vadim Zeitlin <vadim@wxwidgets.org>
+Date: Sat, 4 Apr 2020 19:03:01 +0200
+Subject: [PATCH] Define wxGridSelectionRange::iterator in terms of vector
+ iterator
+
+This fixes compilation when using std::vector<> implementation for
+wxVector (i.e. with wxUSE_STD_CONTAINERS==1).
+---
+ include/wx/generic/grid.h | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/include/wx/generic/grid.h b/include/wx/generic/grid.h
+index adb1e7b34509..b41b8a982950 100644
+--- a/include/wx/generic/grid.h
++++ b/include/wx/generic/grid.h
+@@ -875,12 +875,12 @@ struct wxGridBlockDiffResult
+ class wxGridSelectionRange
+ {
+ public:
+-    typedef wxGridBlockCoords* iterator;
++    typedef wxVector<wxGridBlockCoords>::const_iterator iterator;
+ 
+     wxGridSelectionRange() :
+-        m_begin(NULL),
+-        m_end(NULL),
+-        m_it(NULL)
++        m_begin(),
++        m_end(),
++        m_it()
+     {
+     }
+ 

@@ -1,0 +1,24 @@
+From dde9e093160eb01203a358e418f277a71271d3de Mon Sep 17 00:00:00 2001
+From: Lukas Rusak <lorusak@gmail.com>
+Date: Thu, 12 Jan 2023 13:46:04 -0800
+Subject: [PATCH] CActiveAESink: use EndTime<>::Max() for m_extSilenceTimeout
+ while streaming
+
+Signed-off-by: Lukas Rusak <lorusak@gmail.com>
+---
+ xbmc/cores/AudioEngine/Engines/ActiveAE/ActiveAESink.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/xbmc/cores/AudioEngine/Engines/ActiveAE/ActiveAESink.cpp b/xbmc/cores/AudioEngine/Engines/ActiveAE/ActiveAESink.cpp
+index 0a8bb17df6a86..8f30ac9a93de8 100644
+--- a/xbmc/cores/AudioEngine/Engines/ActiveAE/ActiveAESink.cpp
++++ b/xbmc/cores/AudioEngine/Engines/ActiveAE/ActiveAESink.cpp
+@@ -1155,7 +1155,7 @@ void CActiveAESink::GenerateNoise()
+ void CActiveAESink::SetSilenceTimer()
+ {
+   if (m_extStreaming)
+-    m_extSilenceTimeout = std::chrono::milliseconds::max();
++    m_extSilenceTimeout = XbmcThreads::EndTime<decltype(m_extSilenceTimeout)>::Max();
+   else if (m_extAppFocused)
+     m_extSilenceTimeout = m_silenceTimeOut;
+   else

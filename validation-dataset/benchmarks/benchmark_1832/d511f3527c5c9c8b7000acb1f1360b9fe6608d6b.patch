@@ -1,0 +1,34 @@
+From d511f3527c5c9c8b7000acb1f1360b9fe6608d6b Mon Sep 17 00:00:00 2001
+From: Charles Davis <cdavis5x@gmail.com>
+Date: Fri, 31 Aug 2018 13:41:05 +0000
+Subject: [PATCH] [AddressSpace] Use the macro to set hidden visibility on
+ LocalAddressSpace.
+
+Summary:
+That attribute has no effect on Windows anyway--classes are hidden by
+default.
+
+Reviewers: mstorsjo, rnk
+
+Subscribers: christof, cfe-commits
+
+Differential Revision: https://reviews.llvm.org/D51509
+
+git-svn-id: https://llvm.org/svn/llvm-project/libunwind/trunk@341210 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ src/AddressSpace.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/AddressSpace.hpp b/src/AddressSpace.hpp
+index 32e66bb..30ad359 100644
+--- a/src/AddressSpace.hpp
++++ b/src/AddressSpace.hpp
+@@ -180,7 +180,7 @@ struct UnwindInfoSections {
+ /// LocalAddressSpace is used as a template parameter to UnwindCursor when
+ /// unwinding a thread in the same process.  The wrappers compile away,
+ /// making local unwinds fast.
+-class __attribute__((visibility("hidden"))) LocalAddressSpace {
++class _LIBUNWIND_HIDDEN LocalAddressSpace {
+ public:
+   typedef uintptr_t pint_t;
+   typedef intptr_t  sint_t;

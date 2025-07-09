@@ -1,0 +1,28 @@
+From 86fcf6811a1a0a89237011cfc5d0eb59299e9f4f Mon Sep 17 00:00:00 2001
+From: Garrett Brown <themagnificentmrb@gmail.com>
+Date: Sun, 2 Apr 2023 23:17:03 -0700
+Subject: [PATCH] RetroPlayer: Fix memory exhaustion bug with zero-copy
+ emulators
+
+Render buffers requested by zero-copy are never freed, leading to drastic
+memory growth and eventually memory exhaustion.
+---
+ xbmc/cores/RetroPlayer/rendering/RPRenderManager.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/xbmc/cores/RetroPlayer/rendering/RPRenderManager.cpp b/xbmc/cores/RetroPlayer/rendering/RPRenderManager.cpp
+index a0886fe26a2df..94fec16eee0d3 100644
+--- a/xbmc/cores/RetroPlayer/rendering/RPRenderManager.cpp
++++ b/xbmc/cores/RetroPlayer/rendering/RPRenderManager.cpp
+@@ -126,6 +126,11 @@ bool CRPRenderManager::Configure(AVPixelFormat format,
+ std::vector<VideoStreamBuffer> CRPRenderManager::GetVideoBuffers(unsigned int width,
+                                                                  unsigned int height)
+ {
++  // Clear any previous pending buffers
++  for (IRenderBuffer* buffer : m_pendingBuffers)
++    buffer->Release();
++  m_pendingBuffers.clear();
++
+   std::vector<VideoStreamBuffer> buffers;
+ 
+   if (m_bFlush || m_state != RENDER_STATE::CONFIGURED)

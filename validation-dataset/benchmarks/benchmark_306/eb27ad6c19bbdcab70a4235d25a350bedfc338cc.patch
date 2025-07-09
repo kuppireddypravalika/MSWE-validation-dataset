@@ -1,0 +1,31 @@
+From eb27ad6c19bbdcab70a4235d25a350bedfc338cc Mon Sep 17 00:00:00 2001
+From: Lyve <lyve2909+github@gmail.com>
+Date: Thu, 22 Apr 2021 11:38:28 +0200
+Subject: [PATCH] optimize REP instruction to fetch target function only once
+
+---
+ source/dsp56kEmu/dsp.cpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/source/dsp56kEmu/dsp.cpp b/source/dsp56kEmu/dsp.cpp
+index 35473dcd..6e36529b 100644
+--- a/source/dsp56kEmu/dsp.cpp
++++ b/source/dsp56kEmu/dsp.cpp
+@@ -1226,12 +1226,15 @@ namespace dsp56k
+ 
+ 		--reg.lc.var;
+ 		execOp(op);
+-		// TODO: remember function pointer and call directly
++
++		const auto opCache = m_opcodeCache[pcCurrentInstruction];
++
++		const auto func = g_jumpTable[static_cast<Instruction>(opCache & 0xff)];
+ 
+ 		while( reg.lc.var > 0 )
+ 		{
+ 			--reg.lc.var;
+-			execOp(op);
++			(this->*func)(op);
+ 		}
+ 
+ 		reg.lc = lcBackup;

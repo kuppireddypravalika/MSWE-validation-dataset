@@ -1,0 +1,50 @@
+From 768140c6e1ac15f478a2896d6a0c1cbd2a481f58 Mon Sep 17 00:00:00 2001
+From: Tobias Grosser <grosser@fim.uni-passau.de>
+Date: Wed, 14 Dec 2011 08:58:39 +0000
+Subject: [PATCH] Scheduler: Set maximal constant term
+
+If larger coefficients appear as part of the input dependences, the schedule
+calculation can take a very long time. We observed that the main overhead in
+this calculation is due to optimizing the constant coefficients. They are
+misused to increase locality by merging several unrelated dimensions into a
+single dimension. This unwanted optimization increases the complexity of the
+generated code and furthermore slows it down.
+
+We use a new isl scheduler option to bound the values in the constant dimension
+by a user defined value (20 in our case). If the right value is choosen, costly
+overoptimization is prevented.
+
+This solution works, but requires a specific (here almost randomly choosen)
+value by which the constants are bound. For the moment, this is our best
+solution, but we hope to to find a more generic one later on.
+
+After these patch the extremly long compile time for simple kernels like 2mm or
+3mm is reduced to a reasonable amount of time (Not more than a couple of seconds
+even in debug mode).
+
+llvm-svn: 146556
+---
+ polly/lib/ScheduleOptimizer.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/polly/lib/ScheduleOptimizer.cpp b/polly/lib/ScheduleOptimizer.cpp
+index a0cfa1f1979..c8c7ebc6953 100644
+--- a/polly/lib/ScheduleOptimizer.cpp
++++ b/polly/lib/ScheduleOptimizer.cpp
+@@ -37,6 +37,8 @@
+ #include "llvm/Support/Debug.h"
+ #include "llvm/Support/CommandLine.h"
+ 
++static const int CONSTANT_BOUND = 20;
++
+ using namespace llvm;
+ using namespace polly;
+ 
+@@ -433,6 +435,7 @@ bool IslScheduleOptimizer::runOnScop(Scop &S) {
+ 
+   isl_schedule *schedule;
+ 
++  isl_options_set_schedule_max_constant_term(S.getIslCtx(), CONSTANT_BOUND);
+   schedule  = isl_union_set_compute_schedule(domain, validity, proximity);
+ 
+   DEBUG(dbgs() << "Computed schedule: ");

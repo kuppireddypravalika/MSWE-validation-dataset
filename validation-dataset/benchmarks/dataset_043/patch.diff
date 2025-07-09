@@ -1,0 +1,23 @@
+From 33a8374223e0653dc2629e2ef5b62c3b8cc24016 Mon Sep 17 00:00:00 2001
+From: Timm Hoffmeister <timm.hoffmeister@gmx.de>
+Date: Mon, 25 Jan 2021 16:19:08 +0000
+Subject: [PATCH] Replaced two if conditions by using std::abs
+
+---
+ libs/s25main/mapGenerator/HeadQuarters.h | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/libs/s25main/mapGenerator/HeadQuarters.h b/libs/s25main/mapGenerator/HeadQuarters.h
+index 8b584c8bd8..d4bcc96c7b 100644
+--- a/libs/s25main/mapGenerator/HeadQuarters.h
++++ b/libs/s25main/mapGenerator/HeadQuarters.h
+@@ -88,8 +88,7 @@ namespace rttr { namespace mapGenerator {
+         {
+             for(const MapPoint& pt : possiblePositions)
+             {
+-                if(mountainDistance[pt] < allowedMountainDistance + 5
+-                   && mountainDistance[pt] > allowedMountainDistance - 5)
++                if(std::abs(static_cast<int>(mountainDistance[pt] - allowedMountainDistance)) < 5)
+                 {
+                     positions.push_back(pt);
+                 }

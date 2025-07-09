@@ -1,0 +1,26 @@
+From 893683de15fa74ca028369783145e17a9d6f4b6e Mon Sep 17 00:00:00 2001
+From: Cameron White <cameronwhite91@gmail.com>
+Date: Fri, 26 Aug 2011 23:13:02 +0000
+Subject: [PATCH] Changed the viewport update mode to
+ BoundingRectViewportUpdate, which provides better performance when scrolling
+ through large documents
+
+git-svn-id: http://svn.powertabs.org/svn/ptedev/trunk@637 5b1460fe-822e-4aa1-ac1b-8a6412c92c8c
+---
+ source/app/scorearea.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/source/app/scorearea.cpp b/source/app/scorearea.cpp
+index cd89e079c..be9d35ec0 100644
+--- a/source/app/scorearea.cpp
++++ b/source/app/scorearea.cpp
+@@ -33,8 +33,7 @@ ScoreArea::ScoreArea(QWidget *parent) :
+     QGraphicsView(parent),
+     caret(NULL)
+ {
+-    setViewportUpdateMode(QGraphicsView::MinimalViewportUpdate);
+-    setCacheMode(QGraphicsView::CacheBackground);
++    setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
+ 
+     setScene(&scene);
+     setRenderHints(QPainter::HighQualityAntialiasing);

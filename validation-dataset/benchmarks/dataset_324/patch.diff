@@ -1,0 +1,27 @@
+From 0c1154524e98464d4b149d72ae3e1b2691ddbced Mon Sep 17 00:00:00 2001
+From: Lawrence Rust <lvr@softsystem.co.uk>
+Date: Sat, 24 Aug 2013 19:21:42 +0100
+Subject: [PATCH] MediaMon: Don't announce media until after type identified
+
+Currently setStatus is called twice for each disk which can cause
+2 jumps to handlers.
+
+Signed-off-by: Lawrence Rust <lvr@softsystem.co.uk>
+---
+ mythtv/libs/libmythbase/mythmedia.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/mythtv/libs/libmythbase/mythmedia.cpp b/mythtv/libs/libmythbase/mythmedia.cpp
+index e7c842a5d01..8686917a3f0 100644
+--- a/mythtv/libs/libmythbase/mythmedia.cpp
++++ b/mythtv/libs/libmythbase/mythmedia.cpp
+@@ -155,8 +155,7 @@ bool MythMediaDevice::performMountCmd(bool DoMount)
+                                            " find mounted media, but failed?");
+                     return false;
+                 }
+-                setStatus(MEDIASTAT_MOUNTED); // emit statusChanged
+-                onDeviceMounted();
++                onDeviceMounted(); // Identify disk type & content
+                 LOG(VB_GENERAL, LOG_INFO,
+                         QString("Detected MediaType ") + MediaTypeString());
+             }

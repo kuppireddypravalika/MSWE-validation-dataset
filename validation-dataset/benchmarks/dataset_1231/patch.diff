@@ -1,0 +1,22 @@
+From 384b36c33e85bb2b45cf4fd170f8c86e0517114c Mon Sep 17 00:00:00 2001
+From: Fsu0413 <Fsu0413@gmail.com>
+Date: Sun, 18 May 2014 08:32:12 +0800
+Subject: [PATCH] memory leak in paintshadow
+
+---
+ src/ui/uiUtils.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/ui/uiUtils.cpp b/src/ui/uiUtils.cpp
+index 4329c82d98..9eed892bf0 100644
+--- a/src/ui/uiUtils.cpp
++++ b/src/ui/uiUtils.cpp
+@@ -47,6 +47,8 @@ void QSanUiUtils::paintShadow(QPainter *painter, const QImage &image, QColor sha
+ #undef _OLD_PIXEL
+     QImage result(newImage, cols, rows, QImage::Format_ARGB32);
+     painter->drawImage(x, y, result);
++    delete[] newImage;
++    newImage = NULL;
+ }
+ 
+ void QSanUiUtils::paintShadow(QPainter *painter, const QImage &image, QColor shadowColor, int radius, double decade, const QRect boundingBox) {

@@ -1,0 +1,23 @@
+From cd238bfe32fe09a91385cb8a81b710b1ea30db61 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Tue, 6 Feb 2018 17:13:14 +0000
+Subject: [PATCH] DXF: use appropriate sizeof() (CID 1385765)
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@41424 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/ogr/ogrsf_frmts/dxf/ogrdxflayer.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gdal/ogr/ogrsf_frmts/dxf/ogrdxflayer.cpp b/gdal/ogr/ogrsf_frmts/dxf/ogrdxflayer.cpp
+index 7597a60ef0db..9ba0bcaa8ea5 100644
+--- a/gdal/ogr/ogrsf_frmts/dxf/ogrdxflayer.cpp
++++ b/gdal/ogr/ogrsf_frmts/dxf/ogrdxflayer.cpp
+@@ -3207,7 +3207,7 @@ OGRDXFFeature *OGRDXFLayer::TranslateINSERT()
+         poFeatureDefn->GetFieldIndex( "BlockAttributes" ) != -1 )
+     {
+         papszAttribs = static_cast<char**>(
+-            CPLCalloc(apoAttribs.size() + 1, sizeof(char**)));
++            CPLCalloc(apoAttribs.size() + 1, sizeof(char*)));
+         int iIndex = 0;
+ 
+         for( auto oIt = apoAttribs.begin(); oIt != apoAttribs.end(); ++oIt )

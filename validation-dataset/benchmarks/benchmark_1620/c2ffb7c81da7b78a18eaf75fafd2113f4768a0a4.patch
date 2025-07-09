@@ -1,0 +1,33 @@
+From c2ffb7c81da7b78a18eaf75fafd2113f4768a0a4 Mon Sep 17 00:00:00 2001
+From: Ghostkeeper <rubend@tutanota.com>
+Date: Fri, 27 Jan 2017 15:19:07 +0100
+Subject: [PATCH] Remove 'l' formatting character and simplify+speed-up int2mm
+ formatting
+
+The 'l' formatting character in combination with 'd' was not allowed with MinGW on Windows. Simply formatting with 'd' is sufficient since our coordinates are allowed to be cast to integers at this stage: We won't need to square them any more or anything.
+
+Contributes to issue CURA-3274.
+---
+ src/utils/string.h | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/utils/string.h b/src/utils/string.h
+index c8135c22a4..7e3af91f7f 100644
+--- a/src/utils/string.h
++++ b/src/utils/string.h
+@@ -1,3 +1,6 @@
++//Copyright (c) 2017 Ultimaker B.V.
++//CuraEngine is released under the terms of the AGPLv3 or higher.
++
+ #ifndef UTILS_STRING_H
+ #define UTILS_STRING_H
+ 
+@@ -35,7 +38,7 @@ static inline void writeInt2mm(const int64_t coord, std::ostream& ss)
+ {
+     constexpr size_t buffer_size = 24;
+     char buffer[buffer_size];
+-    int char_count = sprintf(buffer, "%" PRId64, coord); // convert int to string
++    int char_count = sprintf(buffer, "%d", int(coord)); // convert int to string
+ #ifdef DEBUG
+     if (char_count + 1 >= int(buffer_size)) // + 1 for the null character
+     {

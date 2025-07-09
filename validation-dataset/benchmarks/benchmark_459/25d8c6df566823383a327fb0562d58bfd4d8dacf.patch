@@ -1,0 +1,22 @@
+From 25d8c6df566823383a327fb0562d58bfd4d8dacf Mon Sep 17 00:00:00 2001
+From: Guido Tack <guido.tack@monash.edu>
+Date: Tue, 23 Jan 2018 17:35:21 +1100
+Subject: [PATCH] Defer compilation of mzn_reverse_map_var predicates.
+
+---
+ lib/flatten.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/flatten.cpp b/lib/flatten.cpp
+index 05da114cb..c8d862089 100644
+--- a/lib/flatten.cpp
++++ b/lib/flatten.cpp
+@@ -164,7 +164,7 @@ namespace MiniZinc {
+       Call* revmap = new Call(Location().introduce(), fi->id(), {vd->id()});
+       revmap->decl(fi);
+       revmap->type(Type::varbool());
+-      (void) flat_exp(env, Ctx(), revmap, constants().var_true, constants().var_true);
++      env.flat_addItem(new ConstraintI(Location().introduce(), revmap));
+     }
+     
+     VarDeclI* ni = new VarDeclI(Location().introduce(),vd);

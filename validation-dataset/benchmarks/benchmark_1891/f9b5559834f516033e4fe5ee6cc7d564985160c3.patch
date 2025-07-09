@@ -1,0 +1,42 @@
+From f9b5559834f516033e4fe5ee6cc7d564985160c3 Mon Sep 17 00:00:00 2001
+From: Anton Kolesov <Anton.Kolesov@synopsys.com>
+Date: Mon, 28 Jul 2014 00:00:00 +0000
+Subject: [PATCH] uclibc: lseek: Correct order of offset arguments
+
+There was a runtime error in systems without large file support. Call
+fseek(fd, 4096, SEEK_SET) has been failing with EINVAL, though it was
+succeeding for offset = 4092. This has been happening because llseek system
+call accepts 64-bit value as an offset argument and lseek function has been
+ordering 32-bits words that form this offset value, according to the
+endianness. However this ordering to match endianness is not required,
+because llseek doesn't accept one 64-bit offset argument, it accepts two
+32-bit offset argument, then stitches them into one following its
+endianness. As a result on little endian system, order of words has been
+swapped two time: in libc and in kernel. Thus call to fseek with offset 4096
+(0x1000) was doing a system call to llseek with offset 0x1000_0000_0000. I'm
+not entirely sure why then offset = 4092 hasn't been failing then.
+
+This patch removes malicious swap of words when calling llseek.
+
+Change-Id: I25910d487edc140ff0830996878fa3691ce3bd8d
+Signed-off-by: Anton Kolesov <Anton.Kolesov@synopsys.com>
+Signed-off-by: Bernhard Reutner-Fischer <rep.dot.nop@gmail.com>
+---
+ uclibc/lib/contrib/uclibc/libc/sysdeps/linux/common/lseek.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/uclibc/lib/contrib/uclibc/libc/sysdeps/linux/common/lseek.c b/uclibc/lib/contrib/uclibc/libc/sysdeps/linux/common/lseek.c
+index 500c6bf9d..11a1fbb3e 100644
+--- a/uclibc/lib/contrib/uclibc/libc/sysdeps/linux/common/lseek.c
++++ b/uclibc/lib/contrib/uclibc/libc/sysdeps/linux/common/lseek.c
+@@ -24,9 +24,7 @@ off_t __NC(lseek)(int fd, off_t offset, int whence)
+ #elif __WORDSIZE == 32
+ 	__off64_t result;
+ 	__off_t high = 0;
+-	return INLINE_SYSCALL(llseek, 5, fd,
+-				__LONG_LONG_PAIR(high, offset),
+-				&result, whence) ?: result;
++	return INLINE_SYSCALL(llseek, 5, fd, high, offset, &result, whence) ?: result;
+ #endif
+ /* No need to handle __WORDSIZE == 64 as such a kernel won't define __NR_llseek */
+ }

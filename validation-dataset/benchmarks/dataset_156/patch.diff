@@ -1,0 +1,44 @@
+From 888b4d4d44b4929ec4d62883b95b25832c2fc5d5 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Piotr=20Krzemi=C5=84ski?= <pio.krzeminski@gmail.com>
+Date: Sun, 20 Dec 2015 15:56:27 +0100
+Subject: [PATCH] improved archive unpacking in Napisy24 engine #47
+
+---
+ src/engines/qnapisy24engine.cpp | 18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
+
+diff --git a/src/engines/qnapisy24engine.cpp b/src/engines/qnapisy24engine.cpp
+index 7c26fe0..84a0689 100644
+--- a/src/engines/qnapisy24engine.cpp
++++ b/src/engines/qnapisy24engine.cpp
+@@ -441,20 +441,22 @@ bool QNapisy24Engine::unpack()
+     while((offset = r.indexIn(resp, offset)) != -1)
+     {
+         QString filePath = r.cap(1);
++        pathMatches << filePath;
++        offset += r.matchedLength();
++    }
+ 
+-        if(filePath != tmpPackedFile && !filePath.endsWith(".url"))
+-        {
+-            pathMatches << filePath;
++    QString subFileName = "";
++    QStringList subExts = GlobalConfig().subtitleExtensions();
++    foreach (QString archiveFileName, pathMatches) {
++        if(subExts.contains(QFileInfo(archiveFileName).suffix(), Qt::CaseInsensitive)) {
++            subFileName = archiveFileName;
++            break;
+         }
+-
+-        offset += r.matchedLength();
+     }
+ 
+-    if(pathMatches.isEmpty())
++    if(subFileName.isEmpty())
+         return false;
+ 
+-    QString subFileName = pathMatches.first();
+-
+     subtitlesTmp = tmpPath + "/" + subFileName;
+     if(QFile::exists(subtitlesTmp))
+         QFile::remove(subtitlesTmp);

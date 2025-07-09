@@ -1,0 +1,30 @@
+From 1a5707e6fb7bedaff83ac5db088c343afce155ff Mon Sep 17 00:00:00 2001
+From: Christian Kandeler <christian.kandeler@theqtcompany.com>
+Date: Mon, 3 Aug 2015 17:05:33 +0200
+Subject: [PATCH] Fix performance regression when importing JS files.
+
+A side effect of the bugfix commit 33c9a2721b was that two imports of
+the same file were no longer considered the same if the import location
+differed. This results in a considerable slowdown due to more cache
+misses, so restore the old behvior in this regard.
+Also, JSImport's qHash() and operator==() are now consistent.
+
+Change-Id: I23acd665a6329ec1ab132cb34657f0b05357093f
+Reviewed-by: Joerg Bornemann <joerg.bornemann@theqtcompany.com>
+---
+ src/lib/corelib/language/jsimports.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/lib/corelib/language/jsimports.h b/src/lib/corelib/language/jsimports.h
+index 0cbceeea27..c539a0b76e 100644
+--- a/src/lib/corelib/language/jsimports.h
++++ b/src/lib/corelib/language/jsimports.h
+@@ -53,7 +53,7 @@ class JsImport
+     QStringList filePaths;
+     CodeLocation location;
+ };
+-inline uint qHash(const JsImport &jsi) { return qHash(jsi.location.toString()); }
++inline uint qHash(const JsImport &jsi) { return qHash(jsi.scopeName); }
+ 
+ typedef QList<JsImport> JsImports;
+ 

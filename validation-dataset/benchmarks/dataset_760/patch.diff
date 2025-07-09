@@ -1,0 +1,34 @@
+From f2ea44f2ace0daa8e515f0e37bf5ba80ca586d72 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Can=20B=C3=B6l=C3=BCk?= <can.boluk89@gmail.com>
+Date: Sat, 27 Jun 2020 11:39:21 +0200
+Subject: [PATCH] Implemented speculative simplification of lazy expressions.
+
+---
+ VTIL-SymEx/expressions/expression.cpp | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/VTIL-SymEx/expressions/expression.cpp b/VTIL-SymEx/expressions/expression.cpp
+index ef2c453f..0d118538 100644
+--- a/VTIL-SymEx/expressions/expression.cpp
++++ b/VTIL-SymEx/expressions/expression.cpp
+@@ -491,6 +491,20 @@ namespace vtil::symbolic
+ 					value = math::evaluate_partial( op, lhs->value, rhs->value );
+ 				}
+ 
++				// Speculative simplification, if value is known replace with a constant, this 
++				// is a major performance boost with lazy expressions as child copies and large 
++				// destruction chains are completely avoided. Lazy expressions are meant to
++				// delay complex simplification rather than block all simplification so this
++				// step is totally fine.
++				//
++				if ( ( is_lazy || auto_simplify ) && value.is_known() )
++				{
++					lhs = {}; rhs = {};
++					op = math::operator_id::invalid;
++					is_lazy = false;
++					return update( false );
++				}
++
+ 				// Handle size mismatches.
+ 				//
+ 				const auto optimistic_size = [ ] ( symbolic::expression::reference& lhs,

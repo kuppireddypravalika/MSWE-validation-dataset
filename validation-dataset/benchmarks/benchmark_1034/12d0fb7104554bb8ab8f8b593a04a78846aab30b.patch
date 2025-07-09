@@ -1,0 +1,31 @@
+From 12d0fb7104554bb8ab8f8b593a04a78846aab30b Mon Sep 17 00:00:00 2001
+From: Brendan Eich <brendan@mozilla.org>
+Date: Wed, 9 Jul 2008 19:10:01 -0700
+Subject: [PATCH] Always allocate gvars for top-level scripts if any global
+ names are used -- may hurt some microbenchmarks but we can fix it via bug
+ 441686.
+
+---
+ js/src/jsemit.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/js/src/jsemit.cpp b/js/src/jsemit.cpp
+index 329dc7ec983..2b466b8039f 100644
+--- a/js/src/jsemit.cpp
++++ b/js/src/jsemit.cpp
+@@ -1909,6 +1909,7 @@ BindNameToSlot(JSContext *cx, JSCodeGenerator *cg, JSParseNode *pn,
+         if (fp->flags & JSFRAME_SPECIAL)
+             return JS_TRUE;
+ 
++#if 0
+         /*
+          * We are compiling a top-level script. Optimize global variable
+          * accesses if there are at least 100 uses in unambiguous contexts,
+@@ -1920,6 +1921,7 @@ BindNameToSlot(JSContext *cx, JSCodeGenerator *cg, JSParseNode *pn,
+                tc->loopyGlobalUses >= tc->globalUses / 2))) {
+             return JS_TRUE;
+         }
++#endif
+ 
+         /*
+          * We are optimizing global variables and there may be no pre-existing

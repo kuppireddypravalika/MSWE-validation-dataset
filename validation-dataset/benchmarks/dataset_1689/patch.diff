@@ -1,0 +1,44 @@
+From 9f2459be8cd7bd35b3921a14cf1a469dca3f6b11 Mon Sep 17 00:00:00 2001
+From: Jan Palus <atler@pld-linux.org>
+Date: Tue, 1 Dec 2020 17:54:54 +0100
+Subject: [PATCH] net: increase speedrate precision (#2054)
+
+more granular units need lower precision, while less granular need
+higher precision. assume sane default of:
+
+unit | precision
+KB   | 0
+MB   | 1
+GB   | 2
+
+Co-authored-by: Patrick Ziegler <p.ziegler96@gmail.com>
+---
+ src/adapters/net.cpp | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/src/adapters/net.cpp b/src/adapters/net.cpp
+index ec89666bd..1b1d8e09f 100644
+--- a/src/adapters/net.cpp
++++ b/src/adapters/net.cpp
+@@ -229,15 +229,17 @@ namespace net {
+     float time_diff = duration.count();
+     float speedrate = bytes_diff / time_diff;
+ 
+-    vector<string> suffixes{"G", "M"};
++    vector<pair<string,int>> units{make_pair("G", 2), make_pair("M", 1)};
+     string suffix{"K"};
++    int precision = 0;
+ 
+     while ((speedrate /= 1000) > 999) {
+-      suffix = suffixes.back();
+-      suffixes.pop_back();
++      suffix = units.back().first;
++      precision = units.back().second;
++      units.pop_back();
+     }
+ 
+-    return sstream() << std::setw(minwidth) << std::setfill(' ') << std::setprecision(0) << std::fixed << speedrate
++    return sstream() << std::setw(minwidth) << std::setfill(' ') << std::setprecision(precision) << std::fixed << speedrate
+                      << " " << suffix << unit;
+   }
+ 

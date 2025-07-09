@@ -1,0 +1,26 @@
+From 21d19f760c1c9b6c225cb54260ef1bb691ef2e65 Mon Sep 17 00:00:00 2001
+From: Eric Lemanissier <eric.lemanissier@gmail.com>
+Date: Mon, 15 Feb 2016 17:33:43 +0100
+Subject: [PATCH] Improve sql allocated cache reuse
+
+This change avoids unnecessary allocation of QSqlCachedResult cache.
+
+Change-Id: Ief592ab05b50f5e328490c504af088ec74d1938f
+Reviewed-by: Friedemann Kleint <Friedemann.Kleint@theqtcompany.com>
+Reviewed-by: Mark Brand <mabrand@mabrand.nl>
+---
+ src/sql/kernel/qsqlcachedresult.cpp | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/src/sql/kernel/qsqlcachedresult.cpp b/src/sql/kernel/qsqlcachedresult.cpp
+index 3bacffed75d4..c335d7d8fe71 100644
+--- a/src/sql/kernel/qsqlcachedresult.cpp
++++ b/src/sql/kernel/qsqlcachedresult.cpp
+@@ -267,7 +267,6 @@ bool QSqlCachedResult::cacheNext()
+         return false;
+ 
+     if(isForwardOnly()) {
+-        d->cache.clear();
+         d->cache.resize(d->colCount);
+     }
+ 

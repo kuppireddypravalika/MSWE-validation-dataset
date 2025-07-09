@@ -1,0 +1,32 @@
+From 5088635341a37281d19cdde19b8516c901ba7564 Mon Sep 17 00:00:00 2001
+From: Nil Geisweiller <ngeiswei@gmail.com>
+Date: Wed, 19 Apr 2017 16:43:29 +0300
+Subject: [PATCH] Remove and-BIT hypergraph instead of atom
+
+To save a bit of RAM (15% of RAM usage in my small experiments, 10000
+iterations, 500 max BIT size).
+---
+ opencog/rule-engine/backwardchainer/BIT.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/opencog/rule-engine/backwardchainer/BIT.h b/opencog/rule-engine/backwardchainer/BIT.h
+index 66767ad5a6..8a4922cd29 100644
+--- a/opencog/rule-engine/backwardchainer/BIT.h
++++ b/opencog/rule-engine/backwardchainer/BIT.h
+@@ -27,6 +27,7 @@
+ #include <boost/operators.hpp>
+ #include <opencog/rule-engine/Rule.h>
+ #include <opencog/atoms/base/Handle.h>
++#include <opencog/atomspaceutils/AtomSpaceUtils.h>
+ #include "Fitness.h"
+ 
+ namespace opencog
+@@ -428,7 +429,7 @@ class BIT
+ template<typename It>
+ BIT::AndBITs::iterator BIT::erase(It pos)
+ {
+-	bit_as.remove_atom(pos->fcs);
++	remove_hypergraph(bit_as, pos->fcs);
+ 	return andbits.erase(pos);
+ }
+ 

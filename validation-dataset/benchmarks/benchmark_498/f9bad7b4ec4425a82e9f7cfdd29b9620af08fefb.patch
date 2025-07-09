@@ -1,0 +1,33 @@
+From f9bad7b4ec4425a82e9f7cfdd29b9620af08fefb Mon Sep 17 00:00:00 2001
+From: Ross Bencina <rossb@users.sourceforge.net>
+Date: Wed, 15 Oct 2003 16:23:08 +0000
+Subject: [PATCH] inline asm version of CLZ() in intel syntax
+
+git-svn-id: https://supercollider.svn.sourceforge.net/svnroot/supercollider/trunk@1967 a380766d-ff14-0410-b294-a243070f3f08
+---
+ headers/plugin_interface/clz.h | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/headers/plugin_interface/clz.h b/headers/plugin_interface/clz.h
+index 5558ad974ff..16aa3ecf187 100755
+--- a/headers/plugin_interface/clz.h
++++ b/headers/plugin_interface/clz.h
+@@ -37,6 +37,18 @@ count leading zeroes function and those that can be derived from it
+ // powerpc native count leading zeroes instruction:
+ #define CLZ(x)  ((int)__cntlzw((unsigned int)x))
+ 
++#elif defined(SC_WIN32) && !defined(__GCC__)
++
++static int CLZ( int arg )
++{
++    asm{
++        bsr    eax, arg
++        xor    eax, 31
++        mov    arg, eax
++    }
++    return arg;
++}
++
+ #else
+ 
+ static __inline__ int CLZ(int arg) {

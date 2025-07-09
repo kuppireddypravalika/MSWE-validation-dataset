@@ -1,0 +1,27 @@
+From 9c6d3a5d867376cd041e055cf682135c1c3d7502 Mon Sep 17 00:00:00 2001
+From: Ulrich Bauer <mail@ulrich-bauer.org>
+Date: Fri, 14 Jan 2022 11:58:10 +0100
+Subject: [PATCH] faster vertex enumeration (as suggested by Umberto)
+
+---
+ ripser.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/ripser.cpp b/ripser.cpp
+index 92cf225..4a0e106 100644
+--- a/ripser.cpp
++++ b/ripser.cpp
+@@ -443,11 +443,12 @@ template <typename DistanceMatrix> class ripser {
+ 	OutputIterator get_simplex_vertices(index_t idx, const index_t dim, index_t n,
+ 	                                    OutputIterator out) const {
+ 		--n;
+-		for (index_t k = dim + 1; k > 0; --k) {
++		for (index_t k = dim + 1; k > 1; --k) {
+ 			n = get_max_vertex(idx, k, n);
+ 			*out++ = n;
+ 			idx -= binomial_coeff(n, k);
+ 		}
++		*out = idx;
+ 		return out;
+ 	}
+ 

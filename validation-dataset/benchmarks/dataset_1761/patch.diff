@@ -1,0 +1,36 @@
+From ed6695bf1ba1297d33decd1d55b2a4ca3033dcd2 Mon Sep 17 00:00:00 2001
+From: Andrew Mustun <andrew@qcad.org>
+Date: Thu, 21 May 2015 17:13:22 +0100
+Subject: [PATCH] reduce icon rendering size / memory usage (qt5)
+
+---
+ src/core/RGuiAction.cpp | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
+
+diff --git a/src/core/RGuiAction.cpp b/src/core/RGuiAction.cpp
+index 135ab0b878..e70ca3bfb4 100644
+--- a/src/core/RGuiAction.cpp
++++ b/src/core/RGuiAction.cpp
+@@ -199,7 +199,21 @@ void RGuiAction::setIcon(const QString& iconFile) {
+         QAction::setIcon(QIcon());
+     }
+     else {
+-        QAction::setIcon(QIcon(iconFile));
++        int is = 128;
++        if (RSettings::getDevicePixelRatio()>1) {
++            is = 256;
++        }
++
++        QPixmap pm(is,is);
++        pm.fill(Qt::transparent);
++        QPainter p;
++        p.begin(&pm);
++        QSvgRenderer renderer(iconFile);
++        renderer.render(&p, QRectF(0, 0, is, is));
++        p.end();
++        
++        QIcon icon(pm);
++        QAction::setIcon(icon);
+     }
+ }
+ 

@@ -1,0 +1,31 @@
+From f5d6ee22e79926708f876ed53072ba1ce3ebe160 Mon Sep 17 00:00:00 2001
+From: Jonathan Thomas <jonathan@openshot.org>
+Date: Thu, 31 Dec 2020 18:09:39 -0600
+Subject: [PATCH] Reverting 'clear the cache when the user seeks' experiment.
+ It was a failed experiement, not to mention that it destroys performance on
+ the "Transform" tool.
+
+---
+ src/Timeline.cpp | 9 ---------
+ 1 file changed, 9 deletions(-)
+
+diff --git a/src/Timeline.cpp b/src/Timeline.cpp
+index d7377a280..44b1d9594 100644
+--- a/src/Timeline.cpp
++++ b/src/Timeline.cpp
+@@ -725,15 +725,6 @@ std::shared_ptr<Frame> Timeline::GetFrame(int64_t requested_frame)
+ 			return frame;
+ 		}
+ 
+-		// Check if previous frame was cached? (if not, assume we are seeking somewhere else on the Timeline, and need
+-		// to clear all cache (for continuity sake). For example, jumping back to a previous spot can cause issues with audio
+-		// data where the new jump location doesn't match up with the previously cached audio data.
+-		std::shared_ptr<Frame> previous_frame = final_cache->GetFrame(requested_frame - 1);
+-		if (!previous_frame) {
+-			// Seeking to new place on timeline (destroy cache)
+-			ClearAllCache();
+-		}
+-
+ 		// Minimum number of frames to process (for performance reasons)
+ 		int minimum_frames = OPEN_MP_NUM_PROCESSORS;
+ 

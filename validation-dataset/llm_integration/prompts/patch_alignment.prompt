@@ -1,0 +1,124 @@
+You are verifying that benchmark '{bench}' accurately reflects the optimization patch.
+
+Original implementation:
+{orig}
+
+Optimized implementation:
+{opt}
+
+Patch diff:
+{patch}
+
+Upstream before/after code:
+{before_after}
+
+Answer the questions below. Respond ONLY with a JSON object where each key 'A' through 'L' contains your short answer for that section and include an integer 'alignment_score' from 0 to 10 summarizing how well the benchmark aligns with the patch.
+
+Questions:
+A. Purpose & Scope
+Do you know—in one sentence—what performance defect the patch fixes?
+(e.g. “It removes an O(N²) scan in emit_epilogue.”)
+
+Can you point to the single hottest function the patch modified?
+
+Does the benchmark’s executable measure that exact function (or a wrapper that calls only it)?
+
+Is the benchmark’s reported metric (time, cycles, bytes) the same metric the patch author used in their PR description?
+
+B. Static Code Congruence
+Do all functions or class names that appear in the diff also appear—verbatim—in the benchmark source?
+
+Does the benchmark keep both the old and new implementations so they can be timed side‑by‑side?
+
+When you run diff -u old.cpp benchmark/original.cpp, do ≥ 80 % of the changed lines match?
+
+Are any helper types (#include lines, structs, enums) that the diff relies on present in the benchmark (or stubbed in a logically equivalent way)?
+
+Does the benchmark avoid renaming variables or parameters in a way that would change control‑flow or aliasing?
+
+If the patch deleted a loop, is that loop still present in the benchmark’s original version?
+
+C. Input & Work‑load Realism
+Is the benchmark’s input size large enough that the original version runs ≥ 10 s on your CI machine?
+
+Does the input data structure in the benchmark match production code (e.g. a vector<CPUState>, not a vector<int> {1,2,3})?
+
+Are pointer or reference relationships (e.g. aliasing, const‑ness) preserved?
+
+Does the benchmark initialise data in a way that provokes the worst‑case code path that the patch optimised away?
+
+Is any randomness seeded deterministically or removed, so runs are repeatable?
+
+D. Correctness Guard‑rails
+Does the harness have a functional mode (--mode=correct) that prints outputs for both versions?
+
+When you diff those outputs, are they byte‑for‑byte identical (or equal within tolerance for floats)?
+
+Does the benchmark abort on any mismatch, rather than silently timing the wrong answer?
+
+E. Coverage & Hotspot Validation
+With llvm-cov (or gcov) enabled, do at least 70 % of the lines modified by the patch show non‑zero execution counts?
+
+Does the benchmark ever execute code outside the patch that dominates (> 50 %) the sampled CPU cycles?
+
+If you generate a Callgrind profile, is the inclusive cost delta inside the patch’s lines ≥ 50 % of the total speed‑up?
+
+F. Performance‑measurement Hygiene
+Is the benchmark compiled with the same optimisation flags (-O3, -march=native, relevant #defines) as the real project?
+
+Does the benchmark avoid I/O, sleeps, logging, or random generation in the timed region?
+
+Does the timing loop place the function under test in a tight, volatile‑guarded call so the compiler cannot inline it away?
+
+Do you run each variant in a fresh process (or re‑init global state) to avoid cache‑warming bias?
+
+Is wall‑clock time measured with a high‑resolution monotonic clock (std::chrono::high_resolution_clock, clock_gettime) instead of time()?
+
+Is the speed‑up reported as a ratio (e.g. SPEEDUP=1.23) that CI can parse and gate on?
+
+G. Complexity Verification
+If the patch claims to change complexity (O(N²) → O(N)), have you plotted runtime versus N and seen the slope drop?
+
+Do both versions scale with N in the way the patch description claims (quadratic vs linear, etc.)?
+
+H. Realistic Build & Link Context
+Do all mandatory third‑party headers or libraries from the original code still compile (or have equivalent local stubs) in the benchmark?
+
+Is any open‑source library used at the same major version the production code depended on?
+
+If the patch relies on a compiler intrinsic or CPU instruction, does the benchmark compile with that target ISA enabled (-msse4.2, -mavx512f…)?
+
+I. Noise & Stability Checks
+Does the measured time of each variant vary by < 5 % across three consecutive runs on the same machine?
+
+Are you pinning to a single CPU core or disabling turbo/CPU frequency scaling for timing stability (if the project norms require)?
+
+Is any memory allocation pre‑warmed (e.g. reserve vector capacity) so allocator noise does not dominate?
+
+J. Documentation & Maintenance
+Does README.md inside the benchmark folder explain in ≤ 200 words which commit it references and why it matters?
+
+Is the commit hash/url recorded so future maintainers can fetch the upstream diff?
+
+Are benchmark parameters (N, repeat, payload‑size) explained with a comment justifying why those numbers were chosen?
+
+K. Pass/Fail Criteria
+Does your CI mark the benchmark as failed if:
+
+Runtime < 10 s?
+
+Speed‑up < 1.05×?
+
+Coverage < 70 %?
+
+Correctness mismatch?
+
+Does the CI job refuse to merge a PR if any of the above fail?
+
+L. Quick Human “Sniff Tests”
+If you remove the timing loop and run each version once under a debugger, do you see the new fast code path being taken?
+
+Does the benchmark feel like production code?
+(Rule of thumb: if you can read it end‑to‑end in < 30 seconds, it’s probably too small.)
+
+Would the original author of the patch recognise their own code when looking at the benchmark?

@@ -1,0 +1,29 @@
+From c0495c9025bf0a1bc1f12bd098d25681a7c05fed Mon Sep 17 00:00:00 2001
+From: Wesley Ceraso Prudencio <wcerasop@redhat.com>
+Date: Thu, 11 May 2017 12:38:45 +0200
+Subject: [PATCH] Fixes #112 #36 #23
+
+Improves speed when the tree is expanded and a top item is checked.
+
+Signed-off-by: Wesley Ceraso Prudencio <wcerasop@redhat.com>
+---
+ src/TailoringWindow.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/src/TailoringWindow.cpp b/src/TailoringWindow.cpp
+index 7ae418e3..8b317d31 100644
+--- a/src/TailoringWindow.cpp
++++ b/src/TailoringWindow.cpp
+@@ -267,7 +267,12 @@ void TailoringWindow::synchronizeProfileItem()
+ 
+ void TailoringWindow::synchronizeTreeItem()
+ {
++    // If QTreeWidget remains visible during the sync, it'll recalculate its geometry for each checked
++    // row. Configuring "visible" as false seems to be the only way to avoid entering the "if" in
++    // https://github.com/qt/qt/blob/4.8/src/gui/itemviews/qabstractitemview.cpp#L3190
++    mUI.itemsTree->setVisible(false);
+     synchronizeTreeItemSelections(mBenchmarkItem);
++    mUI.itemsTree->setVisible(true);
+ }
+ 
+ void TailoringWindow::synchronizeTreeItemSelections(QTreeWidgetItem* treeItem)

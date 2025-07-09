@@ -1,0 +1,37 @@
+From 21d6ff76cc4df6a079080495a3a6eaa6b08b162e Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@gmail.com>
+Date: Sat, 29 Apr 2017 17:46:11 +0000
+Subject: [PATCH] [ConstantRange] Use APInt::operator-= to remove temporary
+ APInts.
+
+---
+ llvm/lib/IR/ConstantRange.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/llvm/lib/IR/ConstantRange.cpp b/llvm/lib/IR/ConstantRange.cpp
+index fd678c282561..754844e371a8 100644
+--- a/llvm/lib/IR/ConstantRange.cpp
++++ b/llvm/lib/IR/ConstantRange.cpp
+@@ -597,7 +597,7 @@ ConstantRange ConstantRange::truncate(uint32_t DstTySize) const {
+   if (LowerDiv.uge(MaxValue)) {
+     APInt Div(getBitWidth(), 0);
+     APInt::udivrem(LowerDiv, MaxBitValue, Div, LowerDiv);
+-    UpperDiv = UpperDiv - MaxBitValue * Div;
++    UpperDiv -= MaxBitValue * Div;
+   }
+ 
+   if (UpperDiv.ule(MaxValue))
+@@ -605,10 +605,10 @@ ConstantRange ConstantRange::truncate(uint32_t DstTySize) const {
+                          UpperDiv.trunc(DstTySize)).unionWith(Union);
+ 
+   // The truncated value wraps around. Check if we can do better than fullset.
+-  APInt UpperModulo = UpperDiv - MaxBitValue;
+-  if (UpperModulo.ult(LowerDiv))
++  UpperDiv -= MaxBitValue;
++  if (UpperDiv.ult(LowerDiv))
+     return ConstantRange(LowerDiv.trunc(DstTySize),
+-                         UpperModulo.trunc(DstTySize)).unionWith(Union);
++                         UpperDiv.trunc(DstTySize)).unionWith(Union);
+ 
+   return ConstantRange(DstTySize, /*isFullSet=*/true);
+ }

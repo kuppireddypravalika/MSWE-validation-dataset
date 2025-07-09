@@ -1,0 +1,27 @@
+From fbc99bcad7c411cdee40ddc82212bbe8ef51d46c Mon Sep 17 00:00:00 2001
+From: Robert Osfield <robert@openscenegraph.com>
+Date: Fri, 26 Oct 2018 17:17:59 +0100
+Subject: [PATCH] Simplified use of fold expression
+
+---
+ include/vsg/utils/stream.h | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/include/vsg/utils/stream.h b/include/vsg/utils/stream.h
+index f469f33f2..d845ea9c3 100644
+--- a/include/vsg/utils/stream.h
++++ b/include/vsg/utils/stream.h
+@@ -58,10 +58,9 @@ namespace vsg
+     std::string make_string(Args const& ... args )
+     {
+         std::ostringstream stream;
+-        using List= int[];
+-        (void) List {0, ( (void)(stream << args), 0 ) ... };
+-
++        (stream<< ...<<args);
+         return stream.str();
+     }
+-
+ }
++
++

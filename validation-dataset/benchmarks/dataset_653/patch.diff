@@ -1,0 +1,26 @@
+From d6cfe0d2b92d42505ea79c5d028f907e29171cd8 Mon Sep 17 00:00:00 2001
+From: Gonzalo Exequiel Pedone <hipersayan.x@gmail.com>
+Date: Sat, 28 Jan 2017 14:54:06 -0300
+Subject: [PATCH] Read frames in blocking mode, this reduces CPU usage (issue
+ #54).
+
+---
+ libAvKys/Plugins/VideoCapture/src/v4l2/src/capturev4l2.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/libAvKys/Plugins/VideoCapture/src/v4l2/src/capturev4l2.cpp b/libAvKys/Plugins/VideoCapture/src/v4l2/src/capturev4l2.cpp
+index 449a56a78..6eac6ca6a 100644
+--- a/libAvKys/Plugins/VideoCapture/src/v4l2/src/capturev4l2.cpp
++++ b/libAvKys/Plugins/VideoCapture/src/v4l2/src/capturev4l2.cpp
+@@ -820,7 +820,10 @@ void CaptureV4L2::stopCapture()
+ 
+ bool CaptureV4L2::init()
+ {
+-    this->m_fd = x_open(this->m_device.toStdString().c_str(), O_RDWR | O_NONBLOCK, 0);
++    // Frames read must be blocking so we does not waste CPU time.
++    this->m_fd = x_open(this->m_device.toStdString().c_str(),
++                        O_RDWR, // | O_NONBLOCK,
++                        0);
+ 
+     if (this->m_fd < 0)
+         return false;

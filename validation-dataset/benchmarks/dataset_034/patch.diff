@@ -1,0 +1,24 @@
+From d1d977376d611cd0f2ad0ef5f9909799a8219f5f Mon Sep 17 00:00:00 2001
+From: csoler <csoler@users.sourceforge.net>
+Date: Sun, 14 Jun 2020 13:03:12 +0200
+Subject: [PATCH] improved scrolling and explicitly disabled horizontal scroll
+ slider
+
+---
+ .../src/gui/gxschannels/GxsChannelPostsWidgetWithModel.cpp     | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/retroshare-gui/src/gui/gxschannels/GxsChannelPostsWidgetWithModel.cpp b/retroshare-gui/src/gui/gxschannels/GxsChannelPostsWidgetWithModel.cpp
+index 2d64bf8c84..b834e42e2e 100644
+--- a/retroshare-gui/src/gui/gxschannels/GxsChannelPostsWidgetWithModel.cpp
++++ b/retroshare-gui/src/gui/gxschannels/GxsChannelPostsWidgetWithModel.cpp
+@@ -209,6 +209,9 @@ GxsChannelPostsWidgetWithModel::GxsChannelPostsWidgetWithModel(const RsGxsGroupI
+ 
+ 	ui->postsTree->setModel(mChannelPostsModel = new RsGxsChannelPostsModel());
+     ui->postsTree->setItemDelegate(new ChannelPostDelegate());
++    ui->postsTree->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);	// prevents bug on w10, since row size depends on widget width
++    ui->postsTree->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);// more beautiful if we scroll at pixel level
++    ui->postsTree->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+ 
+     ui->channelPostFiles_TV->setModel(mChannelPostFilesModel = new RsGxsChannelPostFilesModel(this));
+     ui->channelPostFiles_TV->setItemDelegate(new ChannelPostFilesDelegate());

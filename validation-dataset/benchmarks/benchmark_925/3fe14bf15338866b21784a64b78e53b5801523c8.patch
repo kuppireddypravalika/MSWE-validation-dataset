@@ -1,0 +1,25 @@
+From 3fe14bf15338866b21784a64b78e53b5801523c8 Mon Sep 17 00:00:00 2001
+From: Dan Gohman <gohman@apple.com>
+Date: Tue, 4 Aug 2009 23:23:56 +0000
+Subject: [PATCH] Check for !isa<Constant> instead of isa<Instruction>. This
+ matches what the comment says, and it avoids spurious BitCast instructions
+ for Argument values.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@78121 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Transforms/Scalar/LoopStrengthReduce.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/Transforms/Scalar/LoopStrengthReduce.cpp b/lib/Transforms/Scalar/LoopStrengthReduce.cpp
+index 6554d6a4527..f8be95fc0d3 100644
+--- a/lib/Transforms/Scalar/LoopStrengthReduce.cpp
++++ b/lib/Transforms/Scalar/LoopStrengthReduce.cpp
+@@ -1637,7 +1637,7 @@ void LoopStrengthReduce::StrengthReduceStridedIVUsers(const SCEV *const &Stride,
+       // do this by forcing a BitCast (noop cast) to be inserted into the
+       // preheader in this case.
+       if (!fitsInAddressMode(Base, getAccessType(Inst), TLI, false) &&
+-          !isa<Instruction>(BaseV)) {
++          isa<Constant>(BaseV)) {
+         // We want this constant emitted into the preheader! This is just
+         // using cast as a copy so BitCast (no-op cast) is appropriate
+         BaseV = new BitCastInst(BaseV, BaseV->getType(), "preheaderinsert",

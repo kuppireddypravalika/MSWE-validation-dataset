@@ -1,0 +1,22 @@
+From 6da26b4bbe71ec39654268c77ad0f831e45e8577 Mon Sep 17 00:00:00 2001
+From: Vladimir Menshakov <vladimir.menshakov@gmail.com>
+Date: Sat, 15 Feb 2020 22:15:59 +0000
+Subject: [PATCH] replace qsort with std::sort
+
+---
+ qt/mainwindow.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/qt/mainwindow.cpp b/qt/mainwindow.cpp
+index 7ca13d40..37867915 100644
+--- a/qt/mainwindow.cpp
++++ b/qt/mainwindow.cpp
+@@ -652,7 +652,7 @@ void MainWindow::uploadAlbum(QString dirPath)
+ 	{
+ 		QStringList ext({"*.png", "*.jpg", "*.jpeg"});
+ 		covers = dir.entryList(ext, QDir::Files);
+-		qSort(covers.begin(), covers.end(), &HeuristicLess);
++		std::sort(covers.begin(), covers.end(), &HeuristicLess);
+ 		qDebug() << "covers" << covers;
+ 		if (!covers.isEmpty())
+ 			cover = covers.front();

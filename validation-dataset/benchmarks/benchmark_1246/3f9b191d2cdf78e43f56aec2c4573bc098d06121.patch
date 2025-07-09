@@ -1,0 +1,24 @@
+From 3f9b191d2cdf78e43f56aec2c4573bc098d06121 Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@intel.com>
+Date: Sat, 24 Mar 2018 22:58:00 +0000
+Subject: [PATCH] [SchedModel] Use std::move to replace a vector instead of
+ vector::swap
+
+We don't really care about the old vector value so we don't care to swap it.
+---
+ llvm/utils/TableGen/CodeGenSchedule.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/llvm/utils/TableGen/CodeGenSchedule.cpp b/llvm/utils/TableGen/CodeGenSchedule.cpp
+index cd8f3e8f1692..466e915cdad3 100644
+--- a/llvm/utils/TableGen/CodeGenSchedule.cpp
++++ b/llvm/utils/TableGen/CodeGenSchedule.cpp
+@@ -710,7 +710,7 @@ unsigned CodeGenSchedModels::addSchedClass(Record *ItinClassDef,
+                    SchedClasses[Idx].ProcIndices.end(),
+                    ProcIndices.begin(), ProcIndices.end(),
+                    std::back_inserter(PI));
+-    SchedClasses[Idx].ProcIndices.swap(PI);
++    SchedClasses[Idx].ProcIndices = std::move(PI);
+     return Idx;
+   }
+   Idx = SchedClasses.size();

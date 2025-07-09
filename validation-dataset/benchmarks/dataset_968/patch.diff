@@ -1,0 +1,30 @@
+From 18f863151c82934fe0a980853cc3deb1e439bec2 Mon Sep 17 00:00:00 2001
+From: Curtis Gedak <gedakc@gmail.com>
+Date: Fri, 6 Jan 2012 10:30:24 -0700
+Subject: [PATCH] Fix long scan problem when BIOS floppy setting incorrect
+
+The call to "blkid -c /dev/null" on Precise Pangolin Alpha 1 takes
+exceedingly long.  This occurs when the BIOS is incorrectly set to
+indicate a floppy drive is present when none is physically installed.
+Use cached blkid results instead.
+
+Ubuntu launchpad 910379 - Gparted does not start and continues to
+                          scan devices
+https://bugs.launchpad.net/ubuntu/+source/gparted/+bug/910379
+---
+ src/FS_Info.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/FS_Info.cc b/src/FS_Info.cc
+index 2aaa098d..74148d9f 100644
+--- a/src/FS_Info.cc
++++ b/src/FS_Info.cc
+@@ -61,7 +61,7 @@ void FS_Info::load_fs_info_cache()
+ 	Glib::ustring output, error ;
+ 	if ( blkid_found )
+ 	{
+-		if ( ! Utils::execute_command( "blkid -c /dev/null", output, error, true ) )
++		if ( ! Utils::execute_command( "blkid", output, error, true ) )
+ 			fs_info_cache = output ;
+ 		else
+ 			fs_info_cache = "" ;

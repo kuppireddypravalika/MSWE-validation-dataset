@@ -1,0 +1,22 @@
+From 2daa206393ee932c653e180def3f28a0bc3aafec Mon Sep 17 00:00:00 2001
+From: James Pallister <james.pallister@bristol.ac.uk>
+Date: Mon, 13 Jul 2015 16:33:23 +0100
+Subject: [PATCH] Compute intersections must be initialised to true for speed
+ gains
+
+---
+ src/algorithms/canonical.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/algorithms/canonical.cpp b/src/algorithms/canonical.cpp
+index ba98802..5191c8c 100644
+--- a/src/algorithms/canonical.cpp
++++ b/src/algorithms/canonical.cpp
+@@ -14,6 +14,7 @@ canonicalIterator::canonicalIterator(vector<Slot*> &slotlist_)
+     std::set<int> all;
+     int largest_classid=0;
+ 
++    computed_intersections = true;
+     for(auto slot: slotlist)
+     {
+         auto va = slot->getValidArguments();

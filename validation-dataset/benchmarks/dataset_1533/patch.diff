@@ -1,0 +1,22 @@
+From dcf784db27d3e4884a2e43800fcbe5618f2e982b Mon Sep 17 00:00:00 2001
+From: Fredrik Orderud <fredrik.orderud@ge.com>
+Date: Thu, 26 Nov 2020 10:32:41 +0100
+Subject: [PATCH] Crank up encoding FPS to 50.
+
+---
+ Main.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Main.cpp b/Main.cpp
+index 6e69fbc..3b6b7fd 100644
+--- a/Main.cpp
++++ b/Main.cpp
+@@ -139,7 +139,7 @@ int main (int argc, char *argv[]) {
+         return -1;
+     }
+ 
+-    const unsigned int FPS = 25;
++    const unsigned int FPS = 50;
+ 
+     // create H.264/MPEG4 encoder
+     std::cout << "Starting web server to stream window " << std::hex << win_handle << ". Please connect with a web browser on port " <<port << " to receive the stream" << std::endl;

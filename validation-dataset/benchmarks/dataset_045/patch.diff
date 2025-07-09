@@ -1,0 +1,39 @@
+From 8603e1011ca0092d4eae8898d40e3f9d9d96f4c7 Mon Sep 17 00:00:00 2001
+From: Alexander Grund <Flamefire@users.noreply.github.com>
+Date: Sat, 30 Jan 2021 19:50:35 +0100
+Subject: [PATCH] Use small_vector for pathfinding as that size is usually
+ enough
+
+---
+ libs/s25main/pathfinding/OpenListBinaryHeap.h | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/libs/s25main/pathfinding/OpenListBinaryHeap.h b/libs/s25main/pathfinding/OpenListBinaryHeap.h
+index 1ded370a64..24bfa57748 100644
+--- a/libs/s25main/pathfinding/OpenListBinaryHeap.h
++++ b/libs/s25main/pathfinding/OpenListBinaryHeap.h
+@@ -18,8 +18,8 @@
+ #pragma once
+ 
+ #include "RTTR_Assert.h"
++#include <boost/container/small_vector.hpp>
+ #include <limits>
+-#include <vector>
+ 
+ /// Just for occasional temporary debugging, all should be covered by tests and this is SLOW
+ #define RTTR_SLOW_DEBUG_CHECKS 0
+@@ -48,13 +48,12 @@ class OpenListBinaryHeapBase
+         friend class OpenListBinaryHeapBase;
+     };
+ 
+-    OpenListBinaryHeapBase() { elements.reserve(128); }
+     size_type size() const { return elements.size(); }
+     bool empty() const { return elements.empty(); }
+     void clear() { elements.clear(); }
+ 
+ protected:
+-    std::vector<Element> elements;
++    boost::container::small_vector<Element, 64> elements;
+     static size_type& GetPos(PosMarker& posMarker) { return posMarker.pos; }
+ };
+ 

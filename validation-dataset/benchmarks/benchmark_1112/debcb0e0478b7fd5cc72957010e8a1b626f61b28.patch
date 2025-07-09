@@ -1,0 +1,48 @@
+From debcb0e0478b7fd5cc72957010e8a1b626f61b28 Mon Sep 17 00:00:00 2001
+From: Ryan Houdek <Sonicadvance1@gmail.com>
+Date: Fri, 7 Jul 2023 16:43:41 -0700
+Subject: [PATCH] Arm64: Optimize BFI in the case that Dst == srcDst
+
+ARM64 BFI doesn't allow you to encode two source registers here to match
+our SSA semantics. Also since we don't support RA constraints to ensure
+that these match, just do the optimal case in the backend.
+
+Leave a comment for future RA contraint excavators to make this more
+optimal
+---
+ .../Interface/Core/JIT/Arm64/ALUOps.cpp       | 20 +++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
+
+diff --git a/External/FEXCore/Source/Interface/Core/JIT/Arm64/ALUOps.cpp b/External/FEXCore/Source/Interface/Core/JIT/Arm64/ALUOps.cpp
+index 40692c84fe..71380ce54c 100644
+--- a/External/FEXCore/Source/Interface/Core/JIT/Arm64/ALUOps.cpp
++++ b/External/FEXCore/Source/Interface/Core/JIT/Arm64/ALUOps.cpp
+@@ -1020,14 +1020,22 @@ DEF_OP(Bfi) {
+   const auto SrcDst = GetReg(Op->Dest.ID());
+   const auto Src = GetReg(Op->Src.ID());
+ 
+-  mov(EmitSize, TMP1, SrcDst);
+-  bfi(EmitSize, TMP1, Src, Op->lsb, Op->Width);
+-
+-  if (OpSize == 8) {
+-    mov(EmitSize, Dst, TMP1.R());
++  if (Dst == SrcDst) {
++    // If Dst and SrcDst match then this turns in to a simple BFI instruction.
++    bfi(EmitSize, Dst, Src, Op->lsb, Op->Width);
+   }
+   else {
+-    ubfx(EmitSize, Dst, TMP1, 0, OpSize * 8);
++    // Destination didn't match the dst source register.
++    // TODO: Inefficient until FEX can have RA constraints here.
++    mov(EmitSize, TMP1, SrcDst);
++    bfi(EmitSize, TMP1, Src, Op->lsb, Op->Width);
++
++    if (OpSize == 8) {
++      mov(EmitSize, Dst, TMP1.R());
++    }
++    else {
++      ubfx(EmitSize, Dst, TMP1, 0, OpSize * 8);
++    }
+   }
+ }
+ 

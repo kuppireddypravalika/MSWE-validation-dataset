@@ -1,0 +1,37 @@
+From 4f3d82d7ee53d6691ae60731b134e0d86ba31499 Mon Sep 17 00:00:00 2001
+From: Luba Tang <lubatang@gmail.com>
+Date: Wed, 12 Sep 2012 22:25:30 +0800
+Subject: [PATCH] Refine algorithm of X86PLT::applyPLT1(). We can add GOT
+ address before walking over the entries.
+
+---
+ lib/Target/X86/X86PLT.cpp | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
+
+diff --git a/lib/Target/X86/X86PLT.cpp b/lib/Target/X86/X86PLT.cpp
+index 2182fbe4..1dbd8df8 100644
+--- a/lib/Target/X86/X86PLT.cpp
++++ b/lib/Target/X86/X86PLT.cpp
+@@ -186,6 +186,8 @@ void X86PLT::applyPLT1()
+ 
+   // Skip GOT0
+   uint64_t GOTEntryOffset = GOTEntrySize * X86GOTPLT0Num;
++  if (LinkerConfig::Exec == m_Config.codeGenType())
++    GOTEntryOffset += got_base;
+ 
+   //skip PLT0
+   uint64_t PLTEntryOffset = m_PLT0Size;
+@@ -208,12 +210,7 @@ void X86PLT::applyPLT1()
+     uint32_t* offset;
+ 
+     offset = reinterpret_cast<uint32_t*>(data + 2);
+-    if (LinkerConfig::DynObj == m_Config.codeGenType()) {
+-      *offset = GOTEntryOffset;
+-    } else {
+-      // Exec
+-      *offset = got_base + GOTEntryOffset;
+-    }
++    *offset = GOTEntryOffset;
+     GOTEntryOffset += GOTEntrySize;
+ 
+     offset = reinterpret_cast<uint32_t*>(data + 7);

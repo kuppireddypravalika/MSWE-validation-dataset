@@ -1,0 +1,27 @@
+From fe7b7b556a3c1922c612a8b4b0f9c695a5ba3bc1 Mon Sep 17 00:00:00 2001
+From: Zak Middleton <Zak.Middleton@epicgames.com>
+Date: Thu, 3 Dec 2015 01:32:02 -0500
+Subject: [PATCH] #ue4 - Fix Xbox One build. Replace exp2f(Value) with powf(2,
+ Value).
+
+#codereview Ben.Marsh, Marc.Audy
+#lockdown Nick.Penwarden
+
+[CL 2787912 by Zak Middleton in Main branch]
+---
+ .../Runtime/Core/Public/GenericPlatform/GenericPlatformMath.h   | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Engine/Source/Runtime/Core/Public/GenericPlatform/GenericPlatformMath.h b/Engine/Source/Runtime/Core/Public/GenericPlatform/GenericPlatformMath.h
+index 4a41c011e49..dba9d915935 100644
+--- a/Engine/Source/Runtime/Core/Public/GenericPlatform/GenericPlatformMath.h
++++ b/Engine/Source/Runtime/Core/Public/GenericPlatform/GenericPlatformMath.h
+@@ -224,7 +224,7 @@ struct FGenericPlatformMath
+ 	// Returns e^Value
+ 	static FORCEINLINE float Exp( float Value ) { return expf(Value); }
+ 	// Returns 2^Value
+-	static FORCEINLINE float Exp2( float Value ) { return exp2f(Value); }
++	static FORCEINLINE float Exp2( float Value ) { return powf(2.f, Value); /*exp2f(Value);*/ }
+ 	static FORCEINLINE float Loge( float Value ) {	return logf(Value); }
+ 	static FORCEINLINE float LogX( float Base, float Value ) { return Loge(Value) / Loge(Base); }
+ 	// 1.0 / Loge(2) = 1.4426950f

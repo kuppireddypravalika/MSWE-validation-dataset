@@ -1,0 +1,28 @@
+From f1b5ce226b358e948ab95d61deaf48f277901660 Mon Sep 17 00:00:00 2001
+From: evil-at-wow <evil.at.wow@gmail.com>
+Date: Tue, 25 Apr 2023 06:13:42 +0300
+Subject: [PATCH] Fix memory leaks caused by not really removing summoned
+ guardian pets.
+
+https://github.com/cmangos/mangos-classic/commit/50fb00dfcbca97f7d8eef5cbdf0536fc54a4baa5
+---
+ src/game/Maps/Map.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/src/game/Maps/Map.cpp b/src/game/Maps/Map.cpp
+index 4f0ad62dd46..df293aaf462 100644
+--- a/src/game/Maps/Map.cpp
++++ b/src/game/Maps/Map.cpp
+@@ -1521,6 +1521,12 @@ bool Map::UnloadGrid(uint32 const& x, uint32 const& y, bool pForce)
+         RemoveAllObjectsInRemoveList();
+ 
+         unloader.UnloadN();
++
++        // Unloading a grid can also add creatures to the list of objects to be
++        // removed, for example guardian pets. Remove these now to avoid they
++        // wouldn't actually be removed because the grid is already unloaded.
++        RemoveAllObjectsInRemoveList();
++
+         delete getNGrid(x, y);
+         setNGrid(nullptr, x, y);
+     }

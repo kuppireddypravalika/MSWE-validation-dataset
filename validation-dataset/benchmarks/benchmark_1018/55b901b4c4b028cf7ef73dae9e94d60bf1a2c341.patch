@@ -1,0 +1,22 @@
+From 55b901b4c4b028cf7ef73dae9e94d60bf1a2c341 Mon Sep 17 00:00:00 2001
+From: Skakov Pavel <pavelsx@gmail.com>
+Date: Tue, 31 Jan 2023 22:45:06 +0300
+Subject: [PATCH] Use simpler cast without need for RTTI
+
+---
+ pimax-openxr/mirror_window.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/pimax-openxr/mirror_window.cpp b/pimax-openxr/mirror_window.cpp
+index 06f6e35..f53e230 100644
+--- a/pimax-openxr/mirror_window.cpp
++++ b/pimax-openxr/mirror_window.cpp
+@@ -32,7 +32,7 @@ namespace pimax_openxr {
+     using namespace pimax_openxr::utils;
+ 
+     LRESULT CALLBACK wndProcWrapper(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+-        return dynamic_cast<OpenXrRuntime*>(GetInstance())->mirrorWindowProc(hwnd, msg, wParam, lParam);
++        return static_cast<OpenXrRuntime*>(GetInstance())->mirrorWindowProc(hwnd, msg, wParam, lParam);
+     }
+ 
+     void OpenXrRuntime::createMirrorWindow() {

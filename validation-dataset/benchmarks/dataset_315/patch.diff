@@ -1,0 +1,28 @@
+From 2d6eef6ecf0062f503b2188220eb8db9092cc6d6 Mon Sep 17 00:00:00 2001
+From: Jean-Yves Avenard <jyavenard@mythtv.org>
+Date: Mon, 14 Jul 2014 03:58:25 +1000
+Subject: [PATCH] =?UTF-8?q?metadata:=20do=20not=20unnecessarily=20query=20?=
+ =?UTF-8?q?the=20database=20if=20there=E2=80=99s=20no=20chance=20that=20it?=
+ =?UTF-8?q?=20will=20yield=20a=20result?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ mythtv/libs/libmythtv/metadataimagehelper.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/mythtv/libs/libmythtv/metadataimagehelper.cpp b/mythtv/libs/libmythtv/metadataimagehelper.cpp
+index 1323775e47d..1e0037f5070 100644
+--- a/mythtv/libs/libmythtv/metadataimagehelper.cpp
++++ b/mythtv/libs/libmythtv/metadataimagehelper.cpp
+@@ -11,6 +11,9 @@ ArtworkMap GetArtwork(QString inetref,
+ {
+     ArtworkMap map;
+ 
++    if (inetref.isEmpty())
++        return map;
++
+     MSqlQuery query(MSqlQuery::InitCon());
+ 
+     QString querystring = "SELECT host, coverart, fanart, banner "

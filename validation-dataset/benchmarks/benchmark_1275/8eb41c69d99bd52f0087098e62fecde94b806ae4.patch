@@ -1,0 +1,28 @@
+From 8eb41c69d99bd52f0087098e62fecde94b806ae4 Mon Sep 17 00:00:00 2001
+From: brenocfg <brenocfg@gmail.com>
+Date: Tue, 21 Jun 2022 01:27:44 -0300
+Subject: [PATCH] Avoid optimizing arguments with no uses (usually  pointers in
+ C++). These will be optimized away by DeadArgElim anyway.
+
+---
+ passes/Lazyfication.cpp | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/passes/Lazyfication.cpp b/passes/Lazyfication.cpp
+index e6cd071..5f741fc 100644
+--- a/passes/Lazyfication.cpp
++++ b/passes/Lazyfication.cpp
+@@ -336,6 +336,13 @@ bool WyvernLazyficationPass::lazifyCallsite(CallInst &CI, uint8_t index,
+     return false;
+   }
+ 
++  Argument *callee_arg = callee->getArg(index);
++  if (callee_arg->getNumUses() == 0) {
++    LLVM_DEBUG(dbgs() << "Will not lazify argument because it has no uses in "
++                         "callee function! Possibly @this pointer?\n");
++    return false;
++  }
++
+   ++NumCallsitesLazified;
+   if (lazifiedFunctions.emplace(std::make_pair(caller, lazyfiableArg)).second) {
+     ++NumFunctionsLazified;

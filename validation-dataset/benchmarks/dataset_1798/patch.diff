@@ -1,0 +1,28 @@
+From e2bccfde24d396afa41500c92c442f9fd916f15e Mon Sep 17 00:00:00 2001
+From: Jarek Kobus <jaroslaw.kobus@qt.io>
+Date: Fri, 14 Apr 2023 09:59:44 +0200
+Subject: [PATCH] DocumentSymbolCache: Don't schedule duplicate requests
+
+Avoid scheduling a new request for the uri when
+a request for the same uri is currently running.
+
+Change-Id: Iac056b275c62e8640bf43a0ec9b6b6561b44eaed
+Reviewed-by: <github-actions-qt-creator@cristianadam.eu>
+Reviewed-by: David Schulz <david.schulz@qt.io>
+---
+ src/plugins/languageclient/documentsymbolcache.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/plugins/languageclient/documentsymbolcache.cpp b/src/plugins/languageclient/documentsymbolcache.cpp
+index 113b22695a5..b08e70d2911 100644
+--- a/src/plugins/languageclient/documentsymbolcache.cpp
++++ b/src/plugins/languageclient/documentsymbolcache.cpp
+@@ -40,6 +40,8 @@ DocumentSymbolCache::DocumentSymbolCache(Client *client)
+ 
+ void DocumentSymbolCache::requestSymbols(const DocumentUri &uri, Schedule schedule)
+ {
++    if (m_runningRequests.contains(uri))
++        return;
+     m_compressedUris.insert(uri);
+     switch (schedule) {
+     case Schedule::Now:

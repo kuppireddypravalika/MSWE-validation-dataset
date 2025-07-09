@@ -1,0 +1,24 @@
+From 14177d2860a35a820f50fecd15b44fd048ee8e10 Mon Sep 17 00:00:00 2001
+From: HannesSommer <hannes.sommer@mavt.ethz.ch>
+Date: Sun, 25 Aug 2013 18:59:38 +0200
+Subject: [PATCH] fixed small memory miss management in
+ sparse_block_matrix_tests.cpp
+
+---
+ sparse_block_matrix/test/sparse_block_matrix_tests.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/sparse_block_matrix/test/sparse_block_matrix_tests.cpp b/sparse_block_matrix/test/sparse_block_matrix_tests.cpp
+index bc71a1b8..9f24924a 100644
+--- a/sparse_block_matrix/test/sparse_block_matrix_tests.cpp
++++ b/sparse_block_matrix/test/sparse_block_matrix_tests.cpp
+@@ -334,7 +334,8 @@ TEST(sparse_block_matrixTestSuite, testEigenVectorMultiplication) {
+   sm::eigen::assertNear(dstDense3.transpose(), dstp2Map2, 1e-6,
+                         SM_SOURCE_FILE_POS);
+ 
+-  delete dstp4;
++  delete[] dstp2;
++  delete[] dstp4;
+ 
+ }
+ 

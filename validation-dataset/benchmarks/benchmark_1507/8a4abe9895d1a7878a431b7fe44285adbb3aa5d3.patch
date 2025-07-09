@@ -1,0 +1,29 @@
+From 8a4abe9895d1a7878a431b7fe44285adbb3aa5d3 Mon Sep 17 00:00:00 2001
+From: Avi Kivity <avi@scylladb.com>
+Date: Thu, 3 Jun 2021 11:17:40 +0300
+Subject: [PATCH] cql3: expression: don't copy expression in
+ has_supporting_index()
+
+std::bind() copies the bound parameters for safekeeping. Here this
+includes expr, which can be quite heavyweight. Use std::ref() to
+prevent copying. This is safe since the bound expression is executed
+and discarded before has_supporting_index() returns.
+
+Closes #8791
+---
+ cql3/expr/expression.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/cql3/expr/expression.cc b/cql3/expr/expression.cc
+index 2179fb52a6d4..91925ebd7334 100644
+--- a/cql3/expr/expression.cc
++++ b/cql3/expr/expression.cc
+@@ -818,7 +818,7 @@ bool has_supporting_index(
+         const secondary_index::secondary_index_manager& index_manager,
+         allow_local_index allow_local) {
+     const auto indexes = index_manager.list_indexes();
+-    const auto support = std::bind(is_supported_by, expr, std::placeholders::_1);
++    const auto support = std::bind(is_supported_by, std::ref(expr), std::placeholders::_1);
+     return allow_local ? boost::algorithm::any_of(indexes, support)
+             : boost::algorithm::any_of(
+                     indexes | filtered([] (const secondary_index::index& i) { return !i.metadata().local(); }),

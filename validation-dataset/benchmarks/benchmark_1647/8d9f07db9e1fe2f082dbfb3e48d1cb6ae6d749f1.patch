@@ -1,0 +1,29 @@
+From 8d9f07db9e1fe2f082dbfb3e48d1cb6ae6d749f1 Mon Sep 17 00:00:00 2001
+From: Dhruv Chopra <Dhruv.C.Chopra@ibm.com>
+Date: Thu, 12 Jul 2018 18:04:48 -0400
+Subject: [PATCH] Don't build useDef info in LoadExtensions at warm
+
+Building useDef info inside LoadExtensions is an expensive
+operation and doesn't yield a performance benefit
+for methods compiled at the warm optimization level.
+This change will now allow useDef info to only be built by
+load extensions at hot or higher optimization levels.
+
+Signed-off-by: Dhruv Chopra <Dhruv.C.Chopra@ibm.com>
+---
+ compiler/optimizer/LoadExtensions.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/compiler/optimizer/LoadExtensions.cpp b/compiler/optimizer/LoadExtensions.cpp
+index 34aa9e231c..a111a4904a 100644
+--- a/compiler/optimizer/LoadExtensions.cpp
++++ b/compiler/optimizer/LoadExtensions.cpp
+@@ -62,7 +62,7 @@ TR_LoadExtensions::TR_LoadExtensions(TR::OptimizationManager *manager)
+ 
+ int32_t TR_LoadExtensions::perform()
+    {
+-   if (comp()->getOptLevel() >= warm && !optimizer()->cantBuildGlobalsUseDefInfo())
++   if (comp()->getOptLevel() >= hot && !optimizer()->cantBuildGlobalsUseDefInfo())
+       {
+       if (!comp()->getFlowGraph()->getStructure())
+          {

@@ -1,0 +1,34 @@
+From 7b1063e67488d3efa37e34370397944f00064589 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Mon, 15 Jan 2018 15:01:07 +0000
+Subject: [PATCH] ODS: avoid excessive memory allocation attempt. Fixes
+ https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=5309. Credit to OSS
+ Fuzz
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@41273 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/ogr/ogrsf_frmts/ods/ogrodsdatasource.cpp | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/gdal/ogr/ogrsf_frmts/ods/ogrodsdatasource.cpp b/gdal/ogr/ogrsf_frmts/ods/ogrodsdatasource.cpp
+index bb7203dadc26..787bd88cece8 100644
+--- a/gdal/ogr/ogrsf_frmts/ods/ogrodsdatasource.cpp
++++ b/gdal/ogr/ogrsf_frmts/ods/ogrodsdatasource.cpp
+@@ -828,6 +828,17 @@ void OGRODSDataSource::startElementRow(const char *pszNameIn,
+             return;
+         }
+ 
++        const size_t nCellMemSize =
++            (!osValue.empty()) ? osValue.size() : osFormula.size();
++        if( nCellMemSize > static_cast<size_t>(10 * 1024 * 1024) /
++                (std::max(nCellsRepeated, 1) * std::max(nRowsRepeated, 1)) )
++        {
++            CPLError(CE_Failure, CPLE_NotSupported,
++                     "Too much memory for row/cell repetition");
++            bEndTableParsing = true;
++            nCellsRepeated = 0;
++            return;
++        }
+     }
+     else if (strcmp(pszNameIn, "table:covered-table-cell") == 0)
+     {

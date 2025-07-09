@@ -1,0 +1,23 @@
+From aa68f7173cc999a94325f1fc4f512f86eba0b68c Mon Sep 17 00:00:00 2001
+From: Mohit Sethi <mohitsethi.32@gmail.com>
+Date: Sun, 4 Sep 2022 21:01:28 +0530
+Subject: [PATCH] Use AssetManager::GetMesh() instead of creating new mesh
+ everytime
+
+---
+ Arc/src/Arc/Scene/EntitySerializer.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Arc/src/Arc/Scene/EntitySerializer.cpp b/Arc/src/Arc/Scene/EntitySerializer.cpp
+index 66d16ee7..0acf1792 100644
+--- a/Arc/src/Arc/Scene/EntitySerializer.cpp
++++ b/Arc/src/Arc/Scene/EntitySerializer.cpp
+@@ -930,7 +930,7 @@ namespace ArcEngine
+ 			TrySetEnum(src.CullMode, meshComponent["CullMode"]);
+ 
+ 			if (!src.Filepath.empty())
+-				src.MeshGeometry = CreateRef<Mesh>(src.Filepath.c_str());
++				src.MeshGeometry = AssetManager::GetMesh(src.Filepath);
+ 		}
+ 
+ 		auto scriptComponent = entity["ScriptComponent"];

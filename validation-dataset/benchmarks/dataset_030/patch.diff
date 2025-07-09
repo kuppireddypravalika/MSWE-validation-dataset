@@ -1,0 +1,40 @@
+From cb68cb73d026d8823e154d70308077c837c26724 Mon Sep 17 00:00:00 2001
+From: hunbernd <hunbernd@outlook.com>
+Date: Thu, 26 Dec 2019 00:04:19 +0100
+Subject: [PATCH] Optimized image embedding algorithm
+
+---
+ retroshare-gui/src/util/imageutil.cpp | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/retroshare-gui/src/util/imageutil.cpp b/retroshare-gui/src/util/imageutil.cpp
+index f30f26cc97..c507bfa05e 100644
+--- a/retroshare-gui/src/util/imageutil.cpp
++++ b/retroshare-gui/src/util/imageutil.cpp
+@@ -73,14 +73,12 @@ bool ImageUtil::optimizeSize(QString &html, const QImage& original, QImage &opti
+ 	//nothing to do if it fits into the limits
+ 	optimized = original;
+ 	if ((maxPixels <= 0) || (optimized.width()*optimized.height() <= maxPixels)) {
+-		if(checkSize(html, optimized, maxBytes) <= maxBytes) {
++		int s = checkSize(html, optimized, maxBytes);
++		if((maxBytes <= 0) || (s <= maxBytes)) {
+ 			return true;
+ 		}
+ 	}
+ 
+-	QVector<QRgb> ct;
+-	quantization(original, ct);
+-
+ 	//Downscale the image to fit into maxPixels
+ 	double whratio = (qreal)original.width() / (qreal)original.height();
+ 	int maxwidth;
+@@ -98,6 +96,9 @@ bool ImageUtil::optimizeSize(QString &html, const QImage& original, QImage &opti
+ 		return true;
+ 	}
+ 
++	QVector<QRgb> ct;
++	quantization(original, ct);
++
+ 	//Use binary search to find a suitable image size + linear regression to guess the file size
+ 	double maxsize = (double)checkSize(html, optimized = original.scaledToWidth(maxwidth, Qt::SmoothTransformation).convertToFormat(QImage::Format_Indexed8, ct, Qt::ThresholdDither), maxBytes);
+ 	if(maxsize <= maxBytes) return true;	//success

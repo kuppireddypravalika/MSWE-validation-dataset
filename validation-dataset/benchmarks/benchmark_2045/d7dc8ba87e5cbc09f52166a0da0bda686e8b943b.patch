@@ -1,0 +1,33 @@
+From d7dc8ba87e5cbc09f52166a0da0bda686e8b943b Mon Sep 17 00:00:00 2001
+From: Peter Schrammel <p.schrammel@sussex.ac.uk>
+Date: Sun, 18 Dec 2016 17:51:30 +0000
+Subject: [PATCH] Remove returns before inlining
+
+---
+ src/summarizer/summarizer_parse_options.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/summarizer/summarizer_parse_options.cpp b/src/summarizer/summarizer_parse_options.cpp
+index e918e8c8e..1453521b4 100644
+--- a/src/summarizer/summarizer_parse_options.cpp
++++ b/src/summarizer/summarizer_parse_options.cpp
+@@ -1034,6 +1034,9 @@ bool summarizer_parse_optionst::process_goto_program(
+     threads_detected=has_threads(goto_model);
+ #endif
+ 
++    // remove returns (must be done after function pointer removal)
++    remove_returns(goto_model);
++
+     // now do full inlining, if requested
+     if(options.get_bool_option("inline"))
+     {
+@@ -1047,9 +1050,6 @@ bool summarizer_parse_optionst::process_goto_program(
+ #endif
+     }
+ 
+-    // remove returns (must be done after function pointer removal)
+-    remove_returns(goto_model);
+-
+ #if REMOVE_MULTIPLE_DEREFERENCES
+     remove_multiple_dereferences(goto_model);
+ #endif

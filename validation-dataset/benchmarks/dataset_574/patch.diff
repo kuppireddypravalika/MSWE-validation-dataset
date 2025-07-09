@@ -1,0 +1,30 @@
+From 32b3d7e1ef98156f44821d052e5ba7ce998f70ce Mon Sep 17 00:00:00 2001
+From: Tobias Doerffel <tobias.doerffel@gmail.com>
+Date: Fri, 15 Oct 2010 17:43:47 +0200
+Subject: [PATCH] ICA/VncReflector: use raw encoding + software cursor
+
+When acting as VNC reflector, the x11vnc server should transmit cursor
+changes as regular framebuffer updates. Furthermore use raw encoding
+as all traffic is local and all other encodings require more CPU time.
+---
+ ica/x11/x11vnc/screen.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/ica/x11/x11vnc/screen.c b/ica/x11/x11vnc/screen.c
+index 5e7d3e9f1..6f283a682 100644
+--- a/ica/x11/x11vnc/screen.c
++++ b/ica/x11/x11vnc/screen.c
+@@ -1472,7 +1472,13 @@ char *vnc_reflect_guess(char *str, char **raw_fb_addr) {
+ 		at++;
+ 	}
+ 
++	/* Tobias Doerffel, 2010/10 */
++#define USE_AS_ITALC_DEMO_SERVER
++#ifdef USE_AS_ITALC_DEMO_SERVER
++	client->appData.encodingsString = "raw";
++#else
+ 	client->appData.useRemoteCursor = TRUE;
++#endif
+ 	client->canHandleNewFBSize = TRUE;
+ 
+ 	client->HandleCursorPos = vnc_reflect_cursor_pos;

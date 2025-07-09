@@ -1,0 +1,37 @@
+From 21c35bc7446264e26dad831dfdac6fec1e7d1d6c Mon Sep 17 00:00:00 2001
+From: joshua <Joshua@qelectrotech.org>
+Date: Fri, 14 May 2021 16:15:49 +0200
+Subject: [PATCH] Minor improvement at element picture creation
+
+Call once the uuid() method of element location instead of four (and so
+parse once time the xml) to store the uuid/picture and uuid/primitive to
+hash.
+---
+ sources/factory/elementpicturefactory.cpp | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/sources/factory/elementpicturefactory.cpp b/sources/factory/elementpicturefactory.cpp
+index eda6b4201c..dbfeeebef8 100644
+--- a/sources/factory/elementpicturefactory.cpp
++++ b/sources/factory/elementpicturefactory.cpp
+@@ -237,14 +237,16 @@ bool ElementPictureFactory::build(const ElementsLocation &location,
+ 	painter.end();
+ 	low_painter.end();
+ 
++	const auto uuid_ = location.uuid();
+ 	if (!picture) {
+-		m_pictures_H.insert(location.uuid(), pic);
+-		m_primitives_H.insert(location.uuid(), primitives_);
++		m_pictures_H.insert(uuid_, pic);
++		m_primitives_H.insert(uuid_, primitives_);
+ 	}
+ 	if (!low_picture) {
+-		m_low_pictures_H.insert(location.uuid(), low_pic);
+-		m_primitives_H.insert(location.uuid(), primitives_);
++		m_low_pictures_H.insert(uuid_, low_pic);
++		m_primitives_H.insert(uuid_, primitives_);
+ 	}
++
+ 	return true;
+ }
+ 

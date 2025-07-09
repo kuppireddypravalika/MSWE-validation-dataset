@@ -1,0 +1,38 @@
+From 697fab14552e15ae4ac87392e3ac59c7523d7563 Mon Sep 17 00:00:00 2001
+From: tteuling <tteuling@users.sourceforge.net>
+Date: Fri, 4 Mar 2016 21:57:03 +0100
+Subject: [PATCH] Improved handling of OPENMP loop.
+
+---
+ .../src/osmscout/import/GenWayWayDat.cpp              | 11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
+
+diff --git a/libosmscout-import/src/osmscout/import/GenWayWayDat.cpp b/libosmscout-import/src/osmscout/import/GenWayWayDat.cpp
+index 4b5f7b5d3..b9498465e 100644
+--- a/libosmscout-import/src/osmscout/import/GenWayWayDat.cpp
++++ b/libosmscout-import/src/osmscout/import/GenWayWayDat.cpp
+@@ -35,15 +35,6 @@
+ #include <osmscout/import/Preprocess.h>
+ 
+ #include <osmscout/private/Config.h>
+-#if defined(OSMSCOUT_HAVE_OPENMP) || defined(_OPENMP)
+-#ifdef HAVE_LONG_LONG
+-#define opf long long
+-#else
+-#define opf long
+-#endif
+-#else
+-#define opf size_t
+-#endif
+ 
+ namespace osmscout {
+ 
+@@ -724,7 +715,7 @@ namespace osmscout {
+       progress.SetAction("Merging ways");
+ 
+ #pragma omp parallel for
+-	  for (opf typeIdx = 0; typeIdx<(opf)typeConfig->GetTypeCount(); typeIdx++) {
++      for (int64_t typeIdx = 0; typeIdx<(int64_t)typeConfig->GetTypeCount(); typeIdx++) {
+         size_t originalWayCount=waysByType[typeIdx].size();
+ 
+         if (originalWayCount>0) {

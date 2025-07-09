@@ -1,0 +1,39 @@
+From 90123495a5d1652c7c413bc5971cc601b519c6c8 Mon Sep 17 00:00:00 2001
+From: Lev Stipakov <lev@openvpn.net>
+Date: Wed, 4 Sep 2019 10:06:45 +0300
+Subject: [PATCH] wintun: get device interfaces list only once
+
+Instead of getting device interfaces list for every adapter,
+do it just one.
+
+Signed-off-by: Lev Stipakov <lev@openvpn.net>
+---
+ openvpn/tun/win/tunutil.hpp | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/openvpn/tun/win/tunutil.hpp b/openvpn/tun/win/tunutil.hpp
+index 31947e660..12f45639c 100644
+--- a/openvpn/tun/win/tunutil.hpp
++++ b/openvpn/tun/win/tunutil.hpp
+@@ -476,6 +476,10 @@ namespace openvpn {
+       {
+ 	Win::ScopedHANDLE hand;
+ 
++	std::unique_ptr<DeviceInstanceIdInterfaceList> inst_id_interface_list;
++	if (wintun)
++	  inst_id_interface_list.reset(new DeviceInstanceIdInterfaceList());
++
+ 	// iterate over list of TAP adapters on system
+ 	for (TapNameGuidPairList::const_iterator i = guids.begin(); i != guids.end(); i++)
+ 	  {
+@@ -485,9 +489,7 @@ namespace openvpn {
+ 
+ 	    if (wintun)
+ 	      {
+-		DeviceInstanceIdInterfaceList inst_id_interface_list;
+-
+-		for (const auto& inst_id_interface : inst_id_interface_list)
++		for (const auto& inst_id_interface : *inst_id_interface_list)
+ 		  {
+ 		    if (inst_id_interface.net_cfg_instance_id != tap.guid)
+ 		      continue;

@@ -1,0 +1,22 @@
+From 3f96dff2922c56d6442bb7aa5a62f7730bd12e44 Mon Sep 17 00:00:00 2001
+From: Steven Johnson <srj@google.com>
+Date: Wed, 16 May 2018 14:07:43 -0700
+Subject: [PATCH] use HALIDE_ATTRIBUTE_ALIGN in Codegen_C
+
+---
+ src/CodeGen_C.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/CodeGen_C.cpp b/src/CodeGen_C.cpp
+index 09771bb349..a4a360ed89 100644
+--- a/src/CodeGen_C.cpp
++++ b/src/CodeGen_C.cpp
+@@ -1630,7 +1630,7 @@ void CodeGen_C::compile(const Buffer<> &buffer) {
+     bool is_constant = buffer.dimensions() != 0;
+ 
+     // Emit the data
+-    stream << "static " << (is_constant ? "const" : "") << " uint8_t " << name << "_data[] __attribute__ ((aligned (32))) = {\n";
++    stream << "static " << (is_constant ? "const" : "") << " uint8_t " << name << "_data[] HALIDE_ATTRIBUTE_ALIGN(32) = {\n";
+     do_indent();
+     for (size_t i = 0; i < num_elems * b.type.bytes(); i++) {
+         if (i > 0) {

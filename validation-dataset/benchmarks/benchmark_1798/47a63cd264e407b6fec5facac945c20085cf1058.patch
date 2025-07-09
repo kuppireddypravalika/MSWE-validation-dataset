@@ -1,0 +1,23 @@
+From 47a63cd264e407b6fec5facac945c20085cf1058 Mon Sep 17 00:00:00 2001
+From: Jonathan Peyton <jonathan.l.peyton@intel.com>
+Date: Thu, 24 Sep 2015 15:10:57 +0000
+Subject: [PATCH] [OpenMP Testsuite] Change omp_get_wtime.c timer resolution to
+ 3 percent
+
+---
+ openmp/runtime/test/api/omp_get_wtime.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/openmp/runtime/test/api/omp_get_wtime.c b/openmp/runtime/test/api/omp_get_wtime.c
+index f7be1faef5af..c93c2a5b4b34 100644
+--- a/openmp/runtime/test/api/omp_get_wtime.c
++++ b/openmp/runtime/test/api/omp_get_wtime.c
+@@ -16,7 +16,7 @@ int test_omp_get_wtime()
+   my_sleep (wait_time); 
+   end = omp_get_wtime();
+   measured_time = end-start;
+-  return ((measured_time > 0.99 * wait_time) && (measured_time < 1.01 * wait_time)) ;
++  return ((measured_time > 0.97 * wait_time) && (measured_time < 1.03 * wait_time)) ;
+ }
+ 
+ int main()

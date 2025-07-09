@@ -1,0 +1,27 @@
+From ce5ccf9a151bb7d2712d24b9bdd67664900fd552 Mon Sep 17 00:00:00 2001
+From: wang-bin <wbsecg1@gmail.com>
+Date: Mon, 5 May 2014 12:52:21 +0800
+Subject: [PATCH] vaapi: enable sse4.1 copy. faster and lower cpu usage.
+
+BUG:
+may be a gray line at bottom and size not correct(only for vaapi)
+---
+ src/VideoDecoderVAAPI.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/VideoDecoderVAAPI.cpp b/src/VideoDecoderVAAPI.cpp
+index 4b068f1d9..46cc63b5d 100644
+--- a/src/VideoDecoderVAAPI.cpp
++++ b/src/VideoDecoderVAAPI.cpp
+@@ -119,9 +119,9 @@ class VideoDecoderVAAPIPrivate : public VideoDecoderFFmpegHWPrivate
+         surface_chroma = QTAV_PIX_FMT_C(NONE);
+         surfaces = 0;
+         image.image_id = VA_INVALID_ID;
+-        disable_derive = true;
++        disable_derive = false;
+         supports_derive = false;
+-        copy_uswc = false;
++        copy_uswc = true;
+         va_pixfmt = QTAV_PIX_FMT_C(VAAPI_VLD);
+     }
+ 

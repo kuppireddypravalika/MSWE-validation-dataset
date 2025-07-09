@@ -1,0 +1,31 @@
+From 5cc006b82defe15c2d6c11a29b0f9d6ff0832ea6 Mon Sep 17 00:00:00 2001
+From: Filip Jeremic <fjeremic@ca.ibm.com>
+Date: Fri, 21 Apr 2017 16:43:21 -0400
+Subject: [PATCH] Adjust big callee threshold on z Systems
+
+It has been empirically tested that because z/Architecture lacks a call
+return stack we tend to incur a higher penalty for calling methods. As
+such inlining slightly more helps overall performance.
+
+Increasing the big callee threshold has been found to causea marginal
+increase in compile time at the benefit of very observable throughput on
+the platform. As such making this increase the default.
+
+Signed-off-by: Filip Jeremic <fjeremic@ca.ibm.com>
+---
+ compiler/control/OMROptions.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/compiler/control/OMROptions.cpp b/compiler/control/OMROptions.cpp
+index 35703ca685..7cab26b67b 100644
+--- a/compiler/control/OMROptions.cpp
++++ b/compiler/control/OMROptions.cpp
+@@ -2478,6 +2478,8 @@ OMR::Options::jitPreProcess()
+ 
+ #if defined(TR_HOST_POWER)
+    _bigCalleeThreshold = 300;
++#elif defined(TR_HOST_S390)
++   _bigCalleeThreshold = 600;
+ #else
+    _bigCalleeThreshold = 400;
+ #endif

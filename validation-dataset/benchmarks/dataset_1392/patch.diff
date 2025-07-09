@@ -1,0 +1,22 @@
+From 88238a2c4eb6c995e25af5417b3881607da685ce Mon Sep 17 00:00:00 2001
+From: Clayton Smith <argilo@gmail.com>
+Date: Sat, 20 Nov 2021 14:23:27 -0500
+Subject: [PATCH] Only increment index once per iteration
+
+---
+ lib/bootstrap_cc_impl.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/bootstrap_cc_impl.cc b/lib/bootstrap_cc_impl.cc
+index 9757a09..57d7636 100644
+--- a/lib/bootstrap_cc_impl.cc
++++ b/lib/bootstrap_cc_impl.cc
+@@ -1203,7 +1203,7 @@ namespace gr {
+       in = &bootstrap_symbol[0];
+       out = &bootstrap_resample[0];
+       for (index = 0; index < (((BOOTSTRAP_FFT_SIZE + B_SIZE + C_SIZE) * NUM_BOOTSTRAP_SYMBOLS * interpolation) / decimation); index++) {
+-        out[index++] = d_firs[ctr].filter(in);
++        out[index] = d_firs[ctr].filter(in);
+         ctr += this->decimation();
+         while (ctr >= this->interpolation()) {
+           ctr -= this->interpolation();

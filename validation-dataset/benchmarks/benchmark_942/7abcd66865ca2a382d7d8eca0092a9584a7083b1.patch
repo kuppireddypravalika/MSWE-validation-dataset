@@ -1,0 +1,42 @@
+From 7abcd66865ca2a382d7d8eca0092a9584a7083b1 Mon Sep 17 00:00:00 2001
+From: Markus Vieth <mvieth@techfak.uni-bielefeld.de>
+Date: Sun, 21 Mar 2021 11:09:47 +0100
+Subject: [PATCH] Octree search: use more float instead of double
+ pointSquaredDist returns a float, so it makes no sense to cast it
+ back-and-forth
+
+---
+ octree/include/pcl/octree/impl/octree_search.hpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/octree/include/pcl/octree/impl/octree_search.hpp b/octree/include/pcl/octree/impl/octree_search.hpp
+index 07ad568c83c..548b97fc413 100644
+--- a/octree/include/pcl/octree/impl/octree_search.hpp
++++ b/octree/include/pcl/octree/impl/octree_search.hpp
+@@ -483,7 +483,7 @@ OctreePointCloudSearch<PointT, LeafContainerT, BranchContainerT>::
+ 
+     const LeafNode* child_leaf = static_cast<const LeafNode*>(child_node);
+ 
+-    double smallest_squared_dist = std::numeric_limits<double>::max();
++    float smallest_squared_dist = std::numeric_limits<float>::max();
+ 
+     // decode leaf node into decoded_point_vector
+     (**child_leaf).getPointIndices(decoded_point_vector);
+@@ -493,7 +493,7 @@ OctreePointCloudSearch<PointT, LeafContainerT, BranchContainerT>::
+       const PointT& candidate_point = this->getPointByIndex(index);
+ 
+       // calculate point distance to search point
+-      double squared_dist = pointSquaredDist(candidate_point, point);
++      float squared_dist = pointSquaredDist(candidate_point, point);
+ 
+       // check if a closer match is found
+       if (squared_dist >= smallest_squared_dist)
+@@ -501,7 +501,7 @@ OctreePointCloudSearch<PointT, LeafContainerT, BranchContainerT>::
+ 
+       result_index = index;
+       smallest_squared_dist = squared_dist;
+-      sqr_distance = static_cast<float>(squared_dist);
++      sqr_distance = squared_dist;
+     }
+   }
+ }

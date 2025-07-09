@@ -1,0 +1,28 @@
+From 244a01f0f7a00732dcff31f4f6715860485c62dc Mon Sep 17 00:00:00 2001
+From: Tobias Doerffel <tobias.doerffel@gmail.com>
+Date: Mon, 25 Oct 2010 15:53:59 +0200
+Subject: [PATCH] ItalcCore/ItalcVncConnection: improved waitForConnected()
+
+Use QTime as stop watch instead of the msecsTo() function.
+---
+ lib/src/ItalcVncConnection.cpp | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/lib/src/ItalcVncConnection.cpp b/lib/src/ItalcVncConnection.cpp
+index 54b76f8c3..ad2c6f4b2 100644
+--- a/lib/src/ItalcVncConnection.cpp
++++ b/lib/src/ItalcVncConnection.cpp
+@@ -364,9 +364,10 @@ void ItalcVncConnection::setPort( int port )
+ 
+ bool ItalcVncConnection::waitForConnected( int timeout ) const
+ {
+-	QTime startTime = QTime::currentTime();
+-	while( !isConnected() &&
+-				startTime.msecsTo( QTime::currentTime() ) < timeout )
++	QTime startTime;
++	startTime.start();
++
++	while( !isConnected() && startTime.elapsed() < timeout )
+ 	{
+ 		if( QCoreApplication::instance() )
+ 		{

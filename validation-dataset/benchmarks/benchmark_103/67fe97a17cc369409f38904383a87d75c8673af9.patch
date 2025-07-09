@@ -1,0 +1,24 @@
+From 67fe97a17cc369409f38904383a87d75c8673af9 Mon Sep 17 00:00:00 2001
+From: Connor McLaughlin <stenzek@gmail.com>
+Date: Thu, 18 Feb 2021 17:45:55 +1000
+Subject: [PATCH] CPU/Recompiler: Use fastmem for constant loads from RAM
+ mirrors in LUT mode
+
+---
+ src/core/cpu_recompiler_code_generator_generic.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/core/cpu_recompiler_code_generator_generic.cpp b/src/core/cpu_recompiler_code_generator_generic.cpp
+index ddd4e3346..716e8bb09 100644
+--- a/src/core/cpu_recompiler_code_generator_generic.cpp
++++ b/src/core/cpu_recompiler_code_generator_generic.cpp
+@@ -41,7 +41,8 @@ Value CodeGenerator::EmitLoadGuestMemory(const CodeBlockInstruction& cbi, const
+     {
+       Value result = m_register_cache.AllocateScratch(size);
+ 
+-      if (g_settings.IsUsingFastmem() && Bus::IsRAMAddress(static_cast<u32>(address.constant_value)))
++      if (g_settings.cpu_fastmem_mode == CPUFastmemMode::MMap &&
++          Bus::IsRAMAddress(static_cast<u32>(address.constant_value)))
+       {
+         // have to mask away the high bits for mirrors, since we don't map them in fastmem
+         EmitLoadGuestRAMFastmem(Value::FromConstantU32(static_cast<u32>(address.constant_value) & Bus::RAM_MASK), size,

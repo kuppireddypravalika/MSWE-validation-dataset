@@ -1,0 +1,40 @@
+From 21feec7d2d707768c239a4039f89b8e795d11718 Mon Sep 17 00:00:00 2001
+From: "Steinar H. Gunderson" <sesse@google.com>
+Date: Sat, 29 Sep 2007 14:21:47 +0000
+Subject: [PATCH] Read and process as many packets as possible in
+ read_udp_packets, to avoid having to run the entire event loop once per
+ packet. (Patch from the Google tree.)
+
+---
+ ares_process.c | 18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
+
+diff --git a/ares_process.c b/ares_process.c
+index f3ead0a..9e03e40 100644
+--- a/ares_process.c
++++ b/ares_process.c
+@@ -399,13 +399,17 @@ static void read_udp_packets(ares_channel channel, fd_set *read_fds,
+          * extra system calls and confusion. */
+         FD_CLR(server->udp_socket, read_fds);
+ 
+-      count = sread(server->udp_socket, buf, sizeof(buf));
+-      if (count == -1 && try_again(SOCKERRNO))
+-        continue;
+-      else if (count <= 0)
+-        handle_error(channel, i, now);
+-
+-      process_answer(channel, buf, (int)count, i, 0, now);
++      /* To reduce event loop overhead, read and process as many
++       * packets as we can. */
++      do {
++        count = sread(server->udp_socket, buf, sizeof(buf));
++        if (count == -1 && try_again(SOCKERRNO))
++          continue;
++        else if (count <= 0)
++          handle_error(channel, i, now);
++        else
++          process_answer(channel, buf, (int)count, i, 0, now);
++       } while (count > 0);
+     }
+ }
+ 

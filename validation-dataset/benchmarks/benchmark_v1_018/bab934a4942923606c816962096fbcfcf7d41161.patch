@@ -1,0 +1,29 @@
+From bab934a4942923606c816962096fbcfcf7d41161 Mon Sep 17 00:00:00 2001
+From: Jordan Rose <jordan_rose@apple.com>
+Date: Fri, 15 Jun 2018 16:35:31 +0000
+Subject: [PATCH] Avoid copying PrettyStackTrace messages an extra time on
+ Apple OSs
+
+We were unnecessarily going from SmallString to std::string just to
+get a null-terminated C string. So just...don't do that. Crash
+slightly faster!
+---
+ llvm/lib/Support/PrettyStackTrace.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/llvm/lib/Support/PrettyStackTrace.cpp b/llvm/lib/Support/PrettyStackTrace.cpp
+index 9d62d7499dd3..f5b6e6f3652d 100644
+--- a/llvm/lib/Support/PrettyStackTrace.cpp
++++ b/llvm/lib/Support/PrettyStackTrace.cpp
+@@ -118,9 +118,9 @@ static void CrashHandler(void *) {
+   if (!TmpStr.empty()) {
+ #ifdef HAVE_CRASHREPORTERCLIENT_H
+     // Cast to void to avoid warning.
+-    (void)CRSetCrashLogMessage(std::string(TmpStr.str()).c_str());
++    (void)CRSetCrashLogMessage(TmpStr.c_str());
+ #elif HAVE_CRASHREPORTER_INFO 
+-    __crashreporter_info__ = strdup(std::string(TmpStr.str()).c_str());
++    __crashreporter_info__ = strdup(TmpStr.c_str());
+ #endif
+     errs() << TmpStr.str();
+   }

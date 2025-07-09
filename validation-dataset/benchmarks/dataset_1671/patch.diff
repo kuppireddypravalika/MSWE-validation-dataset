@@ -1,0 +1,28 @@
+From a6f30b6c463fc4a326742085b50c7667848e9c21 Mon Sep 17 00:00:00 2001
+From: Lars Knoll <lars.knoll@digia.com>
+Date: Wed, 2 May 2018 15:41:04 +0200
+Subject: [PATCH] Raise the stack limit of threads in the threadpool
+
+On some platforms (e.g. macOS), the default stack size for secondary
+threads is only 512k, which isn't enough to run all our tests. Raise
+the value to 8M (in line with the stack size on Linux and the main
+thread on macOS.
+
+Change-Id: I6f0ea1d27cd463f4d776b26cb9fee5813dd3579e
+Reviewed-by: Simon Hausmann <simon.hausmann@qt.io>
+---
+ tests/auto/qml/ecmascripttests/qjstest/test262runner.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/tests/auto/qml/ecmascripttests/qjstest/test262runner.cpp b/tests/auto/qml/ecmascripttests/qjstest/test262runner.cpp
+index 6a46a5b7e92..f3367162a39 100644
+--- a/tests/auto/qml/ecmascripttests/qjstest/test262runner.cpp
++++ b/tests/auto/qml/ecmascripttests/qjstest/test262runner.cpp
+@@ -98,6 +98,7 @@ bool Test262Runner::run()
+ 
+     if (flags & Parallel) {
+         threadPool = new QThreadPool;
++        threadPool->setStackSize(8*1024*1024);
+         if (flags & Verbose)
+             qDebug() << "Running in parallel with" << QThread::idealThreadCount() << "threads.";
+     }

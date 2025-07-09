@@ -1,0 +1,22 @@
+From f75e57b5fe41ad67ef597346f9249d4a51977df2 Mon Sep 17 00:00:00 2001
+From: Rinnegatamante <rinnegatamante@gmail.com>
+Date: Thu, 4 May 2017 15:37:16 +0200
+Subject: [PATCH] Removed useless delay thread call in renderer thd.
+
+---
+ src/psp2_ui.cpp | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/src/psp2_ui.cpp b/src/psp2_ui.cpp
+index 63c2444949..6ec2be321e 100644
+--- a/src/psp2_ui.cpp
++++ b/src/psp2_ui.cpp
+@@ -116,8 +116,6 @@ static int renderThread(unsigned int args, void* arg){
+ 		vita2d_wait_rendering_done();
+ 		vita2d_swap_buffers();
+ 		sceKernelSignalSema(GPU_Cleanup_Mutex, 1);
+-		
+-		sceKernelDelayThread(1000);
+ 	
+ 	}
+ 	

@@ -1,0 +1,38 @@
+From 9c64ede92ee806714079f8d165bff4ceb7a05a74 Mon Sep 17 00:00:00 2001
+From: Thomas Symalla <thomas.symalla@amd.com>
+Date: Wed, 20 Sep 2023 14:39:59 +0200
+Subject: [PATCH] Run additional SROA pass in RT path
+
+Insert an additional SROA pass to ensure that globals possibly
+introduced by SpirvLowerConstImmediateStore and converted into allocas
+by GlobalOpt get optimized away. We saw the possibility of this misbehavior
+when global constant tables were used.
+---
+ llpc/lower/llpcSpirvLower.cpp | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/llpc/lower/llpcSpirvLower.cpp b/llpc/lower/llpcSpirvLower.cpp
+index 9079127d85..0c13f21ccc 100644
+--- a/llpc/lower/llpcSpirvLower.cpp
++++ b/llpc/lower/llpcSpirvLower.cpp
+@@ -50,6 +50,7 @@
+ #include "lgc/PassManager.h"
+ #include "llvm/ADT/SmallSet.h"
+ #include "llvm/IR/IRPrintingPasses.h"
++#include "llvm/IR/PassManager.h"
+ #include "llvm/IR/Verifier.h"
+ #if LLVM_MAIN_REVISION && LLVM_MAIN_REVISION < 442438
+ // Old version of the code
+@@ -261,7 +262,11 @@ void SpirvLower::addPasses(Context *context, ShaderStage stage, lgc::PassManager
+ 
+   if (rayTracing || rayQuery) {
+     passMgr.addPass(LowerGpuRt());
+-    passMgr.addPass(createModuleToFunctionPassAdaptor(InstCombinePass(instCombineOpt)));
++
++    FunctionPassManager fpm;
++    fpm.addPass(SROAPass(SROAOptions::PreserveCFG));
++    fpm.addPass(InstCombinePass(instCombineOpt));
++    passMgr.addPass(createModuleToFunctionPassAdaptor(std::move(fpm)));
+   }
+ 
+   // Stop timer for lowering passes.

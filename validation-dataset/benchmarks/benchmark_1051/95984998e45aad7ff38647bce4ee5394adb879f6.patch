@@ -1,0 +1,25 @@
+From 95984998e45aad7ff38647bce4ee5394adb879f6 Mon Sep 17 00:00:00 2001
+From: David Stone <davidfromonline@gmail.com>
+Date: Mon, 15 Apr 2024 12:43:56 -0600
+Subject: [PATCH] Improve compile-time performance of `min` and `max` by using
+ the `unchecked` constructor instead of `assume_in_range`
+
+---
+ source/bounded/minmax.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/source/bounded/minmax.cpp b/source/bounded/minmax.cpp
+index e7cd5648..d98dc758 100755
+--- a/source/bounded/minmax.cpp
++++ b/source/bounded/minmax.cpp
+@@ -65,8 +65,8 @@ struct extreme_value<Compare, LHS, RHS> {
+ 			return rhs;
+ 		} else {
+ 			return compare(rhs, lhs) ?
+-				::bounded::assume_in_range<result_t>(OPERATORS_FORWARD(rhs)) :
+-				::bounded::assume_in_range<result_t>(OPERATORS_FORWARD(lhs));
++				type(OPERATORS_FORWARD(rhs), unchecked) :
++				type(OPERATORS_FORWARD(lhs), unchecked);
+ 		}
+ 	}
+ };

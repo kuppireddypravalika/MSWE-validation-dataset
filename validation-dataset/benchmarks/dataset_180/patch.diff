@@ -1,0 +1,22 @@
+From 913659b1896d46710c8b4b08b69447cdbc9c7d60 Mon Sep 17 00:00:00 2001
+From: weiliangdashen <617878975@qq.com>
+Date: Sun, 4 Jun 2017 20:26:36 +0800
+Subject: [PATCH] fix a bug to improve speed
+
+The original version didn't update the variable "seed_counter" which will significantly reduce the speed for the useless repeat.
+---
+ segmentation/include/pcl/segmentation/impl/region_growing.hpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/segmentation/include/pcl/segmentation/impl/region_growing.hpp b/segmentation/include/pcl/segmentation/impl/region_growing.hpp
+index fcfdfe5780c..68a6da44bb3 100644
+--- a/segmentation/include/pcl/segmentation/impl/region_growing.hpp
++++ b/segmentation/include/pcl/segmentation/impl/region_growing.hpp
+@@ -432,6 +432,7 @@ pcl::RegionGrowing<PointT, NormalT>::applySmoothRegionGrowingAlgorithm ()
+       if (point_labels_[index] == -1)
+       {
+         seed = index;
++        seed_counter = i_seed;
+         break;
+       }
+     }

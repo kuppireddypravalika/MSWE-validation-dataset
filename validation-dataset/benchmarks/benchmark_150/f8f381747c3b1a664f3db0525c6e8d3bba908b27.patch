@@ -1,0 +1,32 @@
+From f8f381747c3b1a664f3db0525c6e8d3bba908b27 Mon Sep 17 00:00:00 2001
+From: Michal Hocko <mstsxfx@gmail.com>
+Date: Fri, 11 Sep 2009 12:04:43 +0000
+Subject: [PATCH] xpdf: Return const reference rather than Ref.
+
+Object::getRef returns Ref but this ends up executing one copy constructor.
+Even though Ref is a simple struct which doesn't do any special copying this
+can be avoided by returning const reference.
+
+Example:
+
+Ref r;			// def. constr
+r = obj.getRef();	// copy constr.; operator =
+
+With the const Ref& Object::getRef() we will get rid of copy constr.
+---
+ src/xpdf/xpdf/Object.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/xpdf/xpdf/Object.h b/src/xpdf/xpdf/Object.h
+index 48e63ad5..aaf0619e 100644
+--- a/src/xpdf/xpdf/Object.h
++++ b/src/xpdf/xpdf/Object.h
+@@ -162,7 +162,7 @@ class Object {
+   const Array *getArray()const { return array; }
+   const Dict *getDict()const  { return dict; }
+   Stream *getStream()const { return stream; }
+-  Ref getRef()const { return ref; }
++  const Ref& getRef()const { return ref; }
+   int getRefNum()const { return ref.num; }
+   int getRefGen()const { return ref.gen; }
+   char *getCmd()const { return cmd; }

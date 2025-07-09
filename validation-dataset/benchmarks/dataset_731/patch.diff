@@ -1,0 +1,50 @@
+From cfb194e55fc27927387b22ba7d4bb58bd0d31d6e Mon Sep 17 00:00:00 2001
+From: Vadim Zeitlin <vadim@wxwidgets.org>
+Date: Thu, 25 Apr 2019 02:46:32 +0200
+Subject: [PATCH] Use wxVector<> instead of macro-based wxArray
+
+Also remove the never used m_lastEvent member variable.
+
+No real changes.
+---
+ tests/fswatcher/fswatchertest.cpp | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
+
+diff --git a/tests/fswatcher/fswatchertest.cpp b/tests/fswatcher/fswatchertest.cpp
+index 3a13a0996c13..60bc5b221c9c 100644
+--- a/tests/fswatcher/fswatchertest.cpp
++++ b/tests/fswatcher/fswatchertest.cpp
+@@ -25,9 +25,10 @@
+ #include "wx/evtloop.h"
+ #include "wx/filename.h"
+ #include "wx/filefn.h"
++#include "wx/fswatcher.h"
+ #include "wx/scopedptr.h"
+ #include "wx/stdpaths.h"
+-#include "wx/fswatcher.h"
++#include "wx/vector.h"
+ 
+ #include "testfile.h"
+ 
+@@ -339,8 +340,7 @@ class FSWTesterBase : public wxEvtHandler
+     virtual void OnFileSystemEvent(wxFileSystemWatcherEvent& evt)
+     {
+         wxLogDebug("--- %s ---", evt.ToString());
+-        m_lastEvent = wxDynamicCast(evt.Clone(), wxFileSystemWatcherEvent);
+-        m_events.Add(m_lastEvent);
++        m_events.push_back(wxDynamicCast(evt.Clone(), wxFileSystemWatcherEvent));
+ 
+         // test finished
+         SendIdle();
+@@ -415,10 +415,7 @@ class FSWTesterBase : public wxEvtHandler
+     int m_eventTypes;  // Which event-types to watch. Normally all of them
+     bool tested;  // indicates, whether we have already passed the test
+ 
+-    #include "wx/arrimpl.cpp"
+-    WX_DEFINE_ARRAY_PTR(wxFileSystemWatcherEvent*, wxArrayEvent);
+-    wxArrayEvent m_events;
+-    wxFileSystemWatcherEvent* m_lastEvent;
++    wxVector<wxFileSystemWatcherEvent*> m_events;
+ };
+ 
+ 

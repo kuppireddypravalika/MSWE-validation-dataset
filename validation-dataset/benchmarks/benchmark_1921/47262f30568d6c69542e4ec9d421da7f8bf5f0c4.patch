@@ -1,0 +1,31 @@
+From 47262f30568d6c69542e4ec9d421da7f8bf5f0c4 Mon Sep 17 00:00:00 2001
+From: "Pavel I. Kryukov" <kryukov@frtk.ru>
+Date: Fri, 27 Jul 2018 17:41:17 +0300
+Subject: [PATCH] Use static_assert instead of SFINAE for popcount macro
+
+---
+ simulator/infra/macro.h | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/simulator/infra/macro.h b/simulator/infra/macro.h
+index d847afed3..0293dd953 100644
+--- a/simulator/infra/macro.h
++++ b/simulator/infra/macro.h
+@@ -45,13 +45,12 @@ template<> constexpr size_t bitwidth<uint128> = 128u;
+ template<> constexpr size_t bitwidth<int128> = 128u;
+ 
+ // https://stackoverflow.com/questions/109023/how-to-count-the-number-of-set-bits-in-a-32-bit-integer
+-template<typename T,
+-         typename = std::enable_if_t<std::is_integral<T>::value>,         // only integral
+-         typename = std::enable_if_t<std::numeric_limits<T>::radix == 2>, // only binary
+-         typename = std::enable_if_t<bitwidth<T> <= bitwidth<uint64>> // only narrow
+-       >
++template<typename T>
+ constexpr auto popcount( T x) noexcept
+ {
++    static_assert( std::is_integral<T>::value, "popcount works only for integral types");
++    static_assert( std::numeric_limits<T>::radix == 2, "popcount works only for binary types");
++    static_assert( bitwidth<T> <= bitwidth<uint64>, "popcount works only for uint64 and narrower types");
+     return std::bitset<bitwidth<T>>( static_cast<typename std::make_unsigned<T>::type>( x)).count();
+ }
+ 

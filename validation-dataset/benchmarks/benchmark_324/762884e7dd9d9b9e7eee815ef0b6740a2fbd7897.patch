@@ -1,0 +1,27 @@
+From 762884e7dd9d9b9e7eee815ef0b6740a2fbd7897 Mon Sep 17 00:00:00 2001
+From: Sanjay Patel <spatel@rotateright.com>
+Date: Fri, 21 Apr 2017 19:16:52 +0000
+Subject: [PATCH] [InstCombine] use isSubsetOf() for efficiency
+
+C | ~D == -1
+~(C | ~D) == 0
+~C & D == 0
+D & ~C == 0
+D.isSubsetOf(C)
+---
+ llvm/lib/Transforms/InstCombine/InstCombineSimplifyDemanded.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/llvm/lib/Transforms/InstCombine/InstCombineSimplifyDemanded.cpp b/llvm/lib/Transforms/InstCombine/InstCombineSimplifyDemanded.cpp
+index d7e709c9cca1..10faf4786764 100644
+--- a/llvm/lib/Transforms/InstCombine/InstCombineSimplifyDemanded.cpp
++++ b/llvm/lib/Transforms/InstCombine/InstCombineSimplifyDemanded.cpp
+@@ -282,7 +282,7 @@ Value *InstCombiner::SimplifyDemandedUseBits(Value *V, APInt DemandedMask,
+     // combining, SCEV, and codegen.
+     const APInt *C;
+     if (match(I->getOperand(1), m_APInt(C)) && !C->isAllOnesValue()) {
+-      if ((*C | ~DemandedMask).isAllOnesValue()) {
++      if (DemandedMask.isSubsetOf(*C)) {
+         // Force bits to 1 to create a 'not' op.
+         I->setOperand(1, ConstantInt::getAllOnesValue(VTy));
+         return I;

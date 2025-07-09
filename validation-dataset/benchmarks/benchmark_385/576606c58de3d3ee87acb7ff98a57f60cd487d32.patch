@@ -1,0 +1,35 @@
+From 576606c58de3d3ee87acb7ff98a57f60cd487d32 Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@gmail.com>
+Date: Sat, 29 Apr 2017 05:08:52 +0000
+Subject: [PATCH] [ConstantRange] Improve the efficiency of one of the
+ ConstantRange constructors.
+
+We were default constructing the Lower/Upper APInts. Then creating min or max value, then doing a move assignment to Lower and copy assignment to upper. The copy assignment operator in particular has an out of line function call that has to examine whether or not a previous allocation exists that can be reused which of course it can't in this case.
+
+The new code creates the min/max value first, move constructs Lower from it then copy constructs Upper from Lower.
+
+This also seems to have convinced a self host build that this constructor can be inlined more readily into other methods in ConstantRange.
+---
+ llvm/lib/IR/ConstantRange.cpp | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
+
+diff --git a/llvm/lib/IR/ConstantRange.cpp b/llvm/lib/IR/ConstantRange.cpp
+index 072a9a96635f..bd2581b4003b 100644
+--- a/llvm/lib/IR/ConstantRange.cpp
++++ b/llvm/lib/IR/ConstantRange.cpp
+@@ -29,12 +29,9 @@
+ #include "llvm/Support/raw_ostream.h"
+ using namespace llvm;
+ 
+-ConstantRange::ConstantRange(uint32_t BitWidth, bool Full) {
+-  if (Full)
+-    Lower = Upper = APInt::getMaxValue(BitWidth);
+-  else
+-    Lower = Upper = APInt::getMinValue(BitWidth);
+-}
++ConstantRange::ConstantRange(uint32_t BitWidth, bool Full)
++    : Lower(Full ? APInt::getMaxValue(BitWidth) : APInt::getMinValue(BitWidth)),
++      Upper(Lower) {}
+ 
+ ConstantRange::ConstantRange(APInt V)
+     : Lower(std::move(V)), Upper(Lower + 1) {}

@@ -1,0 +1,27 @@
+From cad6224fe806856cb7720cbe01095e5f186beed9 Mon Sep 17 00:00:00 2001
+From: nenadpol <nenad.poljcic@lyse.net>
+Date: Wed, 26 Aug 2015 11:11:16 +0200
+Subject: [PATCH] Normalizing optimized cone direction
+
+Normalizing optimized cone coefficients in void optimizeModelCoefficients. Proposed code starts line nr. 339 and end line nr 343
+---
+ .../include/pcl/sample_consensus/impl/sac_model_cone.hpp    | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/sample_consensus/include/pcl/sample_consensus/impl/sac_model_cone.hpp b/sample_consensus/include/pcl/sample_consensus/impl/sac_model_cone.hpp
+index aca3df54453..4f1bae8b9b9 100644
+--- a/sample_consensus/include/pcl/sample_consensus/impl/sac_model_cone.hpp
++++ b/sample_consensus/include/pcl/sample_consensus/impl/sac_model_cone.hpp
+@@ -335,6 +335,12 @@ pcl::SampleConsensusModelCone<PointT, PointNT>::optimizeModelCoefficients (
+   PCL_DEBUG ("[pcl::SampleConsensusModelCone::optimizeModelCoefficients] LM solver finished with exit code %i, having a residual norm of %g. \nInitial solution: %g %g %g %g %g %g %g \nFinal solution: %g %g %g %g %g %g %g\n",
+              info, lm.fvec.norm (), model_coefficients[0], model_coefficients[1], model_coefficients[2], model_coefficients[3],
+              model_coefficients[4], model_coefficients[5], model_coefficients[6], optimized_coefficients[0], optimized_coefficients[1], optimized_coefficients[2], optimized_coefficients[3], optimized_coefficients[4], optimized_coefficients[5], optimized_coefficients[6]);
++
++  Eigen::Vector3f line_dir (optimized_coefficients[3], optimized_coefficients[4], optimized_coefficients[5]);
++  line_dir.normalize ();
++  optimized_coefficients[3] = line_dir[0];
++  optimized_coefficients[4] = line_dir[1];
++  optimized_coefficients[5] = line_dir[2];
+ }
+ 
+ //////////////////////////////////////////////////////////////////////////////////////////////////////////////////

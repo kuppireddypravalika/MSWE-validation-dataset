@@ -1,0 +1,29 @@
+From c17a05f5b6e29744bcdc5aea50db264e5dc1ec91 Mon Sep 17 00:00:00 2001
+From: Sebastian Geerken <devnull@localhost>
+Date: Sun, 21 Apr 2013 12:06:23 +0200
+Subject: [PATCH] Removed a wrong optimization.
+
+---
+ dw/outofflowmgr.cc | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/dw/outofflowmgr.cc b/dw/outofflowmgr.cc
+index e998770b0..6fbbd47ad 100644
+--- a/dw/outofflowmgr.cc
++++ b/dw/outofflowmgr.cc
+@@ -742,9 +742,13 @@ void OutOfFlowMgr::tellPosition (Widget *widget, int yReq)
+    //        containingBlock, widget, widget->getClassName (), yReq);
+    //printf ("   this float: %s\n", vloat->toString());
+ 
+-   if (yReq == vloat->yReq)
++   // The following optimization is wrong; e. g. does not take into
++   // account that the previous float may have change its
++   // size. "yReal" should rather be checked below, this should be
++   // deleted.
++   /*if (yReq == vloat->yReq)
+       // Nothing changed.
+-      return;
++      return;*/
+ 
+    SortedFloatsVector *listSame, *listOpp;
+    getFloatsLists (vloat, &listSame, &listOpp);

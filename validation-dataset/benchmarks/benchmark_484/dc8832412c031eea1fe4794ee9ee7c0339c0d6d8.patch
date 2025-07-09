@@ -1,0 +1,34 @@
+From dc8832412c031eea1fe4794ee9ee7c0339c0d6d8 Mon Sep 17 00:00:00 2001
+From: Laurens Voerman <l.voerman@rug.nl>
+Date: Mon, 8 Jul 2019 09:59:10 +0200
+Subject: [PATCH] replace the auto w = width() etc. with std::size_t rather
+ than have a cast on an inner loop
+
+---
+ src/vsg/core/Data.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/vsg/core/Data.cpp b/src/vsg/core/Data.cpp
+index 21a9c3d92..09cbe4ed3 100644
+--- a/src/vsg/core/Data.cpp
++++ b/src/vsg/core/Data.cpp
+@@ -43,15 +43,15 @@ Data::MipmapOffsets Data::computeMipmapOffsets() const
+     MipmapOffsets offsets;
+     if (numMipmaps == 0) return offsets;
+ 
+-    auto w = width();
+-    auto h = height();
+-    auto d = depth();
++    std::size_t w = width();
++    std::size_t h = height();
++    std::size_t d = depth();
+ 
+     std::size_t lastPosition = 0;
+     offsets.push_back(lastPosition);
+     while (numMipmaps > 1 && (w > 1 || h > 1 || d > 1))
+     {
+-        lastPosition += (static_cast<std::size_t>(w) * h * d);
++        lastPosition += (w * h * d);
+         offsets.push_back(lastPosition);
+ 
+         --numMipmaps;

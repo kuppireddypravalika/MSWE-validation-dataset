@@ -1,0 +1,28 @@
+From a73fd86c133b081709cb5311e70bbe47bb0e0d56 Mon Sep 17 00:00:00 2001
+From: Alan Wu <xrsquared@gmail.com>
+Date: Tue, 22 Oct 2019 13:27:26 -0400
+Subject: [PATCH] Use memcpy to perform unaligned reads
+
+Creating and reading from unaligned pointers is UB and I'm trying to
+run upb on a platform (GraalVM) that is sensitive to that unfortunately.
+Recent compilers are smart enough to fold the memcpy down to a simple
+memory load on platforms that support it, so this should mostly be a
+aesthetic change.
+---
+ upb/table.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/upb/table.c b/upb/table.c
+index 8896d217db67e..fd5bc53f9626d 100644
+--- a/upb/table.c
++++ b/upb/table.c
+@@ -756,7 +756,8 @@ uint32_t upb_murmur_hash2(const void *key, size_t len, uint32_t seed) {
+   /* Mix 4 bytes at a time into the hash */
+   const uint8_t * data = (const uint8_t *)key;
+   while(len >= 4) {
+-    uint32_t k = *(uint32_t *)data;
++    uint32_t k;
++    memcpy(&k, data, sizeof(k));
+ 
+     k *= m;
+     k ^= k >> r;

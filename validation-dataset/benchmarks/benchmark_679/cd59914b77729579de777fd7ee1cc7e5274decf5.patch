@@ -1,0 +1,33 @@
+From cd59914b77729579de777fd7ee1cc7e5274decf5 Mon Sep 17 00:00:00 2001
+From: John Criswell <jtcriswel@gmail.com>
+Date: Fri, 11 Nov 2016 14:30:45 -0500
+Subject: [PATCH] Modified MPX SFI code to check first address read or written.
+
+Modified the MPX SFI code to check the first address read or
+written by the load or store instead of the last address.  We can
+use guard pages to prevent errant accesses in which a multi-byte
+read/write spills over into ghost memory, and checking the first
+address reduces register pressure as all values are subtracting
+the same value from each pointer.
+---
+ llvm/lib/Transforms/Scalar/SFI.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/llvm/lib/Transforms/Scalar/SFI.cpp b/llvm/lib/Transforms/Scalar/SFI.cpp
+index 9d7eb5ca..d299c8f4 100644
+--- a/llvm/lib/Transforms/Scalar/SFI.cpp
++++ b/llvm/lib/Transforms/Scalar/SFI.cpp
+@@ -226,11 +226,11 @@ SFI::addBitMasking (Value * Pointer, Instruction & I) {
+ 
+     //
+     // Create a pointer value that is the pointer minus the start of the
+-    // secure memory minus the length of the pointer value.
++    // secure memory.
+     //
+     unsigned ptrSize = TD.getPointerSize();
+     Constant * adjSize = ConstantInt::get (IntPtrTy,
+-                                           startGhostMemory + ptrSize,
++                                           startGhostMemory,
+                                            false);
+     Value * IntPtr = new PtrToIntInst (Pointer,
+                                        IntPtrTy,

@@ -1,0 +1,25 @@
+From 992cbe06fbf92184e3eba9a0f3a0725d91ea529f Mon Sep 17 00:00:00 2001
+From: Rich E <rich.eakin@gmail.com>
+Date: Fri, 11 Dec 2020 17:48:28 -0500
+Subject: [PATCH] Use MSVC alternative for __builtin_clz()
+
+---
+ modules/le_backend_vk/le_backend_vk.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/modules/le_backend_vk/le_backend_vk.cpp b/modules/le_backend_vk/le_backend_vk.cpp
+index 7aa9f5f43..6fe5797bc 100644
+--- a/modules/le_backend_vk/le_backend_vk.cpp
++++ b/modules/le_backend_vk/le_backend_vk.cpp
+@@ -309,7 +309,11 @@ vk::SampleCountFlagBits le_sample_count_log_2_to_vk( uint32_t sample_count_log2
+ // returns log2 of number of samples, so that number of samples can be
+ // calculated as `num_samples = 1 << log2_num_samples`
+ inline uint16_t get_sample_count_log_2( uint32_t const &sample_count ) {
++#if defined(_MSC_VER)
++	auto lz = __lzcnt( sample_count );
++#else
+ 	auto lz = __builtin_clz( sample_count );
++#endif
+ 	return 31 - lz;
+ }
+ 

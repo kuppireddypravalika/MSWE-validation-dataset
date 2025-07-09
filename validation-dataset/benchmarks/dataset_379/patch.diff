@@ -1,0 +1,27 @@
+From 2f0495944fe9d4c7fbef7b456d295508596b3e49 Mon Sep 17 00:00:00 2001
+From: JR <5493488+joye-ramone@users.noreply.github.com>
+Date: Sun, 25 Feb 2024 15:28:00 +0200
+Subject: [PATCH] =?UTF-8?q?=D0=BD=D0=B5=20=D0=BD=D1=83=D0=B6=D0=B5=D0=BD?=
+ =?UTF-8?q?=20=D1=82=D1=83=D1=82=20=D0=B2=20condition=5Ffactor=20=D1=8D?=
+ =?UTF-8?q?=D1=82=D0=BE=D1=82=20powf?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ ogsr_engine/xrGame/trade2.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ogsr_engine/xrGame/trade2.cpp b/ogsr_engine/xrGame/trade2.cpp
+index 592b9885d..0856a753e 100644
+--- a/ogsr_engine/xrGame/trade2.cpp
++++ b/ogsr_engine/xrGame/trade2.cpp
+@@ -140,7 +140,7 @@ u32 CTrade::GetItemPrice(PIItem pItem, bool b_buying)
+ 
+     // computing condition factor
+     // for "dead" weapon we use 10% from base cost, for "good" weapon we use full base cost
+-    float condition_factor = powf(pItem->GetCondition() * 0.9f + .1f, 0.75f);
++    const float condition_factor = 0.1f + pItem->GetCondition() * 0.9f; // powf(pItem->GetCondition() * 0.9f + .1f, 0.75f);
+ 
+     // computing relation factor
+     float relation_factor;

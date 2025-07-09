@@ -1,0 +1,26 @@
+From 765479e9eaf5903a68cf8e438622b20c28622c72 Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@gmail.com>
+Date: Sun, 29 Jan 2017 04:38:19 +0000
+Subject: [PATCH] [DAGCombiner] Remove unnecessary check on the size of the
+ type of the index of EXTRACT_SUBVECTOR.
+
+The type system already requires that the number of vector elements must fit in 32-bits so an index should as well. Even if the type of the index were larger all we care about is that the constant index can fit in 64-bits so that we can call getZExtValue.
+---
+ llvm/lib/CodeGen/SelectionDAG/DAGCombiner.cpp | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/llvm/lib/CodeGen/SelectionDAG/DAGCombiner.cpp b/llvm/lib/CodeGen/SelectionDAG/DAGCombiner.cpp
+index dc6b0b11c0f0..3ef801f52a4c 100644
+--- a/llvm/lib/CodeGen/SelectionDAG/DAGCombiner.cpp
++++ b/llvm/lib/CodeGen/SelectionDAG/DAGCombiner.cpp
+@@ -13916,9 +13916,7 @@ SDValue DAGCombiner::visitEXTRACT_SUBVECTOR(SDNode* N) {
+     ConstantSDNode *ExtIdx = dyn_cast<ConstantSDNode>(N->getOperand(1));
+     ConstantSDNode *InsIdx = dyn_cast<ConstantSDNode>(V->getOperand(2));
+ 
+-    if (InsIdx && ExtIdx &&
+-        InsIdx->getValueType(0).getSizeInBits() <= 64 &&
+-        ExtIdx->getValueType(0).getSizeInBits() <= 64) {
++    if (InsIdx && ExtIdx) {
+       // Combine:
+       //    (extract_subvec (insert_subvec V1, V2, InsIdx), ExtIdx)
+       // Into:

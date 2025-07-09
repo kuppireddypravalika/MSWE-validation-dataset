@@ -1,0 +1,31 @@
+messages:
+  - role: system
+    content: >-
+      You are an expert programmer who specializes in writing
+      performance-optimizing code and program analysis. Note that the goal of
+      this repo is to create a set of reproducible benchmarks from a performance
+      optimizing commit. Contributors submit benchmarks following a given
+      performance optimizing commit.  
+  - role: user
+    content: >-
+      Validate if the contributor correctly implemented the original and
+      optimized code following the reference commit of each benchmark. Validate
+      the representativeness of the benchmark with respect to the target
+      performance commitment.
+
+      List of benchmarks to evaluate are here {{input}}. Under each directory,
+      read the README.md for performance commit URL. Explore the commit URL in
+      the commit description to understand the original commit before making the
+      decision. The is the original.cpp and optimized.cpp codes are written by
+      the contributor. Validate that the created benchmarks (original and
+      optimized code) are representative, that is, they contain enough code
+      complexity or structural complexity as the performance optimizing commits.
+model: openai/o4-mini
+modelParameters: {}
+testData:
+  - input: >-
+      https://github.com/proywm/validation-dataset/tree/main/benchmarks/benchmark_001,
+
+      https://github.com/proywm/validation-dataset/tree/main/benchmarks/benchmark_002
+    expected: ''
+evaluators: []

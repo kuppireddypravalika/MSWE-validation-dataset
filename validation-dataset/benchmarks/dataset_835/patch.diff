@@ -1,0 +1,24 @@
+From ff870a42c0122aaeb4ca36d00a041b80e89b7654 Mon Sep 17 00:00:00 2001
+From: Timothy Banks <timothy.banks@block.one>
+Date: Wed, 25 Nov 2020 11:21:15 -0500
+Subject: [PATCH] Removed superfluous + and static_cast
+
+---
+ .../eosio/chain/backing_store/db_key_value_sec_lookup.hpp     | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/libraries/chain/include/eosio/chain/backing_store/db_key_value_sec_lookup.hpp b/libraries/chain/include/eosio/chain/backing_store/db_key_value_sec_lookup.hpp
+index e65be298404..6117812f06a 100644
+--- a/libraries/chain/include/eosio/chain/backing_store/db_key_value_sec_lookup.hpp
++++ b/libraries/chain/include/eosio/chain/backing_store/db_key_value_sec_lookup.hpp
+@@ -193,8 +193,8 @@ namespace eosio { namespace chain { namespace backing_store {
+          }
+ 
+          if( key_store.payer != payer ) {
+-            context.update_db_usage( key_store.payer, -(static_cast<int64_t>(helper.overhead())), backing_store::db_context::secondary_update_rem_trace(context.get_action_id(), std::string(event_id)) );
+-            context.update_db_usage( payer, +(static_cast<int64_t>(helper.overhead())), backing_store::db_context::secondary_update_add_trace(context.get_action_id(), std::move(event_id)) );
++            context.update_db_usage( key_store.payer, -helper.overhead(), backing_store::db_context::secondary_update_rem_trace(context.get_action_id(), std::string(event_id)) );
++            context.update_db_usage( payer, helper.overhead(), backing_store::db_context::secondary_update_add_trace(context.get_action_id(), std::move(event_id)) );
+          }
+ 
+          // if the secondary value is different, remove the old key and add the new key

@@ -1,0 +1,44 @@
+From 0c07b64fec208aab7032633f3c8e8ba43c85e64e Mon Sep 17 00:00:00 2001
+From: Nate Begeman <natebegeman@mac.com>
+Date: Thu, 22 Jul 2010 00:09:39 +0000
+Subject: [PATCH] Make fast isel win64-aware w.r.t. call-clobbered regs
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@109069 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Target/X86/X86FastISel.cpp | 17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
+
+diff --git a/lib/Target/X86/X86FastISel.cpp b/lib/Target/X86/X86FastISel.cpp
+index 89f72151bce..b7341f93eed 100644
+--- a/lib/Target/X86/X86FastISel.cpp
++++ b/lib/Target/X86/X86FastISel.cpp
+@@ -1646,15 +1646,26 @@ bool X86FastISel::X86SelectCall(const Instruction *I) {
+   MachineInstrBuilder MIB;
+   if (CalleeOp) {
+     // Register-indirect call.
+-    unsigned CallOpc = Subtarget->is64Bit() ? X86::CALL64r : X86::CALL32r;
++    unsigned CallOpc;
++    if (Subtarget->isTargetWin64())
++      CallOpc = X86::WINCALL64r;
++    else if (Subtarget->is64Bit())
++      CallOpc = X86::CALL64r;
++    else
++      CallOpc = X86::CALL32r;
+     MIB = BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, DL, TII.get(CallOpc))
+       .addReg(CalleeOp);
+     
+   } else {
+     // Direct call.
+     assert(GV && "Not a direct call");
+-    unsigned CallOpc =
+-      Subtarget->is64Bit() ? X86::CALL64pcrel32 : X86::CALLpcrel32;
++    unsigned CallOpc;
++    if (Subtarget->isTargetWin64())
++      CallOpc = X86::WINCALL64pcrel32;
++    else if (Subtarget->is64Bit())
++      CallOpc = X86::CALL64pcrel32;
++    else
++      CallOpc = X86::CALLpcrel32;
+     
+     // See if we need any target-specific flags on the GV operand.
+     unsigned char OpFlags = 0;

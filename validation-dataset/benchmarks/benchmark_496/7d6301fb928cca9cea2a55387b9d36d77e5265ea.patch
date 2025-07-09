@@ -1,0 +1,24 @@
+From 7d6301fb928cca9cea2a55387b9d36d77e5265ea Mon Sep 17 00:00:00 2001
+From: Paul T <developer.paul.123@gmail.com>
+Date: Thu, 10 Aug 2023 10:10:08 -0400
+Subject: [PATCH] Small update/fix to optimization check in `fill()`
+
+---
+ include/flux/op/fill.hpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/include/flux/op/fill.hpp b/include/flux/op/fill.hpp
+index a7a64c9a..da48d8ce 100644
+--- a/include/flux/op/fill.hpp
++++ b/include/flux/op/fill.hpp
+@@ -28,8 +28,9 @@ struct fill_fn {
+         constexpr bool can_memset = 
+             contiguous_sequence<Seq> &&
+             sized_sequence<Seq> &&
++            std::same_as<Value, value_t<Seq>> &&
+             // only allow memset on single byte types
+-            sizeof(value) == sizeof(std::uint8_t) &&
++            sizeof(value_t<Seq>) == 1 &&
+             std::is_trivially_copyable_v<value_t<Seq>>;
+ 
+         if constexpr (can_memset) {

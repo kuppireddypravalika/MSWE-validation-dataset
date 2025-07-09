@@ -1,0 +1,29 @@
+From 5b537d0267ab280e28f71c98e325783a9fa40c99 Mon Sep 17 00:00:00 2001
+From: Ole <ole@vprsm.de>
+Date: Fri, 1 Jul 2016 19:06:18 +0200
+Subject: [PATCH] Let 'ReturnValue<std::tuple<...>>' inherit 'TuplePusher<...>'
+ instead of inlining it
+
+---
+ lib/luwra/types.hpp | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/lib/luwra/types.hpp b/lib/luwra/types.hpp
+index a2bf3052..08893c69 100644
+--- a/lib/luwra/types.hpp
++++ b/lib/luwra/types.hpp
+@@ -536,12 +536,8 @@ namespace internal {
+ }
+ 
+ template <typename... Contents>
+-struct ReturnValue<std::tuple<Contents...>> {
+-	static inline
+-	size_t push(State* state, const std::tuple<Contents...>& value) {
+-		return internal::TuplePusher<Contents...>::push(state, value);
+-	}
+-};
++struct ReturnValue<std::tuple<Contents...>>:
++	internal::TuplePusher<Contents...> {};
+ 
+ LUWRA_NS_END
+ 

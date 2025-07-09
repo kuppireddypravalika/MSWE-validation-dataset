@@ -1,0 +1,30 @@
+From 962c6ec89752f5b0e5b6b8b10bf65fa7f5a1273a Mon Sep 17 00:00:00 2001
+From: Ghabry <gabriel+github@mastergk.de>
+Date: Wed, 11 May 2016 19:09:42 +0200
+Subject: [PATCH] Set FM Midi to half of the systems sample rate to save 50%
+ CPU time, the difference is not hearable and more powerful systems don't
+ depend on FM Midi.
+
+---
+ src/audio_sdl.cpp | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/src/audio_sdl.cpp b/src/audio_sdl.cpp
+index 553c13c139..0a14a3ea0b 100644
+--- a/src/audio_sdl.cpp
++++ b/src/audio_sdl.cpp
+@@ -366,7 +366,13 @@ void SdlAudio::SetupAudioDecoder(FILE* handle, int volume, int pitch, int fadein
+ 	}
+ 	AudioDecoder::Format audio_format = sdl_format_to_format(sdl_format);
+ 
+-	audio_decoder->SetFormat(audio_rate, audio_format, audio_channels);
++	int target_rate = audio_rate;
++	if (audio_decoder->GetType() == "midi") {
++		// FM Midi is very CPU heavy and the difference between 44100 and 22050
++		// is not hearable for MIDI
++		target_rate /= 2;
++	}
++	audio_decoder->SetFormat(target_rate, audio_format, audio_channels);
+ 
+ 	int device_rate;
+ 	AudioDecoder::Format device_format;

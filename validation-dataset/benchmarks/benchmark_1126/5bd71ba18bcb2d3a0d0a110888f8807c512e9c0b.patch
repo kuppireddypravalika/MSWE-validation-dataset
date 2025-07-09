@@ -1,0 +1,53 @@
+From 5bd71ba18bcb2d3a0d0a110888f8807c512e9c0b Mon Sep 17 00:00:00 2001
+From: vasil <>
+Date: Thu, 27 Nov 2008 21:26:39 +0000
+Subject: [PATCH] branches/zip:
+
+Fix Mantis issue#130 wdl: does not handle 64-bit address
+
+- Change the call from strtoul() to strtoull()
+- Change "%16X" to "%16llx" when scanning preferred load address
+
+rb://58
+
+Submitted by:	Calvin
+Approved by:	Marko
+---
+ handler/win_delay_loader.cc | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/handler/win_delay_loader.cc b/handler/win_delay_loader.cc
+index 7cee5cf3f36..8b69f4a6e51 100644
+--- a/handler/win_delay_loader.cc
++++ b/handler/win_delay_loader.cc
+@@ -263,6 +263,11 @@ wdl_load_mapfile(
+ 	char*		func_addr;
+ 	ulint		load_addr = 0;
+ 	ibool		valid_load_addr = FALSE;
++#ifdef _WIN64
++	const char*	tmp_string = " Preferred load address is %16llx";
++#else
++	const char*	tmp_string = " Preferred load address is %08x";
++#endif
+ 
+ 	fp = fopen(filename, "r");
+ 	if (fp == NULL) {
+@@ -285,8 +290,7 @@ wdl_load_mapfile(
+ 	/* Search start of symbol list and get the preferred load address */
+ 	while (fgets(tmp_buf, sizeof(tmp_buf), fp)) {
+ 
+-		if (sscanf(tmp_buf, " Preferred load address is %16X",
+-			   &load_addr) == 1) {
++		if (sscanf(tmp_buf, tmp_string, &load_addr) == 1) {
+ 
+ 			valid_load_addr = TRUE;
+ 		}
+@@ -338,7 +342,7 @@ wdl_load_mapfile(
+ 			chain_header = map_cell;
+ 
+ 			map_cell->symbol = strdup(func_name);
+-			map_cell->value = strtoul(tmp_buf, NULL, 0)
++			map_cell->value = (ulint) strtoull(tmp_buf, NULL, 0)
+ 					  - load_addr;
+ 			map_fold = ut_fold_string(map_cell->symbol);
+ 

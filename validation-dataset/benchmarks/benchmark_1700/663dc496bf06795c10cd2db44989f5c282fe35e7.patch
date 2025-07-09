@@ -1,0 +1,29 @@
+From 663dc496bf06795c10cd2db44989f5c282fe35e7 Mon Sep 17 00:00:00 2001
+From: Connor McLaughlin <stenzek@gmail.com>
+Date: Fri, 19 Mar 2021 18:06:25 +1000
+Subject: [PATCH] CPU/Recompiler: Tiny optimization for div on x64
+
+---
+ src/core/cpu_recompiler_code_generator_x64.cpp | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/src/core/cpu_recompiler_code_generator_x64.cpp b/src/core/cpu_recompiler_code_generator_x64.cpp
+index 6ecef3c44..eb740b443 100644
+--- a/src/core/cpu_recompiler_code_generator_x64.cpp
++++ b/src/core/cpu_recompiler_code_generator_x64.cpp
+@@ -785,6 +785,15 @@ void CodeGenerator::EmitDiv(HostReg to_reg_quotient, HostReg to_reg_remainder, H
+     // what we want, but swapped, so exchange them
+     m_emit->xchg(m_emit->rax, m_emit->rdx);
+   }
++  else if (to_reg_quotient != Xbyak::Operand::RAX && to_reg_quotient != Xbyak::Operand::RDX &&
++           to_reg_remainder != Xbyak::Operand::RAX && to_reg_remainder != Xbyak::Operand::RDX)
++  {
++    // store to the registers we want.. this could be optimized better
++    if (to_reg_quotient != HostReg_Count)
++      m_emit->mov(GetHostReg64(to_reg_quotient), m_emit->rax);
++    if (to_reg_remainder != HostReg_Count)
++      m_emit->mov(GetHostReg64(to_reg_remainder), m_emit->rdx);
++  }
+   else
+   {
+     // store to the registers we want.. this could be optimized better

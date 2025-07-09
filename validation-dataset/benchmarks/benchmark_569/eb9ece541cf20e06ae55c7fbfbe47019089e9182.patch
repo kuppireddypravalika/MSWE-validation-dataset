@@ -1,0 +1,28 @@
+From eb9ece541cf20e06ae55c7fbfbe47019089e9182 Mon Sep 17 00:00:00 2001
+From: Andrea Azzarone <andrea.azzarone@canonical.com>
+Date: Tue, 23 Oct 2018 00:44:37 +0100
+Subject: [PATCH] engine: mozjs60 changes for GC sweeping tracking
+
+With the switch to mozjs60, the sweeping happens in three phases insted of two:
+JSFINALIZE_GROUP_PREPARE, JSFINALIZE_GROUP_START, and JSFINALIZE_GROUP_END.
+Update the code to keep track of whether the runtime is currently doing GC
+sweeping, and prevent calling JS code at that time.
+
+Fixes: GNOME/gjs#212
+---
+ gjs/engine.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gjs/engine.cpp b/gjs/engine.cpp
+index 4629748a9..1f8ef9020 100644
+--- a/gjs/engine.cpp
++++ b/gjs/engine.cpp
+@@ -162,7 +162,7 @@ gjs_finalize_callback(JSFreeOp         *fop,
+      code, so we can probably rely on this behavior.
+   */
+ 
+-  if (status == JSFINALIZE_GROUP_START)
++  if (status == JSFINALIZE_GROUP_PREPARE)
+         _gjs_context_set_sweeping(js_context, true);
+   else if (status == JSFINALIZE_GROUP_END)
+         _gjs_context_set_sweeping(js_context, false);

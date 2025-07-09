@@ -1,0 +1,40 @@
+From af287f1998c71c21793485d5720a56dff5efe89b Mon Sep 17 00:00:00 2001
+From: Jay Foad <jay.foad@amd.com>
+Date: Tue, 17 Mar 2020 15:35:08 +0000
+Subject: [PATCH] More conservative handling of degenerate OpMemoryBarrier
+ instructions
+
+Before PR #477, an OpMemoryBarrier that didn't set any ordering bits
+would be translated to an LLVM IR fence instruction with no ordering,
+which is invalid IR.
+
+PR #477 changed the translator to ignore such OpMemoryBarrier
+instructions, treating them as a no-op.
+
+Unfortunately some games rely on getting some ordering from an
+OpMemoryBarrier instruction with the semantics set to e.g. 0x200, which
+includes the CrossWorkgroupMemory flag but none of the ordering bits.
+Handle this by applying a default ordering of AcquireRelease.
+---
+ llpc/translator/lib/SPIRV/SPIRVReader.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/llpc/translator/lib/SPIRV/SPIRVReader.cpp b/llpc/translator/lib/SPIRV/SPIRVReader.cpp
+index 64f69f4c59..8c0ca18d40 100644
+--- a/llpc/translator/lib/SPIRV/SPIRVReader.cpp
++++ b/llpc/translator/lib/SPIRV/SPIRVReader.cpp
+@@ -8845,6 +8845,14 @@ Instruction *SPIRVToLLVM::transMemFence(BasicBlock *BB, SPIRVWord MemSema,
+     Ordering = AtomicOrdering::Acquire;
+   else if (MemSema & MemorySemanticsReleaseMask)
+     Ordering = AtomicOrdering::Release;
++  else if (MemSema != MemorySemanticsMaskNone &&
++           BM->getMemoryModel() != MemoryModelVulkan) {
++    // Some shaders written for pre-Vulkan memory models use e.g.:
++    // OpMemoryBarrier 1, 512 // 512 = CrossWorkgroupMemory
++    // and expect some ordering, even though none of the low 4 (ordering) bits
++    // of the semantics are set, so we set a reasonable default here.
++    Ordering = AtomicOrdering::AcquireRelease;
++  }
+ 
+   if (Ordering == AtomicOrdering::NotAtomic)
+     return nullptr;

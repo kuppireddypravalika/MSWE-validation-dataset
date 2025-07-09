@@ -1,0 +1,23 @@
+From 88795989997c77be5d59cc456054e845e388cdf3 Mon Sep 17 00:00:00 2001
+From: NotCompsky <adammarkgray@gmail.com>
+Date: Thu, 9 Jul 2020 20:44:23 +0100
+Subject: [PATCH] Performance		Reduce maximum number of responses to
+ select2.
+
+---
+ wangle-server/src/server.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/wangle-server/src/server.cpp b/wangle-server/src/server.cpp
+index d88351e4..5af46493 100644
+--- a/wangle-server/src/server.cpp
++++ b/wangle-server/src/server.cpp
+@@ -1964,7 +1964,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const std::string_view,  co
+ 				this->asciify(USER_DISALLOWED_TAGS(user_id));
+ 				break;
+ 		}
+-		this->asciify("LIMIT 50"); // TODO: Tell client if results have been truncated
++		this->asciify("LIMIT 20"); // TODO: Tell client if results have been truncated
+ 		
+ 		try{
+ 			this->mysql_query_using_buf();

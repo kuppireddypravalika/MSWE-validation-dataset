@@ -1,0 +1,22 @@
+From 5375d4c742f2d459c2b74b99e08fc1f1f1d0f77e Mon Sep 17 00:00:00 2001
+From: Ziqi Wang <675973885@qq.com>
+Date: Mon, 17 Apr 2017 02:18:49 -0400
+Subject: [PATCH] better measurement of GCMetadata size
+
+---
+ BwTree/bwtree.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/BwTree/bwtree.h b/BwTree/bwtree.h
+index d724400..770f022 100755
+--- a/BwTree/bwtree.h
++++ b/BwTree/bwtree.h
+@@ -450,7 +450,7 @@ class BwTreeBase {
+     // We allocate one more element than requested as the buffer
+     // for doing alignment
+     original_p = static_cast<unsigned char *>(
+-      malloc(sizeof(PaddedGCMetadata) * (thread_num + 1)));
++      malloc(sizeof(PaddedGCMetadata) * thread_num + CACHE_LINE_SIZE));
+     assert(original_p != nullptr);
+     
+     // Align the address to cache line boundary

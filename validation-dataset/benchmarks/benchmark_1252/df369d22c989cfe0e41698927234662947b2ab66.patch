@@ -1,0 +1,23 @@
+From df369d22c989cfe0e41698927234662947b2ab66 Mon Sep 17 00:00:00 2001
+From: John Forrest <john.forrest@fastercoin.com>
+Date: Wed, 7 Aug 2019 11:13:40 +0000
+Subject: [PATCH] If not using -DUSE_MEMCPY modify code to get rid of warnings.
+ As far as I know using memcpy on most architectures is faster.
+
+---
+ CoinUtils/src/CoinHelperFunctions.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/CoinUtils/src/CoinHelperFunctions.hpp b/CoinUtils/src/CoinHelperFunctions.hpp
+index 6497a40dc..c5bba6c65 100644
+--- a/CoinUtils/src/CoinHelperFunctions.hpp
++++ b/CoinUtils/src/CoinHelperFunctions.hpp
+@@ -328,7 +328,7 @@ CoinMemcpyN(const T *from, const CoinByteArray size, T *to)
+ 	throw CoinError("overlapping arrays", "CoinMemcpyN", "");
+ #endif
+ 
+-  for (CoinBigIndex n = size / 8; n > 0; --n, from += 8, to += 8) {
++    for (CoinBigIndex n = static_cast<CoinBigIndex>(size>>3); n > 0; --n, from += 8, to += 8) {
+     to[0] = from[0];
+     to[1] = from[1];
+     to[2] = from[2];

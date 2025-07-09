@@ -1,0 +1,28 @@
+From 818fd716cc407a882d0b2fd30ea806d9674d646c Mon Sep 17 00:00:00 2001
+From: Vyacheslav Ivanov <islavaivanov76@gmail.com>
+Date: Thu, 1 Aug 2024 23:53:14 +0300
+Subject: [PATCH] fix: optimization: PVS-Studio warning V825
+
+The 'current.reset(lang.release())' expression is equivalent to 'current = std::move(lang)'.
+Changed 'current.reset(lang.release())' to 'current = std::move(lang)' to improve code clarity and performance.
+
+Reported by: PVS-Studio
+
+Signed-off-by: Vyacheslav Ivanov <islavaivanov76@gmail.com>
+---
+ src/frontend/locale.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/frontend/locale.cpp b/src/frontend/locale.cpp
+index e20b3059e..f4f08a265 100644
+--- a/src/frontend/locale.cpp
++++ b/src/frontend/locale.cpp
+@@ -146,7 +146,7 @@ void langs::load(const fs::path& resdir,
+     if (locale != fallback) {
+         load(resdir, locale, packs, *lang.get());
+     }
+-    current.reset(lang.release());
++    current = std::move(lang);
+ }
+ 
+ void langs::setup(const fs::path& resdir,

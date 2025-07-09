@@ -1,0 +1,34 @@
+From aab749487f620e27b7311c729de3922e7fd09049 Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Thu, 22 Jan 2015 19:28:01 +0100
+Subject: [PATCH] QTime: optimize toString()
+
+Instead of using a QString::arg() cascade, which creates tons of
+temporaries, use good 'ol sprintf().
+
+Effects on Linux GCC 4.9 stripped release builds:
+ text   -308B
+ data    +-0B
+ relocs  +-0
+
+Change-Id: I348577491d1399b5040f7ed9e9f6b111a9528e5d
+Reviewed-by: Thiago Macieira <thiago.macieira@intel.com>
+---
+ src/corelib/tools/qdatetime.cpp | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/src/corelib/tools/qdatetime.cpp b/src/corelib/tools/qdatetime.cpp
+index 8c25994bb2c..7d1ed9d2ba5 100644
+--- a/src/corelib/tools/qdatetime.cpp
++++ b/src/corelib/tools/qdatetime.cpp
+@@ -1569,9 +1569,7 @@ QString QTime::toString(Qt::DateFormat format) const
+     case Qt::ISODate:
+     case Qt::TextDate:
+     default:
+-        return QString::fromLatin1("%1:%2:%3").arg(hour(), 2, 10, QLatin1Char('0'))
+-                                              .arg(minute(), 2, 10, QLatin1Char('0'))
+-                                              .arg(second(), 2, 10, QLatin1Char('0'));
++        return QString::asprintf("%02d:%02d:%02d", hour(), minute(), second());
+     }
+ }
+ 

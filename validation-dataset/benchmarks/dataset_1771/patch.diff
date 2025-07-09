@@ -1,0 +1,31 @@
+From ff0c3f5ec7e4e16406fa27b92184e2840026a26a Mon Sep 17 00:00:00 2001
+From: Andrew Mustun <andrew@qcad.org>
+Date: Thu, 24 Oct 2024 19:55:24 +0200
+Subject: [PATCH] reduce arc quality of solid fills when zooming in
+
+prevent performance issues
+---
+ src/entity/RHatchData.cpp | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/src/entity/RHatchData.cpp b/src/entity/RHatchData.cpp
+index 43bae5d80c..d1385defd6 100644
+--- a/src/entity/RHatchData.cpp
++++ b/src/entity/RHatchData.cpp
+@@ -683,8 +683,14 @@ QList<RPainterPath> RHatchData::getPainterPaths(bool draft, double pixelSizeHint
+     // in draft mode, return boundary path to be shown without fill:
+     if (isSolid() || draft) {
+         // prevent stalling at large zoom for complex solid fills (QPainterPath performance issue):
+-        if (getComplexity()>RSettings::getMaxHatchComplexity() && pixelSizeHint<0.1) {
+-            pixelSizeHint = 0.1;
++        if (getComplexity()>RSettings::getMaxHatchComplexity()*100) {
++            pixelSizeHint*=100;
++        }
++        else if (getComplexity()>RSettings::getMaxHatchComplexity()) {
++            pixelSizeHint*=10;
++        }
++        if (getComplexity()>RSettings::getMaxHatchComplexity() && pixelSizeHint<0.001) {
++            pixelSizeHint = 0.001;
+         }
+         getBoundaryPath(pixelSizeHint);
+         if (draft) {

@@ -1,0 +1,22 @@
+From 867468e34b7526869cc9ed1b2189f2746d305189 Mon Sep 17 00:00:00 2001
+From: Guido Tack <guido.tack@monash.edu>
+Date: Mon, 26 Feb 2018 08:50:33 +1100
+Subject: [PATCH] Trigger garbage collection after each solution in solns2out
+ to keep memory requirements (almost) constant. Fixes #145.
+
+---
+ lib/solns2out_class.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/lib/solns2out_class.cpp b/lib/solns2out_class.cpp
+index 042840f41..6d29cceb0 100644
+--- a/lib/solns2out_class.cpp
++++ b/lib/solns2out_class.cpp
+@@ -135,6 +135,7 @@ void Solns2Out::restoreDefaults() {
+     }
+   }
+   fNewSol2Print = false;
++  GC::trigger();
+ }
+ 
+ void Solns2Out::parseAssignments(string& solution) {

@@ -1,0 +1,43 @@
+From f9258b17ca8329847e42c6432a6f73e58ee2fea8 Mon Sep 17 00:00:00 2001
+From: Administrator <675973885@qq.com>
+Date: Tue, 26 Apr 2016 21:57:03 -0400
+Subject: [PATCH] Add an optimization for ABORT Node
+
+---
+ bwtree.h | 18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
+
+diff --git a/bwtree.h b/bwtree.h
+index cb76c7a..7022a22 100644
+--- a/bwtree.h
++++ b/bwtree.h
+@@ -4063,13 +4063,27 @@ class BwTree {
+     // it as constant
+     NodeType type = node_p->GetType();
+ 
++before_switch:
+     switch(type) {
+       case NodeType::InnerAbortType: {
+         bwt_printf("Observed Inner Abort Node; ABORT\n");
+ 
+-        context_p->abort_flag = true;
++        // This block is an optimization - when seeing an ABORT
++        // node, we continue but set the physical pointer to be ABORT's
++        // child, to make CAS always fail on this node to avoid
++        // posting on ABORT, especially posting split node
++        {
++          node_p = \
++            static_cast<const DeltaNode *>(node_p)->child_node_p;
++          snapshot_p->SwitchPhysicalPointer(node_p);
++          type = node_p->GetType();
+ 
+-        return;
++          goto before_switch;
++        }
++
++        //context_p->abort_flag = true;
++
++        //return;
+       }
+       case NodeType::LeafRemoveType:
+       case NodeType::InnerRemoveType: {

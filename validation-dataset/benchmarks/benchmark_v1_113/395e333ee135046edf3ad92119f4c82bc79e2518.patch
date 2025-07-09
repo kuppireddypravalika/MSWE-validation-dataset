@@ -1,0 +1,22 @@
+From 395e333ee135046edf3ad92119f4c82bc79e2518 Mon Sep 17 00:00:00 2001
+From: Thomas Baumgart <thb@net-bembel.de>
+Date: Sat, 25 Mar 2023 16:09:04 +0100
+Subject: [PATCH] Removed another unnecessary std::move on return
+
+---
+ kmymoney/wizards/newloanwizard/keditloanwizard.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/kmymoney/wizards/newloanwizard/keditloanwizard.cpp b/kmymoney/wizards/newloanwizard/keditloanwizard.cpp
+index 2182777280..619f50043e 100644
+--- a/kmymoney/wizards/newloanwizard/keditloanwizard.cpp
++++ b/kmymoney/wizards/newloanwizard/keditloanwizard.cpp
+@@ -543,7 +543,7 @@ const MyMoneyAccount KEditLoanWizard::account() const
+                                        field("interestFrequencyUnitEdit").toInt());
+     }
+ 
+-    return std::move(acc);
++    return acc;
+ }
+ 
+ const MyMoneyTransaction KEditLoanWizard::transaction() const

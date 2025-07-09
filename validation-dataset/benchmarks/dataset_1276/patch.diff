@@ -1,0 +1,39 @@
+From 2d5f239558b73a9d3dfa1e5c89f558d9d1334e47 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@duempel.org>
+Date: Sat, 20 Dec 2008 01:39:04 +0100
+Subject: [PATCH] as: don't duplicate twice in as_handshake_callback()
+
+Don't call g_strdup() on the line which is already a duplicated
+pointer.  Reuse the line pointer instead.
+---
+ as.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/as.c b/as.c
+index efec905..9e222a0 100644
+--- a/as.c
++++ b/as.c
+@@ -256,17 +256,20 @@ static void as_handshake_callback(size_t length, const char *response)
+ 			state = as_parse_handshake_response(next);
+ 			break;
+ 		case AS_SESSION:
+-			g_session = g_strdup(next);
++			g_session = next;
++			next = NULL;
+ 			notice("session: %s", g_session);
+ 			state = AS_NOWPLAY;
+ 			break;
+ 		case AS_NOWPLAY:
+-			g_nowplay_url = g_strdup(next);
++			g_nowplay_url = next;
++			next = NULL;
+ 			notice("now playing url: %s", g_nowplay_url);
+ 			state = AS_SUBMIT;
+ 			break;
+ 		case AS_SUBMIT:
+-			g_submit_url = g_strdup(next);
++			g_submit_url = next;
++			next = NULL;
+ 			notice("submit url: %s", g_submit_url);
+ 			state = AS_COMMAND;
+ 			g_state = AS_READY;

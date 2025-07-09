@@ -1,0 +1,22 @@
+From 23a9cba9ae101390a9f1ac5c11832cb7e005b126 Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Tue, 30 Jun 2020 14:52:34 -0600
+Subject: [PATCH] Use Point auto BaseType conversion to eliminate cast
+
+---
+ OPHD/Map/TileMap.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/OPHD/Map/TileMap.cpp b/OPHD/Map/TileMap.cpp
+index 2e824a37e..fae1d5c8d 100644
+--- a/OPHD/Map/TileMap.cpp
++++ b/OPHD/Map/TileMap.cpp
+@@ -268,7 +268,7 @@ void TileMap::initMapDrawParams(NAS2D::Vector<int> size)
+ 	// Set up map draw position
+ 	mEdgeLength = size.x / TILE_WIDTH;
+ 
+-	mMapPosition = {static_cast<float>((size.x - TILE_WIDTH) / 2), static_cast<float>((size.y - constants::BOTTOM_UI_HEIGHT - mEdgeLength * TILE_HEIGHT_ABSOLUTE) / 2)};
++	mMapPosition = NAS2D::Point{(size.x - TILE_WIDTH) / 2, (size.y - constants::BOTTOM_UI_HEIGHT - mEdgeLength * TILE_HEIGHT_ABSOLUTE) / 2};
+ 	mMapBoundingBox = {(size.x / 2) - ((TILE_WIDTH * mEdgeLength) / 2), static_cast<int>(mMapPosition.y()), TILE_WIDTH * mEdgeLength, TILE_HEIGHT_ABSOLUTE * mEdgeLength};
+ 
+ 	int transform = (mMapPosition.x() - mMapBoundingBox.x()) / TILE_WIDTH;

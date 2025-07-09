@@ -1,0 +1,37 @@
+From a1a42df2b4ed719b0f4f3eaa0bfd1f0c702b4725 Mon Sep 17 00:00:00 2001
+From: Chinyen Chou <petechou@gmail.com>
+Date: Mon, 18 Feb 2013 10:58:46 +0800
+Subject: [PATCH] Fix the order of writable sections.
+
+Assign the order of a writable section to SHO_DATA instead, even if
+it also is executable. To do so may produce less load segments.
+---
+ lib/Target/GNULDBackend.cpp | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/lib/Target/GNULDBackend.cpp b/lib/Target/GNULDBackend.cpp
+index 73c6cd25..22865e18 100644
+--- a/lib/Target/GNULDBackend.cpp
++++ b/lib/Target/GNULDBackend.cpp
+@@ -1428,13 +1428,14 @@ unsigned int GNULDBackend::getSectionOrder(const LDSection& pSectHdr) const
+   // TODO: need to take care other possible output sections
+   switch (pSectHdr.kind()) {
+     case LDFileFormat::Regular:
+-      if (is_exec) {
+-        if (&pSectHdr == &file_format->getInit())
+-          return SHO_INIT;
+-        if (&pSectHdr == &file_format->getFini())
+-          return SHO_FINI;
+-        return SHO_TEXT;
+-      } else if (!is_write) {
++      if (!is_write) {
++        if (is_exec) {
++          if (&pSectHdr == &file_format->getInit())
++            return SHO_INIT;
++          if (&pSectHdr == &file_format->getFini())
++            return SHO_FINI;
++          return SHO_TEXT;
++        }
+         return SHO_RO;
+       } else {
+         if (config().options().hasRelro()) {

@@ -1,0 +1,31 @@
+From 4669b783be7c571fd9fd144e2950420ee83cd1ef Mon Sep 17 00:00:00 2001
+From: = <675973885@qq.com>
+Date: Mon, 1 Aug 2016 15:30:52 -0400
+Subject: [PATCH] Fixing the wrong way of calculating performance
+
+---
+ src/performance_test.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/performance_test.cpp b/src/performance_test.cpp
+index 6511b28..109eda5 100644
+--- a/src/performance_test.cpp
++++ b/src/performance_test.cpp
+@@ -496,7 +496,7 @@ void TestBwTreeMultiThreadInsertPerformance(TreeType *t, int key_num) {
+     std::chrono::duration<double> elapsed_seconds = end - start;
+ 
+     std::cout << "[Thread " << thread_id << " Done] @ "
+-              << (key_num / (1024.0 * 1024.0)) / elapsed_seconds.count()
++              << (key_num / num_thread) / (1024.0 * 1024.0) / elapsed_seconds.count()
+               << " million insert/sec" << "\n";
+ 
+     thread_time[thread_id] = elapsed_seconds.count();
+@@ -512,7 +512,7 @@ void TestBwTreeMultiThreadInsertPerformance(TreeType *t, int key_num) {
+   }
+ 
+   std::cout << num_thread << " Threads BwTree: overall "
+-            << (key_num / (1024.0 * 1024.0) * num_thread * num_thread) / elapsed_seconds
++            << (key_num / (1024.0 * 1024.0) * num_thread) / elapsed_seconds
+             << " million insert/sec" << "\n";
+             
+   return;

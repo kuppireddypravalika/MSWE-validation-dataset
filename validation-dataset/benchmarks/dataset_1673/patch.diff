@@ -1,0 +1,34 @@
+From d89d5cffe79bd060a1b04a2c47a3d728bffbe195 Mon Sep 17 00:00:00 2001
+From: Lars Knoll <lars.knoll@qt.io>
+Date: Tue, 11 Sep 2018 14:58:57 +0200
+Subject: [PATCH] Some more optimizations to Object::internalPut()
+
+Change-Id: Ib1b224ad27428ca37450f269b491cfa9d82e559a
+Reviewed-by: Simon Hausmann <simon.hausmann@qt.io>
+---
+ src/qml/jsruntime/qv4object.cpp | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/src/qml/jsruntime/qv4object.cpp b/src/qml/jsruntime/qv4object.cpp
+index e58b9d8168c..4c36d24c1a0 100644
+--- a/src/qml/jsruntime/qv4object.cpp
++++ b/src/qml/jsruntime/qv4object.cpp
+@@ -553,6 +553,18 @@ bool Object::internalPut(PropertyKey id, const Value &value, Value *receiver)
+         attrs = Attr_Data;
+     }
+ 
++    if (r->internalClass()->vtable->defineOwnProperty == virtualDefineOwnProperty) {
++        // standard object, we can avoid some more checks
++        uint index = id.asArrayIndex();
++        if (index == UINT_MAX) {
++            ScopedStringOrSymbol s(scope, id.asStringOrSymbol());
++            r->insertMember(s, value);
++        } else {
++            r->arraySet(index, value);
++        }
++        return true;
++    }
++
+     p->value = value;
+     return r->defineOwnProperty(id, p, attrs);
+ }

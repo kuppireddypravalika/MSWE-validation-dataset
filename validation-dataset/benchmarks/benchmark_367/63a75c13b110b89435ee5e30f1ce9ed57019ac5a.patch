@@ -1,0 +1,35 @@
+From 63a75c13b110b89435ee5e30f1ce9ed57019ac5a Mon Sep 17 00:00:00 2001
+From: Chris Lattner <sabre@nondot.org>
+Date: Sun, 29 Aug 2010 05:12:21 +0000
+Subject: [PATCH] use getUniqueExitBlocks instead of a manual set.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@112412 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Transforms/Scalar/LICM.cpp | 12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
+
+diff --git a/lib/Transforms/Scalar/LICM.cpp b/lib/Transforms/Scalar/LICM.cpp
+index 639e958f040..a1868af12fd 100644
+--- a/lib/Transforms/Scalar/LICM.cpp
++++ b/lib/Transforms/Scalar/LICM.cpp
+@@ -707,18 +707,10 @@ void LICM::PromoteValuesInLoop() {
+ 
+   // Now that the body of the loop uses the allocas instead of the original
+   // memory locations, insert code to copy the alloca value back into the
+-  // original memory location on all exits from the loop.  Note that we only
+-  // want to insert one copy of the code in each exit block, though the loop may
+-  // exit to the same block more than once.
+-  //
+-  SmallPtrSet<BasicBlock*, 16> ProcessedBlocks;
+-
++  // original memory location on all exits from the loop.
+   SmallVector<BasicBlock*, 8> ExitBlocks;
+-  CurLoop->getExitBlocks(ExitBlocks);
++  CurLoop->getUniqueExitBlocks(ExitBlocks);
+   for (unsigned i = 0, e = ExitBlocks.size(); i != e; ++i) {
+-    if (!ProcessedBlocks.insert(ExitBlocks[i]))
+-      continue;
+-  
+     // Copy all of the allocas into their memory locations.
+     BasicBlock::iterator BI = ExitBlocks[i]->getFirstNonPHI();
+     Instruction *InsertPos = BI;

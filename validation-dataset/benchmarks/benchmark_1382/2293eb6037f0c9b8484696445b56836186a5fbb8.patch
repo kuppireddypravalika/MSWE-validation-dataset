@@ -1,0 +1,38 @@
+From 2293eb6037f0c9b8484696445b56836186a5fbb8 Mon Sep 17 00:00:00 2001
+From: Dan Gohman <gohman@apple.com>
+Date: Sat, 14 Mar 2009 02:07:16 +0000
+Subject: [PATCH] Don't forego folding of loads into 64-bit adds when the other
+ operand is a signed 32-bit immediate. Unlike with the 8-bit signed immediate
+ case, it isn't actually smaller to fold a 32-bit signed immediate instead of
+ a load. In fact, it's larger in the case of 32-bit unsigned immediates,
+ because they can be materialized with movl instead of movq.
+
+llvm-svn: 67001
+---
+ llvm/lib/Target/X86/X86ISelDAGToDAG.cpp | 13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
+
+diff --git a/llvm/lib/Target/X86/X86ISelDAGToDAG.cpp b/llvm/lib/Target/X86/X86ISelDAGToDAG.cpp
+index f81ab6f8a7b..1317b53a78e 100644
+--- a/llvm/lib/Target/X86/X86ISelDAGToDAG.cpp
++++ b/llvm/lib/Target/X86/X86ISelDAGToDAG.cpp
+@@ -319,16 +319,9 @@ bool X86DAGToDAGISel::IsLegalAndProfitableToFold(SDNode *N, SDNode *U,
+       // addl 4(%esp), %eax
+       // The former is 2 bytes shorter. In case where the increment is 1, then
+       // the saving can be 4 bytes (by using incl %eax).
+-      ConstantSDNode *Imm = dyn_cast<ConstantSDNode>(U->getOperand(1));
+-      if (Imm) {
+-        if (U->getValueType(0) == MVT::i64) {
+-          if ((int32_t)Imm->getZExtValue() == (int64_t)Imm->getZExtValue())
+-            return false;
+-        } else {
+-          if ((int8_t)Imm->getZExtValue() == (int64_t)Imm->getZExtValue())
+-            return false;
+-        }
+-      }
++      if (ConstantSDNode *Imm = dyn_cast<ConstantSDNode>(U->getOperand(1)))
++        if (Imm->getAPIntValue().isSignedIntN(8))
++          return false;
+     }
+     }
+ 

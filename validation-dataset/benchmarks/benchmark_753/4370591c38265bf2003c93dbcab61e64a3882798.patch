@@ -1,0 +1,22 @@
+From 4370591c38265bf2003c93dbcab61e64a3882798 Mon Sep 17 00:00:00 2001
+From: Kaustubh <iit2014147@iiita.ac.in>
+Date: Fri, 21 Sep 2018 09:03:03 +0530
+Subject: [PATCH] Use move for effeciency
+
+---
+ src/libLookup/Lookup.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/libLookup/Lookup.cpp b/src/libLookup/Lookup.cpp
+index e102f6809b..e68b35b784 100644
+--- a/src/libLookup/Lookup.cpp
++++ b/src/libLookup/Lookup.cpp
+@@ -1190,7 +1190,7 @@ bool Lookup::ProcessSetShardFromSeed(const vector<unsigned char>& message,
+     }
+     lock_guard<mutex> g(m_mutexShards);
+ 
+-    m_mediator.m_ds->m_shards = shards;
++    m_mediator.m_ds->m_shards = move(shards);
+ 
+     return true;
+ }

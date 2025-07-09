@@ -1,0 +1,42 @@
+From 69187204e5e5fd41464f8e68018dbf8405c22ece Mon Sep 17 00:00:00 2001
+From: Justin Bogner <mail@justinbogner.com>
+Date: Fri, 2 Dec 2016 00:11:01 +0000
+Subject: [PATCH] SDAG: Avoid a large, usually empty SmallVector in a recursive
+ function
+
+This SmallVector is using up 128 bytes on the stack every time despite
+almost always being empty[1], and since this function can recurse quite
+deeply that adds up to a lot of overhead. We've seen this run afoul of
+ulimits in some cases with ASAN on.
+
+Replacing the SmallVector with a std::vector trades an occasional heap
+allocation for vastly less stack usage.
+
+[1]: I gathered some stats on an internal test suite and the vector
+was non-empty in only 45,000 of 10,000,000 calls to this function.
+---
+ llvm/lib/CodeGen/SelectionDAG/LegalizeTypes.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/llvm/lib/CodeGen/SelectionDAG/LegalizeTypes.cpp b/llvm/lib/CodeGen/SelectionDAG/LegalizeTypes.cpp
+index 4e34a579ad53..847034254281 100644
+--- a/llvm/lib/CodeGen/SelectionDAG/LegalizeTypes.cpp
++++ b/llvm/lib/CodeGen/SelectionDAG/LegalizeTypes.cpp
+@@ -484,7 +484,7 @@ SDNode *DAGTypeLegalizer::AnalyzeNewNode(SDNode *N) {
+   // updated after all operands have been analyzed.  Since this is rare,
+   // the code tries to minimize overhead in the non-morphing case.
+ 
+-  SmallVector<SDValue, 8> NewOps;
++  std::vector<SDValue> NewOps;
+   unsigned NumProcessed = 0;
+   for (unsigned i = 0, e = N->getNumOperands(); i != e; ++i) {
+     SDValue OrigOp = N->getOperand(i);
+@@ -500,7 +500,7 @@ SDNode *DAGTypeLegalizer::AnalyzeNewNode(SDNode *N) {
+       NewOps.push_back(Op);
+     } else if (Op != OrigOp) {
+       // This is the first operand to change - add all operands so far.
+-      NewOps.append(N->op_begin(), N->op_begin() + i);
++      NewOps.insert(NewOps.end(), N->op_begin(), N->op_begin() + i);
+       NewOps.push_back(Op);
+     }
+   }

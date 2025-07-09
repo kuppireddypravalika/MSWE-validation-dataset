@@ -1,0 +1,28 @@
+From 71bf7545ff0eda914dac3baa8ba948cff9a97429 Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Sun, 27 Aug 2017 19:26:16 -0400
+Subject: [PATCH] [gtk] GdkImageConv.cpp: Use ARRAY_SIZE() instead of
+ hard-coding the palette size.
+
+---
+ src/gtk/GdkImageConv.cpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/src/gtk/GdkImageConv.cpp b/src/gtk/GdkImageConv.cpp
+index 33bb4cbd45..9cabdd804a 100644
+--- a/src/gtk/GdkImageConv.cpp
++++ b/src/gtk/GdkImageConv.cpp
+@@ -115,8 +115,11 @@ GdkPixbuf *GdkImageConv::rp_image_to_GdkPixbuf_cpp(const rp_image *img)
+ 					    ((*src_pal & 0x00FF0000) >> 16) |
+ 					    ((*src_pal & 0x000000FF) << 16);
+ 			}
+-			if (src_pal_len < 256) {
+-				memset(&palette[src_pal_len], 0, (256 - src_pal_len) * sizeof(uint32_t));
++
++			// Zero out the rest of the palette if the new
++			// palette is larger than the old palette.
++			if (src_pal_len < ARRAY_SIZE(palette)) {
++				memset(&palette[src_pal_len], 0, (ARRAY_SIZE(palette) - src_pal_len) * sizeof(uint32_t));
+ 			}
+ 
+ 			// Copy the image data.

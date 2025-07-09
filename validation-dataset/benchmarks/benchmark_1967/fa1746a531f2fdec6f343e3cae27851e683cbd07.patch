@@ -1,0 +1,32 @@
+From fa1746a531f2fdec6f343e3cae27851e683cbd07 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Pawe=C5=82=20Bylica?= <chfast@gmail.com>
+Date: Sat, 25 Apr 2020 15:57:59 +0200
+Subject: [PATCH] bench: Hoist instantiate() out of benchmark loop
+
+This does not work any more as the code inside Pause()/Resume() takes
+longer than the execution outside and the whole loop runs forever
+as it targets predefined running time (excluding code inside
+Pause()/Resume()).
+---
+ test/bench/bench.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/test/bench/bench.cpp b/test/bench/bench.cpp
+index fe15444e9..0dc19a0d6 100644
+--- a/test/bench/bench.cpp
++++ b/test/bench/bench.cpp
+@@ -139,12 +139,12 @@ void benchmark_execute(
+     validate_benchmark_case(state, *engine, benchmark_case);
+ 
+     const auto has_memory = !benchmark_case.memory.empty();
++    engine->instantiate(*benchmark_case.wasm_binary);
++    const auto func_ref = engine->find_function(benchmark_case.func_name);
+ 
+     for ([[maybe_unused]] auto _ : state)
+     {
+         state.PauseTiming();
+-        engine->instantiate(*benchmark_case.wasm_binary);
+-        const auto func_ref = engine->find_function(benchmark_case.func_name);
+         if (has_memory)
+             engine->init_memory(benchmark_case.memory);
+         state.ResumeTiming();

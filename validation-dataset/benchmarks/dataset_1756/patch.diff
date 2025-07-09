@@ -1,0 +1,24 @@
+From ab2dd5f1b20f07f2734267095af9b9deaede7079 Mon Sep 17 00:00:00 2001
+From: Ivan Komissarov <abbapoh@gmail.com>
+Date: Fri, 14 Feb 2020 23:18:04 +0100
+Subject: [PATCH] Avoid double lookup in ModuleLoader::handleSubProject
+
+Change-Id: Ia26b49324377c00d9c897932f4df7624436ef96b
+Reviewed-by: Christian Kandeler <christian.kandeler@qt.io>
+---
+ src/lib/corelib/language/moduleloader.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/lib/corelib/language/moduleloader.cpp b/src/lib/corelib/language/moduleloader.cpp
+index 07276bbdc0..4f00a634ce 100644
+--- a/src/lib/corelib/language/moduleloader.cpp
++++ b/src/lib/corelib/language/moduleloader.cpp
+@@ -1665,7 +1665,7 @@ void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext
+         const Item::PropertyMap &overriddenProperties = propertiesItem->properties();
+         for (Item::PropertyMap::ConstIterator it = overriddenProperties.constBegin();
+              it != overriddenProperties.constEnd(); ++it) {
+-            loadedItem->setProperty(it.key(), overriddenProperties.value(it.key()));
++            loadedItem->setProperty(it.key(), it.value());
+         }
+     }
+ 

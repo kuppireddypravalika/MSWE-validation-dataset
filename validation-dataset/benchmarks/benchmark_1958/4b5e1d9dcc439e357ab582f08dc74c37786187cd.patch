@@ -1,0 +1,36 @@
+From 4b5e1d9dcc439e357ab582f08dc74c37786187cd Mon Sep 17 00:00:00 2001
+From: Chris Lattner <sabre@nondot.org>
+Date: Fri, 4 Mar 2005 16:03:14 +0000
+Subject: [PATCH] Make sure to align for the right header.  This patch fixes a
+ 6X slowdown on olden-tsp, giving us a 7% speedup over pool allocation
+ instead.
+
+git-svn-id: https://llvm.org/svn/llvm-project/poolalloc/trunk@20431 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ runtime/FL2Allocator/PoolAllocator.cpp | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/runtime/FL2Allocator/PoolAllocator.cpp b/runtime/FL2Allocator/PoolAllocator.cpp
+index 285eed4c..90cbcee4 100644
+--- a/runtime/FL2Allocator/PoolAllocator.cpp
++++ b/runtime/FL2Allocator/PoolAllocator.cpp
+@@ -297,13 +297,13 @@ void PoolSlab<PoolTraits>::create_for_ptrcomp(PoolTy<PoolTraits> *Pool,
+   PoolSlab *PS = (PoolSlab*)SMem;
+   char *PoolBody = (char*)(PS+1);
+ 
+-  // If the Alignment is greater than the size of the FreedNodeHeader, skip over
+-  // some space so that the a "free pointer + sizeof(FreedNodeHeader)" is always
+-  // aligned.
++  // If the Alignment is greater than the size of the NodeHeader, skip over some
++  // space so that the a "free pointer + sizeof(NodeHeader)" is always aligned
++  // for user data.
+   unsigned Alignment = Pool->Alignment;
+-  if (Alignment > sizeof(FreedNodeHeader<PoolTraits>)) {
+-    PoolBody += Alignment-sizeof(FreedNodeHeader<PoolTraits>);
+-    Size -= Alignment-sizeof(FreedNodeHeader<PoolTraits>);
++  if (Alignment > sizeof(NodeHeader<PoolTraits>)) {
++    PoolBody += Alignment-sizeof(NodeHeader<PoolTraits>);
++    Size -= Alignment-sizeof(NodeHeader<PoolTraits>);
+   }
+ 
+   // Add the body of the slab to the free list.

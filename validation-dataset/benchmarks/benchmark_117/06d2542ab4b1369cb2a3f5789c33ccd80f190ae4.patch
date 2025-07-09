@@ -1,0 +1,32 @@
+From 06d2542ab4b1369cb2a3f5789c33ccd80f190ae4 Mon Sep 17 00:00:00 2001
+From: Guido Tack <guido.tack@monash.edu>
+Date: Tue, 2 Dec 2014 13:51:47 +1100
+Subject: [PATCH] Type-check annotations after their expressions, which avoids
+ running into cycles for bad expressions such as x :: x.
+
+---
+ lib/typecheck.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/lib/typecheck.cpp b/lib/typecheck.cpp
+index 1fb4d60e2..4dba12bb7 100644
+--- a/lib/typecheck.cpp
++++ b/lib/typecheck.cpp
+@@ -107,8 +107,6 @@ namespace MiniZinc {
+   TopoSorter::run(Expression* e) {
+     if (e==NULL)
+       return;
+-    for (ExpressionSetIter it = e->ann().begin(); it != e->ann().end(); ++it)
+-      run(*it);
+     switch (e->eid()) {
+     case Expression::E_INTLIT:
+     case Expression::E_FLOATLIT:
+@@ -241,6 +239,8 @@ namespace MiniZinc {
+       }
+       break;
+     }
++    for (ExpressionSetIter it = e->ann().begin(); it != e->ann().end(); ++it)
++      run(*it);
+   }
+   
+   KeepAlive addCoercion(Model* m, Expression* e, const Type& funarg_t) {

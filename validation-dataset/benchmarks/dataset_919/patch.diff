@@ -1,0 +1,23 @@
+From 830073270964296e86cc4deab49df19f09e868dd Mon Sep 17 00:00:00 2001
+From: tteuling <tteuling@users.sourceforge.net>
+Date: Wed, 28 Dec 2011 15:22:56 +0100
+Subject: [PATCH] Do not use mamemory maped files for raw way data files by
+ default (uses too much memory).
+
+---
+ libosmscout-import/src/osmscout/import/Import.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libosmscout-import/src/osmscout/import/Import.cpp b/libosmscout-import/src/osmscout/import/Import.cpp
+index 5f178cf56..6bff47ba8 100644
+--- a/libosmscout-import/src/osmscout/import/Import.cpp
++++ b/libosmscout-import/src/osmscout/import/Import.cpp
+@@ -67,7 +67,7 @@ namespace osmscout {
+      rawNodeIndexMemoryMaped(true),
+      rawNodeDataMemoryMaped(false),
+      rawWayIndexMemoryMaped(true),
+-     rawWayDataMemoryMaped(true),
++     rawWayDataMemoryMaped(false),
+      rawWayBlockSize(500000),
+      nodesLoadSize(10000000),
+      nodeIndexIntervalSize(50),

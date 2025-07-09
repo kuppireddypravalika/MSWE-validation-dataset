@@ -1,0 +1,40 @@
+From 67806becb8b1d27b5f7ead858f9393b303f4d1a5 Mon Sep 17 00:00:00 2001
+From: fyshhh <illio.suardi@gmail.com>
+Date: Mon, 2 May 2022 16:47:38 -0700
+Subject: [PATCH] Change MPI_Type_size_x to use DEFINE_FNC
+
+---
+ mpi-proxy-split/mpi-wrappers/mpi_type_wrappers.cpp | 13 ++-----------
+ 1 file changed, 2 insertions(+), 11 deletions(-)
+
+diff --git a/mpi-proxy-split/mpi-wrappers/mpi_type_wrappers.cpp b/mpi-proxy-split/mpi-wrappers/mpi_type_wrappers.cpp
+index f241f51e3..6021bf873 100644
+--- a/mpi-proxy-split/mpi-wrappers/mpi_type_wrappers.cpp
++++ b/mpi-proxy-split/mpi-wrappers/mpi_type_wrappers.cpp
+@@ -157,17 +157,6 @@ USER_DEFINED_WRAPPER(int, Type_create_struct, (int) count,
+   return retval;
+ }
+ 
+-USER_DEFINED_WRAPPER(int, Type_size_x, (MPI_Datatype) type, (MPI_Count *) size)
+-{
+-  int retval;
+-  DMTCP_PLUGIN_DISABLE_CKPT();
+-  JUMP_TO_LOWER_HALF(lh_info.fsaddr);
+-  retval = NEXT_FUNC(Type_size_x)(type, size);
+-  RETURN_TO_UPPER_HALF();
+-  DMTCP_PLUGIN_ENABLE_CKPT();
+-  return retval;
+-}
+-
+ USER_DEFINED_WRAPPER(int, Type_indexed, (int) count,
+                      (const int*) array_of_blocklengths,
+                      (const int*) array_of_displacements,
+@@ -236,6 +225,8 @@ USER_DEFINED_WRAPPER(int, Pack, (const void*) inbuf, (int) incount,
+   return retval;
+ }
+ 
++DEFINE_FNC(int, Type_size_x, (MPI_Datatype) type, (MPI_Count *) size);
++
+ PMPI_IMPL(int, MPI_Type_size, MPI_Datatype datatype, int *size)
+ PMPI_IMPL(int, MPI_Type_commit, MPI_Datatype *type)
+ PMPI_IMPL(int, MPI_Type_contiguous, int count, MPI_Datatype oldtype,

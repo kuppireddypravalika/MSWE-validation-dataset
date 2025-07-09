@@ -1,0 +1,28 @@
+From b46f659dd76983678cfab1ec3e6f50e23852b9bf Mon Sep 17 00:00:00 2001
+From: David Rowland <drowland96@gmail.com>
+Date: Wed, 2 Oct 2024 11:33:28 +0100
+Subject: [PATCH] Launcher:   Replaced the use of an
+ std::atomic<double>::fetch_add with a CAS loop on AppleClang 15 and lower
+
+---
+ .../tracktion_engine/model/clips/tracktion_LaunchHandle.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/modules/tracktion_engine/model/clips/tracktion_LaunchHandle.cpp b/modules/tracktion_engine/model/clips/tracktion_LaunchHandle.cpp
+index 2403cd727a6..11403ea9c24 100644
+--- a/modules/tracktion_engine/model/clips/tracktion_LaunchHandle.cpp
++++ b/modules/tracktion_engine/model/clips/tracktion_LaunchHandle.cpp
+@@ -57,7 +57,13 @@ void LaunchHandle::nudge (BeatDuration duration)
+     if (currentPlayState.load (std::memory_order_acquire) != PlayState::playing)
+         return;
+ 
++   #if __APPLE__ && __clang_major__ < 16
++    double expected = nudgeBeats.load (std::memory_order_acquire);
++    while (nudgeBeats.compare_exchange_weak (expected, expected + duration.inBeats()))
++        ;
++   #else
+     nudgeBeats.fetch_add (duration.inBeats(), std::memory_order_acq_rel);
++   #endif
+ }
+ 
+ void LaunchHandle::stop (std::optional<MonotonicBeat> pos)

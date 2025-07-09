@@ -1,0 +1,25 @@
+From cda9bfeae65732bb9420c4dd620cdc59de77d58a Mon Sep 17 00:00:00 2001
+From: Paul Young <yyang173@illinois.edu>
+Date: Wed, 20 Dec 2017 14:42:15 -0600
+Subject: [PATCH] increase g(r) cutoff to Wigner-Seitz cell radius
+
+g(r) max distance used to default to simulation cell radius. The past
+default is not optimal for non-cubic cell where Wigner-Seitz cell radius
+> simulation cell radius.
+---
+ src/QMCHamiltonians/PairCorrEstimator.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/QMCHamiltonians/PairCorrEstimator.cpp b/src/QMCHamiltonians/PairCorrEstimator.cpp
+index eb4eac7094..ace9212ed6 100644
+--- a/src/QMCHamiltonians/PairCorrEstimator.cpp
++++ b/src/QMCHamiltonians/PairCorrEstimator.cpp
+@@ -35,7 +35,7 @@ PairCorrEstimator::PairCorrEstimator(ParticleSet& elns, std::string& sources)
+   //use the simulation cell radius if any direction is periodic
+   if(elns.Lattice.SuperCellEnum)
+   {
+-    Dmax=elns.Lattice.SimulationCellRadius;
++    Dmax=elns.Lattice.WignerSeitzRadius;
+     Volume=elns.Lattice.Volume;
+   }
+   else

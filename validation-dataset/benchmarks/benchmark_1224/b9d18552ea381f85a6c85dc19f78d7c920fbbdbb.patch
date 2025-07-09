@@ -1,0 +1,23 @@
+From b9d18552ea381f85a6c85dc19f78d7c920fbbdbb Mon Sep 17 00:00:00 2001
+From: Simon Pilgrim <llvm-dev@redking.me.uk>
+Date: Mon, 18 Jun 2018 11:35:36 +0000
+Subject: [PATCH] [SLPVectorizer] Avoid calling const VL.size() repeatedly in
+ for-loop. NFCI.
+
+---
+ llvm/lib/Transforms/Vectorize/SLPVectorizer.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/llvm/lib/Transforms/Vectorize/SLPVectorizer.cpp b/llvm/lib/Transforms/Vectorize/SLPVectorizer.cpp
+index bf2667e34b99..5864dfa0c07f 100644
+--- a/llvm/lib/Transforms/Vectorize/SLPVectorizer.cpp
++++ b/llvm/lib/Transforms/Vectorize/SLPVectorizer.cpp
+@@ -2859,7 +2859,7 @@ void BoUpSLP::reorderInputsAccordingToOpcode(unsigned Opcode,
+   // add a[1],c[2]  load b[1]
+   // b[2]           load b[2]
+   // add a[3],c[3]  load b[3]
+-  for (unsigned j = 0; j < VL.size() - 1; ++j) {
++  for (unsigned j = 0, e = VL.size() - 1; j < e; ++j) {
+     if (LoadInst *L = dyn_cast<LoadInst>(Left[j])) {
+       if (LoadInst *L1 = dyn_cast<LoadInst>(Right[j + 1])) {
+         if (isConsecutiveAccess(L, L1, *DL, *SE)) {

@@ -1,0 +1,34 @@
+From cbdc86b5cb0664f6c840be3b063e7b9280468256 Mon Sep 17 00:00:00 2001
+From: Zhang Zheng <32410583+ZzSean@users.noreply.github.com>
+Date: Tue, 22 Nov 2022 19:49:49 +0800
+Subject: [PATCH] Optimize the format of printing phi kernels (#48228)
+
+---
+ paddle/phi/core/kernel_factory.cc | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/paddle/phi/core/kernel_factory.cc b/paddle/phi/core/kernel_factory.cc
+index a2b9f5971756b2..0352312edc0253 100644
+--- a/paddle/phi/core/kernel_factory.cc
++++ b/paddle/phi/core/kernel_factory.cc
+@@ -334,11 +334,17 @@ std::ostream& operator<<(std::ostream& os, KernelFactory& kernel_factory) {
+   os << "{";
+   bool need_comma_kernels = false;
+   for (const auto& op_kernel_pair : kernel_factory.kernels()) {
+-    if (need_comma_kernels) os << ",";
+-    os << "\"" << op_kernel_pair.first << "\":[";
++    if (need_comma_kernels) {
++      os << ",";
++      os << std::endl;
++    }
++    os << "\"" << op_kernel_pair.first << " \":[" << std::endl;
+     bool need_comma_per_kernel = false;
+     for (const auto& kernel_pair : op_kernel_pair.second) {
+-      if (need_comma_per_kernel) os << ",";
++      if (need_comma_per_kernel) {
++        os << ",";
++        os << std::endl;
++      }
+       os << "{\"" << kernel_pair.first << "\":" << kernel_pair.second << "}";
+       need_comma_per_kernel = true;
+     }

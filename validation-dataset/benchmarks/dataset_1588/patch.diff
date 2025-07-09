@@ -1,0 +1,25 @@
+From b96de8ac3701693da1e47bf1e0033151fbf2f89a Mon Sep 17 00:00:00 2001
+From: Stephan Jahn <sjahn@mpp.mpg.de>
+Date: Thu, 6 Oct 2016 20:38:10 +0200
+Subject: [PATCH] [make_package] more efficient
+ `dSecDecInternalXExpMinusMuOverXd1`
+
+---
+ .../templates/src/contour_deformation_functions.hpp           | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/pySecDec/code_writer/templates/src/contour_deformation_functions.hpp b/pySecDec/code_writer/templates/src/contour_deformation_functions.hpp
+index ff334c6e..caf40a58 100644
+--- a/pySecDec/code_writer/templates/src/contour_deformation_functions.hpp
++++ b/pySecDec/code_writer/templates/src/contour_deformation_functions.hpp
+@@ -22,8 +22,8 @@ namespace %(name)s
+         if (x == 0)
+             return 0;
+ 
+-        real_t minus_mu_over_x = -mu/x;
+-        return std::exp(minus_mu_over_x) - minus_mu_over_x * std::exp(minus_mu_over_x);
++        real_t mu_over_x = mu/x;
++        return std::exp(-mu_over_x) * (1.0 + mu_over_x);
+     }
+ 
+     inline real_t SecDecInternalExpMinusMuOverX(real_t mu, real_t x)

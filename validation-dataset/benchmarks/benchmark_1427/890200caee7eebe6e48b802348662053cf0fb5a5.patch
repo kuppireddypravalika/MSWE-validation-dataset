@@ -1,0 +1,29 @@
+From 890200caee7eebe6e48b802348662053cf0fb5a5 Mon Sep 17 00:00:00 2001
+From: Marek Marecki <marekjm@ozro.pw>
+Date: Sat, 25 Nov 2017 21:26:13 +0100
+Subject: [PATCH] Dispatch saturating signed arithmetic instructions
+
+---
+ src/process/dispatch.cpp | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/src/process/dispatch.cpp b/src/process/dispatch.cpp
+index 9646311e2..fcda6d8c0 100644
+--- a/src/process/dispatch.cpp
++++ b/src/process/dispatch.cpp
+@@ -281,6 +281,15 @@ viua::internals::types::byte* viua::process::Process::dispatch(viua::internals::
+         case SATURATINGSDECREMENT:
+             addr = opsaturatingsdecrement(addr + 1);
+             break;
++        case SATURATINGSADD:
++            addr = opsaturatingsadd(addr + 1);
++            break;
++        case SATURATINGSMUL:
++            addr = opsaturatingsmul(addr + 1);
++            break;
++        case SATURATINGSDIV:
++            addr = opsaturatingsdiv(addr + 1);
++            break;
+         case MOVE:
+             addr = opmove(addr + 1);
+             break;

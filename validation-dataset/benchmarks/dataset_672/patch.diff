@@ -1,0 +1,25 @@
+From 7a5a7f0389fe1cf0c57ada3eddf6dd96fcc55090 Mon Sep 17 00:00:00 2001
+From: Erik Garrison <erik.garrison@gmail.com>
+Date: Fri, 2 Jan 2015 01:17:12 +0100
+Subject: [PATCH] default to 25000 variants per region
+
+This provides the best performance on a 48-core machine, and for small graphs,
+less than this size, we don't get much benefit out of multithreading. The
+overheads of the reduce part of the process nullify the improvement.
+---
+ main.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/main.cpp b/main.cpp
+index 66cef548f45..1d5447b22ff 100644
+--- a/main.cpp
++++ b/main.cpp
+@@ -1091,7 +1091,7 @@ int main_construct(int argc, char** argv) {
+     string region;
+     string output_type = "VG";
+     bool progress = false;
+-    int vars_per_region = 10000;
++    int vars_per_region = 25000;
+ 
+     int c;
+     while (true) {

@@ -1,0 +1,26 @@
+From dbe4eda376bc2973f132a153f044688f3acdacc9 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Sat, 21 Apr 2012 10:45:13 +0000
+Subject: [PATCH] Optimized jpeg->jpeg-in-tiff copy: ensure libjpeg won't write
+ any extraneous markers
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@24272 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/frmts/gtiff/gt_jpeg_copy.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/gdal/frmts/gtiff/gt_jpeg_copy.cpp b/gdal/frmts/gtiff/gt_jpeg_copy.cpp
+index 9a39ad8df7ce..291517091be3 100644
+--- a/gdal/frmts/gtiff/gt_jpeg_copy.cpp
++++ b/gdal/frmts/gtiff/gt_jpeg_copy.cpp
+@@ -378,6 +378,10 @@ static CPLErr GTIFF_CopyBlockFromJPEG(TIFF* hTIFF,
+     jpeg_create_compress(&sCInfo);
+     jpeg_copy_critical_parameters(&sDInfo, &sCInfo);
+ 
++    /* ensure libjpeg won't write any extraneous markers */
++    sCInfo.write_JFIF_header = FALSE;
++    sCInfo.write_Adobe_marker = FALSE;
++
+ /* -------------------------------------------------------------------- */
+ /*      Deal with JPEG tables                                           */
+ /* -------------------------------------------------------------------- */

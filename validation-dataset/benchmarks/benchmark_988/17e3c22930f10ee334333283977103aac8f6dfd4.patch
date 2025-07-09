@@ -1,0 +1,22 @@
+From 17e3c22930f10ee334333283977103aac8f6dfd4 Mon Sep 17 00:00:00 2001
+From: Johannes Schoisswohl <johannes.schoisswohl@myotis.at>
+Date: Tue, 3 Jan 2023 10:49:09 +0100
+Subject: [PATCH] disabled monomorphic substutution tree optimization
+
+---
+ Indexing/SubstitutionTree.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Indexing/SubstitutionTree.cpp b/Indexing/SubstitutionTree.cpp
+index 6f897a9f10..d5d443f480 100644
+--- a/Indexing/SubstitutionTree.cpp
++++ b/Indexing/SubstitutionTree.cpp
+@@ -55,7 +55,7 @@ using namespace Indexing;
+ SubstitutionTree::SubstitutionTree(bool useC, bool polymorphic, bool rfSubs)
+   : _nextVar(0)
+   , _useC(useC)
+-  , _polymorphic(polymorphic)
++  , _polymorphic(true)
+   , _functionalSubtermMap(rfSubs ? Option<FuncSubtermMap>(FuncSubtermMap()) : Option<FuncSubtermMap>())
+   , _root(nullptr)
+ #if VDEBUG

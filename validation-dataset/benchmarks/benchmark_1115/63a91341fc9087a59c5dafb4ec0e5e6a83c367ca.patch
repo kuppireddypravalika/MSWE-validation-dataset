@@ -1,0 +1,32 @@
+From 63a91341fc9087a59c5dafb4ec0e5e6a83c367ca Mon Sep 17 00:00:00 2001
+From: Devin Papineau <devin@ajdmp.ca>
+Date: Fri, 1 Dec 2023 21:13:35 -0500
+Subject: [PATCH] Correct branch folding for HCR guard versioning
+
+This logic has been inadvertently folding the versioning test instead of
+the original guard since ce45970e6f92be1148c88c8bfd1b4afb8ae09cb1, which
+is effectively the same as not versioning the guards. This can be
+expected to have resulted in slower code than intended. Worse, if there
+are HCR guards in the loop, then once the fixed-point analysis has
+determined that it is possible to version them, they must be versioned
+for correctness. This is because other transformations may rely on the
+cold side being eliminated from the hot loop. In particular, by failing
+to version HCR guards, we could privatize mutable fields even though
+they could be modified by a cold call while the loop is still running.
+---
+ compiler/optimizer/LoopVersioner.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/compiler/optimizer/LoopVersioner.cpp b/compiler/optimizer/LoopVersioner.cpp
+index c59007d228..eb3b5f91ef 100644
+--- a/compiler/optimizer/LoopVersioner.cpp
++++ b/compiler/optimizer/LoopVersioner.cpp
+@@ -4585,7 +4585,7 @@ void TR_LoopVersioner::versionNaturalLoop(TR_RegionStructure *whileLoop, List<TR
+          comparisonTrees.add(guard);
+ 
+          bool reverseBranch = false, origLoop = true;
+-         FoldConditional fold(this, NULL, guard, reverseBranch, origLoop);
++         FoldConditional fold(this, NULL, tt->getNode(), reverseBranch, origLoop);
+          fold.improveLoop();
+          }
+       }

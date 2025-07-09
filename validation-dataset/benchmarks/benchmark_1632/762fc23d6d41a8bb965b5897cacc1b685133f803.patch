@@ -1,0 +1,36 @@
+From 762fc23d6d41a8bb965b5897cacc1b685133f803 Mon Sep 17 00:00:00 2001
+From: Simon Pilgrim <llvm-dev@redking.me.uk>
+Date: Mon, 26 Jun 2017 10:16:34 +0000
+Subject: [PATCH] [llvm-stress] Ensure that the C++11 random device respects
+ its min/max values (PR32585)
+
+As noted on PR32585, the change in D29780/rL295325 resulted in calls to Rand32() (values 0 -> 0xFFFFFFFF) but the min()/max() operators indicated it would be (0 -> 0x7FFFF).
+
+This patch changes the random operator to call Rand() instead which does respect the 0 -> 0x7FFFF range and asserts that the value is in range as well.
+
+Differential Revision: https://reviews.llvm.org/D34089
+---
+ llvm/tools/llvm-stress/llvm-stress.cpp | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/llvm/tools/llvm-stress/llvm-stress.cpp b/llvm/tools/llvm-stress/llvm-stress.cpp
+index ba1d5739586f..6e2b8d305738 100644
+--- a/llvm/tools/llvm-stress/llvm-stress.cpp
++++ b/llvm/tools/llvm-stress/llvm-stress.cpp
+@@ -116,10 +116,14 @@ class Random {
+ 
+   /// Make this like a C++11 random device
+   typedef uint32_t result_type;
+-  uint32_t operator()() { return Rand32(); }
+   static constexpr result_type min() { return 0; }
+   static constexpr result_type max() { return 0x7ffff; }
+-  
++  uint32_t operator()() {
++    uint32_t Val = Rand();
++    assert(Val <= max() && "Random value out of range");
++    return Val;
++  }
++
+ private:
+   unsigned Seed;
+ };

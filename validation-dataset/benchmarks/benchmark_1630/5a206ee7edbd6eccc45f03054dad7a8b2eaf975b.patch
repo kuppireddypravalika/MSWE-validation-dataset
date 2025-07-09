@@ -1,0 +1,36 @@
+From 5a206ee7edbd6eccc45f03054dad7a8b2eaf975b Mon Sep 17 00:00:00 2001
+From: Dan Gohman <gohman@apple.com>
+Date: Sat, 18 Jul 2009 01:49:22 +0000
+Subject: [PATCH] Make GetElementPtr ConstantExprs default to having no pointer
+ overflow.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@76280 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/VMCore/Constants.cpp | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/lib/VMCore/Constants.cpp b/lib/VMCore/Constants.cpp
+index 81f544b0e82..f6d8e86850f 100644
+--- a/lib/VMCore/Constants.cpp
++++ b/lib/VMCore/Constants.cpp
+@@ -18,6 +18,7 @@
+ #include "llvm/Instructions.h"
+ #include "llvm/MDNode.h"
+ #include "llvm/Module.h"
++#include "llvm/Operator.h"
+ #include "llvm/ADT/FoldingSet.h"
+ #include "llvm/ADT/StringExtras.h"
+ #include "llvm/ADT/StringMap.h"
+@@ -474,8 +475,11 @@ class VISIBILITY_HIDDEN GetElementPtrConstantExpr : public ConstantExpr {
+   static GetElementPtrConstantExpr *Create(Constant *C,
+                                            const std::vector<Constant*>&IdxList,
+                                            const Type *DestTy) {
+-    return new(IdxList.size() + 1)
++    GetElementPtrConstantExpr *Result = new(IdxList.size() + 1)
+       GetElementPtrConstantExpr(C, IdxList, DestTy);
++    // Getelementptr defaults to having no pointer overflow.
++    cast<GEPOperator>(Result)->setHasNoPointerOverflow(true);
++    return Result;
+   }
+   /// Transparently provide more efficient getOperand methods.
+   DECLARE_TRANSPARENT_OPERAND_ACCESSORS(Value);

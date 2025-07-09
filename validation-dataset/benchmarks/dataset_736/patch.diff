@@ -1,0 +1,47 @@
+From 228cd926e27589ee514682513cc8d89aabc9a603 Mon Sep 17 00:00:00 2001
+From: Vadim Zeitlin <vadim@wxwidgets.org>
+Date: Tue, 16 Jul 2019 14:37:19 +0200
+Subject: [PATCH] Initialize point size correctly from v0 native font info
+ strings
+
+Reading native font info strings in v0 format, used by the previous
+wxWidgets versions, resulted in creation of fonts with 0 point size,
+which resulted in suboptimal user experience when such a font was used
+to display text.
+
+Fix this by initializing point size to the value corresponding to the
+font height in pixels using the default DPI, just as we already do when
+creating wxNativeFontInfo from a LOGFONT.
+---
+ src/msw/font.cpp | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/src/msw/font.cpp b/src/msw/font.cpp
+index ed6e2c8c2ce0..3d7d7e0f339f 100644
+--- a/src/msw/font.cpp
++++ b/src/msw/font.cpp
+@@ -658,11 +658,13 @@ bool wxNativeFontInfo::FromString(const wxString& s)
+     if ( !token.ToLong(&l) )
+         return false;
+ 
++    bool setPointSizeFromHeight = false;
+     switch ( l )
+     {
+         case 0:
+-            // Fractional point size is not present in this version.
+-            pointSize = 0.0f;
++            // Fractional point size is not present in this version, it will be
++            // set from lfHeight below in this case.
++            setPointSizeFromHeight = true;
+             break;
+ 
+         case 1:
+@@ -685,6 +687,8 @@ bool wxNativeFontInfo::FromString(const wxString& s)
+     if ( !token.ToLong(&l) )
+         return false;
+     lf.lfHeight = l;
++    if ( setPointSizeFromHeight )
++        pointSize = GetPointSizeFromLogFontHeight(l);
+ 
+     token = tokenizer.GetNextToken();
+     if ( !token.ToLong(&l) )

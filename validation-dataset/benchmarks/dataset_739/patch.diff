@@ -1,0 +1,33 @@
+From 5137b8044e77a781638f1b4e1e90db7b5f967394 Mon Sep 17 00:00:00 2001
+From: Olly Betts <olly@survex.com>
+Date: Thu, 22 Aug 2019 14:57:34 +0200
+Subject: [PATCH] Fix flicker in wxGTK wxStyledTextCtrl
+
+Use the same logic for wxGTK (and other platforms using double
+buffering) as was already used for wxMac, it seems to result in less
+flicker.
+
+Closes #18017.
+---
+ src/stc/ScintillaWX.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/stc/ScintillaWX.cpp b/src/stc/ScintillaWX.cpp
+index 74c57f50ff07..7e7580518d52 100644
+--- a/src/stc/ScintillaWX.cpp
++++ b/src/stc/ScintillaWX.cpp
+@@ -875,10 +875,10 @@ void ScintillaWX::DoPaint(wxDC* dc, wxRect rect) {
+         // repaint the whole window.
+         stc->Refresh(false);
+ 
+-#if defined(__WXOSX__)
+-        // On Mac we also need to finish the current paint to make sure that
+-        // everything is on the screen that needs to be there between now and
+-        // when the next paint event arrives.
++#if wxALWAYS_NATIVE_DOUBLE_BUFFER
++        // On systems using double buffering, we also need to finish the
++        // current paint to make sure that everything is on the screen that
++        // needs to be there between now and when the next paint event arrives.
+         FullPaintDC(dc);
+ #endif
+     }

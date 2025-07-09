@@ -1,0 +1,28 @@
+From 824d9d4457ccb1fc8183d6e94e0b4b4be35b198f Mon Sep 17 00:00:00 2001
+From: David Robillard <d@drobilla.net>
+Date: Thu, 25 Feb 2010 00:56:04 +0000
+Subject: [PATCH] Use put instead of looped indidivual property sets.
+
+git-svn-id: http://svn.drobilla.net/lad/trunk/ingen@2488 a436a847-0d15-0410-975c-d299462d15a1
+---
+ src/shared/Builder.cpp | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/src/shared/Builder.cpp b/src/shared/Builder.cpp
+index c8d48479e..820a26b30 100644
+--- a/src/shared/Builder.cpp
++++ b/src/shared/Builder.cpp
+@@ -96,11 +96,8 @@ void
+ Builder::build_object(SharedPtr<const GraphObject> object)
+ {
+ 	typedef GraphObject::Properties::const_iterator iterator;
+-	iterator i = object->meta().properties().begin();
+-	for (; i != object->meta().properties().end(); ++i)
+-		_interface.set_property(object->meta().uri(), i->first, i->second);
+-	for (i = object->properties().begin(); i != object->properties().end(); ++i)
+-		_interface.set_property(object->path(), i->first, i->second);
++	_interface.put(object->meta().uri(), object->meta().properties());
++	_interface.put(object->uri(), object->properties());
+ }
+ 
+ 

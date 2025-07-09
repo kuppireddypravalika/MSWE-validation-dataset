@@ -1,0 +1,26 @@
+From be777a8e270785ca0aac93c22c17aa4a6c0b1c2d Mon Sep 17 00:00:00 2001
+From: 0xFelix <felix.matouschek@vipco.de>
+Date: Fri, 13 Oct 2017 09:08:14 +0200
+Subject: [PATCH] For libavcodec versions older than 56.5.100 use delay instead
+ of initial_padding when setting up audio stream
+
+---
+ src/AVMuxer.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/AVMuxer.cpp b/src/AVMuxer.cpp
+index 2c59a506f..02e6aee48 100644
+--- a/src/AVMuxer.cpp
++++ b/src/AVMuxer.cpp
+@@ -161,7 +161,11 @@ bool AVMuxer::Private::prepareStreams()
+             c->bits_per_raw_sample = aenc->audioFormat().bytesPerSample()*8; // need??
+ 
+             AVCodecContext *avctx = (AVCodecContext *) aenc->codecContext();
++#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(56,5,100)
+             c->initial_padding = avctx->initial_padding;
++#else
++            c->delay = avctx->delay;
++#endif
+             if (avctx->extradata_size) {
+                 c->extradata = avctx->extradata;
+                 c->extradata_size = avctx->extradata_size;

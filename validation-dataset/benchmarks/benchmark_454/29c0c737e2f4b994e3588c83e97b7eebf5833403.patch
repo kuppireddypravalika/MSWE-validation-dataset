@@ -1,0 +1,27 @@
+From 29c0c737e2f4b994e3588c83e97b7eebf5833403 Mon Sep 17 00:00:00 2001
+From: Masahiro Tanaka <mtnk@nict.go.jp>
+Date: Mon, 4 Apr 2022 16:37:42 +0900
+Subject: [PATCH] Fixed sliceParam to free memory
+
+---
+ src/comp/SlicedParamLocator.cpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/src/comp/SlicedParamLocator.cpp b/src/comp/SlicedParamLocator.cpp
+index 66ef43b..96e95bb 100644
+--- a/src/comp/SlicedParamLocator.cpp
++++ b/src/comp/SlicedParamLocator.cpp
+@@ -25,8 +25,11 @@ at::Tensor sliceParam(
+   int local_rank = getLocalRank(ranks, my_rank);
+ 
+   torch::NoGradGuard no_grad;
+-  return param.slice(
+-      dim_idx, segment_size * local_rank, segment_size * (local_rank + 1));
++  return param
++      .slice(
++          dim_idx, segment_size * local_rank, segment_size * (local_rank + 1))
++      .clone()
++      .detach();
+ }
+ 
+ at::Tensor SlicedParamLocator::registerParam(

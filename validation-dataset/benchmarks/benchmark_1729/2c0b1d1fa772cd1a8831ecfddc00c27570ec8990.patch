@@ -1,0 +1,41 @@
+From 2c0b1d1fa772cd1a8831ecfddc00c27570ec8990 Mon Sep 17 00:00:00 2001
+From: Benny Halevy <bhalevy@scylladb.com>
+Date: Sun, 17 Mar 2024 08:51:30 +0200
+Subject: [PATCH] compaction: get_max_purgeable_timestamp: optimize sstable
+ filtering by min_timestamp
+
+There is no point in checking `sst->filter_has_key(*hk)`
+if the sstable contains no data older than the running
+minimum timestamp, since even if it matches, it won't change
+the minimum.
+
+Signed-off-by: Benny Halevy <bhalevy@scylladb.com>
+
+Closes scylladb/scylladb#17839
+---
+ compaction/compaction.cc | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/compaction/compaction.cc b/compaction/compaction.cc
+index 500a4e0f8da1..9ebbb5d77e8a 100644
+--- a/compaction/compaction.cc
++++ b/compaction/compaction.cc
+@@ -145,12 +145,17 @@ static api::timestamp_type get_max_purgeable_timestamp(const table_state& table_
+         if (compacting_set.contains(sst)) {
+             continue;
+         }
++        // There's no point in looking up the key in the sstable filter if
++        // it does not contain data older than the minimum timestamp.
++        if (sst->get_stats_metadata().min_timestamp >= timestamp) {
++            continue;
++        }
+         if (!hk) {
+             hk = sstables::sstable::make_hashed_key(*table_s.schema(), dk.key());
+         }
+         if (sst->filter_has_key(*hk)) {
+             bloom_filter_checks++;
+-            timestamp = std::min(timestamp, sst->get_stats_metadata().min_timestamp);
++            timestamp = sst->get_stats_metadata().min_timestamp;
+         }
+     }
+     return timestamp;

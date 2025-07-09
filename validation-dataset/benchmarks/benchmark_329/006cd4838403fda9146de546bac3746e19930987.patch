@@ -1,0 +1,22 @@
+From 006cd4838403fda9146de546bac3746e19930987 Mon Sep 17 00:00:00 2001
+From: Piotr Barejko <piotrbarejko@protonmail.com>
+Date: Fri, 7 May 2021 16:29:11 -0700
+Subject: [PATCH] static cast instead of c-style cast
+
+---
+ plugin/hdCycles/points.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/plugin/hdCycles/points.cpp b/plugin/hdCycles/points.cpp
+index ec1cf095..68532d67 100644
+--- a/plugin/hdCycles/points.cpp
++++ b/plugin/hdCycles/points.cpp
+@@ -238,7 +238,7 @@ HdCyclesPoints::_PopulatePoints(HdSceneDelegate* sceneDelegate, const SdfPath& i
+ 
+     if (points.size() != m_cyclesPointCloud->points.size() || styleHasChanged) {
+         m_cyclesPointCloud->clear();
+-        m_cyclesPointCloud->resize(points.size());
++        m_cyclesPointCloud->resize(static_cast<int>(points.size()));
+         sizeHasChanged = true;
+ 
+         // We set the size of the radius buffers to a default value

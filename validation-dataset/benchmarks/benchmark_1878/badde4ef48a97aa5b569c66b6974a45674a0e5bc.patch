@@ -1,0 +1,45 @@
+From badde4ef48a97aa5b569c66b6974a45674a0e5bc Mon Sep 17 00:00:00 2001
+From: Martin Pelikan <martin.pelikan@gmail.com>
+Date: Tue, 30 Jan 2018 18:18:51 +0000
+Subject: [PATCH] [XRay] fix 99th percentile lookups by sorting the array
+ correctly
+
+Summary:
+It was a copy-paste typo, sorting only to the 90th percentile twice.
+Now, it only sorts the array prefix once, and extracts what we need.
+
+Reviewers: dberris, kpw, eizan
+
+Subscribers: llvm-commits
+
+Differential Revision: https://reviews.llvm.org/D42690
+---
+ llvm/tools/llvm-xray/xray-account.cc | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/llvm/tools/llvm-xray/xray-account.cc b/llvm/tools/llvm-xray/xray-account.cc
+index 7b684aad693d..542da546fcb5 100644
+--- a/llvm/tools/llvm-xray/xray-account.cc
++++ b/llvm/tools/llvm-xray/xray-account.cc
+@@ -237,16 +237,19 @@ ResultRow getStats(std::vector<uint64_t> &Timings) {
+   auto MinMax = std::minmax_element(Timings.begin(), Timings.end());
+   R.Min = *MinMax.first;
+   R.Max = *MinMax.second;
++  R.Count = Timings.size();
++
+   auto MedianOff = Timings.size() / 2;
+   std::nth_element(Timings.begin(), Timings.begin() + MedianOff, Timings.end());
+   R.Median = Timings[MedianOff];
++
+   auto Pct90Off = std::floor(Timings.size() * 0.9);
+   std::nth_element(Timings.begin(), Timings.begin() + Pct90Off, Timings.end());
+   R.Pct90 = Timings[Pct90Off];
++
+   auto Pct99Off = std::floor(Timings.size() * 0.99);
+-  std::nth_element(Timings.begin(), Timings.begin() + Pct90Off, Timings.end());
++  std::nth_element(Timings.begin(), Timings.begin() + Pct99Off, Timings.end());
+   R.Pct99 = Timings[Pct99Off];
+-  R.Count = Timings.size();
+   return R;
+ }
+ 

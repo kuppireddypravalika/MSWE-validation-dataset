@@ -1,0 +1,24 @@
+From f5cd1c0d536046554768ecdd0ab23f4b25cb297b Mon Sep 17 00:00:00 2001
+From: Jason Luu <jasonkailuu@gmail.com>
+Date: Thu, 24 May 2012 20:08:12 +0000
+Subject: [PATCH] Should be last of the major pin counting bugs.  VPR QoR for
+ molecule_timing should now be more than 3x faster than previously.
+
+git-svn-id: https://vtr-verilog-to-routing.googlecode.com/svn/trunk@264 8e3573b8-cf2c-4f14-ef6d-137439e28b8b
+---
+ vpr/SRC/pack/cluster.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/vpr/SRC/pack/cluster.c b/vpr/SRC/pack/cluster.c
+index fe4637f1b97..4ad285e48b0 100755
+--- a/vpr/SRC/pack/cluster.c
++++ b/vpr/SRC/pack/cluster.c
+@@ -2495,8 +2495,6 @@ static void compute_and_mark_lookahead_pins_used_for_pin(t_pb_graph_pin *pb_grap
+ 					}
+ 				}
+ 				if(i == vpack_net[inet].num_sinks + 1) {
+-					skip = TRUE;
+-				} else {
+ 					count = 0;
+ 					/* TODO: jedit I should cache the absorbed outputs, once net is absorbed, net is forever absorbed, no point in rechecking every time */
+ 					for(i = 0; i < pb_graph_pin->num_connectable_primtive_input_pins[depth]; i++) {

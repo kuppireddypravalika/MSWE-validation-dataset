@@ -1,0 +1,23 @@
+From 1c4a71afabd09f7708f468ee55fcf19f963929b8 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Sat, 9 May 2015 14:19:50 +0000
+Subject: [PATCH] RPC DEM optimization: avoid dereferencing an invalid pointer
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@29176 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/alg/gdal_rpc.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gdal/alg/gdal_rpc.cpp b/gdal/alg/gdal_rpc.cpp
+index caa3126f5b74..a05157683099 100644
+--- a/gdal/alg/gdal_rpc.cpp
++++ b/gdal/alg/gdal_rpc.cpp
+@@ -921,7 +921,7 @@ static int GDALRPCTransformWholeLineWithDEM( GDALRPCTransformInfo *psTransform,
+                 }
+                 if( bFoundNoDataElev )
+                 {
+-                    if( k_valid_sample )
++                    if( k_valid_sample >= 0 )
+                     {
+                         dfDEMH = adfElevData[k_valid_sample];
+                         RPCTransformPoint( psRPC, padfX[i], padfY[i], 

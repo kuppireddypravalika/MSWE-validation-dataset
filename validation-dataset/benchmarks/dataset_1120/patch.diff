@@ -1,0 +1,39 @@
+From 6ad31215ae7282cc504d70c89a6d734a7c14e080 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Thu, 11 Dec 2014 18:12:44 +0000
+Subject: [PATCH] GPKG: set 'PRAGMA synchronous = OFF' by default for new files
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@28128 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/ogr/ogrsf_frmts/gpkg/ogrgeopackagedatasource.cpp | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/gdal/ogr/ogrsf_frmts/gpkg/ogrgeopackagedatasource.cpp b/gdal/ogr/ogrsf_frmts/gpkg/ogrgeopackagedatasource.cpp
+index 83dea714ce36..6e168241fb15 100644
+--- a/gdal/ogr/ogrsf_frmts/gpkg/ogrgeopackagedatasource.cpp
++++ b/gdal/ogr/ogrsf_frmts/gpkg/ogrgeopackagedatasource.cpp
+@@ -2171,6 +2171,12 @@ int GDALGeoPackageDataset::Create( const char * pszFilename,
+     if (!OpenOrCreateDB(bFileExists ? SQLITE_OPEN_READWRITE : SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE))
+         return FALSE;
+ 
++    /* Default to synchronous=off for performance for new file */
++    if( !bFileExists && CPLGetConfigOption("OGR_SQLITE_SYNCHRONOUS", NULL) == NULL )
++    {
++        sqlite3_exec( hDB, "PRAGMA synchronous = OFF", NULL, NULL, NULL );
++    }
++
+     /* OGR UTF-8 support. If we set the UTF-8 Pragma early on, it */
+     /* will be written into the main file and supported henceforth */
+     SQLCommand(hDB, "PRAGMA encoding = \"UTF-8\"");
+@@ -2746,6 +2752,11 @@ int GDALGeoPackageDataset::Create( const char * pszFilename,
+     /* is not zero length */
+     SetApplicationId();
+ 
++    /* Default to synchronous=off for performance for new file */
++    if( !bFileExists && CPLGetConfigOption("OGR_SQLITE_SYNCHRONOUS", NULL) == NULL )
++    {
++        sqlite3_exec( hDB, "PRAGMA synchronous = OFF", NULL, NULL, NULL );
++    }
+ 
+     return TRUE;
+ }

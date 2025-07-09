@@ -1,0 +1,35 @@
+From e42484117d0e35a4dd38137126a13ac42a753c5a Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Sat, 10 Mar 2018 20:29:12 +0000
+Subject: [PATCH] DXF: avoid excessive processing time on corrupted files.
+ Fixes https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=4325 /
+ https://oss-fuzz.com/v2/testcase-detail/5709378951839744 . Credit to OSS Fuzz
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@41696 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/ogr/ogrsf_frmts/dxf/ogrdxflayer.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/gdal/ogr/ogrsf_frmts/dxf/ogrdxflayer.cpp b/gdal/ogr/ogrsf_frmts/dxf/ogrdxflayer.cpp
+index 70808b3a8a0f..fb70bf0a1cbe 100644
+--- a/gdal/ogr/ogrsf_frmts/dxf/ogrdxflayer.cpp
++++ b/gdal/ogr/ogrsf_frmts/dxf/ogrdxflayer.cpp
+@@ -3205,6 +3205,7 @@ OGRDXFFeature *OGRDXFLayer::TranslateINSERT()
+ /* -------------------------------------------------------------------- */
+ 
+     bool bLimitReached = false;
++    GUInt32 nErrorCounter = CPLGetErrorCounter();
+     for( int iRow = 0; !bLimitReached && iRow < nRowCount; iRow++ )
+     {
+         for( int iColumn = 0; !bLimitReached && iColumn < nColumnCount; iColumn++ )
+@@ -3216,6 +3217,10 @@ OGRDXFFeature *OGRDXFLayer::TranslateINSERT()
+                     iRow * dfRowSpacing * cos( oTransformer.dfAngle ),
+                 papszAttribs, apoAttribs );
+ 
++            if( CPLGetErrorCounter() > 100 + nErrorCounter )
++            {
++                bLimitReached = true;
++            }
+             // Prevent excessive memory usage with an arbitrary limit
+             if( apoPendingFeatures.size() > 100000 ||
+                 apoPendingFeatures.GetFeaturesSize() > 100*1024*1024  )

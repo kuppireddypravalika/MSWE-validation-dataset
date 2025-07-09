@@ -1,0 +1,25 @@
+From 6eccec3ae721d499afcb4a384f493d7b7f7456df Mon Sep 17 00:00:00 2001
+From: Artur Wieczorek <artwik@wp.pl>
+Date: Fri, 8 Nov 2019 18:53:02 +0100
+Subject: [PATCH] Use empty() member function to determine if string is empty
+
+Use this dedicated function instead of checking if length() function returns zero/non-zero value.
+---
+ include/wx/combo.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/include/wx/combo.h b/include/wx/combo.h
+index 2ba9780a2d76..8becce369cff 100644
+--- a/include/wx/combo.h
++++ b/include/wx/combo.h
+@@ -482,8 +482,8 @@ class WXDLLIMPEXP_CORE wxComboCtrlBase : public wxControl,
+     {
+         return ( !m_text &&
+                  !(flags & wxCONTROL_ISSUBMENU) &&
+-                 !m_valueString.length() &&
+-                 m_hintText.length() &&
++                 m_valueString.empty() &&
++                 !m_hintText.empty() &&
+                  !ShouldDrawFocus() );
+     }
+ 

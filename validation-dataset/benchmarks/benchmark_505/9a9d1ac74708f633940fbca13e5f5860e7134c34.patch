@@ -1,0 +1,31 @@
+From 9a9d1ac74708f633940fbca13e5f5860e7134c34 Mon Sep 17 00:00:00 2001
+From: Steven Watanabe <steven.watanabe@block.one>
+Date: Mon, 12 Aug 2019 14:52:10 -0400
+Subject: [PATCH] Skip the red-zone before allocating on the stack.
+
+---
+ include/eosio/vm/x86_64.hpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/include/eosio/vm/x86_64.hpp b/include/eosio/vm/x86_64.hpp
+index 44dd208a..819dc5bb 100644
+--- a/include/eosio/vm/x86_64.hpp
++++ b/include/eosio/vm/x86_64.hpp
+@@ -2063,7 +2063,7 @@ namespace eosio { namespace vm {
+          int count = Count;
+          unsigned stack_check = constants::max_call_depth;
+          asm volatile(
+-            "sub $16, %%rsp; "
++            "sub $0x90, %%rsp; " // red-zone + 16 bytes
+             "stmxcsr 8(%%rsp); "
+             "mov $0x1f80, %%rax; "
+             "mov %%rax, (%%rsp); "
+@@ -2081,7 +2081,7 @@ namespace eosio { namespace vm {
+             "callq *%[fun]; "
+             "add %[StackOffset], %%rsp; "
+             "ldmxcsr 8(%%rsp); "
+-            "add $16, %%rsp; "
++            "add $0x90, %%rsp; "
+             // Force explicit register allocation, because otherwise it's too hard to get the clobbers right.
+             : [result] "=&a" (result), // output, reused as a scratch register
+               [data] "+d" (data), [fun] "+c" (fun) // input only, but may be clobbered

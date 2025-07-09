@@ -1,0 +1,26 @@
+From 1aec0dce1e36099e89ac6fc3664cb39d34504d12 Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@gmail.com>
+Date: Thu, 29 Dec 2016 04:24:32 +0000
+Subject: [PATCH] [InstCombine] Use a 32-bits instead of 64-bits for storing
+ the number of elements in VectorType for a ShuffleVector. While there
+ getVectorNumElements to avoid an explicit cast. NFC
+
+---
+ .../Transforms/InstCombine/InstCombineSimplifyDemanded.cpp    | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/llvm/lib/Transforms/InstCombine/InstCombineSimplifyDemanded.cpp b/llvm/lib/Transforms/InstCombine/InstCombineSimplifyDemanded.cpp
+index 2fb569d54fac..e76556afda65 100644
+--- a/llvm/lib/Transforms/InstCombine/InstCombineSimplifyDemanded.cpp
++++ b/llvm/lib/Transforms/InstCombine/InstCombineSimplifyDemanded.cpp
+@@ -1021,8 +1021,8 @@ Value *InstCombiner::SimplifyDemandedVectorElts(Value *V, APInt DemandedElts,
+   }
+   case Instruction::ShuffleVector: {
+     ShuffleVectorInst *Shuffle = cast<ShuffleVectorInst>(I);
+-    uint64_t LHSVWidth =
+-      cast<VectorType>(Shuffle->getOperand(0)->getType())->getNumElements();
++    unsigned LHSVWidth =
++      Shuffle->getOperand(0)->getType()->getVectorNumElements();
+     APInt LeftDemanded(LHSVWidth, 0), RightDemanded(LHSVWidth, 0);
+     for (unsigned i = 0; i < VWidth; i++) {
+       if (DemandedElts[i]) {

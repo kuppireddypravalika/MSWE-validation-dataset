@@ -1,0 +1,23 @@
+From c213559618fa2f0565037ccefed643f069f8b4d7 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Lars=20Gottesb=C3=BCren?= <lars.gottesbueren@kit.edu>
+Date: Tue, 12 Jan 2021 21:07:33 +0100
+Subject: [PATCH] use different atomic instruction
+
+---
+ mt-kahypar/partition/refinement/fm/global_rollback.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/mt-kahypar/partition/refinement/fm/global_rollback.cpp b/mt-kahypar/partition/refinement/fm/global_rollback.cpp
+index 84e472eb6..b7ad70d28 100644
+--- a/mt-kahypar/partition/refinement/fm/global_rollback.cpp
++++ b/mt-kahypar/partition/refinement/fm/global_rollback.cpp
+@@ -263,8 +263,7 @@ namespace mt_kahypar {
+           for (HyperedgeID e : phg.incidentEdges(u)) {
+             // atomically raise bit if this is the first time this hyperedge is encountered
+             uint32_t expected = last_recalc_round[e].load(std::memory_order_relaxed);
+-            if (expected < round
+-                && last_recalc_round[e].compare_exchange_strong(expected, round, std::memory_order_acquire)) {
++            if (expected < round && last_recalc_round[e].exchange(round, std::memory_order_acquire) == expected) {
+               recalculate_and_distribute_for_hyperedge(e);
+             }
+           }

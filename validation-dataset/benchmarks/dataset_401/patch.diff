@@ -1,0 +1,41 @@
+From e81ab2557ff44e9d686941f53e7c2917fcb03f8b Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Thu, 10 Dec 2020 16:33:27 -0700
+Subject: [PATCH] Move mHighlightIndex checks earlier
+
+These checks are cheap and likely to trigger early return, so should be
+done early.
+---
+ OPHD/UI/Core/ListBox.cpp | 9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
+
+diff --git a/OPHD/UI/Core/ListBox.cpp b/OPHD/UI/Core/ListBox.cpp
+index 7fdb8b7be..601c185fe 100644
+--- a/OPHD/UI/Core/ListBox.cpp
++++ b/OPHD/UI/Core/ListBox.cpp
+@@ -165,11 +165,11 @@ void ListBox::sort()
+ 
+ void ListBox::onMouseDown(EventHandler::MouseButton /*button*/, int x, int y)
+ {
+-	if (!visible()) { return; }
++	if (!visible() || mHighlightIndex == constants::NO_SELECTION || mHighlightIndex >= mItems.size()) { return; }
+ 
+ 	const auto point = NAS2D::Point{x, y};
+ 
+-	if (!rect().contains(point) || mHighlightIndex == constants::NO_SELECTION)
++	if (!rect().contains(point))
+ 	{
+ 		return;
+ 	}
+@@ -179,11 +179,6 @@ void ListBox::onMouseDown(EventHandler::MouseButton /*button*/, int x, int y)
+ 		return; // if the mouse is on the slider then the slider should handle that
+ 	}
+ 
+-	if (mHighlightIndex >= mItems.size())
+-	{
+-		return;
+-	}
+-
+ 	setSelected(mHighlightIndex);
+ }
+ 

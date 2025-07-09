@@ -1,0 +1,34 @@
+From 88947ed3394e4a46019a367cb6bca563877b2de6 Mon Sep 17 00:00:00 2001
+From: Chinyen Chou <petechou@gmail.com>
+Date: Fri, 25 Oct 2013 19:44:41 +0800
+Subject: [PATCH] [LinkerScript] Use the explicit dot assignment for output VMA
+ when needed.
+
+---
+ lib/Target/GNULDBackend.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/lib/Target/GNULDBackend.cpp b/lib/Target/GNULDBackend.cpp
+index 21793f6f..416b6d2e 100644
+--- a/lib/Target/GNULDBackend.cpp
++++ b/lib/Target/GNULDBackend.cpp
+@@ -2214,6 +2214,7 @@ void GNULDBackend::setOutputSectionAddress(Module& pModule)
+   LDSection* prev = NULL;
+   LinkerScript::AddressMap::iterator addr, addrEnd = script.addressMap().end();
+   ELFSegmentFactory::iterator seg, segEnd = elfSegmentTable().end();
++  SectionMap::Output::dot_iterator dot;
+   SectionMap::iterator out, outBegin, outEnd;
+   outBegin = script.sectionMap().begin();
+   outEnd = script.sectionMap().end();
+@@ -2248,9 +2249,9 @@ void GNULDBackend::setOutputSectionAddress(Module& pModule)
+     } else if ((*out)->prolog().hasVMA()) {
+       // use address from output section description
+       evaluator.eval((*out)->prolog().vma(), vma);
+-    } else if (!(*out)->dotAssignments().empty()) {
++    } else if ((dot = (*out)->find_last_explicit_dot()) != (*out)->dot_end()) {
+       // assign address based on `.' symbol in ldscript
+-      vma = (*out)->dotAssignments().back().symbol().value();
++      vma = (*dot).symbol().value();
+       alignAddress(vma, cur->align());
+     } else {
+       if ((cur->flag() & llvm::ELF::SHF_ALLOC) != 0) {

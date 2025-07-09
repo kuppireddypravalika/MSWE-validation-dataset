@@ -1,0 +1,42 @@
+From 7c5ba830159746da859d50e4a015e2deb160ebd1 Mon Sep 17 00:00:00 2001
+From: Tobias Grosser <grosser@fim.uni-passau.de>
+Date: Thu, 30 Jun 2011 20:29:20 +0000
+Subject: [PATCH] ScheduleOpt: Prevectorize the innermost parallel loop
+
+Only prevectorize loops that are actually parallel and can
+be vectorized. Take the innermost loop that is eligible.
+
+llvm-svn: 134187
+---
+ polly/lib/ScheduleOptimizer.cpp | 18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
+
+diff --git a/polly/lib/ScheduleOptimizer.cpp b/polly/lib/ScheduleOptimizer.cpp
+index b8e6c43afa5..2db2d01a252 100644
+--- a/polly/lib/ScheduleOptimizer.cpp
++++ b/polly/lib/ScheduleOptimizer.cpp
+@@ -299,13 +299,17 @@ static isl_union_map *tileBandList(isl_band_list *blist) {
+       int scheduleDimensions, parameterDimensions;
+ 
+       ctx = isl_union_map_get_ctx(partialSchedule);
+-      scheduleDimensions = isl_band_n_member(band);
+-      tileMap = getPrevectorMap(ctx, scheduleDimensions * 2 - 1,
+-				scheduleDimensions * 2,
+-				parameterDimensions);
+-      tileUnionMap = isl_union_map_from_map(tileMap);
+-      partialSchedule = isl_union_map_apply_range(partialSchedule,
+-						  tileUnionMap);
++      for (int i = scheduleDimensions - 1 ;  i >= 0 ; i--) {
++	if (isl_band_member_is_parallel(band, i)) {
++	  tileMap = getPrevectorMap(ctx, scheduleDimensions + i,
++				    scheduleDimensions * 2,
++				    parameterDimensions);
++	  tileUnionMap = isl_union_map_from_map(tileMap);
++	  partialSchedule = isl_union_map_apply_range(partialSchedule,
++						      tileUnionMap);
++	  break;
++	}
++      }
+     }
+ 
+     if (finalSchedule)

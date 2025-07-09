@@ -1,0 +1,34 @@
+From ab5e95621110c6e3843db96906d9ae6f2e1a5db9 Mon Sep 17 00:00:00 2001
+From: Carlos Roig <roigcarlo@gmail.com>
+Date: Fri, 10 Jun 2016 08:17:48 +0000
+Subject: [PATCH] Added & to auto so it greedily defaults to 'class &', instead
+ of 'class'. Basically now avoids copying nodes in the rangeLoop
+
+---
+ .../FDApplication/custom_strategies/bfeccStrategy.h         | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/applications/FDApplication/custom_strategies/bfeccStrategy.h b/applications/FDApplication/custom_strategies/bfeccStrategy.h
+index dd63e7e8b52d..9dbc013e5a39 100644
+--- a/applications/FDApplication/custom_strategies/bfeccStrategy.h
++++ b/applications/FDApplication/custom_strategies/bfeccStrategy.h
+@@ -126,8 +126,8 @@ class BfeccSolverStrategy: public SolvingStrategy<TSparseSpace,TDenseSpace,TLine
+     double bbSize[3];
+ 
+     // Parse the ConditionModelpart setting the size and conditions
+-    for(auto elem: mConditionsModelPart.Conditions()) {
+-      for(auto point: elem.GetGeometry().Points()) {
++    for(auto & elem: mConditionsModelPart.Conditions()) {
++      for(auto & point: elem.GetGeometry()) {
+         for(std::size_t i = 0; i < 3 ; i++) {
+           bbMin[i] = point[i] < bbMin[i] ? point[i] : bbMin[i];
+           bbMax[i] = point[i] > bbMax[i] ? point[i] : bbMax[i];
+@@ -154,7 +154,7 @@ class BfeccSolverStrategy: public SolvingStrategy<TSparseSpace,TDenseSpace,TLine
+ 
+       // std::cout << "Condition: " << elem.Id() << std::endl;
+ 
+-      for(auto point: elem.GetGeometry().Points()) {
++      for(auto & point: elem.GetGeometry()) {
+         for(std::size_t i = 0; i < 3 ; i++) {
+           fixedPressure    = fixedPressure    | point.IsFixed(PRESSURE);
+           fixedVelocity[0] = fixedVelocity[0] | point.IsFixed(VELOCITY_X);

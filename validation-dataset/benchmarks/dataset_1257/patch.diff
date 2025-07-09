@@ -1,0 +1,23 @@
+From fde9a470dd889243b6d26a753cf172f894a6bc18 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@musicpd.org>
+Date: Thu, 14 Mar 2019 20:31:22 +0100
+Subject: [PATCH] song/TagSongFilter: eliminate the std::fill_n() call
+
+---
+ src/song/TagSongFilter.cxx | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/song/TagSongFilter.cxx b/src/song/TagSongFilter.cxx
+index b04a384373..2a084de5eb 100644
+--- a/src/song/TagSongFilter.cxx
++++ b/src/song/TagSongFilter.cxx
+@@ -44,8 +44,7 @@ TagSongFilter::Match(const TagItem &item) const noexcept
+ bool
+ TagSongFilter::Match(const Tag &tag) const noexcept
+ {
+-	bool visited_types[TAG_NUM_OF_ITEM_TYPES];
+-	std::fill_n(visited_types, size_t(TAG_NUM_OF_ITEM_TYPES), false);
++	bool visited_types[TAG_NUM_OF_ITEM_TYPES]{};
+ 
+ 	for (const auto &i : tag) {
+ 		visited_types[i.type] = true;

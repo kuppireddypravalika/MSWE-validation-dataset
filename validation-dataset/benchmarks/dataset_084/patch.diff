@@ -1,0 +1,33 @@
+From 291051f2099b254421a907bdf585767ec6adff1e Mon Sep 17 00:00:00 2001
+From: Jonas Schnelli <dev@jonasschnelli.ch>
+Date: Wed, 3 Jan 2018 21:58:37 -1000
+Subject: [PATCH] Merge #12074: [qt] Optimizes boolean expression model &&
+ model->haveWatchOnly()
+
+6dda059bd [qt] Simplifies boolean expression model && model->haveWatchOnly() (251)
+
+Pull request description:
+
+  This PR optimizes the boolean expression `model && model->haveWatchOnly()` to `model->haveWatchOnly()`.
+
+  The boolean expression can be optimized because the method `TransactionView::exportClicked` already guards against a potential dereferenced null pointer by returning early if `model` is null.
+  https://github.com/bitcoin/bitcoin/blob/63a4dc10876bfc61c2e87d35dcf17da2f0f8c316/src/qt/transactionview.cpp#L351-L353
+
+Tree-SHA512: 8bdd0d05bf879745fa39d3ca7524471720ae08ceee9427d5a08776e7b56d18542ae87a6991cd6779e232305f504fdfc77223702b72ecbe231f5f5e98453456dd
+---
+ src/qt/transactionview.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/qt/transactionview.cpp b/src/qt/transactionview.cpp
+index 0dfb7bd4af..1510787e96 100644
+--- a/src/qt/transactionview.cpp
++++ b/src/qt/transactionview.cpp
+@@ -420,7 +420,7 @@ void TransactionView::exportClicked()
+     // name, column, role
+     writer.setModel(transactionProxyModel);
+     writer.addColumn(tr("Confirmed"), 0, TransactionTableModel::ConfirmedRole);
+-    if (model && model->haveWatchOnly())
++    if (model->haveWatchOnly())
+         writer.addColumn(tr("Watch-only"), TransactionTableModel::Watchonly);
+     writer.addColumn(tr("Date"), 0, TransactionTableModel::DateRole);
+     writer.addColumn(tr("Type"), TransactionTableModel::Type, Qt::EditRole);

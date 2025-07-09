@@ -1,0 +1,29 @@
+From 3c56f561e48b6feae39a75b2f40906c1be819f56 Mon Sep 17 00:00:00 2001
+From: Anton Kudryavtsev <anton.kudryavtsev@vk.team>
+Date: Tue, 22 Aug 2023 15:34:21 +0300
+Subject: [PATCH] qhttpheaderparser: replace QBA with QBAV
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+in QSB expression to avoid temp allocation
+
+Change-Id: Ib4106c5c9fa0281203dc61bad50418805c6119a9
+Reviewed-by: Mårten Nordheim <marten.nordheim@qt.io>
+---
+ src/network/access/qhttpheaderparser.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/network/access/qhttpheaderparser.cpp b/src/network/access/qhttpheaderparser.cpp
+index 489defa8d83c..95ce4a7eb1e1 100644
+--- a/src/network/access/qhttpheaderparser.cpp
++++ b/src/network/access/qhttpheaderparser.cpp
+@@ -75,7 +75,7 @@ bool QHttpHeaderParser::parseHeaders(QByteArrayView header)
+             line = line.trimmed();
+             if (!line.empty()) {
+                 if (value.size())
+-                    value += ' ' + line.toByteArray();
++                    value += ' ' + line;
+                 else
+                     value = line.toByteArray();
+             }

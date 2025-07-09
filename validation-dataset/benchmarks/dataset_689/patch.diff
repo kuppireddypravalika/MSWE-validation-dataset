@@ -1,0 +1,36 @@
+From 77601f305b2ea6a76882bad6040bdcfa1ad24443 Mon Sep 17 00:00:00 2001
+From: Kai Sommerfeld <kai.sommerfeld@gmx.com>
+Date: Sun, 3 Apr 2022 15:03:23 +0200
+Subject: [PATCH] [PVR] Speedup creation of CFileItems from channel group
+ members. Do fill MusicInfoTag only for radio channels. No need to obtain the
+ current EPG tag if not a radio channel.
+
+---
+ xbmc/FileItem.cpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/xbmc/FileItem.cpp b/xbmc/FileItem.cpp
+index 08ef57348aa2c..fa73d23b9a431 100644
+--- a/xbmc/FileItem.cpp
++++ b/xbmc/FileItem.cpp
+@@ -226,7 +226,6 @@ CFileItem::CFileItem(const std::shared_ptr<CPVRChannelGroupMember>& channelGroup
+   Initialize();
+ 
+   const std::shared_ptr<CPVRChannel> channel = channelGroupMember->Channel();
+-  const std::shared_ptr<CPVREpgInfoTag> epgNow = channel->GetEPGNow();
+ 
+   m_pvrChannelGroupMemberInfoTag = channelGroupMember;
+ 
+@@ -249,7 +248,11 @@ CFileItem::CFileItem(const std::shared_ptr<CPVRChannelGroupMember>& channelGroup
+   // Speedup FillInDefaultIcon()
+   SetProperty("icon_never_overlay", true);
+ 
+-  FillMusicInfoTag(channelGroupMember, epgNow);
++  if (channel->IsRadio())
++  {
++    const std::shared_ptr<CPVREpgInfoTag> epgNow = channel->GetEPGNow();
++    FillMusicInfoTag(channelGroupMember, epgNow);
++  }
+   FillInMimeType(false);
+ }
+ 

@@ -1,0 +1,25 @@
+From 94f375d56c1d0fd4184115f56cbf8626820dfb37 Mon Sep 17 00:00:00 2001
+From: Brecht Van Lommel <brecht@blender.org>
+Date: Tue, 19 Oct 2021 11:37:28 +0200
+Subject: [PATCH] Fix T85779: Cycles not using all threads when using
+ OpenImageDenoise
+
+The thread affinity setting in OIDN can break multithreading on some CPUs.
+While this leads to somewhat worse performance on CPUs that do work correctly,
+it's better than having some CPUs use only half the cores.
+---
+ src/integrator/denoiser_oidn.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/integrator/denoiser_oidn.cpp b/src/integrator/denoiser_oidn.cpp
+index ee3b62668..cc9a3f513 100644
+--- a/src/integrator/denoiser_oidn.cpp
++++ b/src/integrator/denoiser_oidn.cpp
+@@ -169,6 +169,7 @@ class OIDNDenoiseContext {
+     OIDNPass oidn_color_access_pass = read_input_pass(oidn_color_pass, oidn_output_pass);
+ 
+     oidn::DeviceRef oidn_device = oidn::newDevice();
++    oidn_device.set("setAffinity", false);
+     oidn_device.commit();
+ 
+     /* Create a filter for denoising a beauty (color) image using prefiltered auxiliary images too.

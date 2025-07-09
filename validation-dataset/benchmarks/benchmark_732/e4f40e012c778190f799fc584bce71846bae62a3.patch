@@ -1,0 +1,23 @@
+From e4f40e012c778190f799fc584bce71846bae62a3 Mon Sep 17 00:00:00 2001
+From: Herman Semenov <GermanAizek@yandex.ru>
+Date: Tue, 18 Jul 2023 13:23:54 +0300
+Subject: [PATCH] xrServerEntities/gametype_chooser.h: a bit of lambda
+ optimization (extracted from #1345)
+
+---
+ src/xrServerEntities/gametype_chooser.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/xrServerEntities/gametype_chooser.h b/src/xrServerEntities/gametype_chooser.h
+index 495b21a7662..b90a0cd63e5 100644
+--- a/src/xrServerEntities/gametype_chooser.h
++++ b/src/xrServerEntities/gametype_chooser.h
+@@ -33,7 +33,7 @@ enum EGameIDs_ext
+ 
+ inline EGameIDs ParseStringToGameType(pcstr str)
+ {
+-    auto IS = [&](pcstr name)
++    const auto IS = [str](pcstr name)
+     {
+         return !xr_strcmp(str, name);
+     };

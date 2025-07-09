@@ -1,0 +1,11 @@
+#include "common.hpp"
+
+void consume(Vehicle* m_vehicle, const ServoPosition* msg) {
+    if (UUV* v = dynamic_cast<UUV*>(m_vehicle)) {
+        if (msg->id < v->fins.size()) {
+            v->fins[msg->id] += msg->value;
+        }
+    }
+}
+
+// Explicit template instantiation statements

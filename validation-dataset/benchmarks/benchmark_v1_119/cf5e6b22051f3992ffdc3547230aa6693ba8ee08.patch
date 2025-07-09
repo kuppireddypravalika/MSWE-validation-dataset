@@ -1,0 +1,41 @@
+From cf5e6b22051f3992ffdc3547230aa6693ba8ee08 Mon Sep 17 00:00:00 2001
+From: Lennart Braun <lenerd@posteo.de>
+Date: Fri, 15 Nov 2019 15:38:17 +0100
+Subject: [PATCH] Simplify BitVector::operator^=
+
+^= now takes the minimum length of both operands and xors the prefixes
+of that length.  Moreover, it does not resize the buffer anymore.
+Using std::transform seems to help the compiler with vectorization.
+---
+ src/motioncore/utility/bit_vector.cpp | 16 ++++------------
+ 1 file changed, 4 insertions(+), 12 deletions(-)
+
+diff --git a/src/motioncore/utility/bit_vector.cpp b/src/motioncore/utility/bit_vector.cpp
+index e15947d8b..abb507ee2 100644
+--- a/src/motioncore/utility/bit_vector.cpp
++++ b/src/motioncore/utility/bit_vector.cpp
+@@ -309,20 +309,12 @@ template <typename Allocator1>
+ template <typename Allocator2>
+ BitVector<Allocator1>& BitVector<Allocator1>::operator^=(
+     const BitVector<Allocator2>& other) noexcept {
+-  const auto max_bit_size = std::max(bit_size_, other.GetSize());
+-  const auto min_byte_size = std::min(data_vector_.size(), other.GetData().size());
+-
+-  Resize(max_bit_size, true);
++  auto min_byte_size = std::min(data_vector_.size(), other.data_vector_.size());
+ 
+-  for (auto i = 0ull; i < min_byte_size; ++i) {
+-    data_vector_.at(i) ^= other.GetData().at(i);
+-  }
++  std::transform(data_vector_.cbegin(), data_vector_.cbegin() + min_byte_size,
++                 other.data_vector_.cbegin(), data_vector_.begin(),
++                 [](auto a, auto b) { return a ^ b; });
+ 
+-  if (data_vector_.size() < other.GetData().size()) {
+-    for (auto i = min_byte_size; i < other.GetData().size(); ++i) {
+-      data_vector_.at(i) ^= other.GetData().at(i);
+-    }
+-  }
+   return *this;
+ }
+ 

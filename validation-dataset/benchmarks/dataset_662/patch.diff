@@ -1,0 +1,22 @@
+From eefa86501d0ffbfe1e654ded13bd1f93694cfc55 Mon Sep 17 00:00:00 2001
+From: Tobias Doerffel <tobias.doerffel@gmail.com>
+Date: Thu, 20 Jul 2017 18:43:46 +0200
+Subject: [PATCH] Core: VariantArrayMessage: drop superfluous buffer seek
+
+---
+ core/src/VariantArrayMessage.cpp | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/core/src/VariantArrayMessage.cpp b/core/src/VariantArrayMessage.cpp
+index 1b31034fc..6e4a41c38 100644
+--- a/core/src/VariantArrayMessage.cpp
++++ b/core/src/VariantArrayMessage.cpp
+@@ -42,8 +42,6 @@ VariantArrayMessage::VariantArrayMessage( QIODevice* ioDevice ) :
+ 
+ bool VariantArrayMessage::send()
+ {
+-	m_buffer.seek( 0 );
+-
+ 	MessageSize messageSize = qToBigEndian<MessageSize>( m_buffer.size() );
+ 	m_ioDevice->write( (const char *) &messageSize, sizeof(messageSize) );
+ 	m_ioDevice->write( m_buffer.data() );

@@ -1,0 +1,32 @@
+From bd3a1466b5ce8178a3055417942e69ed6769e7b0 Mon Sep 17 00:00:00 2001
+From: senquack <dansilsby@gmail.com>
+Date: Sun, 13 Nov 2016 23:44:16 -0500
+Subject: [PATCH] mipsrec: Optimize loading PC vals in rec_bcu.cpp.h iJumpAL()
+
+---
+ src/recompiler/mips/rec_bcu.cpp.h | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/src/recompiler/mips/rec_bcu.cpp.h b/src/recompiler/mips/rec_bcu.cpp.h
+index 0c82a918..f1ad6e70 100644
+--- a/src/recompiler/mips/rec_bcu.cpp.h
++++ b/src/recompiler/mips/rec_bcu.cpp.h
+@@ -222,8 +222,16 @@ static void iJumpAL(u32 branchPC, u32 linkpc)
+ 
+ 	rec_recompile_end_part1();
+ 	regClearJump();
+-	LI32(MIPSREG_V0, branchPC); // Block retval $v0 = new PC val
+-	LI32(TEMP_1, linkpc);
++	if ((branchPC >> 16) == (linkpc >> 16)) {
++		// Both PCs share an upper half, can save an instruction:
++		LUI(MIPSREG_V0, (branchPC >> 16));
++		ORI(TEMP_1, MIPSREG_V0, (linkpc & 0xffff));
++		ORI(MIPSREG_V0, MIPSREG_V0, (branchPC & 0xffff)); // Block retval $v0 = new PC val
++	} else {
++		LI32(MIPSREG_V0, branchPC); // Block retval $v0 = new PC val
++		LI32(TEMP_1, linkpc);
++	}
++
+ 	SW(TEMP_1, PERM_REG_1, offGPR(31));
+ 	rec_recompile_end_part2();
+ 

@@ -1,0 +1,22 @@
+From 754464d568c36c6e14c52860d7b2f4f388788c58 Mon Sep 17 00:00:00 2001
+From: jcb <jcb>
+Date: Wed, 13 Oct 2004 04:10:55 +0000
+Subject: [PATCH] Fixed memory leak in CalculateDiscreteState().
+
+---
+ HartreeFock/Core_BuildStates.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/HartreeFock/Core_BuildStates.cpp b/HartreeFock/Core_BuildStates.cpp
+index 053b042..a2d0b31 100644
+--- a/HartreeFock/Core_BuildStates.cpp
++++ b/HartreeFock/Core_BuildStates.cpp
+@@ -523,6 +523,8 @@ unsigned int Core::CalculateDiscreteState(DiscreteState* s, double exchange_amou
+ 
+         if((new_exchange_proportion == 1.0) || (old_exchange == NULL))
+         {   delete exchange;
++            if(old_exchange && (exchange != old_exchange))
++                delete old_exchange;
+             exchange = new_exchange;
+         }
+         else

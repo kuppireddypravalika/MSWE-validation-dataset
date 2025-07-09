@@ -1,0 +1,34 @@
+From ed2149cbe04a6cfe8769db7fc5927b87e3a66d2f Mon Sep 17 00:00:00 2001
+From: Eric Jensen <jensen39@gmail.com>
+Date: Sat, 11 Feb 2012 23:38:14 -0500
+Subject: [PATCH] Minor layout changes and optimizations.
+
+---
+ MinimalClock/ScreenSaver.cpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/MinimalClock/ScreenSaver.cpp b/MinimalClock/ScreenSaver.cpp
+index 2a2f87b..52ff5d3 100644
+--- a/MinimalClock/ScreenSaver.cpp
++++ b/MinimalClock/ScreenSaver.cpp
+@@ -126,6 +126,7 @@ void Init(HWND hWnd)
+ 				DWORD nFonts;
+ 				g_hFontResource = (HFONT)AddFontMemResourceEx(data, len, NULL, &nFonts);
+ 			}
++			DeleteObject(mem);
+ 		}
+ 
+ 		LOGFONT lf;
+@@ -138,8 +139,10 @@ void Init(HWND hWnd)
+ 
+ 		SelectObject(g_hDC, g_hLargeFont);
+ 
+-		std::wstring strPlaceHolder(TEXT("00:00:00"));
+-		GetTextExtentPoint32(g_hDC, strPlaceHolder.c_str(), strPlaceHolder.size(), &g_largeTextSize);
++		const TCHAR szPlaceholder[] = TEXT("00:00:00");
++		GetTextExtentPoint32(g_hDC, szPlaceholder, sizeof(szPlaceholder) / sizeof(TCHAR) - 1, &g_largeTextSize);
++
++		g_largeTextSize.cx = g_largeTextSize.cx + g_largeTextSize.cx / 20;
+ 
+ 		lf.lfHeight = g_screenSize.cy / 28;
+ 		g_hSmallFont = CreateFontIndirect(&lf);

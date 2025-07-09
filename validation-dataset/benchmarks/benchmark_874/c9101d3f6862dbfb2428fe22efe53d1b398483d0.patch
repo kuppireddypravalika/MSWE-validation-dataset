@@ -1,0 +1,33 @@
+From c9101d3f6862dbfb2428fe22efe53d1b398483d0 Mon Sep 17 00:00:00 2001
+From: Ryan Houdek <Sonicadvance1@gmail.com>
+Date: Fri, 26 May 2023 20:48:36 -0700
+Subject: [PATCH] CPUID: Only enable BMI1 and BMI2 if AVX is supported
+
+These two extensions rely on AVX being supported to be used. Primarily
+because they are VEX encoded.
+
+GTA5 is using these flags to determine if it should enable its AVX
+support.
+---
+ External/FEXCore/Source/Interface/Core/CPUID.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/External/FEXCore/Source/Interface/Core/CPUID.cpp b/External/FEXCore/Source/Interface/Core/CPUID.cpp
+index fb940a9afc..b70e27eca0 100644
+--- a/External/FEXCore/Source/Interface/Core/CPUID.cpp
++++ b/External/FEXCore/Source/Interface/Core/CPUID.cpp
+@@ -626,12 +626,12 @@ FEXCore::CPUID::FunctionResults CPUIDEmu::Function_07h(uint32_t Leaf) {
+       (1 <<  0) | // FS/GS support
+       (0 <<  1) | // TSC adjust MSR
+       (0 <<  2) | // SGX
+-      (1 <<  3) | // BMI1
++      (SupportsAVX() << 3) | // BMI1
+       (0 <<  4) | // Intel Hardware Lock Elison
+       (0 <<  5) | // AVX2 support
+       (1 <<  6) | // FPU data pointer updated only on exception
+       (1 <<  7) | // SMEP support
+-      (1 <<  8) | // BMI2
++      (SupportsAVX() << 8) | // BMI2
+       (0 <<  9) | // Enhanced REP MOVSB/STOSB
+       (1 << 10) | // INVPCID for system software control of process-context
+       (0 << 11) | // Restricted transactional memory

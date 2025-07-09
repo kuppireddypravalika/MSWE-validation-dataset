@@ -1,0 +1,25 @@
+From 6631b55852885cfcc8b511900df23f3bee747ee3 Mon Sep 17 00:00:00 2001
+From: Philippe Canal <pcanal@fnal.gov>
+Date: Fri, 22 Aug 2014 06:43:53 -0500
+Subject: [PATCH] Avoid normalizing the name twice.
+
+TROOT::FindSTLClass now is down to 'just' normalizing the name and creating the TClass if necessary.
+Since we already have the normalized name, let's just create the TClass for the stl container if
+we need to.
+---
+ core/meta/src/TClass.cxx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/core/meta/src/TClass.cxx b/core/meta/src/TClass.cxx
+index 4b6ec5fdc2bd5..1d822fc970903 100644
+--- a/core/meta/src/TClass.cxx
++++ b/core/meta/src/TClass.cxx
+@@ -2906,7 +2906,7 @@ TClass *TClass::GetClass(const char *name, Bool_t load, Bool_t silent)
+ 
+    if (isStl) {
+ 
+-      return gROOT->FindSTLClass(name,kTRUE,silent);
++      return gInterpreter->GenerateTClass(normalizedName.c_str(), kTRUE, silent);
+ 
+    } else if ( strncmp(name,"std::",5)==0 ) {
+ 

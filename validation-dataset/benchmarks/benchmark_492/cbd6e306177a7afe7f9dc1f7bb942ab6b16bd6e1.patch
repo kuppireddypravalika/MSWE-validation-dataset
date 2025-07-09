@@ -1,0 +1,29 @@
+From cbd6e306177a7afe7f9dc1f7bb942ab6b16bd6e1 Mon Sep 17 00:00:00 2001
+From: Morwenn <morwenn29@hotmail.fr>
+Date: Tue, 12 Sep 2017 20:13:16 +0200
+Subject: [PATCH] Use __builtin_clz to compute log2 when available
+
+---
+ include/cpp-sort/detail/bitops.h | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/include/cpp-sort/detail/bitops.h b/include/cpp-sort/detail/bitops.h
+index 8f4ee786..7dcfbde2 100644
+--- a/include/cpp-sort/detail/bitops.h
++++ b/include/cpp-sort/detail/bitops.h
+@@ -63,11 +63,15 @@ namespace detail
+     constexpr auto log2(Integer n)
+         -> Integer
+     {
++#if defined(__GNUC__) || defined(__clang__)
++        return std::numeric_limits<Integer>::digits - __builtin_clz(n) - 1;
++#else
+         Integer log = 0;
+         while (n >>= 1) {
+             ++log;
+         }
+         return log;
++#endif
+     }
+ }}
+ 

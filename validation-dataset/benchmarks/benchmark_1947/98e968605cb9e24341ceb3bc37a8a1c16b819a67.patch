@@ -1,0 +1,30 @@
+From 98e968605cb9e24341ceb3bc37a8a1c16b819a67 Mon Sep 17 00:00:00 2001
+From: Michael Niedermayer <michaelni@gmx.at>
+Date: Tue, 22 Apr 2014 04:00:32 +0200
+Subject: [PATCH] avformat/avidec: Speed up keyframe detection code
+
+Fixes Ticket3531
+
+Signed-off-by: Michael Niedermayer <michaelni@gmx.at>
+(cherry picked from commit 57fb570908df2e84b11635f12b5be1fb27f053eb)
+
+Conflicts:
+	libavformat/avidec.c
+Signed-off-by: Jean-Yves Avenard <jyavenard@mythtv.org>
+---
+ mythtv/external/FFmpeg/libavformat/avidec.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/mythtv/external/FFmpeg/libavformat/avidec.c b/mythtv/external/FFmpeg/libavformat/avidec.c
+index d7ef90b39c9..f568a284c54 100644
+--- a/mythtv/external/FFmpeg/libavformat/avidec.c
++++ b/mythtv/external/FFmpeg/libavformat/avidec.c
+@@ -1198,7 +1198,7 @@ static int avi_read_packet(AVFormatContext *s, AVPacket *pkt)
+                 int index;
+                 av_assert0(st->index_entries);
+ 
+-                index= av_index_search_timestamp(st, ast->frame_offset, 0);
++                index= av_index_search_timestamp(st, ast->frame_offset, AVSEEK_FLAG_ANY);
+                 e= &st->index_entries[index];
+ 
+                 if(index >= 0 && e->timestamp == ast->frame_offset){

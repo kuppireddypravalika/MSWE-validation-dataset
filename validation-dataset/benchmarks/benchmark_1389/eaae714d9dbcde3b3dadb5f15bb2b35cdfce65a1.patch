@@ -1,0 +1,25 @@
+From eaae714d9dbcde3b3dadb5f15bb2b35cdfce65a1 Mon Sep 17 00:00:00 2001
+From: Nils Asmussen <nils@script-solution.de>
+Date: Mon, 2 Sep 2013 09:19:45 +0200
+Subject: [PATCH] Only lock FPU if it isn't currently locked.
+
+This seems to be quite a bit faster than always doing it.
+---
+ source/include/sys/arch/i586/fpu.h | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/source/include/sys/arch/i586/fpu.h b/source/include/sys/arch/i586/fpu.h
+index 4483e2aa1..179f00180 100644
+--- a/source/include/sys/arch/i586/fpu.h
++++ b/source/include/sys/arch/i586/fpu.h
+@@ -209,7 +209,9 @@ class FPU {
+ 	static void lockFPU() {
+ 		/* set the task-switched-bit in CR0. as soon as a process uses any FPU instruction
+ 		 * we'll get a EX_CO_PROC_NA and call handleCoProcNA() */
+-		CPU::setCR0(CPU::getCR0() | CPU::CR0_TASK_SWITCHED);
++		uint32_t cr0 = CPU::getCR0();
++		if(~cr0 & CPU::CR0_TASK_SWITCHED)
++			CPU::setCR0(cr0 | CPU::CR0_TASK_SWITCHED);
+ 	}
+ 
+ 	/**

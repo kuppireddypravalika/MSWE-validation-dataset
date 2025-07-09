@@ -1,0 +1,22 @@
+From b541508f6b70ef9c1fd6c994bf177979c94f9ef0 Mon Sep 17 00:00:00 2001
+From: Christopher Dembia <cld72@cornell.edu>
+Date: Wed, 6 Sep 2017 14:27:13 -0700
+Subject: [PATCH] Tried setting linear solver to ma97 (3x speedup for time
+ spent in Ipopt for test_double_pendulum)
+
+---
+ tropter/tropter/optimization/IpoptSolver.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/tropter/tropter/optimization/IpoptSolver.cpp b/tropter/tropter/optimization/IpoptSolver.cpp
+index ea41f04e2..86dfff4ba 100644
+--- a/tropter/tropter/optimization/IpoptSolver.cpp
++++ b/tropter/tropter/optimization/IpoptSolver.cpp
+@@ -33,6 +33,7 @@ double IpoptSolver::optimize_impl(VectorXd& variables) const {
+         app->Options()->SetStringValue("hessian_approximation",
+                 m_hessian_approximation);
+     }
++    //app->Options()->SetStringValue("linear_solver", "ma97");
+     Ipopt::ApplicationReturnStatus status;
+     // TODO give istream or data file?
+     status = app->Initialize();

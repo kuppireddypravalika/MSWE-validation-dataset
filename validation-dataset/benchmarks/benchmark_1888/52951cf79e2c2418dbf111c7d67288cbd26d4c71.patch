@@ -1,0 +1,32 @@
+From 52951cf79e2c2418dbf111c7d67288cbd26d4c71 Mon Sep 17 00:00:00 2001
+From: evoskuil <eric@voskuil.org>
+Date: Thu, 5 Jan 2017 01:10:08 -0800
+Subject: [PATCH] Change default network.threads setting to max(1, cores).
+
+---
+ src/settings.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/settings.cpp b/src/settings.cpp
+index 2c4d62efb..7282e4453 100644
+--- a/src/settings.cpp
++++ b/src/settings.cpp
+@@ -19,7 +19,9 @@
+  */
+ #include <bitcoin/network/settings.hpp>
+ 
++#include <algorithm>
+ #include <limits>
++#include <thread>
+ #include <bitcoin/bitcoin.hpp>
+ 
+ namespace libbitcoin {
+@@ -30,7 +32,7 @@ using namespace bc::message;
+ 
+ // Common default values (no settings context).
+ settings::settings()
+-  : threads(50),
++  : threads(std::max(std::thread::hardware_concurrency(), 1u)),
+     protocol_maximum(version::level::maximum),
+     protocol_minimum(version::level::minimum),
+     services(version::service::none),

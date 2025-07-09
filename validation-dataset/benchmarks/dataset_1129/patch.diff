@@ -1,0 +1,40 @@
+From fc60667d4687799c7fb18f0aed2c61acc299ee08 Mon Sep 17 00:00:00 2001
+From: Kurt Schwehr <schwehr@gmail.com>
+Date: Fri, 4 Sep 2015 20:49:38 +0000
+Subject: [PATCH] Stop leaving pszOldVal.
+
+CID 1074369
+
+Use a c++ string and a bool to not have to worry about freeing memory.
+
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@30093 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/ogr/ogr_geocoding.cpp | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/gdal/ogr/ogr_geocoding.cpp b/gdal/ogr/ogr_geocoding.cpp
+index 27854b0e79a6..119227c7fd60 100644
+--- a/gdal/ogr/ogr_geocoding.cpp
++++ b/gdal/ogr/ogr_geocoding.cpp
+@@ -412,8 +412,9 @@ static OGRLayer* OGRGeocodeGetCacheLayer(OGRGeocodingSessionH hSession,
+         if( OGRGetDriverCount() == 0 )
+             OGRRegisterAll();
+ 
+-        char* pszOldVal = CPLGetConfigOption("OGR_SQLITE_SYNCHRONOUS", NULL) ?
+-            CPLStrdup(CPLGetConfigOption("OGR_SQLITE_SYNCHRONOUS", NULL)) : NULL;
++        bool bHadValue = (CPLGetConfigOption("OGR_SQLITE_SYNCHRONOUS", NULL) != NULL);
++        std::string oOldVal(CPLGetConfigOption("OGR_SQLITE_SYNCHRONOUS", ""));
++
+         CPLSetThreadLocalConfigOption("OGR_SQLITE_SYNCHRONOUS", "OFF");
+ 
+         poDS = (OGRDataSource*) OGROpen(hSession->pszCacheFilename, TRUE, NULL);
+@@ -474,7 +475,7 @@ static OGRLayer* OGRGeocodeGetCacheLayer(OGRGeocodingSessionH hSession,
+             }
+         }
+ 
+-        CPLSetThreadLocalConfigOption("OGR_SQLITE_SYNCHRONOUS", pszOldVal);
++        CPLSetThreadLocalConfigOption("OGR_SQLITE_SYNCHRONOUS", bHadValue ? oOldVal.c_str() : NULL);
+ 
+         if( poDS == NULL )
+             return NULL;

@@ -1,0 +1,26 @@
+From bb5b531f0c8b88e706a837dcb978476b0c27cbdc Mon Sep 17 00:00:00 2001
+From: Ted John <ted@brambles.org>
+Date: Thu, 29 Mar 2018 17:59:49 +0100
+Subject: [PATCH] Use resize instead of push_back
+
+---
+ src/openrct2/object/ObjectJsonHelpers.cpp | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/src/openrct2/object/ObjectJsonHelpers.cpp b/src/openrct2/object/ObjectJsonHelpers.cpp
+index 66af224fb6bb..277f003ac13e 100644
+--- a/src/openrct2/object/ObjectJsonHelpers.cpp
++++ b/src/openrct2/object/ObjectJsonHelpers.cpp
+@@ -275,11 +275,7 @@ namespace ObjectJsonHelpers
+         {
+             std::string msg = "Unable to open '" + objectPath + "'";
+             context->LogWarning(OBJECT_ERROR_INVALID_PROPERTY, msg.c_str());
+-            for (size_t i = 0; i < range.size(); i++)
+-            {
+-                auto g1 = rct_g1_element{};
+-                result.push_back(g1);
+-            }
++            result.resize(range.size());
+         }
+         return result;
+     }

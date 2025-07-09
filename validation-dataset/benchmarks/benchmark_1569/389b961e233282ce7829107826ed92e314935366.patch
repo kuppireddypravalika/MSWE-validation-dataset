@@ -1,0 +1,23 @@
+From 389b961e233282ce7829107826ed92e314935366 Mon Sep 17 00:00:00 2001
+From: George Tasker <gtasker@allenbrook.com>
+Date: Tue, 17 Apr 2001 11:05:24 +0000
+Subject: [PATCH] Fixed a compiler performance warning
+
+git-svn-id: https://svn.wxwidgets.org/svn/wx/wxWidgets/trunk@9778 c3d73ce0-8a6f-49c7-b76d-6d57e0e08775
+---
+ src/generic/grid.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/generic/grid.cpp b/src/generic/grid.cpp
+index 5d70eacf514a..d653d727ee7c 100644
+--- a/src/generic/grid.cpp
++++ b/src/generic/grid.cpp
+@@ -3718,7 +3718,7 @@ void wxGrid::CalcDimensions()
+ 
+     // do set scrollbar parameters
+     SetScrollbars( GRID_SCROLL_LINE, GRID_SCROLL_LINE,
+-		   w, h, x, y, GetBatchCount() );
++		   w, h, x, y, (GetBatchCount() != 0));
+ }
+ 
+ 

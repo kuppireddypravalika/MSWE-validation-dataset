@@ -1,0 +1,23 @@
+From d0bfd9dc6a262334489b89ded792155d62f6622d Mon Sep 17 00:00:00 2001
+From: Austin Clements <amdragon@mit.edu>
+Date: Sat, 28 Apr 2012 18:49:17 -0400
+Subject: [PATCH] Use GCINTERVAL in distref GC
+
+---
+ kernel/distref.cc | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/kernel/distref.cc b/kernel/distref.cc
+index 676db033a..06de60b18 100644
+--- a/kernel/distref.cc
++++ b/kernel/distref.cc
+@@ -202,7 +202,8 @@ distref_thread(void *x)
+ {
+   for (;;) {
+     acquire(&wake_lock);
+-    cv_sleepto(&wake_cv, &wake_lock, nsectime() + 1000000000);
++    cv_sleepto(&wake_cv, &wake_lock,
++               nsectime() + ((u64)GCINTERVAL)*1000000ull);
+     release(&wake_lock);
+ 
+     // Phase 1: Reconcile reference counts

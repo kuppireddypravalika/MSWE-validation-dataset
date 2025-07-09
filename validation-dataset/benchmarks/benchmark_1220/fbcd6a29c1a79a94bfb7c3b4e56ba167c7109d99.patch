@@ -1,0 +1,30 @@
+From fbcd6a29c1a79a94bfb7c3b4e56ba167c7109d99 Mon Sep 17 00:00:00 2001
+From: Robin Burchell <robin.burchell@jollamobile.com>
+Date: Tue, 11 Jun 2013 00:29:41 +0200
+Subject: [PATCH] moc: Avoid non-deterministic output which causes unnecesary
+ rebuilds
+
+Change-Id: I4fdd2b37869ed73ede3a33b5adad94413bd43b01
+Reviewed-by: Thiago Macieira <thiago.macieira@intel.com>
+---
+ src/tools/moc/moc.cpp | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/src/tools/moc/moc.cpp b/src/tools/moc/moc.cpp
+index f3bfcc31440..fd1d2155fc9 100644
+--- a/src/tools/moc/moc.cpp
++++ b/src/tools/moc/moc.cpp
+@@ -870,7 +870,12 @@ void Moc::generate(FILE *out)
+         findRequiredContainers(&classList[i], &requiredQtContainers);
+     }
+ 
+-    foreach (const QByteArray &qtContainer, requiredQtContainers) {
++    // after finding the containers, we sort them into a list to avoid
++    // non-deterministic behavior which may cause rebuilds unnecessarily.
++    QList<QByteArray> requiredContainerList = requiredQtContainers.toList();
++    std::sort(requiredContainerList.begin(), requiredContainerList.end());
++
++    foreach (const QByteArray &qtContainer, requiredContainerList) {
+         fprintf(out, "#include <QtCore/%s>\n", qtContainer.constData());
+     }
+ 

@@ -1,0 +1,32 @@
+From eb590279203f9c18196f72445bedd6c716dc26c8 Mon Sep 17 00:00:00 2001
+From: Christian Kandeler <christian.kandeler@qt.io>
+Date: Fri, 7 Oct 2022 13:25:53 +0200
+Subject: [PATCH] ClangCodeModel: Save some disk space and unneeded allocations
+
+... when writing out compile_commands.json files.
+
+Change-Id: I8b2298eee87609a90ebb4dbd58b38bd6f36c5a7b
+Reviewed-by: hjk <hjk@qt.io>
+---
+ src/plugins/clangcodemodel/clangutils.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/plugins/clangcodemodel/clangutils.cpp b/src/plugins/clangcodemodel/clangutils.cpp
+index 57698608494..9a37e805304 100644
+--- a/src/plugins/clangcodemodel/clangutils.cpp
++++ b/src/plugins/clangcodemodel/clangutils.cpp
+@@ -185,12 +185,12 @@ GenerateCompilationDbResult generateCompilationDB(QList<ProjectInfo::ConstPtr> p
+                                                           optionsBuilder.isClStyle());
+                 if (compileCommandsFile.size() > 1)
+                     compileCommandsFile.write(",");
+-                compileCommandsFile.write('\n' + QJsonDocument(json).toJson().trimmed());
++                compileCommandsFile.write(QJsonDocument(json).toJson(QJsonDocument::Compact));
+             }
+         }
+     }
+ 
+-    compileCommandsFile.write("\n]");
++    compileCommandsFile.write("]");
+     compileCommandsFile.close();
+     return GenerateCompilationDbResult(compileCommandsFile.fileName(), QString());
+ }

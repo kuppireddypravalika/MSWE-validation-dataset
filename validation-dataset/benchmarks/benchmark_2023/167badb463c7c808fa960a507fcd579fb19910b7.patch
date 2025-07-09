@@ -1,0 +1,46 @@
+From 167badb463c7c808fa960a507fcd579fb19910b7 Mon Sep 17 00:00:00 2001
+From: Tim Eves <tim_eves@sil.org>
+Date: Fri, 26 Nov 2010 18:37:50 +0700
+Subject: [PATCH] Filter out NOPs and deal with potentially empty programs as a
+ result
+
+It turns out the graphite compiler is generating single instruction programs
+consisting only of a NOP. These trigger a missing_return status error.
+By filtering the NOPs out of the loaded code we save time and space and deal
+with this common but erroneous case.
+---
+ src/Code.cpp | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/src/Code.cpp b/src/Code.cpp
+index 7ae80c44..aa02091b 100644
+--- a/src/Code.cpp
++++ b/src/Code.cpp
+@@ -90,7 +90,10 @@ Code::Code(bool constrained, const byte * bytecode_begin, const byte * const byt
+     analysis_context ac;
+     do {
+         opc = opcode(*cd_ptr++);
+-        
++
++        // Filter out the NOPs
++        if (opc == NOP) continue;
++          
+         // Do some basic sanity checks based on what we know about the opcodes.
+         if (!check_opcode(opc, cd_ptr, bytecode_end))
+             return;
+@@ -127,6 +130,15 @@ Code::Code(bool constrained, const byte * bytecode_begin, const byte * const byt
+             fixup_cntxt_item_target(cd_ptr, dp);
+     } while (!is_return(opc) && cd_ptr < bytecode_end);
+     
++    // Is this an empty program?
++    if (_instr_count == 0)
++    {
++      release_buffers();
++      ::new (this) Code();
++      return;
++    }
++      
++    
+     // Final sanity check: ensure that the program is correctly terminated.
+     if (!is_return(opc)) {
+         failure(missing_return);

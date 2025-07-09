@@ -1,0 +1,26 @@
+From 8c7d10179561ae7fb21c93085172d057a9ab5534 Mon Sep 17 00:00:00 2001
+From: Boris Zbarsky <bzbarsky@mit.edu>
+Date: Fri, 11 Dec 2009 22:36:35 -0800
+Subject: [PATCH] Bug 533636.  Speed up IsSecurityWrapper.  r=mrbkap
+
+---
+ js/src/xpconnect/src/XPCWrapper.h | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/js/src/xpconnect/src/XPCWrapper.h b/js/src/xpconnect/src/XPCWrapper.h
+index d88b1156fd8..c81d5278ef6 100644
+--- a/js/src/xpconnect/src/XPCWrapper.h
++++ b/js/src/xpconnect/src/XPCWrapper.h
+@@ -221,10 +221,8 @@ class XPCWrapper
+   static JSBool IsSecurityWrapper(JSObject *wrapper)
+   {
+     JSClass *clasp = STOBJ_GET_CLASS(wrapper);
+-    return clasp == &sXPC_COW_JSClass.base ||
+-           clasp == &sXPC_SJOW_JSClass.base ||
+-           clasp == &sXPC_SOW_JSClass.base ||
+-           clasp == &sXPC_XOW_JSClass.base;
++    return (clasp->flags & JSCLASS_IS_EXTENDED) &&
++      ((JSExtendedClass*)clasp)->wrappedObject;
+   }
+ 
+   /**

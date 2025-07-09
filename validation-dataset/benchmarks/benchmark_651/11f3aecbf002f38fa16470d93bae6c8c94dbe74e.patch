@@ -1,0 +1,41 @@
+From 11f3aecbf002f38fa16470d93bae6c8c94dbe74e Mon Sep 17 00:00:00 2001
+From: "Tod D. Romo" <drtromo@gmail.com>
+Date: Fri, 4 Nov 2016 16:53:36 -0400
+Subject: [PATCH] Trajectory::updateGroupCoords() now always checks for set
+ indices in passed AtomicGroup
+
+If -DDEBUG is used, then -all- atoms are validated, otherwise just the first one is.
+---
+ src/Trajectory.hpp | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/src/Trajectory.hpp b/src/Trajectory.hpp
+index b4bad7e83..221d7d4f6 100644
+--- a/src/Trajectory.hpp
++++ b/src/Trajectory.hpp
+@@ -142,9 +142,9 @@ namespace loos {
+      * updateGroupCoords() normally assumes that the passed
+      * AtomicGroup has valid indices.  As a safety check, the
+      * createTrajectory() function will check that the AtomicGroup
+-     * passed to it has indices.  Turning on debugging
+-     * (i.e. the DEBUG compile-flag) will force updateGroupCoords() to
+-     * validate the passed AtomicGroup every time, with
++     * passed to it has indices.  Only the first atom is tested,
++     * unless the DEBUG compile-flig is turned on, which will force updateGroupCoords() to
++     * validate the entire AtomicGroup every time, with
+      * correspondingly poorer performance.
+      *
+      * Also note that the declaration of this function has changed in
+@@ -156,7 +156,11 @@ namespace loos {
+     {
+ #if defined(DEBUG)
+       if (! g.allHaveProperty(Atom::indexbit))
+-	throw(LOOSError("Atoms in AtomicGroup have unset index properties and cannot be used to read a trajectory."));
++    throw(LOOSError("Atoms in AtomicGroup have unset index properties and cannot be used to read a trajectory."));
++#else
++      if (! g.empty())
++        if (! g[0]->checkProperty(Atom::indexbit))
++          throw(LOOSError("Atoms in AtomicGroup have unset index properties and cannot be used to read a trajectory."));
+ #endif
+ 
+       updateGroupCoordsImpl(g);

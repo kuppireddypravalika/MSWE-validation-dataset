@@ -1,0 +1,30 @@
+From 1dfd6cdd38596518e9b566d35b83dccf35df85e6 Mon Sep 17 00:00:00 2001
+From: Mandeep Singh Grang <mgrang@codeaurora.org>
+Date: Mon, 23 Apr 2018 00:49:25 +0000
+Subject: [PATCH] [XRay] Change std::sort to llvm::sort in response to r327219
+
+r327219 added wrappers to std::sort which randomly shuffle the container before
+sorting.  This will help in uncovering non-determinism caused due to undefined
+sorting order of objects having the same key.
+
+To make use of that infrastructure we need to invoke llvm::sort instead of
+std::sort.
+
+git-svn-id: https://llvm.org/svn/llvm-project/cfe/trunk@330561 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Driver/XRayArgs.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/Driver/XRayArgs.cpp b/lib/Driver/XRayArgs.cpp
+index 5caeffc9d6..1d5850b559 100644
+--- a/lib/Driver/XRayArgs.cpp
++++ b/lib/Driver/XRayArgs.cpp
+@@ -163,7 +163,7 @@ XRayArgs::XRayArgs(const ToolChain &TC, const ArgList &Args) {
+       }
+ 
+     // Then we want to sort and unique the modes we've collected.
+-    std::sort(Modes.begin(), Modes.end());
++    llvm::sort(Modes.begin(), Modes.end());
+     Modes.erase(std::unique(Modes.begin(), Modes.end()), Modes.end());
+   }
+ }

@@ -1,0 +1,32 @@
+From 944e1d7b6a34098146fc4868909cb8b457c56eb6 Mon Sep 17 00:00:00 2001
+From: Oswald Buddenhagen <oswald.buddenhagen@digia.com>
+Date: Wed, 17 Jul 2013 16:44:18 +0200
+Subject: [PATCH] make unescapeFilePath() less inefficient
+
+replace() doesn't detach if there is nothing to do.
+
+Change-Id: I845b585c766f44a670ca3af1fc11ba03e7317622
+Reviewed-by: Joerg Bornemann <joerg.bornemann@digia.com>
+---
+ qmake/generators/makefile.cpp | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/qmake/generators/makefile.cpp b/qmake/generators/makefile.cpp
+index 0ec4a5f23521..98b5a328e439 100644
+--- a/qmake/generators/makefile.cpp
++++ b/qmake/generators/makefile.cpp
+@@ -2763,12 +2763,8 @@ QString
+ MakefileGenerator::unescapeFilePath(const QString &path) const
+ {
+     QString ret = path;
+-    if(!ret.isEmpty()) {
+-        if(ret.contains(QLatin1String("\\ ")))
+-            ret.replace(QLatin1String("\\ "), QLatin1String(" "));
+-        if(ret.contains(QLatin1Char('\"')))
+-            ret.remove(QLatin1Char('\"'));
+-    }
++    ret.replace(QLatin1String("\\ "), QLatin1String(" "));
++    ret.remove(QLatin1Char('\"'));
+     return ret;
+ }
+ 

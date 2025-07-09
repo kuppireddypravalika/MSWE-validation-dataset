@@ -1,0 +1,26 @@
+From 2390521d71e3d2ca416162294c2402cf496b3d33 Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Wed, 27 Oct 2021 00:46:44 -0600
+Subject: [PATCH] Cache current tile to avoid multiple get calls
+
+---
+ OPHD/States/MapViewStateTurn.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/OPHD/States/MapViewStateTurn.cpp b/OPHD/States/MapViewStateTurn.cpp
+index 8e372ec57..41fb3dded 100644
+--- a/OPHD/States/MapViewStateTurn.cpp
++++ b/OPHD/States/MapViewStateTurn.cpp
+@@ -512,9 +512,10 @@ void MapViewState::updateRoads()
+ 			const auto tileToInspect = tileLocation + DirectionClockwise4[i];
+ 			const auto surfacePosition = MapCoordinate{tileToInspect, 0};
+ 			if (!mTileMap->isValidPosition(surfacePosition)) { continue; }
+-			if (!mTileMap->getTile(surfacePosition).thingIsStructure()) { continue; }
++			const auto& tile = mTileMap->getTile(surfacePosition);
++			if (!tile.thingIsStructure()) { continue; }
+ 
+-			surroundingTiles[i] = mTileMap->getTile(surfacePosition).structure()->structureId() == StructureID::SID_ROAD;
++			surroundingTiles[i] = tile.structure()->structureId() == StructureID::SID_ROAD;
+ 		}
+ 
+ 		std::string tag = "";

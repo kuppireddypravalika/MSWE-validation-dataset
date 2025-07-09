@@ -1,0 +1,35 @@
+From 66555265961ade95889ad48201ad754db2745af8 Mon Sep 17 00:00:00 2001
+From: Davide Italiano <davide@freebsd.org>
+Date: Fri, 11 Nov 2016 03:00:00 +0000
+Subject: [PATCH] [IR/DataLayout] Simplify the code using PowerOf2Ceil. NFCI.
+
+---
+ llvm/lib/IR/DataLayout.cpp | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/llvm/lib/IR/DataLayout.cpp b/llvm/lib/IR/DataLayout.cpp
+index d7ed73015ee4..3de1889996eb 100644
+--- a/llvm/lib/IR/DataLayout.cpp
++++ b/llvm/lib/IR/DataLayout.cpp
+@@ -506,10 +506,7 @@ unsigned DataLayout::getAlignmentInfo(AlignTypeEnum AlignType,
+       // with what clang and llvm-gcc do.
+       unsigned Align = getTypeAllocSize(cast<VectorType>(Ty)->getElementType());
+       Align *= cast<VectorType>(Ty)->getNumElements();
+-      // If the alignment is not a power of 2, round up to the next power of 2.
+-      // This happens for non-power-of-2 length vectors.
+-      if (Align & (Align-1))
+-        Align = NextPowerOf2(Align);
++      Align = PowerOf2Ceil(Align);
+       return Align;
+     }
+   }
+@@ -522,8 +519,7 @@ unsigned DataLayout::getAlignmentInfo(AlignTypeEnum AlignType,
+   // layout.
+   if (BestMatchIdx == -1) {
+     unsigned Align = getTypeStoreSize(Ty);
+-    if (Align & (Align-1))
+-      Align = NextPowerOf2(Align);
++    Align = PowerOf2Ceil(Align);
+     return Align;
+   }
+ 

@@ -1,0 +1,26 @@
+From b0322e6ddfb7f56cb7e8a770ec307fdb00cd5437 Mon Sep 17 00:00:00 2001
+From: Benjamin Kramer <benny.kra@googlemail.com>
+Date: Tue, 13 Apr 2010 16:38:06 +0000
+Subject: [PATCH] BumpPtrAllocator::Reset() doesn't need to allocate anything.
+ (Thanks, Jakob)
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@101138 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Support/Allocator.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/lib/Support/Allocator.cpp b/lib/Support/Allocator.cpp
+index ef40e47d985..90df262336c 100644
+--- a/lib/Support/Allocator.cpp
++++ b/lib/Support/Allocator.cpp
+@@ -70,8 +70,8 @@ void BumpPtrAllocator::DeallocateSlabs(MemSlab *Slab) {
+ /// Reset - Deallocate all but the current slab and reset the current pointer
+ /// to the beginning of it, freeing all memory allocated so far.
+ void BumpPtrAllocator::Reset() {
+-  if (!CurSlab) // Start a new slab if we didn't allocate one already.
+-    StartNewSlab();
++  if (!CurSlab)
++    return;
+   DeallocateSlabs(CurSlab->NextPtr);
+   CurSlab->NextPtr = 0;
+   CurPtr = (char*)(CurSlab + 1);

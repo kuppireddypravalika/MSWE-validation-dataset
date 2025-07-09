@@ -1,0 +1,51 @@
+From e7afa23c1e1b9fa1ffbbace82bbe5b4492ae56ff Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Sat, 15 Dec 2018 12:50:03 -0500
+Subject: [PATCH] [libromdata] GameCubeRegions::gcnRegionToAbbrevString(): Use
+ a const char[][] table.
+
+This reduces pointer overhead, especially on 64-bit.
+
+Note that we added "ALL" for region code 3 (GCN_REGION_ALL).
+This wasn't present before, and it doesn't take up that much more
+space due to the reduced pointer overhead.
+---
+ src/libromdata/Console/GameCubeRegions.cpp | 24 ++++++----------------
+ 1 file changed, 6 insertions(+), 18 deletions(-)
+
+diff --git a/src/libromdata/Console/GameCubeRegions.cpp b/src/libromdata/Console/GameCubeRegions.cpp
+index e62a8b6cfe..d5ee892901 100644
+--- a/src/libromdata/Console/GameCubeRegions.cpp
++++ b/src/libromdata/Console/GameCubeRegions.cpp
+@@ -161,25 +161,13 @@ const char *GameCubeRegions::gcnRegionToString(unsigned int gcnRegion, char idRe
+  */
+ const char *GameCubeRegions::gcnRegionToAbbrevString(unsigned int gcnRegion)
+ {
+-	const char *suffix;
+-	switch (gcnRegion) {
+-		case GCN_REGION_JPN:
+-			suffix = "JPN";
+-			break;
+-		case GCN_REGION_USA:
+-			suffix = "USA";
+-			break;
+-		case GCN_REGION_EUR:
+-			suffix = "EUR";
+-			break;
+-		case GCN_REGION_KOR:
+-			suffix = "KOR";
+-			break;
+-		default:
+-			suffix = nullptr;
+-			break;
++	static const char region_tbl[5][4] = {
++		"JPN", "USA", "EUR", "ALL", "KOR"
++	};
++	if (gcnRegion >= ARRAY_SIZE(region_tbl)) {
++		return nullptr;
+ 	}
+-	return suffix;
++	return region_tbl[gcnRegion];
+ }
+ 
+ /**

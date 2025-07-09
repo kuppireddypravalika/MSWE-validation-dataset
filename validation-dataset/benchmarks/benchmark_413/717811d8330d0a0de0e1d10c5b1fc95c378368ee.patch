@@ -1,0 +1,26 @@
+From 717811d8330d0a0de0e1d10c5b1fc95c378368ee Mon Sep 17 00:00:00 2001
+From: Sergio Martins <smartins@kde.org>
+Date: Thu, 10 Sep 2015 19:18:39 +0100
+Subject: [PATCH] qstring-uneeded-heap-allocations: indexOf() is also bad with
+ QL1S
+
+Document why.
+---
+ checks/qstringuneededheapallocations.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/checks/qstringuneededheapallocations.cpp b/checks/qstringuneededheapallocations.cpp
+index 9fe3dd43..2c912f9b 100644
+--- a/checks/qstringuneededheapallocations.cpp
++++ b/checks/qstringuneededheapallocations.cpp
+@@ -66,8 +66,8 @@ void QStringUneededHeapAllocations::VisitStmt(clang::Stmt *stm)
+ 
+ static bool betterTakeQLatin1String(CXXMethodDecl *method)
+ {
+-    // contains() is slower, don't include it
+-    static const vector<string> methods = {"append", "compare", "endsWith", "startsWith", "indexOf", "insert", "lastIndexOf", "prepend", "replace" };
++    // indexOf() and contains() are slower, don't include it. They internally call qt_from_latin1() making them 30% slower than QStringLiteral
++    static const vector<string> methods = {"append", "compare", "endsWith", "startsWith", "insert", "lastIndexOf", "prepend", "replace" };
+ 
+     if (!isOfClass(method, "QString"))
+         return false;

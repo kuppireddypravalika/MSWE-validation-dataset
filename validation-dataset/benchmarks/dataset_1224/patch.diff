@@ -1,0 +1,23 @@
+From 035458dc9187f87a87322d45af9f29178a144c23 Mon Sep 17 00:00:00 2001
+From: OV2 <OV2@sessionclan.de>
+Date: Wed, 28 Sep 2022 18:13:56 +0200
+Subject: [PATCH] Reduce memory usage with many files
+
+---
+ helpfcts.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/helpfcts.cpp b/helpfcts.cpp
+index 1c813a1..ad337be 100644
+--- a/helpfcts.cpp
++++ b/helpfcts.cpp
+@@ -683,6 +683,9 @@ VOID SetFileInfoStrings(FILEINFO *pFileinfo,lFILEINFO *fileList)
+     }
+ 
+     for(int i=0;i<NUM_HASH_TYPES;i++) {
++		// skip if not found, otherwise we insert into map
++		if (pFileinfo->hashInfo.count(i) == 0)
++			continue;
+         CString &rPrint = pFileinfo->hashInfo[i].szResult;
+         rPrint = TEXT("");
+         if(fileList->bCalculated[i] && pFileinfo->dwError == NOERROR) {

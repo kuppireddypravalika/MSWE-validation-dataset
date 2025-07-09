@@ -1,0 +1,23 @@
+From 632a7a07a79d357c9b474e3aca78143597489fe0 Mon Sep 17 00:00:00 2001
+From: CastagnaIT <gottardo.stefano.83@gmail.com>
+Date: Sun, 21 Mar 2021 15:59:35 +0100
+Subject: [PATCH] Avoid JSONRPC data conversion on every announce message
+
+---
+ xbmc/network/TCPServer.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/xbmc/network/TCPServer.cpp b/xbmc/network/TCPServer.cpp
+index 2a40b15a9ff6a..2bf52fb947c98 100644
+--- a/xbmc/network/TCPServer.cpp
++++ b/xbmc/network/TCPServer.cpp
+@@ -227,6 +227,9 @@ void CTCPServer::Announce(ANNOUNCEMENT::AnnouncementFlag flag,
+                           const std::string& message,
+                           const CVariant& data)
+ {
++  if (m_connections.empty())
++    return;
++
+   std::string str = IJSONRPCAnnouncer::AnnouncementToJSONRPC(flag, sender, message, data, CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_jsonOutputCompact);
+ 
+   for (unsigned int i = 0; i < m_connections.size(); i++)

@@ -1,0 +1,175 @@
+You are an expert C++ performance engineer. Optimize the provided code for high compute and resource performance while preserving behavior. The optimized function must keep the exact same signature as the hand-written implementation. If the original file contains explicit template instantiations, reproduce them unchanged at the end of the optimized file. This prompt may include compilation errors, runtime errors or timing data from the previous step. Use it to refine the code. If it is empty, produce an initial optimization based solely on the original source. When refining the code, explore potentially high-reward optimization paths that have not yet been tried and that could yield superior computational performance. Respond only with a JSON object using the keys "optimized_code" and "analysis". The "analysis" field should briefly explain the intent behind your modifications. Additional source files may be provided for context. Here are the files:
+
+// original.cpp
+#include "song_filter.hpp"
+
+// Original Parse implementation iterates the arguments by index
+
+void SongFilter::Parse(ConstBuffer<const char*> args, bool fold_case) {
+    if (args.size == 0 || args.size % 2 != 0)
+        throw std::runtime_error("Incorrect number of filter arguments");
+
+    for (unsigned i = 0; i < args.size; i += 2)
+        Parse(args[i], args[i + 1], fold_case);
+}
+
+
+
+// song_filter.hpp
+#pragma once
+#include <stdexcept>
+#include <string>
+#include <vector>
+
+// Minimal ConstBuffer similar to MPD's util::ConstBuffer
+// Provides size, empty(), operator[] and shift() used in the patch
+
+template <typename T>
+struct ConstBuffer {
+    const T* data;
+    std::size_t size;
+
+    bool empty() const { return size == 0; }
+
+    const T& operator[](std::size_t i) const { return data[i]; }
+
+    const T& shift() {
+        const T& value = *data;
+        ++data;
+        --size;
+        return value;
+    }
+};
+
+class SongFilter {
+public:
+    struct Item {
+        std::string tag;
+        std::string value;
+        Item(const char* t = "", const char* v = "") : tag(t), value(v) {}
+    };
+
+    std::vector<Item> items;
+
+    void Parse(const char* tag, const char* value, bool fold_case);
+    void Parse(ConstBuffer<const char*> args, bool fold_case);
+};
+
+inline void SongFilter::Parse(const char* tag, const char* value, bool /*fold_case*/) {
+    items.emplace_back(tag, value);
+}
+
+
+The following files are provided for context. Do NOT modify them. Only update code in original.cpp.
+
+// harness.cpp
+#include "song_filter.hpp"
+#include <chrono>
+#include <iostream>
+#include <string>
+#include <vector>
+
+
+static std::vector<const char*> make_args(std::size_t pairs) {
+    std::vector<const char*> v;
+    v.reserve(pairs * 2);
+    for (std::size_t i = 0; i < pairs; ++i) {
+        v.push_back("tag");
+        v.push_back("value");
+    }
+    return v;
+}
+
+int main(int argc, char** argv) {
+    std::string mode = "perf";
+    std::size_t pairs = 50;
+    // repeat count tuned so the original implementation runs \u2265 10s
+    int repeat = 15000000;
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "--mode=correct") mode = "correct";
+        else if (arg == "--mode=perf") mode = "perf";
+        else if (arg.rfind("--pairs=",0)==0) pairs = std::stoul(arg.substr(8));
+        else if (arg.rfind("--repeat=",0)==0) repeat = std::stoi(arg.substr(9));
+    }
+
+    std::vector<const char*> arg_data = make_args(pairs);
+    ConstBuffer<const char*> buffer{arg_data.data(), arg_data.size()};
+
+    if (mode == "correct") {
+        SongFilter f;
+        f.items.reserve(pairs);
+        f.Parse(buffer, true);
+        long long sum = 0;
+        for (const auto& it : f.items) sum += it.tag.size() + it.value.size();
+        std::cout << sum << '\n';
+        return 0;
+    }
+
+    using clock = std::chrono::high_resolution_clock;
+    long long dummy = 0;
+    auto t1 = clock::now();
+    for (int r = 0; r < repeat; ++r) {
+        SongFilter f;
+        f.items.reserve(pairs);
+        ConstBuffer<const char*> b{arg_data.data(), arg_data.size()};
+        f.Parse(b, true);
+        dummy += f.items.size();
+    }
+    auto t2 = clock::now();
+    std::cout << "Time: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count()
+              << " ms\n";
+    if (dummy == 123456789) std::cerr << dummy;
+    return 0;
+}
+
+
+// song_filter.hpp
+#pragma once
+#include <stdexcept>
+#include <string>
+#include <vector>
+
+// Minimal ConstBuffer similar to MPD's util::ConstBuffer
+// Provides size, empty(), operator[] and shift() used in the patch
+
+template <typename T>
+struct ConstBuffer {
+    const T* data;
+    std::size_t size;
+
+    bool empty() const { return size == 0; }
+
+    const T& operator[](std::size_t i) const { return data[i]; }
+
+    const T& shift() {
+        const T& value = *data;
+        ++data;
+        --size;
+        return value;
+    }
+};
+
+class SongFilter {
+public:
+    struct Item {
+        std::string tag;
+        std::string value;
+        Item(const char* t = "", const char* v = "") : tag(t), value(v) {}
+    };
+
+    std::vector<Item> items;
+
+    void Parse(const char* tag, const char* value, bool fold_case);
+    void Parse(ConstBuffer<const char*> args, bool fold_case);
+};
+
+inline void SongFilter::Parse(const char* tag, const char* value, bool /*fold_case*/) {
+    items.emplace_back(tag, value);
+}
+
+
+Previous attempt info:
+Original execution time: mean = 9569.80 ms, std = 68.86 ms

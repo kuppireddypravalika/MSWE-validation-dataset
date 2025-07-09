@@ -1,0 +1,22 @@
+From c7e0edd8888dd22a802ff3ff0d2df0415efdb737 Mon Sep 17 00:00:00 2001
+From: Andreas Gal <gal@mozilla.com>
+Date: Thu, 17 Jul 2008 15:00:22 -0700
+Subject: [PATCH] Don't allocate FpRegs if sse2 is enabled.
+
+---
+ nanojit/Nativei386.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/nanojit/Nativei386.cpp b/nanojit/Nativei386.cpp
+index 64cdcee..14b302d 100644
+--- a/nanojit/Nativei386.cpp
++++ b/nanojit/Nativei386.cpp
+@@ -497,7 +497,7 @@ namespace nanojit
+ 
+ 		Reservation* rA = getresv(value);
+ 		int pop = !rA || rA->reg==UnknownReg;
+-		Register rv = findRegFor(value, FpRegs);
++ 		Register rv = findRegFor(value, sse2 ? XmmRegs : FpRegs);
+ 		Register rb = findRegFor(base, GpRegs);
+ 
+ 		if (rmask(rv) & XmmRegs) {

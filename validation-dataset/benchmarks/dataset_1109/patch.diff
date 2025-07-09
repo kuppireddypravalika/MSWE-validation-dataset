@@ -1,0 +1,22 @@
+From b5d8120086ca995e4205fbf052ff9946d38d4470 Mon Sep 17 00:00:00 2001
+From: Peter Caspers <peter.caspers@lseg.com>
+Date: Fri, 19 Jan 2024 09:21:05 +0100
+Subject: [PATCH] QPR-12014 we can loop over fewer keys here
+
+---
+ OREAnalytics/orea/engine/zerotoparcube.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/OREAnalytics/orea/engine/zerotoparcube.cpp b/OREAnalytics/orea/engine/zerotoparcube.cpp
+index 5498285ade..99b55e78e3 100644
+--- a/OREAnalytics/orea/engine/zerotoparcube.cpp
++++ b/OREAnalytics/orea/engine/zerotoparcube.cpp
+@@ -104,7 +104,7 @@ map<RiskFactorKey, Real> ZeroToParCube::parDeltas(QuantLib::Size cubeIdx, QuantL
+     }
+ 
+     // Add non-zero deltas that do not need to be converted from underlying zero cube
+-    for (const auto& f : zeroCube->factors()) {
++    for (const auto& f : rkeys) {
+         if (!ParSensitivityAnalysis::isParType(f.keytype) || typesDisabled_.count(f.keytype) == 1) {
+             Real delta = zeroCube->delta(tradeIdx, f);
+             if (!close(delta, 0.0)) {

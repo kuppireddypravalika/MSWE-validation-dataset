@@ -1,0 +1,28 @@
+From 53cda845db64db0d358f69443cf7edeb2360a048 Mon Sep 17 00:00:00 2001
+From: Vadim Zeitlin <vadim@wxwidgets.org>
+Date: Fri, 17 Jul 2009 14:33:39 +0000
+Subject: [PATCH] use the currently active event loop instead of the main one
+ in WakeUpIdle()
+
+git-svn-id: https://svn.wxwidgets.org/svn/wx/wxWidgets/trunk@61439 c3d73ce0-8a6f-49c7-b76d-6d57e0e08775
+---
+ src/common/appbase.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/common/appbase.cpp b/src/common/appbase.cpp
+index 269be5b5751e..14a4cf64da15 100644
+--- a/src/common/appbase.cpp
++++ b/src/common/appbase.cpp
+@@ -325,8 +325,10 @@ bool wxAppConsoleBase::Yield(bool onlyIfNeeded)
+ 
+ void wxAppConsoleBase::WakeUpIdle()
+ {
+-    if ( m_mainLoop )
+-        m_mainLoop->WakeUp();
++    wxEventLoopBase * const loop = wxEventLoopBase::GetActive();
++
++    if ( loop )
++        loop->WakeUp();
+ }
+ 
+ bool wxAppConsoleBase::ProcessIdle()

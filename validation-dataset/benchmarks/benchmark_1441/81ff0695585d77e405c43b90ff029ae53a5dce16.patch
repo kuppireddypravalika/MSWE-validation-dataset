@@ -1,0 +1,42 @@
+From 81ff0695585d77e405c43b90ff029ae53a5dce16 Mon Sep 17 00:00:00 2001
+From: uvilla <uvilla>
+Date: Sat, 18 Sep 2010 01:56:55 +0000
+Subject: [PATCH] Adding the method add(DataType val, const EpetraMatrix &
+ _matrix) which performs this += val*_matrix, with an unique call to
+ EpetraExt::MatrixMatrix::Add.
+
+---
+ life/lifearray/EpetraMatrix.hpp | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/life/lifearray/EpetraMatrix.hpp b/life/lifearray/EpetraMatrix.hpp
+index 4a51fe1c6..ec0a7f95e 100644
+--- a/life/lifearray/EpetraMatrix.hpp
++++ b/life/lifearray/EpetraMatrix.hpp
+@@ -123,6 +123,8 @@ class EpetraMatrix
+ 
+     //! Unary operator+
+     EpetraMatrix& operator += (const EpetraMatrix& _matrix);
++    //! Add a multiple of a given matrix:  *this += val*_matrix
++    void add(const DataType val, const EpetraMatrix& _matrix);
+     //! Assignment operator
+     EpetraMatrix&   operator=   (const EpetraMatrix& _matrix);
+     //! Matrix-Vector multiplication
+@@ -385,6 +387,17 @@ EpetraMatrix<DataType>::operator += ( const EpetraMatrix& _matrix)
+     //     return matrix;
+ }
+ 
++template <typename DataType>
++void EpetraMatrix<DataType>::add (const DataType val, const EpetraMatrix& _matrix)
++{
++    //    EpetraMatrix matrix(Copy, _matrix.RowMap(), _matrix.GlobalMaxNumEntries());
++#if defined HAVE_TRILINOS_EPETRAEXT // trilinos8
++    EpetraExt::MatrixMatrix::Add(*_matrix.getMatrixPtr(), false, val, *this->getMatrixPtr(), 1.);
++#else
++#error error: do not have nor EpetraExt  8+
++#endif
++}
++
+ template<typename DataType>
+ EpetraMatrix<DataType>&  EpetraMatrix<DataType>::operator=(const EpetraMatrix& _matrix)
+ {

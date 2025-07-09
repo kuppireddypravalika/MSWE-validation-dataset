@@ -1,0 +1,51 @@
+From f9e317ccbde426182e0eca3fa0d55d46f89a330b Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@duempel.org>
+Date: Wed, 26 Mar 2008 10:38:40 +0000
+Subject: [PATCH] unlimited select() timeout
+
+mpd sets a 1s select() timeout for no reason.  This makes mpd wake up
+the CPU, consume some cycles just to see there is nothing to do.  We
+can save that by specifying NULL instead of a timeout.
+
+git-svn-id: https://svn.musicpd.org/mpd/trunk@7212 09075e82-0dd4-0310-85a5-a0d7c8717e4f
+---
+ src/interface.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/src/interface.c b/src/interface.c
+index 0beffba231..f74d4d41ab 100644
+--- a/src/interface.c
++++ b/src/interface.c
+@@ -478,14 +478,11 @@ int doIOForInterfaces(void)
+ 	fd_set rfds;
+ 	fd_set wfds;
+ 	fd_set efds;
+-	struct timeval tv;
++	struct timeval tv, *tvp = NULL;
+ 	int i;
+ 	int selret;
+ 	int fdmax;
+ 
+-	tv.tv_sec = 1;
+-	tv.tv_usec = 0;
+-
+ 	while (1) {
+ 		fdmax = 0;
+ 
+@@ -495,7 +492,7 @@ int doIOForInterfaces(void)
+ 
+ 		registered_IO_add_fds(&fdmax, &rfds, &wfds, &efds);
+ 
+-		selret = select(fdmax + 1, &rfds, &wfds, &efds, &tv);
++		selret = select(fdmax + 1, &rfds, &wfds, &efds, tvp);
+ 
+ 		if (selret < 0 && errno == EINTR)
+ 			break;
+@@ -530,6 +527,7 @@ int doIOForInterfaces(void)
+ 
+ 		tv.tv_sec = 0;
+ 		tv.tv_usec = 0;
++		tvp = &tv;
+ 	}
+ 
+ 	return 1;

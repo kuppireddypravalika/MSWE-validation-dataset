@@ -1,0 +1,28 @@
+From 112fa3d4c269faac41685d0de497afa9ba2b9621 Mon Sep 17 00:00:00 2001
+From: Christian Kandeler <christian.kandeler@qt.io>
+Date: Thu, 25 Jan 2018 17:30:11 +0100
+Subject: [PATCH] Project loading: Remove unneeded set insertions
+
+We would iterate over the (potentially large) global set of file
+dependencies and try to insert each element into the same set again.
+
+Change-Id: Ib83fb0ac66bf75aee3ddc80e4c3abd18a8f77e8b
+Reviewed-by: Jake Petroules <jake.petroules@qt.io>
+Reviewed-by: Joerg Bornemann <joerg.bornemann@qt.io>
+---
+ src/lib/corelib/buildgraph/projectbuilddata.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/lib/corelib/buildgraph/projectbuilddata.cpp b/src/lib/corelib/buildgraph/projectbuilddata.cpp
+index ba8ed801d6..22d03106e5 100644
+--- a/src/lib/corelib/buildgraph/projectbuilddata.cpp
++++ b/src/lib/corelib/buildgraph/projectbuilddata.cpp
+@@ -260,7 +260,7 @@ void ProjectBuildData::load(PersistentPool &pool)
+ {
+     pool.load(fileDependencies);
+     for (FileDependency * const dep : qAsConst(fileDependencies))
+-        insertFileDependency(dep);
++        insertIntoLookupTable(dep);
+     pool.load(rawScanResults);
+ }
+ 

@@ -1,0 +1,32 @@
+From 7958f85ef3e1f744665bae1e6feb7d7e23683d39 Mon Sep 17 00:00:00 2001
+From: Thomas Goyne <plorkyeran@aegisub.org>
+Date: Tue, 22 Jun 2010 00:03:28 +0000
+Subject: [PATCH] Remove pointless call to AssDialogue::SetEntryData in
+ AssFile::CompressForStack; makes pushing files onto the undo stack about 50%
+ faster
+
+Originally committed to SVN as r4564.
+---
+ aegisub/src/ass_file.cpp | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/aegisub/src/ass_file.cpp b/aegisub/src/ass_file.cpp
+index 4b3e4bdfb..dff7b4d6e 100644
+--- a/aegisub/src/ass_file.cpp
++++ b/aegisub/src/ass_file.cpp
+@@ -743,13 +743,9 @@ wxString AssFile::GetWildcardList(int mode) {
+ }
+ 
+ void AssFile::CompressForStack() {
+-	AssDialogue *diag;
+ 	for (entryIter cur=Line.begin();cur!=Line.end();cur++) {
+-		diag = dynamic_cast<AssDialogue*>(*cur);
+-		if (diag) {
+-			diag->SetEntryData("");
+-			diag->ClearBlocks();
+-		}
++		AssDialogue *diag = dynamic_cast<AssDialogue*>(*cur);
++		if (diag) diag->ClearBlocks();
+ 	}
+ }
+ 

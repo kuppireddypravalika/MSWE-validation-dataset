@@ -1,0 +1,31 @@
+From f2f29c41e68e0748af29e3a54189436b536ffca9 Mon Sep 17 00:00:00 2001
+From: Emmanuel Gil Peyrot <emmanuel.peyrot@collabora.com>
+Date: Thu, 29 Sep 2016 15:54:31 +0100
+Subject: [PATCH] vl_fusion: use std::fabs to avoid a cast from double to
+ float.
+
+---
+ src/vl_fusion.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/vl_fusion.cpp b/src/vl_fusion.cpp
+index 9298320..5228693 100644
+--- a/src/vl_fusion.cpp
++++ b/src/vl_fusion.cpp
+@@ -24,6 +24,7 @@
+  * Boston, MA 02110-1335, USA.
+  */
+ 
++#include <cmath>
+ #include <memory>
+ #include <string.h>
+ #include "vl_fusion.h"
+@@ -47,7 +48,7 @@ Eigen::Quaterniond* vl_fusion::correct_gravity(const Eigen::Vector3d& accelerati
+ 
+     // if the device is within tolerance levels, count this as the device is level and add to the counter
+     // otherwise reset the counter and start over
+-    if (ang_vel_length < ang_vel_tolerance && fabsf(acceleration.norm() - GRAVITY_EARTH) < gravity_tolerance)
++    if (ang_vel_length < ang_vel_tolerance && std::fabs(acceleration.norm() - GRAVITY_EARTH) < gravity_tolerance)
+         device_level_count++;
+ 
+ 

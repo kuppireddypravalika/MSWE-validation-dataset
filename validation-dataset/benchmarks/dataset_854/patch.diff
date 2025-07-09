@@ -1,0 +1,34 @@
+From 0d592b6f47a45420abd337c7b9742cfbd7a063a4 Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Sun, 30 Jul 2017 18:38:42 -0400
+Subject: [PATCH] [libromdata] Dreamcast: Stop parsing the directory table once
+ we encounter an entry with a 0 length.
+
+The directory might not take up the full amount of space reserved due
+to blocks being 2048 bytes long, so we should exit once we hit a 0-length
+record instead of infinitely looping.
+
+This fixes the lockup with Atari Anniversary Edition and ChuChu Rocket!.
+
+Atari Anniversary Edition doesn't seem to have a 0GDTEX.PVR file, but
+ChuChu Rocket! does. It's not loading for some reason, though...
+---
+ src/libromdata/Dreamcast.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/src/libromdata/Dreamcast.cpp b/src/libromdata/Dreamcast.cpp
+index 9602f7892f..5c47c09513 100644
+--- a/src/libromdata/Dreamcast.cpp
++++ b/src/libromdata/Dreamcast.cpp
+@@ -298,6 +298,11 @@ const rp_image *DreamcastPrivate::load0GDTEX(void)
+ 	const uint8_t *const p_end = p + rootdir->size.he;
+ 	while (p < p_end) {
+ 		const ISO_DirEntry *dirEntry = reinterpret_cast<const ISO_DirEntry*>(p);
++		if (dirEntry->filename_length == 0) {
++			// End of directory.
++			break;
++		}
++
+ 		const char *filename = reinterpret_cast<const char*>(p) + sizeof(*dirEntry);
+ 		if (filename + dirEntry->filename_length > reinterpret_cast<const char*>(p_end)) {
+ 			// Filename is out of bounds.

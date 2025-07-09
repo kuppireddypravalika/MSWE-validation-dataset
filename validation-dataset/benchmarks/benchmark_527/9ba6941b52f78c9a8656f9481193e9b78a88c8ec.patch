@@ -1,0 +1,24 @@
+From 9ba6941b52f78c9a8656f9481193e9b78a88c8ec Mon Sep 17 00:00:00 2001
+From: dsp56300 <dsp56300@users.noreply.github.com>
+Date: Tue, 9 Jul 2024 21:35:44 +0200
+Subject: [PATCH] use movsxd instead of shr/shl
+
+---
+ source/dsp56kEmu/jitops_helper.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/source/dsp56kEmu/jitops_helper.cpp b/source/dsp56kEmu/jitops_helper.cpp
+index d1e1f646..5fa301fe 100644
+--- a/source/dsp56kEmu/jitops_helper.cpp
++++ b/source/dsp56kEmu/jitops_helper.cpp
+@@ -63,8 +63,8 @@ namespace dsp56k
+ 		m_asm.sbfx(_reg, _reg, asmjit::Imm(0), asmjit::Imm(24));
+ 		m_asm.ubfx(_reg, _reg, asmjit::Imm(0), asmjit::Imm(56));
+ #else
+-		m_asm.sal(_reg, asmjit::Imm(40));
+-		m_asm.sar(_reg, asmjit::Imm(32));	// we need to work around the fact that there is no AND with 64 bit immediate operand
++		m_asm.sal(r32(_reg), asmjit::Imm(8));
++		m_asm.movsxd(r64(_reg), r32(_reg));
+ 		m_asm.shr(_reg, asmjit::Imm(8));
+ #endif
+ 	}

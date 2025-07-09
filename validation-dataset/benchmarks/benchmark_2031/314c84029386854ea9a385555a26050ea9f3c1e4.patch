@@ -1,0 +1,23 @@
+From 314c84029386854ea9a385555a26050ea9f3c1e4 Mon Sep 17 00:00:00 2001
+From: TellowKrinkle <tellowkrinkle@gmail.com>
+Date: Thu, 24 Nov 2022 21:10:32 -0600
+Subject: [PATCH] VIF: Reduce alignment of empty hash buckets
+
+They'll never be in hot codepaths (since they're empty) and memalign with 64-byte alignment is noticeably slower than 16-byte alignment
+---
+ pcsx2/x86/newVif_HashBucket.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/pcsx2/x86/newVif_HashBucket.h b/pcsx2/x86/newVif_HashBucket.h
+index 089e9a0880bae..49940e1344d27 100644
+--- a/pcsx2/x86/newVif_HashBucket.h
++++ b/pcsx2/x86/newVif_HashBucket.h
+@@ -137,7 +137,7 @@ class HashBucket
+ 		// Allocate an empty cell for all buckets
+ 		for (auto& bucket : m_bucket)
+ 		{
+-			if ((bucket = (nVifBlock*)_aligned_malloc(sizeof(nVifBlock), 64)) == nullptr)
++			if ((bucket = (nVifBlock*)_aligned_malloc(sizeof(nVifBlock), 16)) == nullptr)
+ 			{
+ 				pxFailRel("Failed to allocate HashBucket Chain on reset");
+ 			}

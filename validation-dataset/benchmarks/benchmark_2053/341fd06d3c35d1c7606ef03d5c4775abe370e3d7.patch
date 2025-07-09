@@ -1,0 +1,22 @@
+From 341fd06d3c35d1c7606ef03d5c4775abe370e3d7 Mon Sep 17 00:00:00 2001
+From: Chris Lattner <sabre@nondot.org>
+Date: Thu, 26 Oct 2006 05:18:38 +0000
+Subject: [PATCH] Use the full hash as a filter to reduce # strcmps
+
+llvm-svn: 39057
+---
+ clang/Lex/IdentifierTable.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/clang/Lex/IdentifierTable.cpp b/clang/Lex/IdentifierTable.cpp
+index 734e82fedf7..fa48bccd150 100644
+--- a/clang/Lex/IdentifierTable.cpp
++++ b/clang/Lex/IdentifierTable.cpp
+@@ -187,6 +187,7 @@ IdentifierInfo &IdentifierTable::get(const char *NameStart,
+   for (IdentifierBucket *Identifier = IdentHead, *LastID = 0; Identifier; 
+        LastID = Identifier, Identifier = Identifier->Next) {
+     if (Identifier->TokInfo.getNameLength() == Length &&
++        Identifier->TokInfo.HashValue == FullHash &&
+         memcmp(Identifier->TokInfo.getName(), NameStart, Length) == 0) {
+       // If found identifier wasn't at start of bucket, move it there so
+       // that frequently searched for identifiers are found earlier, even if

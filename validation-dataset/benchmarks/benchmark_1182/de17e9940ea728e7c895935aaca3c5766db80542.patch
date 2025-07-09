@@ -1,0 +1,37 @@
+From de17e9940ea728e7c895935aaca3c5766db80542 Mon Sep 17 00:00:00 2001
+From: Owen Anderson <resistor@mac.com>
+Date: Wed, 17 Jun 2009 22:01:09 +0000
+Subject: [PATCH] Use atomic increment here.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@73643 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/VMCore/Mangler.cpp | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/lib/VMCore/Mangler.cpp b/lib/VMCore/Mangler.cpp
+index 0bd190ad4ed..1a68b890542 100644
+--- a/lib/VMCore/Mangler.cpp
++++ b/lib/VMCore/Mangler.cpp
+@@ -14,6 +14,7 @@
+ #include "llvm/Support/Mangler.h"
+ #include "llvm/DerivedTypes.h"
+ #include "llvm/Module.h"
++#include "llvm/System/Atomic.h"
+ #include "llvm/ADT/STLExtras.h"
+ #include "llvm/ADT/StringExtras.h"
+ #include "llvm/ADT/StringMap.h"
+@@ -164,8 +165,12 @@ std::string Mangler::getValueName(const GlobalValue *GV, const char * Suffix) {
+   } else if (!GV->hasName()) {
+     // Must mangle the global into a unique ID.
+     unsigned TypeUniqueID = getTypeID(GV->getType());
+-    static unsigned GlobalID = 0;
+-    Name = "__unnamed_" + utostr(TypeUniqueID) + "_" + utostr(GlobalID++);
++    static uint32_t GlobalID = 0;
++    
++    unsigned OldID = GlobalID;
++    sys::AtomicIncrement(&GlobalID);
++    
++    Name = "__unnamed_" + utostr(TypeUniqueID) + "_" + utostr(OldID);
+   } else {
+     if (GV->hasPrivateLinkage())
+       Name = makeNameProper(GV->getName() + Suffix, Prefix, PrivatePrefix);

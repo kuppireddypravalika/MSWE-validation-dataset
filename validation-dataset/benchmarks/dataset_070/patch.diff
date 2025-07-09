@@ -1,0 +1,32 @@
+From 6b79fa17ec97e3aec1dc381625c08c3e230b4738 Mon Sep 17 00:00:00 2001
+From: Alexander 'z33ky' Hirsch <1zeeky@gmail.com>
+Date: Fri, 13 Jan 2017 15:36:27 +0100
+Subject: [PATCH] Use clamping instead of jump-to-0 for past-the-end
+ sh3_arc_vfile::Seek
+
+If a file is sought past the end, no data should be returned on
+ReadData().
+---
+ source/SH3/arc/vfile.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/source/SH3/arc/vfile.cpp b/source/SH3/arc/vfile.cpp
+index 2488e487..e7d8c411 100644
+--- a/source/SH3/arc/vfile.cpp
++++ b/source/SH3/arc/vfile.cpp
+@@ -69,12 +69,13 @@ void sh3_arc_vfile::Seek(long pos, std::ios_base::seekdir origin)
+         static_assert(std::is_unsigned<decltype(fpos)>::value, "fpos might overflow, so it needs to be unsigned for the following operation.");
+         fpos += static_cast<decltype(fpos)>(pos);
+     }
++    //FIXME: std::ios_base::end
+ 
+     // Log if there is an attempt at something naughty
+     if(fpos > fsize)
+     {
+-        Log(LogLevel::WARN, "sh3_arc_vfile::Seek( ): Attempt to seek to position > fsize! Setting fpos to 0!");
+-        fpos = 0;
++        Log(LogLevel::WARN, "sh3_arc_vfile::Seek( ): Attempt to seek to position > fsize! Clamping to fsize!");
++        fpos = fsize;
+     }
+ }
+ 

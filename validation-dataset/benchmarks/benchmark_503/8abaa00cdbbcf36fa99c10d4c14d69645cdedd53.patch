@@ -1,0 +1,43 @@
+From 8abaa00cdbbcf36fa99c10d4c14d69645cdedd53 Mon Sep 17 00:00:00 2001
+From: Michael Lettrich <m.lettrich@tum.de>
+Date: Sun, 29 Jan 2017 11:33:49 +0100
+Subject: [PATCH] Get rid of if/else by loop transformation
+
+---
+ .../src/sgpp/datadriven/algorithm/IChol.cpp      | 16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
+
+diff --git a/datadriven/src/sgpp/datadriven/algorithm/IChol.cpp b/datadriven/src/sgpp/datadriven/algorithm/IChol.cpp
+index 865cb0f9a3..ae9114ac85 100644
+--- a/datadriven/src/sgpp/datadriven/algorithm/IChol.cpp
++++ b/datadriven/src/sgpp/datadriven/algorithm/IChol.cpp
+@@ -20,20 +20,22 @@ void IChol::decompose(DataMatrix& matrix, size_t sweeps) {
+     // for each row
+     for (auto i = 0u; i < matrix.getNrows(); i++) {
+       // in each column until diagonal element
+-      for (auto j = 0u; j <= i; j++) {
++      for (auto j = 0u; j < i; j++) {
+         // calculate sum;
+         auto s = matrix.get(i, j);
+         for (auto k = 0u; k < j; k++) {
+           s -= matrix.get(i, k) * matrix.get(j, k);
+         }
++        matrix.set(i, j, s / matrix.get(j, j));
++      }
+ 
+-        // Update value;
+-        if (i != j) {
+-          matrix.set(i, j, s / matrix.get(j, j));
+-        } else {
+-          matrix.set(j, j, sqrt(s));
+-        }
++      // do the diagonal element:
++      // calculate sum;
++      auto s = matrix.get(i, i);
++      for (auto k = 0u; k < i; k++) {
++        s -= matrix.get(i, k) * matrix.get(i, k);
+       }
++      matrix.set(i, i, sqrt(s));
+     }
+   }
+ }

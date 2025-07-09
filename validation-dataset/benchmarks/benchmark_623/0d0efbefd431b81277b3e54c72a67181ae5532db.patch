@@ -1,0 +1,38 @@
+From 0d0efbefd431b81277b3e54c72a67181ae5532db Mon Sep 17 00:00:00 2001
+From: David Stone <david@doublewise.net>
+Date: Fri, 5 Jul 2019 16:08:23 -0600
+Subject: [PATCH] Use uninitialized_copy instead of copy in the implementation
+ of append.
+
+---
+ include/containers/append.hpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/include/containers/append.hpp b/include/containers/append.hpp
+index bfa9f132..2c8889cb 100755
+--- a/include/containers/append.hpp
++++ b/include/containers/append.hpp
+@@ -5,7 +5,7 @@
+ 
+ #pragma once
+ 
+-#include <containers/algorithms/copy.hpp>
++#include <containers/algorithms/uninitialized.hpp>
+ #include <containers/begin_end.hpp>
+ #include <containers/push_back.hpp>
+ #include <containers/reserve_if_reservable.hpp>
+@@ -77,12 +77,12 @@ constexpr auto append(Container & output, Range && input) {
+ 		}
+ 	}
+ 	if constexpr (has_append_from_capacity<Container>) {
+-		auto const result = containers::copy(
++		auto const result = containers::uninitialized_copy(
+ 			begin(BOUNDED_FORWARD(input)),
+ 			end(BOUNDED_FORWARD(input)),
+ 			end(output)
+ 		);
+-		output.append_from_capacity(result.output - end(output));
++		output.append_from_capacity(result - end(output));
+ 	} else if constexpr (has_insert<Container, Range>) {
+ 		output.insert(end(output), begin(BOUNDED_FORWARD(input)), end(BOUNDED_FORWARD(input)));
+ 	} else {

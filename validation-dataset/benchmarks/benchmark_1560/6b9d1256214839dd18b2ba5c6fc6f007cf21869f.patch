@@ -1,0 +1,35 @@
+From 6b9d1256214839dd18b2ba5c6fc6f007cf21869f Mon Sep 17 00:00:00 2001
+From: Thiago Macieira <thiago.macieira@intel.com>
+Date: Thu, 12 Sep 2013 15:31:50 -0700
+Subject: [PATCH] Do 64-bit loops in QBitArray::count(bool)
+
+On 64-bit platforms, with unaligned loads, this is defintely an
+improvement since we can run fewer instructions. On 32-bit platforms
+with unaligned loads, we'll do the exact same number of loads. On
+platforms without unaligned loads, it's no worse.
+
+Change-Id: Idd5dd5213975d77bbc3adf486adbf6f8ef071341
+Reviewed-by: Olivier Goffart <ogoffart@woboq.com>
+Reviewed-by: Marc Mutz <marc.mutz@kdab.com>
+---
+ src/corelib/tools/qbitarray.cpp | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/src/corelib/tools/qbitarray.cpp b/src/corelib/tools/qbitarray.cpp
+index 169f0ce2c88..da2f48c0711 100644
+--- a/src/corelib/tools/qbitarray.cpp
++++ b/src/corelib/tools/qbitarray.cpp
+@@ -194,7 +194,12 @@ int QBitArray::count(bool on) const
+     // it's the QByteArray implicit NUL, so it will not change the bit count
+     const quint8 *const end = reinterpret_cast<const quint8 *>(d.end());
+ 
+-    while (bits + 3 <= end) {
++    while (bits + 7 <= end) {
++        quint64 v = qUnalignedLoad<quint64>(bits);
++        bits += 8;
++        numBits += int(qPopulationCount(v));
++    }
++    if (bits + 3 <= end) {
+         quint32 v = qUnalignedLoad<quint32>(bits);
+         bits += 4;
+         numBits += int(qPopulationCount(v));

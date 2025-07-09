@@ -1,0 +1,47 @@
+From 2efc3e8a566e1e53cdc8188ded4cd9012573d3c6 Mon Sep 17 00:00:00 2001
+From: "M. J." <inkwizytoryankes@gmail.com>
+Date: Tue, 30 Aug 2011 04:44:01 +0300
+Subject: [PATCH] speed fix in _zoomSurfaceY
+
+---
+ src/Engine/Screen.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/Engine/Screen.cpp b/src/Engine/Screen.cpp
+index 1a993e2947..19daf5c3c4 100644
+--- a/src/Engine/Screen.cpp
++++ b/src/Engine/Screen.cpp
+@@ -149,6 +149,7 @@ int Screen::_zoomSurfaceY(SDL_Surface * src, SDL_Surface * dst, int flipx, int f
+ 			csx -= dst->w;
+ 			(*csax)++;
+ 		}
++		(*csax) *= (flipx ? -1 : 1);
+ 		csax++;
+ 	}
+ 	csy = 0;
+@@ -160,6 +161,7 @@ int Screen::_zoomSurfaceY(SDL_Surface * src, SDL_Surface * dst, int flipx, int f
+ 			csy -= dst->h;
+ 			(*csay)++;
+ 		}
++		(*csay) *= src->pitch * (flipy ? -1 : 1);
+ 		csay++;
+ 	}
+ 
+@@ -178,7 +180,7 @@ int Screen::_zoomSurfaceY(SDL_Surface * src, SDL_Surface * dst, int flipx, int f
+ 			/*
+ 			* Advance source pointers 
+ 			*/
+-			sp += (*csax) * (flipx ? -1 : 1);
++			sp += (*csax);
+ 			csax++;
+ 			/*
+ 			* Advance destination pointer 
+@@ -188,7 +190,7 @@ int Screen::_zoomSurfaceY(SDL_Surface * src, SDL_Surface * dst, int flipx, int f
+ 		/*
+ 		* Advance source pointer (for row) 
+ 		*/
+-		csp += ((*csay) * src->pitch) * (flipy ? -1 : 1);
++		csp += (*csay);
+ 		csay++;
+ 
+ 		/*

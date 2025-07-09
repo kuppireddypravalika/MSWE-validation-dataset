@@ -1,0 +1,37 @@
+From 6d5a1f1e736160af870969a589c897b3acea063b Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Gunter=20K=C3=B6nigsmann?= <gunter@peterpall.de>
+Date: Thu, 23 Apr 2020 12:08:20 +0200
+Subject: [PATCH] Another SpeedUp: We recalculated the worksheet size too
+ often.
+
+---
+ src/Worksheet.cpp | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/src/Worksheet.cpp b/src/Worksheet.cpp
+index e60f9cb62b..efe6a5b283 100644
+--- a/src/Worksheet.cpp
++++ b/src/Worksheet.cpp
+@@ -980,15 +980,15 @@ bool Worksheet::RecalculateIfNeeded()
+   int height;
+   GetClientSize(&width, &height);
+ 
++  wxPoint upperLeftScreenCorner;
++  CalcScrolledPosition(0, 0,
++                       &upperLeftScreenCorner.x, &upperLeftScreenCorner.y);
++  m_configuration->SetVisibleRegion(wxRect(upperLeftScreenCorner,
++                                           upperLeftScreenCorner + wxPoint(width,height)));
++  m_configuration->SetWorksheetPosition(GetPosition());
++
+   while (tmp != NULL)
+   {
+-    wxPoint upperLeftScreenCorner;
+-    CalcScrolledPosition(0, 0,
+-                         &upperLeftScreenCorner.x, &upperLeftScreenCorner.y);
+-    m_configuration->SetVisibleRegion(wxRect(upperLeftScreenCorner,
+-                                      upperLeftScreenCorner + wxPoint(width,height)));
+-    m_configuration->SetWorksheetPosition(GetPosition());
+-
+     tmp->Recalculate();
+     tmp = tmp->GetNext();
+   }

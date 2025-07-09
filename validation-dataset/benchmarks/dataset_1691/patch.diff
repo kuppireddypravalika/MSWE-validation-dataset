@@ -1,0 +1,44 @@
+From a0f9d03fb0fa25c293b8e0b67be68992f036a365 Mon Sep 17 00:00:00 2001
+From: Teseo Schneider <teseo@bluewin.ch>
+Date: Thu, 14 Mar 2019 12:38:39 -0400
+Subject: [PATCH] more efficient matrix assembly manipulation
+
+---
+ src/assembler/Assembler.cpp | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/src/assembler/Assembler.cpp b/src/assembler/Assembler.cpp
+index 12fb61edd0..011c9c7818 100644
+--- a/src/assembler/Assembler.cpp
++++ b/src/assembler/Assembler.cpp
+@@ -193,22 +193,23 @@ namespace polyfem
+ 		for (LocalStorage::iterator i = storages.begin(); i != storages.end();  ++i)
+ 		{
+ 			logger().debug("local stiffness: {}, entries: {}", i->stiffness.nonZeros(), i->entries.size());
+-			stiffness += i->stiffness;
+-
+-			i->stiffness.resize(0,0);
+-			i->stiffness.data().squeeze();
+ 
+ 			i->tmp_mat.setFromTriplets(i->entries.begin(), i->entries.end());
+-
+ 			i->entries.clear();
+ 			i->entries.shrink_to_fit();
+ 
+-
+-			stiffness += i->tmp_mat;
++			i->stiffness += i->tmp_mat;
+ 
+ 			i->tmp_mat.resize(0,0);
+ 			i->tmp_mat.data().squeeze();
+ 
++			i->stiffness.makeCompressed();
++
++			stiffness += i->stiffness;
++
++			i->stiffness.resize(0,0);
++			i->stiffness.data().squeeze();
++
+ 			stiffness.makeCompressed();
+ 		}
+ #else

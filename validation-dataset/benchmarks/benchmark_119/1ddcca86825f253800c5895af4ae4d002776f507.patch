@@ -1,0 +1,26 @@
+From 1ddcca86825f253800c5895af4ae4d002776f507 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Hugo=20Beauz=C3=A9e-Luyssen?= <hugo@beauzee.fr>
+Date: Wed, 17 Dec 2014 00:08:43 +0100
+Subject: [PATCH] PlatformHelpers: Avoid allocating unchecked data on the stack
+
+---
+ cppcx/PlatformHelpers.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/cppcx/PlatformHelpers.cpp b/cppcx/PlatformHelpers.cpp
+index d829186..3509294 100644
+--- a/cppcx/PlatformHelpers.cpp
++++ b/cppcx/PlatformHelpers.cpp
+@@ -38,9 +38,9 @@ ToPlatformString(const char *str) {
+     size_t len = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0);
+     if (len == 0)
+         return nullptr;
+-    wchar_t* w_str = reinterpret_cast<wchar_t*>(alloca(len * sizeof(*w_str)));
+-    MultiByteToWideChar(CP_UTF8, 0, str, -1, w_str, len);
+-    return ref new Platform::String(w_str);
++    std::unique_ptr<wchar_t[]> w_str(new wchar_t[len]);
++    MultiByteToWideChar(CP_UTF8, 0, str, -1, w_str.get(), len);
++    return ref new Platform::String(w_str.get());
+ }
+ 
+ Platform::String^

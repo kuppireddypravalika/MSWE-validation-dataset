@@ -1,0 +1,31 @@
+From e484a529b097fb017490c80fd813e413d9eed110 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Can=20B=C3=B6l=C3=BCk?= <can.boluk89@gmail.com>
+Date: Wed, 10 Jun 2020 09:18:35 +0200
+Subject: [PATCH] Optimized out some unnecessary iteration.
+
+---
+ VTIL-Optimizer/common/auxiliaries.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/VTIL-Optimizer/common/auxiliaries.cpp b/VTIL-Optimizer/common/auxiliaries.cpp
+index a1aa4790..133a4b11 100644
+--- a/VTIL-Optimizer/common/auxiliaries.cpp
++++ b/VTIL-Optimizer/common/auxiliaries.cpp
+@@ -150,7 +150,7 @@ namespace vtil::optimizer::aux
+ 				} )
+ 
+ 				// | Skip further checks if value is dead.
+-				.where( [ & ] ( const il_const_iterator& it ) { return query::rlocal( variable_mask ) != 0; } )
++				.whilst( [ & ] ( const il_const_iterator& it ) { return query::rlocal( variable_mask ) != 0; } )
+ 
+ 				// >> Select the instructions that read the value previously written.
+ 				.where( [ & ] ( const il_const_iterator& it )
+@@ -224,7 +224,7 @@ namespace vtil::optimizer::aux
+ 			blueprint
+ 
+ 				// | Skip further checks if value is dead.
+-				.where( [ & ] ( const il_const_iterator& it ) { return query::rlocal( variable_mask ) != 0; } )
++				.whilst( [ & ] ( const il_const_iterator& it ) { return query::rlocal( variable_mask ) != 0; } )
+ 
+ 				// @ Clear from the active mask per overwrite.
+ 				.run( [ & ] ( const il_const_iterator& it ) 

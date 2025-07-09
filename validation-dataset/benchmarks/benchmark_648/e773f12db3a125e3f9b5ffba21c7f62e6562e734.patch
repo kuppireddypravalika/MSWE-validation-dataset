@@ -1,0 +1,45 @@
+From e773f12db3a125e3f9b5ffba21c7f62e6562e734 Mon Sep 17 00:00:00 2001
+From: "Garth N. Wells" <gnw20@cam.ac.uk>
+Date: Tue, 4 Jan 2011 19:50:37 +0000
+Subject: [PATCH] Split assembly and solve parts in parallel benchmark.
+
+---
+ bench/fem/speedup/cpp/solve-poisson.cpp | 21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
+
+diff --git a/bench/fem/speedup/cpp/solve-poisson.cpp b/bench/fem/speedup/cpp/solve-poisson.cpp
+index 4ded4343e94..a8cb4c2fe65 100644
+--- a/bench/fem/speedup/cpp/solve-poisson.cpp
++++ b/bench/fem/speedup/cpp/solve-poisson.cpp
+@@ -37,15 +37,26 @@ int main(int argc, char* argv[])
+   Constant f(1.0);
+   L.f = f;
+   VariationalProblem problem(a, L, bc);
+-  info(problem.parameters, true);
+-  problem.parameters["linear_solver"] = "gmres";
+-  problem.parameters["preconditioner"] = "amg_hypre";
+   Function u(V);
+ 
+-  // Solve problem
++  // Create linear solver
++  KrylovSolver solver("gmres", "amg_hypre");
++
++  // Assemble matrix and vector, and apply Dirichlet boundary conditions
++  Matrix A;
++  Vector b;
+   dolfin::MPI::barrier();
+   double t = time();
+-  problem.solve(u);
++  assemble(A, a);
++  assemble(b, L);
++  bc.apply(A, b);
++  dolfin::MPI::barrier();
++  t = time() - t;
++
++  // Solve problem
++  dolfin::MPI::barrier();
++  t = time();
++  solver.solve(A, u.vector(), b);
+   dolfin::MPI::barrier();
+   t = time() - t;
+ 

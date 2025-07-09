@@ -1,0 +1,22 @@
+From a2cef7bb5461f22d12e2d7603f69862d78ece6be Mon Sep 17 00:00:00 2001
+From: Thomas Schoeps <tom.schoeps@googlemail.com>
+Date: Wed, 23 Jan 2013 00:42:14 +0100
+Subject: [PATCH] Slight optimization for connecting paths
+
+---
+ src/map_editor.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/map_editor.cpp b/src/map_editor.cpp
+index ccecc9ae0..64f214c3d 100644
+--- a/src/map_editor.cpp
++++ b/src/map_editor.cpp
+@@ -1766,6 +1766,8 @@ float connectPaths_FindClosestEnd(const std::vector<Object*>& objects, PathObjec
+ 						*out_b_index = i;
+ 						*out_path_part_b = path_part_b;
+ 						*out_path_part_b_begin = path_part_b_begin;
++						if (distance_sq == 0)
++							return 0;
+ 					}
+ 				}
+ 			}

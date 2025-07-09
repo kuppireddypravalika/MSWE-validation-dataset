@@ -1,0 +1,28 @@
+From fcf08744c3ab86bf6a8d73cf00e8d209083f3105 Mon Sep 17 00:00:00 2001
+From: Lyve <lyve2909+github@gmail.com>
+Date: Sat, 22 Jan 2022 23:03:29 +0100
+Subject: [PATCH] remove unneccessary comparison of next PC if calling
+ non-branch child
+
+---
+ source/dsp56kEmu/jitblock.cpp | 7 -------
+ 1 file changed, 7 deletions(-)
+
+diff --git a/source/dsp56kEmu/jitblock.cpp b/source/dsp56kEmu/jitblock.cpp
+index 659256c1..18045f5a 100644
+--- a/source/dsp56kEmu/jitblock.cpp
++++ b/source/dsp56kEmu/jitblock.cpp
+@@ -306,13 +306,6 @@ namespace dsp56k
+ 				if(m_nonBranchChild != g_invalidAddress)
+ 				{
+ 					const auto nonBranchChild = _jit->getChildBlock(nullptr, m_nonBranchChild);
+-#ifdef HAVE_ARM64
+-					m_asm.mov(r32(g_funcArgGPs[1]), asmjit::Imm(pcNext));
+-					m_asm.cmp(r32(regReturnVal), r32(g_funcArgGPs[1]));
+-#else
+-					m_asm.cmp(r32(regReturnVal), asmjit::Imm(pcNext));
+-#endif
+-					m_asm.jnz(end);
+ 					m_stack.call(asmjit::func_as_ptr(nonBranchChild->getFunc()));
+ 				}
+ 				m_asm.bind(end);

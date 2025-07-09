@@ -1,0 +1,49 @@
+From e39cf970936710e4f648d29face3841f7e61c089 Mon Sep 17 00:00:00 2001
+From: Rene Brun <Rene.Brun@cern.ch>
+Date: Wed, 4 Apr 2007 13:21:01 +0000
+Subject: [PATCH] The array bigbuf must be allocated on the stack and not the
+ heap via new. This solves a problem on amd64 between hbook/fortran and
+ h2root/C++
+
+git-svn-id: http://root.cern.ch/svn/root/trunk@18475 27541ba8-7e3a-0410-8455-c3a389f83636
+---
+ main/src/h2root.cxx | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/main/src/h2root.cxx b/main/src/h2root.cxx
+index bee6a66e19547..de4f2cfd88ab9 100644
+--- a/main/src/h2root.cxx
++++ b/main/src/h2root.cxx
+@@ -1,4 +1,4 @@
+-// @(#)root/main:$Name:  $:$Id: h2root.cxx,v 1.28 2007/02/09 08:27:44 brun Exp $
++// @(#)root/main:$Name:  $:$Id: h2root.cxx,v 1.29 2007/02/19 08:20:01 brun Exp $
+ // Author: Rene Brun   20/09/96
+ /////////////////////////////////////////////////////////////////////////
+ //      Program to convert an HBOOK file into a ROOT file
+@@ -64,7 +64,7 @@ extern "C" int hcbook[51];
+ extern "C" int rzcl[11];
+ #endif
+ 
+-char *bigbuf = 0; //this variable must be global for amd64
++char bigbuf[4000000]; //this variable must be global for amd64
+ int *iq, *lq;
+ float *q;
+ char idname[128];
+@@ -668,7 +668,7 @@ void convert_cwn(Int_t id)
+    Int_t *lenbool  = new Int_t[nvar];
+    UChar_t *boolarr = new UChar_t[10000];
+    x = new float[nvar];
+-   bigbuf = new char[2500000];
++   //bigbuf = new char[2500000];
+ 
+    chtag_out[nvar*kNchar]=0;
+    for (i=0;i<80;i++)chtitl[i]=0;
+@@ -884,7 +884,7 @@ void convert_cwn(Int_t id)
+    tree->Write();
+    delete tree;
+    delete [] x;
+-   delete [] bigbuf;
++   //delete [] bigbuf;
+    delete [] charflag;
+    delete [] lenchar;
+    delete [] boolflag;

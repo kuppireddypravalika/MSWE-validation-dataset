@@ -1,0 +1,46 @@
+From 44f95335dd57dd76843d7e84537582ec08107508 Mon Sep 17 00:00:00 2001
+From: Dan Gohman <gohman@apple.com>
+Date: Wed, 25 Aug 2010 23:33:07 +0000
+Subject: [PATCH] Convert llvm-extract to use lazy loading. This makes it
+ substantially faster on large modules.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@112110 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ tools/llvm-extract/llvm-extract.cpp | 15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/tools/llvm-extract/llvm-extract.cpp b/tools/llvm-extract/llvm-extract.cpp
+index 190ab2e6b18..b5c0bcf4f03 100644
+--- a/tools/llvm-extract/llvm-extract.cpp
++++ b/tools/llvm-extract/llvm-extract.cpp
+@@ -71,9 +71,10 @@ int main(int argc, char **argv) {
+   llvm_shutdown_obj Y;  // Call llvm_shutdown() on exit.
+   cl::ParseCommandLineOptions(argc, argv, "llvm extractor\n");
+ 
++  // Use lazy loading, since we only care about selected global values.
+   SMDiagnostic Err;
+   std::auto_ptr<Module> M;
+-  M.reset(ParseIRFile(InputFilename, Err, Context));
++  M.reset(getLazyIRFileModule(InputFilename, Err, Context));
+ 
+   if (M.get() == 0) {
+     Err.Print(argv[0], errs());
+@@ -104,6 +105,18 @@ int main(int argc, char **argv) {
+     GVs.push_back(GV);
+   }
+ 
++  // Materialize requisite global values.
++  for (size_t i = 0, e = GVs.size(); i != e; ++i) {
++    GlobalValue *GV = GVs[i];
++    if (GV->isMaterializable()) {
++      std::string ErrInfo;
++      if (GV->Materialize(&ErrInfo)) {
++        errs() << argv[0] << ": error reading input: " << ErrInfo << "\n";
++        return 1;
++      }
++    }
++  }
++
+   // In addition to deleting all other functions, we also want to spiff it
+   // up a little bit.  Do this now.
+   PassManager Passes;

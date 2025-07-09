@@ -1,0 +1,23 @@
+From 46d4a1f21903ffba3cee8a39f291c77a4b332a11 Mon Sep 17 00:00:00 2001
+From: Mike Nelson <mjn.other@gmail.com>
+Date: Wed, 26 Jun 2024 02:51:41 -0500
+Subject: [PATCH] fix screenshudder option being optimized out by the compiler
+ (#6204)
+
+---
+ freespace2/freespace.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/freespace2/freespace.cpp b/freespace2/freespace.cpp
+index c379d1ced78..fce4010aa6a 100644
+--- a/freespace2/freespace.cpp
++++ b/freespace2/freespace.cpp
+@@ -3001,7 +3001,7 @@ bool is_screenshake_enabled()
+ 		return true;
+ 	} else {
+ 		if (Using_in_game_options) {
+-			return Screenshake_enabled;
++			return ScreenShakeOption->getValue();
+ 		} else {
+ 			return !Cmdline_no_screenshake;
+ 		}

@@ -1,0 +1,25 @@
+From 0e94f16706b74b98a85e3b2894bad8f71eecde14 Mon Sep 17 00:00:00 2001
+From: Henry Qin <hq6@stanford.edu>
+Date: Sun, 25 Mar 2018 18:00:53 -0700
+Subject: [PATCH] Document the use of allThreadContexts instead of
+ threadContext
+
+---
+ src/Arachne.h | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/Arachne.h b/src/Arachne.h
+index 9459f70..3fc1375 100644
+--- a/src/Arachne.h
++++ b/src/Arachne.h
+@@ -518,6 +518,10 @@ createThreadOnCore(uint32_t coreId, _Callable&& __f, _Args&&... __args) {
+     // Read the generation number *before* waking up the thread, to avoid a
+     // race where the thread finishes executing so fast that we read the next
+     // generation number instead of the current one.
++    // It's not clear why reading from allThreadContexts[coreId][index] is
++    // faster than reading it from threadContext, but it seems to save ~10 ns
++    // in the microbenchmark. One speculation is that we can get better ILP by
++    // not using the same variable for both.
+     uint32_t generation = allThreadContexts[coreId][index]->generation;
+     threadContext->wakeupTimeInCycles = 0;
+ 

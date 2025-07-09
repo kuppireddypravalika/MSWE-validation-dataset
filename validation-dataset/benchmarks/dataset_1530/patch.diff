@@ -1,0 +1,24 @@
+From 7473ed131c8766688e9b1fba39bb0f126140adc8 Mon Sep 17 00:00:00 2001
+From: Mikko Partio <mikko.partio@fmi.fi>
+Date: Fri, 22 Feb 2019 14:32:25 +0200
+Subject: [PATCH] Randomize time_ensemble fetch list to avoid all threads from
+ reading the same data (ie blocking each other)
+
+---
+ himan-lib/source/time_ensemble.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/himan-lib/source/time_ensemble.cpp b/himan-lib/source/time_ensemble.cpp
+index 9d458a381..46c8a5868 100644
+--- a/himan-lib/source/time_ensemble.cpp
++++ b/himan-lib/source/time_ensemble.cpp
+@@ -135,6 +135,9 @@ void time_ensemble::Fetch(std::shared_ptr<const plugin_configuration> config, co
+ 	                               itsSecondaryTimeSpan, itsSecondaryTimeMaskStep,
+ 	                               (itsParam.Name() == "FFG-MS" || itsParam.Name() == "RRR-KGM2"));
+ 
++	// randomize timelist so that different threads start to fetch different data
++	std::random_shuffle(timeList.begin(), timeList.end());
++
+ 	for (const auto& tm : timeList)
+ 	{
+ 		try

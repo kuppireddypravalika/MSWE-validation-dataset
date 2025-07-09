@@ -1,0 +1,23 @@
+From 80a730dcbf4e159a881ec0d98f6958302ea2342e Mon Sep 17 00:00:00 2001
+From: gnanabaskaran <gnanabaskaran.muthumani@amd.com>
+Date: Mon, 8 Aug 2016 16:12:35 +0530
+Subject: [PATCH] cpu-profiler - turn off synchronous while creating db.
+
+---
+ .../DatabaseLayer/AMDTProfilerDAL/src/AMDTDatabaseAccessor.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/CodeXL/Components/DatabaseLayer/AMDTProfilerDAL/src/AMDTDatabaseAccessor.cpp b/CodeXL/Components/DatabaseLayer/AMDTProfilerDAL/src/AMDTDatabaseAccessor.cpp
+index 2d19a4cf1..ee5320651 100755
+--- a/CodeXL/Components/DatabaseLayer/AMDTProfilerDAL/src/AMDTDatabaseAccessor.cpp
++++ b/CodeXL/Components/DatabaseLayer/AMDTProfilerDAL/src/AMDTDatabaseAccessor.cpp
+@@ -956,6 +956,9 @@ class AmdtDatabaseAccessor::Impl
+ 
+             GT_IF_WITH_ASSERT(rc == SQLITE_OK)
+             {
++                // Turn off synchronous
++                SetSynchronousOff();
++
+                 ret = CreateTables(SQL_CREATE_DB_STMTS_COMMON);
+ 
+                 if (ret && ((profileType & AMDT_PROFILE_MODE_TIMELINE) == AMDT_PROFILE_MODE_TIMELINE))

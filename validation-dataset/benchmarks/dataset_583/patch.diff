@@ -1,0 +1,48 @@
+From 0af649bb26377760b197748f5ab89c86638fe760 Mon Sep 17 00:00:00 2001
+From: David Freese <w1hkj@w1hkj.com>
+Date: Wed, 14 Jul 2010 11:30:22 -0500
+Subject: [PATCH] '^' Parser
+
+  Modified '^' character sequence parsing to eliminate idle
+  character.  Beneficial for slow modem baud rates.
+---
+ src/dialogs/fl_digi.cxx | 16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
+
+diff --git a/src/dialogs/fl_digi.cxx b/src/dialogs/fl_digi.cxx
+index 7f4016fb3..aac9e3ae1 100644
+--- a/src/dialogs/fl_digi.cxx
++++ b/src/dialogs/fl_digi.cxx
+@@ -4868,15 +4868,16 @@ int get_tx_char(void)
+ 		return c;
+ 	}
+ 
+-	switch (c = TransmitText->nextChar()) {
++	c = TransmitText->nextChar();
++	if (c == '^' && state == STATE_CHAR) {
++		state = STATE_CTRL;
++		c = TransmitText->nextChar();
++	}
++	switch (c) {
++	case -1: break; // no character available
+ 	case '\n':
+ 		pending = '\n';
+ 		return '\r';
+-	case '^':
+-		if (state == STATE_CTRL)
+-			break;
+-		state = STATE_CTRL;
+-		return -1;
+ 	case 'r':
+ 		if (state != STATE_CTRL)
+ 			break;
+@@ -4901,7 +4902,8 @@ int get_tx_char(void)
+ 		c = -1;
+ 		REQ(qso_save_now);
+ 		break;
+-	case -1:
++	case '^':
++		state = STATE_CHAR;
+ 		break;
+ 	default:
+ 		if (state == STATE_CTRL) {

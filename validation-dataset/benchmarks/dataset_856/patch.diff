@@ -1,0 +1,32 @@
+From b7aee0cd1d6bdff05129265a80ff04aca008088a Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Tue, 1 Aug 2017 21:52:04 -0400
+Subject: [PATCH] [librpbase] RpPngWriter: Use PNG_Z_DEFAULT_COMPRESSION.
+
+PNG_Z_DEFAULT_COMPRESSION == -1, but it seems to correlate to level 6,
+which is slightly better without being that much slower.
+
+Four Swords Anniversary's icon was reduced from 3,201 to 2,193 bytes
+when using rp-stub to thumbnail with rom-properties-gnome.so with
+RpPngWriter after this change.
+
+TODO: Make it customizable, and maybe use filters?
+---
+ src/librpbase/img/RpPngWriter.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/librpbase/img/RpPngWriter.cpp b/src/librpbase/img/RpPngWriter.cpp
+index 9f1662a52d..d2a77b41e3 100644
+--- a/src/librpbase/img/RpPngWriter.cpp
++++ b/src/librpbase/img/RpPngWriter.cpp
+@@ -1030,8 +1030,9 @@ int RpPngWriter::write_IHDR(void)
+ #endif
+ 
+ 	// Initialize compression parameters.
++	// TODO: Customizable?
+ 	png_set_filter(d->png_ptr, 0, PNG_FILTER_NONE);
+-	png_set_compression_level(d->png_ptr, 5);	// TODO: Customizable?
++	png_set_compression_level(d->png_ptr, PNG_Z_DEFAULT_COMPRESSION);
+ 
+ 	// Write the PNG header.
+ 	switch (d->cache.format) {

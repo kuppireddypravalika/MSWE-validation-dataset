@@ -1,0 +1,22 @@
+From c1f9b484b76e85c4435694f18d198d65a44b878a Mon Sep 17 00:00:00 2001
+From: Jeffrey Walton <noloader@gmail.com>
+Date: Fri, 25 Jan 2019 08:20:25 -0500
+Subject: [PATCH] Use ChaChaTLS in benchmarks
+
+---
+ bench2.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/bench2.cpp b/bench2.cpp
+index 9370df349..5612ad854 100644
+--- a/bench2.cpp
++++ b/bench2.cpp
+@@ -141,7 +141,7 @@ void Benchmark2(double t, double hertz)
+ 		BenchMarkByName<SymmetricCipher>("ChaCha", 0, "ChaCha20");
+ 		BenchMarkByName<SymmetricCipher>("ChaCha", 0, "ChaCha12", MakeParameters(Name::Rounds(), 12));
+ 		BenchMarkByName<SymmetricCipher>("ChaCha", 0, "ChaCha8", MakeParameters(Name::Rounds(), 8));
+-		BenchMarkByName<SymmetricCipher>("ChaChaTLS");
++		BenchMarkByName<SymmetricCipher>("ChaChaTLS", 0, "ChaChaTLS");
+ 		BenchMarkByName<SymmetricCipher>("Sosemanuk");
+ 		BenchMarkByName<SymmetricCipher>("Rabbit");
+ 		BenchMarkByName<SymmetricCipher>("RabbitWithIV");

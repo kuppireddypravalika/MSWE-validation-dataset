@@ -1,0 +1,39 @@
+From b6d11028bbb5e428cdbd709ba46d8b14bab17c88 Mon Sep 17 00:00:00 2001
+From: Stefan Geschwentner <Stefan-Geschwentner@web.de>
+Date: Sun, 5 May 2019 15:58:52 +0200
+Subject: [PATCH] LMR for captures not cracking alpha
+
+Enable LMR for a capture/promotion move which does not seem
+to have a good chance to fail high according to static eval
+and value of captured piece.
+
+STC:
+LLR: 2.96 (-2.94,2.94) [0.50,4.50]
+Total: 40477 W: 9158 L: 8792 D: 22527
+http://tests.stockfishchess.org/tests/view/5cceedc60ebc5925cf04174f
+
+LTC:
+LLR: 2.94 (-2.94,2.94) [0.00,3.50]
+Total: 21926 W: 3873 L: 3634 D: 14419
+http://tests.stockfishchess.org/tests/view/5ccf04310ebc5925cf041ab0
+
+Bench: 3644175
+---
+ src/search.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/search.cpp b/src/search.cpp
+index 36e73a09..bafc374b 100644
+--- a/src/search.cpp
++++ b/src/search.cpp
+@@ -1008,7 +1008,9 @@ namespace {
+       // re-searched at full depth.
+       if (    depth >= 3 * ONE_PLY
+           &&  moveCount > 1
+-          && (!captureOrPromotion || moveCountPruning))
++          && (  !captureOrPromotion
++              || moveCountPruning
++              || ss->staticEval + PieceValue[EG][pos.captured_piece()] <= alpha))
+       {
+           Depth r = reduction<PvNode>(improving, depth, moveCount);
+ 

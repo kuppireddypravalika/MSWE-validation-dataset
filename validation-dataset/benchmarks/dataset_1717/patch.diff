@@ -1,0 +1,30 @@
+From 02204239a0800dc16c1e9175e8e3a92542ea267f Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Tue, 9 Feb 2016 19:50:58 +0100
+Subject: [PATCH] QtGui: replace a Q_FOREACH loop with QList::op+=
+
+Change-Id: I071705d6fdb4cec5bc357bda034c249b400147a9
+Reviewed-by: Gunnar Sletta <gunnar@sletta.org>
+Reviewed-by: Olivier Goffart (Woboq GmbH) <ogoffart@woboq.com>
+Reviewed-by: Lars Knoll <lars.knoll@theqtcompany.com>
+---
+ src/gui/kernel/qguiapplication.cpp | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/src/gui/kernel/qguiapplication.cpp b/src/gui/kernel/qguiapplication.cpp
+index e75de9a77d79..46518e4701ad 100644
+--- a/src/gui/kernel/qguiapplication.cpp
++++ b/src/gui/kernel/qguiapplication.cpp
+@@ -1378,10 +1378,8 @@ void QGuiApplicationPrivate::init()
+ 
+     // Load environment exported generic plugins
+     QByteArray envPlugins = qgetenv("QT_QPA_GENERIC_PLUGINS");
+-    if (!envPlugins.isEmpty()) {
+-        foreach (const QByteArray &plugin, envPlugins.split(','))
+-            pluginList << plugin;
+-    }
++    if (!envPlugins.isEmpty())
++        pluginList += envPlugins.split(',');
+ 
+     if (platform_integration == 0)
+         createPlatformIntegration();

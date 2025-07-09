@@ -1,0 +1,41 @@
+From e8ab48f1cc4bf77928f1afcd6380999b1d8f7488 Mon Sep 17 00:00:00 2001
+From: M <mc.cm.mail@gmail.com>
+Date: Mon, 13 May 2019 01:30:56 +0200
+Subject: [PATCH] Replaced usleep() with the modern C++ standard equivalent
+
+---
+ src/tmatrix.cpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/src/tmatrix.cpp b/src/tmatrix.cpp
+index 72ec2e1..e2d46c9 100644
+--- a/src/tmatrix.cpp
++++ b/src/tmatrix.cpp
+@@ -4,14 +4,17 @@
+  * SPDX-License-Identifier: GPL-2.0-only
+  */
+ 
++#include <chrono>
+ #include <string_view>
+-#include <unistd.h>
++#include <thread>
+ #include <vector>
+ #include "Parser.h"
+ #include "Rain.h"
+ #include "Terminal.h"
+ #include "tmatrix.h"
+ 
++using namespace std::chrono_literals;
++
+ int main(int argc, char *argv[])
+ {
+ 	bool paused {false};
+@@ -29,7 +32,7 @@ int main(int argc, char *argv[])
+ 				Terminal::Flush();
+ 			}
+ 			Parser::ParseRuntimeInput(Terminal::ReadInputChar(), paused);
+-			usleep(1000*1000/stepsPerSecond);
++			std::this_thread::sleep_for(1.0s/stepsPerSecond);
+ 		}
+ 	}
+ }

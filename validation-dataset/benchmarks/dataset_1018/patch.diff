@@ -1,0 +1,29 @@
+From 7e09b59556c9d1725ff72cbeb708f95c1d88aae2 Mon Sep 17 00:00:00 2001
+From: "Garth N. Wells" <gnw20@cam.ac.uk>
+Date: Fri, 21 Aug 2009 10:32:28 +0100
+Subject: [PATCH] Iterate over matrix entries in uBLASMatrix::zero.
+
+---
+ dolfin/la/uBLASMatrix.h | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/dolfin/la/uBLASMatrix.h b/dolfin/la/uBLASMatrix.h
+index cb402264ced..295053ec49d 100644
+--- a/dolfin/la/uBLASMatrix.h
++++ b/dolfin/la/uBLASMatrix.h
+@@ -372,8 +372,14 @@ namespace dolfin
+   {
+     // Set all non-zero values to zero without detroying non-zero pattern
+     // It might be faster to iterate through entries?
+-    A  *= 0.0;
++    //A  *= 0.0;
+     //A.clear();
++
++    typename Mat::iterator1 row;    // Iterator over rows
++    typename Mat::iterator2 entry;  // Iterator over entries
++    for (row = A.begin1(); row != A.end1(); ++row)
++      for (entry = row.begin(); entry != row.end(); ++entry)
++        *entry = 0;
+   }
+   //-----------------------------------------------------------------------------
+   template <class Mat>

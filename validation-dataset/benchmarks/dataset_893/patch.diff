@@ -1,0 +1,27 @@
+From 304b13c2712b8f12970ed331da3bb8518420ccc6 Mon Sep 17 00:00:00 2001
+From: Rosen Penev <rosenp@gmail.com>
+Date: Fri, 30 Dec 2022 20:33:26 -0800
+Subject: [PATCH] use find instead of std::find_if
+
+There's already an operator==
+
+Signed-off-by: Rosen Penev <rosenp@gmail.com>
+---
+ src/sonymn_int.cpp | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/src/sonymn_int.cpp b/src/sonymn_int.cpp
+index 99c4c005dd..5c7fc79230 100644
+--- a/src/sonymn_int.cpp
++++ b/src/sonymn_int.cpp
+@@ -1188,9 +1188,7 @@ static void findLensSpecFlags(const Value& value, std::string& flagsStart, std::
+   for (const auto& i : lSFArray) {
+     temp = i.mask & joinedV0V7;
+     if (temp) {  // Check if a flag matches in the current LensSpecFlags
+-      const auto it =
+-          std::find_if(i.flags.begin(), i.flags.end(), [temp](const TagDetails& td) { return (temp == td.val_); });
+-
++      const auto it = std::find(i.flags.begin(), i.flags.end(), temp);
+       if (it == i.flags.end()) {
+         // Should never get in here. LensSpecFlags.mask should contain all the
+         // bits in all the LensSpecFlags.flags.val_ entries

@@ -1,0 +1,29 @@
+From 5d53aef3ca29bed6f86365136e3e0ad05f8e6086 Mon Sep 17 00:00:00 2001
+From: philiplb <philip@philiplb.de>
+Date: Sat, 8 Sep 2012 21:20:14 +0200
+Subject: [PATCH] Volume Rendering: micro optimization and cleanup
+
+---
+ Components/Volume/src/OgreVolumeChunk.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Components/Volume/src/OgreVolumeChunk.cpp b/Components/Volume/src/OgreVolumeChunk.cpp
+index 4c26aae4df4..d40bd516ac6 100644
+--- a/Components/Volume/src/OgreVolumeChunk.cpp
++++ b/Components/Volume/src/OgreVolumeChunk.cpp
+@@ -420,13 +420,13 @@ namespace Volume {
+         
+         // Get the distance to the center.
+         Vector3 camPos = mCamera->getRealPosition();
+-        Real d = (mBox.getCenter() * mScale).squaredDistance(camPos);
++        Real d = (mBox.getCenter() * mScale).distance(camPos);
+         if (d < 1.0)
+         {
+             d = 1.0;
+         }
+ 
+-        Real screenSpaceError = (mError / Math::Sqrt(d)) * k;
++        Real screenSpaceError = mError / d * k;
+ 
+         if (screenSpaceError <= mMaxPixelError / mScale)
+         {

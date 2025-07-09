@@ -1,0 +1,41 @@
+From 6c2241552e2bbcc0e4a61d56b9160333a9ff5f61 Mon Sep 17 00:00:00 2001
+From: Mathieu Malaterre <mathieu.malaterre@gmail.com>
+Date: Fri, 1 Dec 2017 15:26:03 -0500
+Subject: [PATCH] ENH: Use double floating point API for MetaImage
+
+MetaIO internally uses double floating point representation to store
+Offset, TransformMatrix and ElementSpacing for MetaImage.
+
+Prefer using the double floating point API instead of the legacy single
+floating point API to avoid any data truncation.
+
+Change-Id: I4db94dba0a23ae8c5c52646bec897bae15aad851
+---
+ Modules/IO/Meta/src/itkMetaImageIO.cxx | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/Modules/IO/Meta/src/itkMetaImageIO.cxx b/Modules/IO/Meta/src/itkMetaImageIO.cxx
+index 504756a1670..e12bf09837f 100644
+--- a/Modules/IO/Meta/src/itkMetaImageIO.cxx
++++ b/Modules/IO/Meta/src/itkMetaImageIO.cxx
+@@ -785,18 +785,17 @@ ::Write(const void *buffer)
+     }
+ 
+   int *        dSize = new int[numberOfDimensions];
+-  float *      eSpacing = new float[numberOfDimensions];
++  double *     eSpacing = new double[numberOfDimensions];
+   double *     eOrigin = new double[numberOfDimensions];
+   for ( unsigned int ii = 0; ii < numberOfDimensions; ++ii )
+     {
+     dSize[ii] = this->GetDimensions(ii);
+-    eSpacing[ii] = static_cast< float >( this->GetSpacing(ii) );
++    eSpacing[ii] = this->GetSpacing(ii);
+     eOrigin[ii] = this->GetOrigin(ii);
+     }
+ 
+   m_MetaImage.InitializeEssential( numberOfDimensions, dSize, eSpacing, eType, nChannels,
+                                    const_cast< void * >( buffer ) );
+-  m_MetaImage.SetDoublePrecision(6);
+   m_MetaImage.Position(eOrigin);
+   m_MetaImage.BinaryData(binaryData);
+ 

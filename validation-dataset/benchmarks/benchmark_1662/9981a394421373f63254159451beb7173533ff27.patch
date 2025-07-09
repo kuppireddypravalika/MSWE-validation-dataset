@@ -1,0 +1,25 @@
+From 9981a394421373f63254159451beb7173533ff27 Mon Sep 17 00:00:00 2001
+From: Ulrich Weigand <ulrich.weigand@de.ibm.com>
+Date: Tue, 24 Apr 2018 14:03:21 +0000
+Subject: [PATCH] [SystemZ] Use preferred 16-byte function alignment
+
+While not necessary for correctness, it is preferable for
+performance reasons on all architectures we currently support
+to align functions to 16-byte boundaries by default.
+---
+ llvm/lib/Target/SystemZ/SystemZISelLowering.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/llvm/lib/Target/SystemZ/SystemZISelLowering.cpp b/llvm/lib/Target/SystemZ/SystemZISelLowering.cpp
+index 5de324d1d46d..a408a0a2b94d 100644
+--- a/llvm/lib/Target/SystemZ/SystemZISelLowering.cpp
++++ b/llvm/lib/Target/SystemZ/SystemZISelLowering.cpp
+@@ -122,6 +122,8 @@ SystemZTargetLowering::SystemZTargetLowering(const TargetMachine &TM,
+ 
+   // Instructions are strings of 2-byte aligned 2-byte values.
+   setMinFunctionAlignment(2);
++  // For performance reasons we prefer 16-byte alignment.
++  setPrefFunctionAlignment(4);
+ 
+   // Handle operations that are handled in a similar way for all types.
+   for (unsigned I = MVT::FIRST_INTEGER_VALUETYPE;

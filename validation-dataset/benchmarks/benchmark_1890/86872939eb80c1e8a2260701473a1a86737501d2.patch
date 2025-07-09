@@ -1,0 +1,28 @@
+From 86872939eb80c1e8a2260701473a1a86737501d2 Mon Sep 17 00:00:00 2001
+From: Johannes Doerfert <doerfert@cs.uni-saarland.de>
+Date: Mon, 29 Sep 2014 17:06:29 +0000
+Subject: [PATCH] Disable runtime alias checks when we ignore aliasing.
+
+  This is just a optimization to save the compile time and execution time
+  for runtime alias checks if the user guarantees no aliasing all together.
+---
+ polly/lib/Analysis/ScopDetection.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/polly/lib/Analysis/ScopDetection.cpp b/polly/lib/Analysis/ScopDetection.cpp
+index e8226c81f8b1..ac20cd8d2859 100644
+--- a/polly/lib/Analysis/ScopDetection.cpp
++++ b/polly/lib/Analysis/ScopDetection.cpp
+@@ -196,6 +196,12 @@ ScopDetection::ScopDetection() : FunctionPass(ID) {
+   if (!PollyUseRuntimeAliasChecks)
+     return;
+ 
++  // Disable runtime alias checks if we ignore aliasing all together.
++  if (IgnoreAliasing) {
++    PollyUseRuntimeAliasChecks = false;
++    return;
++  }
++
+   if (PollyDelinearize) {
+     DEBUG(errs() << "WARNING: We disable runtime alias checks as "
+                     "delinearization is enabled.\n");

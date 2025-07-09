@@ -1,0 +1,23 @@
+From 5da7e34300df6528da2fbd5ea3a3d95ee17e1aa5 Mon Sep 17 00:00:00 2001
+From: Victor Coda <victor.coda@gmail.com>
+Date: Sat, 14 Mar 2020 15:42:04 +0200
+Subject: [PATCH] Use std::move() for <layout> and <renderPass> parameters
+
+---
+ auxiliary/graphicsPipelineCache.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/auxiliary/graphicsPipelineCache.cpp b/auxiliary/graphicsPipelineCache.cpp
+index f25b7d31c..0ea16bdfe 100644
+--- a/auxiliary/graphicsPipelineCache.cpp
++++ b/auxiliary/graphicsPipelineCache.cpp
+@@ -112,7 +112,8 @@ std::shared_ptr<GraphicsPipeline> GraphicsPipelineCache::lookupPipeline(
+     std::shared_ptr<GraphicsPipeline> pipeline = std::make_shared<GraphicsPipeline>(device,
+         stages, vertexInputState, inputAssemblyState, tesselationState, viewportState,
+         rasterizationState, multisampleState, depthStencilState, colorBlendState, dynamicStates,
+-        layout, renderPass, subpass, basePipeline, pipelineCache, info.flags, allocator);
++        std::move(layout), std::move(renderPass), subpass,
++        basePipeline, pipelineCache, info.flags, allocator);
+     MAGMA_ASSERT(pipeline->getHash() == hash); // Check hash computation
+     pipelines.emplace(hash, pipeline);
+     basePipelines.emplace(baseHash, pipeline);

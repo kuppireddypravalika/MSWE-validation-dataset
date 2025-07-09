@@ -1,0 +1,29 @@
+From db27f3d5a7b5ea3e415b3985877c8951f8eabfbb Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Tue, 26 Jan 2016 14:38:54 +0100
+Subject: [PATCH] QtNetwork: eradicate Q_FOREACH loops [const-& returns]
+
+... by replacing them with C++11 range-for loops.
+
+The function QObject::children() returns by const-reference,
+so its result can be passed to range-for without further changes.
+
+Change-Id: Ic330a8e110d6dd5624b9e328ece2a614d5c71e4f
+Reviewed-by: Lars Knoll <lars.knoll@theqtcompany.com>
+---
+ src/network/socket/qlocalsocket_tcp.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/network/socket/qlocalsocket_tcp.cpp b/src/network/socket/qlocalsocket_tcp.cpp
+index d205836f690..4348b819d9a 100644
+--- a/src/network/socket/qlocalsocket_tcp.cpp
++++ b/src/network/socket/qlocalsocket_tcp.cpp
+@@ -274,7 +274,7 @@ bool QLocalSocket::setSocketDescriptor(qintptr socketDescriptor,
+     // Is our parent a localServer? Then it wants us to use its remote socket.
+     QLocalServer* localServer = qobject_cast<QLocalServer*>( parent() );
+     if (localServer) {
+-        foreach (QObject* child, localServer->children()) {
++        for (QObject* child : localServer->children()) {
+             QTcpSocket* childTcpSocket = qobject_cast<QTcpSocket*>(child);
+             if (childTcpSocket && childTcpSocket->socketDescriptor() == socketDescriptor) {
+                 d->setSocket( static_cast<QLocalUnixSocket*>(childTcpSocket) );

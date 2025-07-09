@@ -1,0 +1,31 @@
+From f7f59771616b76cadb59b29838c57557fa1aa34b Mon Sep 17 00:00:00 2001
+From: Joel Galenson <jgalenson@google.com>
+Date: Tue, 5 Dec 2017 21:33:12 +0000
+Subject: [PATCH] [AArch64] Do not abort if overflow check does not use EQ or
+ NE.
+
+As suggested by Eli Friedman, instead of aborting if an overflow check
+uses something other than SETEQ or SETNE, simply do not apply the
+optimization.
+
+Differential Revision: https://reviews.llvm.org/D39147
+---
+ llvm/lib/Target/AArch64/AArch64ISelLowering.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/llvm/lib/Target/AArch64/AArch64ISelLowering.cpp b/llvm/lib/Target/AArch64/AArch64ISelLowering.cpp
+index 00c450446485..faddd39f79db 100644
+--- a/llvm/lib/Target/AArch64/AArch64ISelLowering.cpp
++++ b/llvm/lib/Target/AArch64/AArch64ISelLowering.cpp
+@@ -4006,9 +4006,8 @@ SDValue AArch64TargetLowering::LowerBR_CC(SDValue Op, SelectionDAG &DAG) const {
+ 
+   // Optimize {s|u}{add|sub|mul}.with.overflow feeding into a branch
+   // instruction.
+-  if (isOverflowIntrOpRes(LHS) && isOneConstant(RHS)) {
+-    assert((CC == ISD::SETEQ || CC == ISD::SETNE) &&
+-           "Unexpected condition code.");
++  if (isOverflowIntrOpRes(LHS) && isOneConstant(RHS) &&
++      (CC == ISD::SETEQ || CC == ISD::SETNE)) {
+     // Only lower legal XALUO ops.
+     if (!DAG.getTargetLoweringInfo().isTypeLegal(LHS->getValueType(0)))
+       return SDValue();

@@ -1,0 +1,27 @@
+From 638e493dcac9873d12a33a04753b3ef99fbf0b1c Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@intel.com>
+Date: Mon, 11 Jun 2018 16:34:10 +0000
+Subject: [PATCH] [X86] Properly account for the immediate being multiplied by
+ 8 in the immediate range checking for BI__builtin_ia32_psrldqi128 and
+ friends.
+
+The limit was set to 1023 which only up to 127*8. It needs to be 2047 to allow 255*8.
+
+git-svn-id: https://llvm.org/svn/llvm-project/cfe/trunk@334416 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Sema/SemaChecking.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/Sema/SemaChecking.cpp b/lib/Sema/SemaChecking.cpp
+index 8730408c8d..6648ffc13f 100644
+--- a/lib/Sema/SemaChecking.cpp
++++ b/lib/Sema/SemaChecking.cpp
+@@ -2911,7 +2911,7 @@ bool Sema::CheckX86BuiltinFunctionCall(unsigned BuiltinID, CallExpr *TheCall) {
+   case X86::BI__builtin_ia32_psrldqi128:
+   case X86::BI__builtin_ia32_psrldqi256:
+   case X86::BI__builtin_ia32_psrldqi512:
+-    i = 1; l = 0; u = 1023;
++    i = 1; l = 0; u = 2047;
+     break;
+   }
+   return SemaBuiltinConstantArgRange(TheCall, i, l, u);

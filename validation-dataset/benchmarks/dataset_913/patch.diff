@@ -1,0 +1,25 @@
+From 027fc9ab3cf9c8110e7b817a0f5d63c3bcdbe046 Mon Sep 17 00:00:00 2001
+From: Jeroen Baert <jerbae@gmail.com>
+Date: Wed, 20 Nov 2013 18:37:09 +0100
+Subject: [PATCH] Unsigned int for find powerof8 (division is cheaper)
+
+---
+ src/ooc_svo_builder/svo_builder/svo_builder_util.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/ooc_svo_builder/svo_builder/svo_builder_util.h b/src/ooc_svo_builder/svo_builder/svo_builder_util.h
+index 3b90f22..10c8d90 100644
+--- a/src/ooc_svo_builder/svo_builder/svo_builder_util.h
++++ b/src/ooc_svo_builder/svo_builder/svo_builder_util.h
+@@ -28,9 +28,9 @@ inline Vec<D,T> average3Vec(const Vec<D,T> v0, const Vec<D,T> v1, const Vec<D,T>
+ 	return answer;
+ }
+ 
+-inline int findPowerOf8(size_t n){
++inline unsigned int findPowerOf8(size_t n){
+ 	if(n == 0){return 0;}
+-	int highest_index = 0;
++	unsigned int highest_index = 0;
+ 	while(n >>= 1){
+ 		highest_index++;
+ 	}

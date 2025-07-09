@@ -1,0 +1,23 @@
+From e7cc7c825b50bc03b89de3704b9a6789fdb0024c Mon Sep 17 00:00:00 2001
+From: Chris Lattner <sabre@nondot.org>
+Date: Wed, 4 Apr 2007 06:18:21 +0000
+Subject: [PATCH] trivial optimization
+
+llvm-svn: 35648
+---
+ llvm/include/llvm/ADT/APInt.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/llvm/include/llvm/ADT/APInt.h b/llvm/include/llvm/ADT/APInt.h
+index df90753f636..d80c601d274 100644
+--- a/llvm/include/llvm/ADT/APInt.h
++++ b/llvm/include/llvm/ADT/APInt.h
+@@ -278,7 +278,7 @@ class APInt {
+   /// This converts the APInt to a boolean value as a test against zero.
+   /// @brief Boolean conversion function. 
+   inline bool getBoolValue() const {
+-    return countLeadingZeros() != BitWidth;
++    return *this != 0;
+   }
+ 
+   /// @}

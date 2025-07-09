@@ -1,0 +1,21 @@
+From 0f8bcbf4b80d8b0fa686b03375a58d2ff6220c9c Mon Sep 17 00:00:00 2001
+From: Iampete1 <iampete@hotmail.co.uk>
+Date: Thu, 5 Aug 2021 02:17:20 +0100
+Subject: [PATCH] AP_Scripting: optimise genrated bindings for size
+
+---
+ libraries/AP_Scripting/generator/src/main.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/libraries/AP_Scripting/generator/src/main.c b/libraries/AP_Scripting/generator/src/main.c
+index 836f16c125cf72..ce37d7afbe7f91 100644
+--- a/libraries/AP_Scripting/generator/src/main.c
++++ b/libraries/AP_Scripting/generator/src/main.c
+@@ -2151,6 +2151,7 @@ int main(int argc, char **argv) {
+ 
+   sanity_check_userdata();
+ 
++  fprintf(source, "#pragma GCC optimize(\"Os\")\n");
+   fprintf(source, "#include \"lua_generated_bindings.h\"\n");
+   fprintf(source, "#include <AP_Scripting/lua_boxed_numerics.h>\n");
+ 

@@ -1,0 +1,30 @@
+From a15a0b234ffcd76114f40dad04c3e73463814f68 Mon Sep 17 00:00:00 2001
+From: Guido Tack <guido.tack@monash.edu>
+Date: Thu, 2 Apr 2020 18:00:15 +1100
+Subject: [PATCH] When an integer or bool variable has a singleton domain, use
+ the value. This enables more overloading to par functions.
+
+---
+ lib/flatten/flatten_id.cpp | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/lib/flatten/flatten_id.cpp b/lib/flatten/flatten_id.cpp
+index f7fcfcf1c..4a0e90ad5 100644
+--- a/lib/flatten/flatten_id.cpp
++++ b/lib/flatten/flatten_id.cpp
+@@ -125,6 +125,15 @@ namespace MiniZinc {
+         } else if (vd->e()->isa<Id>()) {
+           rete = vd->e();
+         }
++      } else if (vd->ti()->ranges().size() == 0 && vd->ti()->domain() && vd->type().st()==Type::ST_PLAIN) {
++        if (vd->type().bt()==Type::BT_BOOL) {
++          rete = vd->ti()->domain();
++        } else if (vd->type().bt()==Type::BT_INT &&
++                   vd->ti()->domain()->isa<SetLit>() &&
++                   vd->ti()->domain()->cast<SetLit>()->isv() &&
++                   vd->ti()->domain()->cast<SetLit>()->isv()->card()==1) {
++          rete = IntLit::a(vd->ti()->domain()->cast<SetLit>()->isv()->min());
++        }
+       } else if (vd->ti()->ranges().size() > 0) {
+         // create fresh variables and array literal
+         std::vector<std::pair<int,int> > dims;

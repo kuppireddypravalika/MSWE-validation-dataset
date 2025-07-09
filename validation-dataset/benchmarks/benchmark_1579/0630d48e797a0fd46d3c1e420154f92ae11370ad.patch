@@ -1,0 +1,56 @@
+From 0630d48e797a0fd46d3c1e420154f92ae11370ad Mon Sep 17 00:00:00 2001
+From: Lucas Theis <lucas@theis.io>
+Date: Tue, 16 Jul 2013 18:55:35 +0200
+Subject: [PATCH] Minimal improvement to window extraction.
+
+---
+ code/cmt/src/tools.cpp | 18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
+
+diff --git a/code/cmt/src/tools.cpp b/code/cmt/src/tools.cpp
+index 9a66bf0..82dba53 100644
+--- a/code/cmt/src/tools.cpp
++++ b/code/cmt/src/tools.cpp
+@@ -1,3 +1,7 @@
++#include "lbfgs.h"
++#include "utils.h"
++#include "exception.h"
++
+ #include <algorithm>
+ using std::max;
+ using std::min;
+@@ -7,7 +11,9 @@ using std::rand;
+ 
+ #include <cmath>
+ using std::exp;
+-using std::max;
++
++#include <cstring>
++using std::memcpy;
+ 
+ #include <set>
+ using std::set;
+@@ -29,10 +35,6 @@ using CMT::ArrayXXb;
+ using CMT::Preconditioner;
+ using CMT::extractFromImage;
+ 
+-#include "lbfgs.h"
+-#include "utils.h"
+-#include "exception.h"
+-
+ #include "Eigen/Core"
+ using Eigen::Block;
+ using Eigen::Dynamic;
+@@ -1326,8 +1328,10 @@ ArrayXXd CMT::extractWindows(const ArrayXXd& timeSeries, int windowLength) {
+ 			for(int i = 0; i < timeSeries.rows(); ++i, ++k)
+ 				windows(k, t) = timeSeries(i, t + j);
+ 		#else
+-		for(int i = 0; i < windows.rows(); ++i)
+-			dataTo[t * windows.rows() + i] = dataFrom[t * timeSeries.rows() + i];
++		memcpy(
++			dataTo + t * windows.rows(),
++			dataFrom + t * timeSeries.rows(),
++			sizeof(double) * windows.rows());
+ 		#endif
+ 	}
+ 

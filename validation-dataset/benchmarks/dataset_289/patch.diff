@@ -1,0 +1,31 @@
+From 2aaca8a0175f2fff456f0f6f791f8c932872945a Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Sat, 10 Mar 2018 21:08:52 +0000
+Subject: [PATCH] ISO8211: avoid excessive processing time. Fixes
+ https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=6388 /
+ https://oss-fuzz.com/v2/testcase-detail/5684682168467456. Credit to OSS Fuzz
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@41699 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/frmts/iso8211/ddfrecord.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/gdal/frmts/iso8211/ddfrecord.cpp b/gdal/frmts/iso8211/ddfrecord.cpp
+index 2844de88e730..f9c6c15aafbb 100644
+--- a/gdal/frmts/iso8211/ddfrecord.cpp
++++ b/gdal/frmts/iso8211/ddfrecord.cpp
+@@ -527,6 +527,14 @@ int DDFRecord::ReadHeader()
+ 
+             if(DDF_FIELD_TERMINATOR != tmpBuf[0]) {
+                 nFieldCount++;
++                if( nFieldCount == 1000 )
++                {
++                    CPLError(CE_Failure, CPLE_FileIO,
++                         "Too many fields in DDF file.");
++                    CPLFree(tmpBuf);
++                    nFieldOffset = -1;
++                    return FALSE;
++                }
+             }
+         }
+         while(DDF_FIELD_TERMINATOR != tmpBuf[0]);

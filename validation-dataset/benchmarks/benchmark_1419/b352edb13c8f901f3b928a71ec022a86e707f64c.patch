@@ -1,0 +1,38 @@
+From b352edb13c8f901f3b928a71ec022a86e707f64c Mon Sep 17 00:00:00 2001
+From: klirichek <klirichek@8b96e2b9-35c5-2c16-bc47-5122d61876d4>
+Date: Fri, 10 Jul 2009 02:55:08 +0000
+Subject: [PATCH] Addition to previous commit: minor hack to improve speed on
+ MSVC
+
+---
+ src/sphinxsearch.cpp | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/src/sphinxsearch.cpp b/src/sphinxsearch.cpp
+index e5657b67..8cb45d8a 100644
+--- a/src/sphinxsearch.cpp
++++ b/src/sphinxsearch.cpp
+@@ -3871,18 +3871,19 @@ void ExtNodeCached_t::StepForwardToHitsFor ( SphDocID_t uDocId )
+ 		return;
+ 
+ 	// binary search for lower (most left) bound of the subset of values
+-	while ( iEnd-m_iHitIndex>1 )
++	int iHitIndex = m_iHitIndex; // http://blog.gamedeff.com/?p=12
++	while ( iEnd-iHitIndex>1 )
+ 	{
+-		if ( uDocId<dHits[m_iHitIndex].m_uDocid || uDocId>dHits[iEnd].m_uDocid )
++		if ( uDocId<dHits[iHitIndex].m_uDocid || uDocId>dHits[iEnd].m_uDocid )
+ 		{
+ 			m_iHitIndex = -1;
+ 			return;
+ 		}
+-		int iMid = m_iHitIndex + (iEnd-m_iHitIndex)/2;
++		int iMid = iHitIndex + (iEnd-iHitIndex)/2;
+ 		if ( dHits[iMid].m_uDocid >= uDocId )
+ 			iEnd = iMid;
+ 		else
+-			m_iHitIndex = iMid;
++			iHitIndex = iMid;
+ 	}	
+ 	m_iHitIndex = iEnd;
+ }

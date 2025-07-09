@@ -1,0 +1,32 @@
+From dd445e6c8df9389f0ce49f2913a28e828f092dea Mon Sep 17 00:00:00 2001
+From: Rosen Penev <rosenp@gmail.com>
+Date: Thu, 26 Jan 2023 17:46:55 -0800
+Subject: [PATCH] use find instead of count
+
+Signed-off-by: Rosen Penev <rosenp@gmail.com>
+---
+ src/http.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/http.cpp b/src/http.cpp
+index 1a954f3379..50ccd05336 100644
+--- a/src/http.cpp
++++ b/src/http.cpp
+@@ -131,13 +131,13 @@ static int makeNonBlocking(int sockfd) {
+ }
+ 
+ int Exiv2::http(Exiv2::Dictionary& request, Exiv2::Dictionary& response, std::string& errors) {
+-  if (!request.count("verb"))
++  if (request.find("verb") == request.end())
+     request["verb"] = "GET";
+-  if (!request.count("header"))
++  if (request.find("header") == request.end())
+     request["header"] = "";
+-  if (!request.count("version"))
++  if (request.find("version") == request.end())
+     request["version"] = "1.0";
+-  if (!request.count("port"))
++  if (request.find("port") == request.end())
+     request["port"] = "";
+ 
+   std::string file;

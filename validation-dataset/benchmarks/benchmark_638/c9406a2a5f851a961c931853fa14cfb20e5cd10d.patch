@@ -1,0 +1,41 @@
+From c9406a2a5f851a961c931853fa14cfb20e5cd10d Mon Sep 17 00:00:00 2001
+From: Duncan Sands <baldrick@free.fr>
+Date: Tue, 4 May 2010 09:41:51 +0000
+Subject: [PATCH] Use FAdd rather than Add when adding floating point vectors,
+ and likewise for subtraction and multiplication.
+
+---
+ dragonegg/x86/llvm-target.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/dragonegg/x86/llvm-target.cpp b/dragonegg/x86/llvm-target.cpp
+index f463044e587a..46bf4de7fc72 100644
+--- a/dragonegg/x86/llvm-target.cpp
++++ b/dragonegg/x86/llvm-target.cpp
+@@ -757,6 +757,8 @@ bool TreeToLLVM::TargetIntrinsicLower(gimple stmt,
+   unknown: return false;
+   IX86_BUILTIN_ADDPS:
+   IX86_BUILTIN_ADDPD:
++    Result = Builder.CreateFAdd(Ops[0], Ops[1]);
++    return true;
+   IX86_BUILTIN_PADDB:
+   IX86_BUILTIN_PADDW:
+   IX86_BUILTIN_PADDD:
+@@ -769,6 +771,8 @@ bool TreeToLLVM::TargetIntrinsicLower(gimple stmt,
+     return true;
+   IX86_BUILTIN_SUBPS:
+   IX86_BUILTIN_SUBPD:
++    Result = Builder.CreateFSub(Ops[0], Ops[1]);
++    return true;
+   IX86_BUILTIN_PSUBB:
+   IX86_BUILTIN_PSUBW:
+   IX86_BUILTIN_PSUBD:
+@@ -781,6 +785,8 @@ bool TreeToLLVM::TargetIntrinsicLower(gimple stmt,
+     return true;
+   IX86_BUILTIN_MULPS:
+   IX86_BUILTIN_MULPD:
++    Result = Builder.CreateFMul(Ops[0], Ops[1]);
++    return true;
+   IX86_BUILTIN_PMULLW:
+   IX86_BUILTIN_PMULLW128:
+     Result = Builder.CreateMul(Ops[0], Ops[1]);

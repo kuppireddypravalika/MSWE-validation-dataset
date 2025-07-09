@@ -1,0 +1,22 @@
+From e7946d98a906e737a500aa9cbd622f7f62581c70 Mon Sep 17 00:00:00 2001
+From: Vadim Pisarevsky <no@email>
+Date: Tue, 27 Dec 2011 16:07:26 +0000
+Subject: [PATCH] fixed SSE-optimized cmp_8u (ticket #1530)
+
+---
+ modules/core/src/arithm.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/modules/core/src/arithm.cpp b/modules/core/src/arithm.cpp
+index 80d3dace2..e1879580e 100644
+--- a/modules/core/src/arithm.cpp
++++ b/modules/core/src/arithm.cpp
+@@ -2056,7 +2056,7 @@ static void cmp8u(const uchar* src1, size_t step1, const uchar* src2, size_t ste
+ 		    #if CV_SSE2
+ 		    if( USE_SSE2 ){
+                 __m128i m128 = code == CMP_GT ? _mm_setzero_si128() : _mm_set1_epi8 (0xff);
+-                __m128i c128 = _mm_set1_epi8 (0x7f);
++                __m128i c128 = _mm_set1_epi8 (128);
+ 				for( ; x <= size.width - 16; x += 16 )
+ 				{
+ 					__m128i r00 = _mm_loadu_si128((const __m128i*)(src1 + x));

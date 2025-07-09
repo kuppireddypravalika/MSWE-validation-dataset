@@ -1,0 +1,36 @@
+From 5f66692395744712244f19e66eaa89790590a019 Mon Sep 17 00:00:00 2001
+From: est31 <MTest31@outlook.com>
+Date: Wed, 24 Feb 2016 02:46:36 +0100
+Subject: [PATCH] Use xrange for common "for i in range(...)" use case
+
+Make the parser eliminate a wasteful allocation and initialisation
+of a possibly large array.
+---
+ modules/gdscript/gd_parser.cpp | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/modules/gdscript/gd_parser.cpp b/modules/gdscript/gd_parser.cpp
+index 4f572b7b6..4b0164d8a 100644
+--- a/modules/gdscript/gd_parser.cpp
++++ b/modules/gdscript/gd_parser.cpp
+@@ -1779,6 +1779,20 @@ void GDParser::_parse_block(BlockNode *p_block,bool p_static) {
+ 					return;
+ 				}
+ 
++				// Little optimisation for common usage "for i in range(...):":
++				// don't create and initialize a possibly huge array as range()
++				// would do, but instead create an iterator using xrange()
++				if (container->type == Node::TYPE_OPERATOR) {
++					OperatorNode *op = static_cast<OperatorNode *>(container);
++					if (op->arguments.size() > 0 &&
++							op->arguments[0]->type == Node::TYPE_BUILT_IN_FUNCTION) {
++						BuiltInFunctionNode *c = static_cast<BuiltInFunctionNode *>(op->arguments[0]);
++						if (c->function == GDFunctions::GEN_RANGE) {
++							c->function = GDFunctions::GEN_XRANGE;
++						}
++					}
++				}
++
+ 				ControlFlowNode *cf_for = alloc_node<ControlFlowNode>();
+ 
+ 				cf_for->cf_type=ControlFlowNode::CF_FOR;

@@ -1,0 +1,23 @@
+From f744b1e9cb7a23c0195d17e9965ac77ae2de3ec2 Mon Sep 17 00:00:00 2001
+From: Michael Fabian 'Xaymar' Dirks <info@xaymar.com>
+Date: Sun, 21 Jul 2019 10:18:17 +0200
+Subject: [PATCH] ffmpeg/avframe-queue: Set AVFrame buffer alignment to 32-byte
+
+This is twice the required alignment for modern SSE, but it has a clear reason. On both Intel and AMD systems, a 32-byte alignment was ~15% faster than a 16-byte alignment when used with memcpy, which just so happens to be one of the main uses for these frames. Unless the encoder internally keeps its own queue of AVFrames and copies them itself, this will result in a massive speed up across all encoders.
+---
+ source/ffmpeg/avframe-queue.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/source/ffmpeg/avframe-queue.cpp b/source/ffmpeg/avframe-queue.cpp
+index 555e39f..c51410b 100644
+--- a/source/ffmpeg/avframe-queue.cpp
++++ b/source/ffmpeg/avframe-queue.cpp
+@@ -26,7 +26,7 @@ std::shared_ptr<AVFrame> ffmpeg::avframe_queue::create_frame()
+ 	frame->height = this->resolution.second;
+ 	frame->format = this->format;
+ 
+-	int res = av_frame_get_buffer(frame.get(), 0);
++	int res = av_frame_get_buffer(frame.get(), 32);
+ 	if (res < 0) {
+ 		throw std::exception(ffmpeg::tools::get_error_description(res));
+ 	}

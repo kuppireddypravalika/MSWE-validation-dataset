@@ -1,0 +1,23 @@
+From 08587e4aac14aa19fb55f24f58eeeb7370b77370 Mon Sep 17 00:00:00 2001
+From: Dmitry Tsarevich <dimhotepus@gmail.com>
+Date: Fri, 25 Sep 2020 00:19:01 +0300
+Subject: [PATCH] [perf] Do not need to do string -> char* -> string
+
+Just copy string.
+---
+ src/xrScriptEngine/BindingsDumper.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/xrScriptEngine/BindingsDumper.cpp b/src/xrScriptEngine/BindingsDumper.cpp
+index f24a93c469a..44859015343 100644
+--- a/src/xrScriptEngine/BindingsDumper.cpp
++++ b/src/xrScriptEngine/BindingsDumper.cpp
+@@ -156,7 +156,7 @@ void BindingsDumper::FormatMemberFunction(const SignatureFormatterParams& params
+             stripReturnValue = true;
+         }
+         else
+-            funcName = refFuncName.c_str();
++            funcName = refFuncName;
+     }
+     bool concat = !(options.IgnoreDerived || options.StripThis || stripReturnValue);
+     int signLen = params.Function->format_signature(ls, funcName.c_str(), concat);

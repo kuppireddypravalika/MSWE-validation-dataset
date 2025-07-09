@@ -1,0 +1,43 @@
+From d85835deac8dd2c52d603695417387fb72267f6e Mon Sep 17 00:00:00 2001
+From: Mark Stoodley <mstoodle@ca.ibm.com>
+Date: Fri, 17 Mar 2017 10:47:46 -0400
+Subject: [PATCH] Improve reg pressure sim for small 64-bit consts
+
+I came across an example block with a sequence of code using
+lconsts to address an array of structs. Unhappy with the
+register allocation in the method, I tracked the problem
+down to the handling of register pressure for these lconsts:
+each one increased register pressure by 1 until the sequence
+blew the register budget. The immediate reason for the
+increased register pressure is that these lconsts are assumed
+to require a register for the duration of the block, even
+though the constants are small and generally end up folded
+into memory references.
+
+There is an escape hatch for 32-bit integers to say they do
+not require a register. This commit adds 32-bit integer
+constants masquerading as 64-bit integer constants due to
+IL type consistency requirements on 64-bit platforms. It
+allows 64-bit integer constants where node->isHighWordZero().
+
+Signed-off-by: Mark Stoodley <mstoodle@ca.ibm.com>
+---
+ compiler/x/codegen/OMRCodeGenerator.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/compiler/x/codegen/OMRCodeGenerator.cpp b/compiler/x/codegen/OMRCodeGenerator.cpp
+index 14febecc99..b58e76de4e 100644
+--- a/compiler/x/codegen/OMRCodeGenerator.cpp
++++ b/compiler/x/codegen/OMRCodeGenerator.cpp
+@@ -3103,9 +3103,10 @@ uint8_t OMR::X86::CodeGenerator::nodeResultGPRCount(TR::Node *node, TR_RegisterP
+    TR_ASSERT(!self()->comp()->getOption(TR_DisableRegisterPressureSimulation), "assertion failure");
+ 
+    // 32-bit integer constants practically never need a register on x86
++   //  (includes 64-bit integer constants with high word zero needed to maintain IL correctness)
+    //
+    if (  node->getOpCode().isLoadConst()
+-      && node->getSize() <= 4
++      && (node->getSize() <= 4 || (node->getType().isInt64() && node->isHighWordZero()))
+       && (node->getType().isAddress() || node->getType().isIntegral())
+       && !(  self()->simulatedNodeState(node, state)._keepLiveUntil != NULL // Check if parent will become a RegStore that keeps this node live
+          && state->_currentTreeTop->getNode()->getOpCode().isStoreDirect()

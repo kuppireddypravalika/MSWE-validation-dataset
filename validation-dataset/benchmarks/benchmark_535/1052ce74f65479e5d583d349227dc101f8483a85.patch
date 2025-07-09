@@ -1,0 +1,41 @@
+From 1052ce74f65479e5d583d349227dc101f8483a85 Mon Sep 17 00:00:00 2001
+From: Jonathan Calovski <jonoface@live.com.au>
+Date: Sun, 1 Jan 2017 02:09:22 +1100
+Subject: [PATCH] Tweak best thread selection logic
+
+STC 7 threads:
+LLR: 2.96 (-2.94,2.94) [0.00,5.00]
+Total: 26881 W: 4161 L: 3941 D: 18779
+http://tests.stockfishchess.org/tests/view/58667a830ebc5903140c632f
+
+LTC 7 threads:
+LLR: 2.95 (-2.94,2.94) [0.00,5.00]
+Total: 22988 W: 2767 L: 2583 D: 17638
+http://tests.stockfishchess.org/tests/view/586722690ebc5903140c636d
+
+bench: 5468995
+---
+ src/search.cpp | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/src/search.cpp b/src/search.cpp
+index 33870913..a46c4462 100644
+--- a/src/search.cpp
++++ b/src/search.cpp
+@@ -312,9 +312,14 @@ void MainThread::search() {
+       &&  rootMoves[0].pv[0] != MOVE_NONE)
+   {
+       for (Thread* th : Threads)
+-          if (   th->completedDepth > bestThread->completedDepth
+-              && th->rootMoves[0].score > bestThread->rootMoves[0].score)
++      {
++          Depth depthDiff = th->completedDepth - bestThread->completedDepth;
++          Value scoreDiff = th->rootMoves[0].score - bestThread->rootMoves[0].score;
++
++          if (   (depthDiff > 0 && scoreDiff >= 0)
++              || (scoreDiff > 0 && depthDiff >= 0))
+               bestThread = th;
++      }
+   }
+ 
+   previousScore = bestThread->rootMoves[0].score;

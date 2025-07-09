@@ -1,0 +1,28 @@
+From b5cb2ffaf13c2a12bf7a0347f2b30bc3f91ec41a Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Tue, 7 Apr 2020 19:28:05 -0600
+Subject: [PATCH] Use packed parameter methods in TextArea::draw
+
+---
+ OPHD/UI/Core/TextArea.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/OPHD/UI/Core/TextArea.cpp b/OPHD/UI/Core/TextArea.cpp
+index ff05932e8..bbc6f72f3 100644
+--- a/OPHD/UI/Core/TextArea.cpp
++++ b/OPHD/UI/Core/TextArea.cpp
+@@ -92,12 +92,12 @@ void TextArea::draw()
+ {
+ 	Renderer& r = Utility<Renderer>::get();
+ 
+-	if (highlight()) { r.drawBox(rect(), 255, 255, 255); }
++	if (highlight()) { r.drawBox(rect(), NAS2D::Color::White); }
+ 
+ 	if (!mFont) { return; }
+ 	
+ 	for (size_t i = 0; i < mFormattedList.size() && i < mNumLines; ++i)
+ 	{
+-		r.drawText(*mFont, mFormattedList[i], positionX(), positionY() + (mFont->height() * i), mTextColor.red(), mTextColor.green(), mTextColor.blue(), mTextColor.alpha());
++		r.drawText(*mFont, mFormattedList[i], {positionX(), positionY() + (mFont->height() * i)}, mTextColor);
+ 	}
+ }

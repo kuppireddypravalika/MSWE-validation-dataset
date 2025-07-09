@@ -1,0 +1,31 @@
+From 617c4a4cc0fb960e2c727db9a3f0f79f8aa879d9 Mon Sep 17 00:00:00 2001
+From: Alexander Block <ablock84@gmail.com>
+Date: Mon, 27 May 2019 16:23:19 +0200
+Subject: [PATCH] Use mapDSTX.find() instead of count() and []
+
+---
+ src/privatesend/privatesend.cpp | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/src/privatesend/privatesend.cpp b/src/privatesend/privatesend.cpp
+index ad7da69547..1dd015f857 100644
+--- a/src/privatesend/privatesend.cpp
++++ b/src/privatesend/privatesend.cpp
+@@ -513,11 +513,13 @@ void CPrivateSend::UpdateDSTXConfirmedHeight(const CTransactionRef& tx, int nHei
+ {
+     AssertLockHeld(cs_mapdstx);
+ 
+-    uint256 txHash = tx->GetHash();
+-    if (!mapDSTX.count(txHash)) return;
++    auto it = mapDSTX.find(tx->GetHash());
++    if (it == mapDSTX.end()) {
++        return;
++    }
+ 
+-    mapDSTX[txHash].SetConfirmedHeight(nHeight);
+-    LogPrint(BCLog::PRIVATESEND, "CPrivateSend::%s -- txid=%s, nHeight=%d\n", __func__, txHash.ToString(), nHeight);
++    it->second.SetConfirmedHeight(nHeight);
++    LogPrint(BCLog::PRIVATESEND, "CPrivateSend::%s -- txid=%s, nHeight=%d\n", __func__, tx->GetHash().ToString(), nHeight);
+ }
+ 
+ void CPrivateSend::TransactionAddedToMempool(const CTransactionRef& tx)

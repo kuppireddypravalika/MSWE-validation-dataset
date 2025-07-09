@@ -1,0 +1,31 @@
+From 3e91b1382be9ec2b11550bd935107d691bd69de0 Mon Sep 17 00:00:00 2001
+From: Kefu Chai <kefu.chai@scylladb.com>
+Date: Wed, 6 Mar 2024 18:19:46 +0800
+Subject: [PATCH] tools/scylla-nodetool: always use compile-time format string
+
+instead of passing fmt string as a plain `const char*`, pass it as
+a consteval type, so that `fmt::format()` can perform compile-time
+format check against it and the formatted params.
+
+Signed-off-by: Kefu Chai <kefu.chai@scylladb.com>
+
+Closes scylladb/scylladb#17656
+---
+ tools/scylla-nodetool.cc | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/tools/scylla-nodetool.cc b/tools/scylla-nodetool.cc
+index 6f7d99057a8d..e239dc49b292 100644
+--- a/tools/scylla-nodetool.cc
++++ b/tools/scylla-nodetool.cc
+@@ -962,8 +962,8 @@ void repair_operation(scylla_rest_client& client, const bpo::variables_map& vm)
+         repair_params["primaryRange"] = "true";
+     }
+ 
+-    auto log = [&] (const char* fmt, auto&&... param) {
+-        const auto msg = fmt::format(fmt::runtime(fmt), param...);
++    auto log = [&]<typename... Args> (fmt::format_string<Args...> fmt, Args&&... param) {
++        const auto msg = fmt::format(fmt, param...);
+         using clock = std::chrono::system_clock;
+         const auto n = clock::now();
+         const auto t = clock::to_time_t(n);

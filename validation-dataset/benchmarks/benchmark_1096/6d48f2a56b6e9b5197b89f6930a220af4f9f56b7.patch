@@ -1,0 +1,32 @@
+From 6d48f2a56b6e9b5197b89f6930a220af4f9f56b7 Mon Sep 17 00:00:00 2001
+From: Will Dietz <wdietz2@illinois.edu>
+Date: Sun, 29 Apr 2012 03:21:54 +0000
+Subject: [PATCH] Don't clone unresolvable direct calls when merging through
+ callsites.
+
+a) There's no reason to do so, since if they're unresolved (call to decl)
+   we'll never be able to resolve them and just clone them everywhere.
+b) Conceptually, this matches what the HackedSCCFinder is computing.  Note
+   that indirect calls on nodes with the global flag set are also not cloned.
+
+176.gcc was bitten really hard by this (used more than 10G memory for BU),
+  and with this fix it and 400.perbmk now run under the 600M limit.
+
+git-svn-id: https://llvm.org/svn/llvm-project/poolalloc/trunk@155783 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/DSA/DSGraph.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/DSA/DSGraph.cpp b/lib/DSA/DSGraph.cpp
+index b4ff39ce..7ea46884 100644
+--- a/lib/DSA/DSGraph.cpp
++++ b/lib/DSA/DSGraph.cpp
+@@ -334,7 +334,7 @@ namespace {
+     bool PathExistsToClonedNode(const DSCallSite &CS) {
+       if (PathExistsToClonedNode(CS.getRetVal().getNode()))
+         return true;
+-      if (CS.isDirectCall() || PathExistsToClonedNode(CS.getCalleeNode()))
++      if (CS.isIndirectCall() && PathExistsToClonedNode(CS.getCalleeNode()))
+         return true;
+       for (unsigned i = 0, e = CS.getNumPtrArgs(); i != e; ++i)
+         if (PathExistsToClonedNode(CS.getPtrArg(i).getNode()))

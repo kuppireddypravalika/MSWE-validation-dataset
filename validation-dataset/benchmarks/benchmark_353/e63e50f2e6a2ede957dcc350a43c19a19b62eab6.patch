@@ -1,0 +1,45 @@
+From e63e50f2e6a2ede957dcc350a43c19a19b62eab6 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Rafael=20=C3=81vila=20de=20Esp=C3=ADndola?=
+ <espindola@scylladb.com>
+Date: Thu, 12 Dec 2019 16:32:19 -0800
+Subject: [PATCH] core: Don't use pthread_attr_setstack if asan is enabled
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+As far as I can tell, we manually allocate pthread stacks for two
+reasons:
+
+* Avoiding allocating in one shard and freeing on another.
+* Creating guard pages.
+
+Neither of those is important when asan is enabled, and using our own
+stack breaks asan core generation.
+
+Signed-off-by: Rafael Ávila de Espíndola <espindola@scylladb.com>
+---
+ src/core/posix.cc | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/core/posix.cc b/src/core/posix.cc
+index 8e0de27e5d3..dd10fb5606d 100644
+--- a/src/core/posix.cc
++++ b/src/core/posix.cc
+@@ -64,6 +64,8 @@ posix_thread::posix_thread(attr a, std::function<void ()> func)
+     if (r) {
+         throw std::system_error(r, std::system_category());
+     }
++
++#ifndef SEASTAR_ASAN_ENABLED
+     auto stack_size = a._stack_size.size;
+     if (!stack_size) {
+         stack_size = 2 << 20;
+@@ -80,6 +82,8 @@ posix_thread::posix_thread(attr a, std::function<void ()> func)
+     if (r) {
+         throw std::system_error(r, std::system_category());
+     }
++#endif
++
+     r = pthread_create(&_pthread, &pa,
+                 &posix_thread::start_routine, _func.get());
+     if (r) {

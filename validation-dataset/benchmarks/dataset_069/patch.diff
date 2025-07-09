@@ -1,0 +1,21 @@
+From 944eb27b9f3ede7173ca432688ea076fd8c971fd Mon Sep 17 00:00:00 2001
+From: huzhiqiang <912790387@qq.com>
+Date: Tue, 8 Sep 2020 10:27:48 +0800
+Subject: [PATCH] [Memory] Reuse tensor memory in concat operator #4246
+
+---
+ lite/core/mir/memory_optimize_pass.cc | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/lite/core/mir/memory_optimize_pass.cc b/lite/core/mir/memory_optimize_pass.cc
+index eddbebb5453..3817d0049c9 100644
+--- a/lite/core/mir/memory_optimize_pass.cc
++++ b/lite/core/mir/memory_optimize_pass.cc
+@@ -47,7 +47,6 @@ void MemoryOptimizePass::CollectLifeCycleByDevice(
+                                             "merge_lod_tensor",
+                                             "equal",
+                                             "lod_reset",
+-                                            "concat",
+                                             "yolo_box",
+                                             "subgraph",
+                                             "feed",

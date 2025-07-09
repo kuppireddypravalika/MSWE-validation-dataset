@@ -1,0 +1,29 @@
+From 1e40c5e2b10e28099c5d6a6937eb39d9cd529286 Mon Sep 17 00:00:00 2001
+From: Giovanni Campagna <gcampagna@src.gnome.org>
+Date: Thu, 20 Feb 2014 13:53:42 +0100
+Subject: [PATCH] closure: run a MaybeGC at the end of closures
+
+MaybeGC is safe to call frequently, and this follows Firefox's
+idea of running the GC at the end of "scripts" (which in our
+case are JS closures and ffi calls). In practice, this means
+we run a MaybeGC before returning to C code, and in particular
+before returning to the mainloop from sources, which is good.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=724797
+---
+ gi/closure.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/gi/closure.cpp b/gi/closure.cpp
+index 67fb034f..634ea5db 100644
+--- a/gi/closure.cpp
++++ b/gi/closure.cpp
+@@ -245,6 +245,8 @@ gjs_closure_invoke(GClosure                   *closure,
+                           " - closure %p", closure);
+     }
+ 
++    JS_MaybeGC(context);
++
+  out:
+     JS_EndRequest(context);
+ }

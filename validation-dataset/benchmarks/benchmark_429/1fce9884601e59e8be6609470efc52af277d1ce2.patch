@@ -1,0 +1,22 @@
+From 1fce9884601e59e8be6609470efc52af277d1ce2 Mon Sep 17 00:00:00 2001
+From: Ann Almgren <asalmgren@lbl.gov>
+Date: Thu, 6 Dec 2018 06:34:45 -0800
+Subject: [PATCH] Instead of IntVect{0,0,0} use IntVect{AMREX_DECL(0,0,0)}
+
+---
+ Src/EB/AMReX_EB_levelset.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Src/EB/AMReX_EB_levelset.cpp b/Src/EB/AMReX_EB_levelset.cpp
+index 82a6e212009..d2c55b608bd 100644
+--- a/Src/EB/AMReX_EB_levelset.cpp
++++ b/Src/EB/AMReX_EB_levelset.cpp
+@@ -578,7 +578,7 @@ std::unique_ptr<iMultiFab> LSFactory::fill_ebf_loc(const EBFArrayBoxFactory & eb
+ #endif
+     for (MFIter mfi(* ls_grid, true); mfi.isValid(); ++mfi) {
+         Box tile_box = mfi.growntilebox();
+-        Box eb_search = amrex::convert(mfi.tilebox(), IntVect{0,0,0});
++        Box eb_search = amrex::convert(mfi.tilebox(), IntVect{AMREX_D_DECL(0,0,0)});
+         eb_search.coarsen(ls_grid_ref);
+         eb_search.grow(2*eb_grid_pad);
+ 

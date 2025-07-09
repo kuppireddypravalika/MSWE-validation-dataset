@@ -1,0 +1,43 @@
+From ea062d7ea08c32c22466481d2c1fa31632d3cf88 Mon Sep 17 00:00:00 2001
+From: Mark Stoodley <mstoodle@ca.ibm.com>
+Date: Mon, 20 Apr 2020 12:48:28 -0400
+Subject: [PATCH] Re-initialize method builder objects before inlining
+
+When using the JitBuilder Call service and passing a MethodBuilder
+object, we do not know the origin of that object before we begin
+to inline it. In most code samples, that object is a "fresh"
+MethodBuilder that hasn't been compiled itself. When it has been
+compiled previously, there are some TR objects cached in it that
+cause problems during inlining, such as the compilation object,
+the method symbol, etc. These should be re-initialized to the
+current MethodBuilder being compiled before the callee MethodBuilder
+is inlined. While setupForBuildIL() is called, we also need to
+call initialize() to re-initialize these fields.
+
+Included in this fix is an update to the Call code sample from
+@fjeremic that causes that sample to test this exact scenario
+(inlining a MethodBuilder object that has previously been
+compiled).
+
+Fixes #4909
+
+Signed-off-by: Mark Stoodley <mstoodle@ca.ibm.com>
+---
+ compiler/ilgen/OMRIlBuilder.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/compiler/ilgen/OMRIlBuilder.cpp b/compiler/ilgen/OMRIlBuilder.cpp
+index 53012d7bce..c08de3ab53 100644
+--- a/compiler/ilgen/OMRIlBuilder.cpp
++++ b/compiler/ilgen/OMRIlBuilder.cpp
+@@ -2035,7 +2035,9 @@ OMR::IlBuilder::Call(TR::MethodBuilder *calleeMB, int32_t numArgs, TR::IlValue *
+    calleeMB->setReturnBuilder(returnBuilder);
+ 
+    // get calleeMB ready to be part of this compilation
+-   // MUST be the OMR::IlBuilder implementation, not the OMR::MethodBuilder one
++   // call initialize on calleeMB in case it has earlier been used outside of this compilation
++   calleeMB->initialize(_details, _methodSymbol, _fe, _symRefTab);
++   // setupBuilderForIL MUST be the OMR::IlBuilder implementation, not the OMR::MethodBuilder one
+    calleeMB->OMR::IlBuilder::setupForBuildIL();
+ 
+    // store arguments into parameter values

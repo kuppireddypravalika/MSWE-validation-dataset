@@ -1,0 +1,24 @@
+From 3e9a226aca3794faf27edcfd4240b77d1df3e9f0 Mon Sep 17 00:00:00 2001
+From: Jongsoo Park <jongsoo.park@intel.com>
+Date: Sun, 10 Apr 2016 23:18:00 -0700
+Subject: [PATCH] omp parallelization of relu layer
+
+---
+ src/caffe/layers/relu_layer.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+ mode change 100644 => 100755 src/caffe/layers/relu_layer.cpp
+
+diff --git a/src/caffe/layers/relu_layer.cpp b/src/caffe/layers/relu_layer.cpp
+old mode 100644
+new mode 100755
+index 92a729c81..680dd59f8
+--- a/src/caffe/layers/relu_layer.cpp
++++ b/src/caffe/layers/relu_layer.cpp
+@@ -12,6 +12,7 @@ void ReLULayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
+   Dtype* top_data = top[0]->mutable_cpu_data();
+   const int count = bottom[0]->count();
+   Dtype negative_slope = this->layer_param_.relu_param().negative_slope();
++#pragma omp parallel for
+   for (int i = 0; i < count; ++i) {
+     top_data[i] = std::max(bottom_data[i], Dtype(0))
+         + negative_slope * std::min(bottom_data[i], Dtype(0));

@@ -1,0 +1,26 @@
+From f522eb05f3239a77f0b11e4671d536f91d7a5001 Mon Sep 17 00:00:00 2001
+From: Lang Hames <lhames@gmail.com>
+Date: Wed, 30 Nov 2016 01:12:07 +0000
+Subject: [PATCH] [RuntimeDyld] Skip undefined symbols when building the symbol
+ table.
+
+Storing these in the symbol table (with zero values) is just wasted space.
+---
+ llvm/lib/ExecutionEngine/RuntimeDyld/RuntimeDyld.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/llvm/lib/ExecutionEngine/RuntimeDyld/RuntimeDyld.cpp b/llvm/lib/ExecutionEngine/RuntimeDyld/RuntimeDyld.cpp
+index 82b582a84257..b1fa57875ed7 100644
+--- a/llvm/lib/ExecutionEngine/RuntimeDyld/RuntimeDyld.cpp
++++ b/llvm/lib/ExecutionEngine/RuntimeDyld/RuntimeDyld.cpp
+@@ -205,6 +205,10 @@ RuntimeDyldImpl::loadObjectImpl(const object::ObjectFile &Obj) {
+        ++I) {
+     uint32_t Flags = I->getFlags();
+ 
++    // Skip undefined symbols.
++    if (Flags & SymbolRef::SF_Undefined)
++      continue;
++
+     if (Flags & SymbolRef::SF_Common)
+       CommonSymbols.push_back(*I);
+     else {

@@ -1,0 +1,34 @@
+From 3556514e971bdbb98fdf0f556371c527f4dfa98c Mon Sep 17 00:00:00 2001
+From: zhongpu <2013000149@qq.com>
+Date: Thu, 24 Oct 2019 14:44:37 +0800
+Subject: [PATCH]  add PADDLE_ENFORCE for dygraph to optimize error throw
+ (#19783)
+
+* add PADDLE_ENFORCE for dygraph to optimize error throw, test=develop
+
+* fix some error, test=develop
+
+* delete PADDLE_ENFORCE_EQ in VarBase::NewVarBase, test=develop
+---
+ paddle/fluid/imperative/tracer.cc | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/paddle/fluid/imperative/tracer.cc b/paddle/fluid/imperative/tracer.cc
+index ec8b4f9eead141..ce107daa158682 100644
+--- a/paddle/fluid/imperative/tracer.cc
++++ b/paddle/fluid/imperative/tracer.cc
+@@ -230,10 +230,12 @@ void Tracer::TraceBackward(const std::shared_ptr<OpBase>& fwd_op,
+               VLOG(3) << op->Type();
+             }
+           }
++          auto grad_name = (*(fwd_var_iter->second))->GradVarBase()->Name();
+           if (!grad_pending_ops.empty()) {
+             for (const auto& op : grad_pending_ops) {
+-              PADDLE_ENFORCE_NOT_NULL(op,
+-                                      "No nullptr should be grad_pending op");
++              PADDLE_ENFORCE_NOT_NULL(
++                  op, "No nullptr should be grad_pending op for variable %s ",
++                  grad_name);
+               if (visited_preceding_ops.count(op) == 0) {
+                 visited_preceding_ops.insert(op);
+                 grad_op->InsertGradPendingOps(op);

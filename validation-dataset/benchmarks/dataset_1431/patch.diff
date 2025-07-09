@@ -1,0 +1,24 @@
+From 7ff64a483b47e7cbde9e330d3ec753a8429d9282 Mon Sep 17 00:00:00 2001
+From: Lyve <lyve2909+github@gmail.com>
+Date: Sat, 8 Jan 2022 20:39:23 +0100
+Subject: [PATCH] use less instructions when reading/writing P memory
+
+---
+ source/dsp56kEmu/jitmem.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/source/dsp56kEmu/jitmem.cpp b/source/dsp56kEmu/jitmem.cpp
+index c79fff58..e921695e 100644
+--- a/source/dsp56kEmu/jitmem.cpp
++++ b/source/dsp56kEmu/jitmem.cpp
+@@ -339,6 +339,10 @@ namespace dsp56k
+ 	{
+ 		getMemAreaPtr(_dst, _area);
+ 
++		// as we bridge to P memory there is no need to do anything here if area is P already
++		if (_area == MemArea_P)
++			return;
++
+ 		{
+ 			// use P memory for all bridged external memory
+ 			const auto p = regSmallTemp;

@@ -1,0 +1,47 @@
+From 7d01ca7113b1d40cd869365de652b99e7146e46c Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Thu, 1 Sep 2016 22:26:53 -0400
+Subject: [PATCH] [win32] RP_ShellPropSheetExt: Fixed too much spacing in
+ RFT_BITFIELD on NTR ROMs.
+
+The "Hardware" field was taking up two rows, even though only one row
+worth of checkboxes was being drawn. This is because the row variable
+is used to determine how many rows were drawn, and this was being
+incremented after the checkbox was added instead of before.
+---
+ src/win32/RP_ShellPropSheetExt.cpp | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/src/win32/RP_ShellPropSheetExt.cpp b/src/win32/RP_ShellPropSheetExt.cpp
+index 15e5a0c086..8eee7b6be9 100644
+--- a/src/win32/RP_ShellPropSheetExt.cpp
++++ b/src/win32/RP_ShellPropSheetExt.cpp
+@@ -354,6 +354,14 @@ int RP_ShellPropSheetExt::initBitfield(HWND hDlg, const POINT &pt_start, int idx
+ 		if (!name)
+ 			continue;
+ 
++		if (col == bitfieldDesc->elemsPerRow) {
++			// Next row.
++			row++;
++			col = 0;
++			pt.x = pt_start.x;
++			pt.y += rect_chkbox.bottom;
++		}
++
+ 		// Get the text size.
+ 		int chk_w;
+ 		if (bitfieldDesc->elemsPerRow == 0) {
+@@ -383,13 +391,6 @@ int RP_ShellPropSheetExt::initBitfield(HWND hDlg, const POINT &pt_start, int idx
+ 		// Next column.
+ 		pt.x += chk_w;
+ 		col++;
+-		if (col == bitfieldDesc->elemsPerRow) {
+-			// Next row.
+-			row++;
+-			col = 0;
+-			pt.x = pt_start.x;
+-			pt.y += rect_chkbox.bottom;
+-		}
+ 	}
+ 
+ 	SelectFont(hDC, hFontOrig);

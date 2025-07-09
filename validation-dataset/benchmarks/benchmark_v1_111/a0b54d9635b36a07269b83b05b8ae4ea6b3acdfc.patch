@@ -1,0 +1,24 @@
+From a0b54d9635b36a07269b83b05b8ae4ea6b3acdfc Mon Sep 17 00:00:00 2001
+From: Pilow <pierre.laupretre@gmail.com>
+Date: Fri, 23 Nov 2018 15:43:30 +0800
+Subject: [PATCH] [compiler] Use CreatePtrDiff to calculate pointer distance
+
+---
+ src/compiler/LLVMCompiler.cpp | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/src/compiler/LLVMCompiler.cpp b/src/compiler/LLVMCompiler.cpp
+index 72468bc7..045b4f21 100644
+--- a/src/compiler/LLVMCompiler.cpp
++++ b/src/compiler/LLVMCompiler.cpp
+@@ -1104,9 +1104,7 @@ LLVMCompiler::value LLVMCompiler::iterator_key(LLVMCompiler::value v, LLVMCompil
+ 	log_insn_code("iterator.key()");
+ 	if (v.t.raw_type == RawType::ARRAY) {
+ 		auto array_begin = insn_array_at(v, new_integer(0));
+-		// TODO use CreatePtrDiff
+-		LLVMCompiler::value distance = {Builder.CreateSub(insn_load(it).v, array_begin.v, "sub"), Type::INTEGER};
+-		return insn_int_div(distance, new_integer(v.t.element().size() / 8));
++		return { Builder.CreatePtrDiff(insn_load(it).v, array_begin.v), Type::POINTER };
+ 	}
+ 	if (it.t == Type::INTERVAL_ITERATOR) {
+ 		// auto addr = insn_address_of(it);

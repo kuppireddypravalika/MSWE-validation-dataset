@@ -1,0 +1,27 @@
+From 1035f4d85788d5eb1b148ea36cbb729f7747f096 Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@gmail.com>
+Date: Mon, 1 May 2017 21:56:05 +0000
+Subject: [PATCH] [APInt] In operator!, handle single word case by comparing
+ VAL to 0 directly and handle multiword case by comparing
+ countLeadingZerosSlowCase() to BitWidth.
+
+We were using operator=(0) which implicitly calls countLeadingZeros but only to compare with 64 to determine if we can compare VAL or pVal[0] to uint64_t. By handling the multiword case with countLeadingZerosSlowCase==BitWidth we can prevent a load of pVal[0] from being inserted inline at each call site. This saves a little bit of code size.
+---
+ llvm/include/llvm/ADT/APInt.h | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/llvm/include/llvm/ADT/APInt.h b/llvm/include/llvm/ADT/APInt.h
+index aaa621281f56..26d4bbcdb8d9 100644
+--- a/llvm/include/llvm/ADT/APInt.h
++++ b/llvm/include/llvm/ADT/APInt.h
+@@ -693,7 +693,9 @@ class LLVM_NODISCARD APInt {
+   ///
+   /// \returns true if *this is zero, false otherwise.
+   bool operator!() const {
+-    return *this == 0;
++    if (isSingleWord())
++      return VAL == 0;
++    return countLeadingZerosSlowCase() == BitWidth;
+   }
+ 
+   /// @}

@@ -1,0 +1,22 @@
+From e8ffc4eb4ced7fe6384bf5da06ae414ac390509c Mon Sep 17 00:00:00 2001
+From: YuqqiZhou <41812724+YuqqiZhou@users.noreply.github.com>
+Date: Sun, 28 Jul 2019 16:17:24 +0800
+Subject: [PATCH] speed up query for (distinct) predicate
+
+---
+ Database/Strategy.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Database/Strategy.cpp b/Database/Strategy.cpp
+index 69b9462f..3251fcc3 100644
+--- a/Database/Strategy.cpp
++++ b/Database/Strategy.cpp
+@@ -757,7 +757,7 @@ Strategy::handler4(BasicQuery* _bq, vector<unsigned*>& _result_list)
+ 		cout<<"object: "<<triple.object<<" "<<ovpos<<endl;
+ 		cout<<"predicate: "<<triple.predicate<<" "<<pvpos<<endl;
+ 		
+-		bool only_get_distinct_pre = (ovpos < 0 && svpos < 0 && pvpos < 0 && this->isDistinct);
++		bool only_get_distinct_pre = (ovpos < 0 && svpos < 0 && pvpos >= 0 && this->isDistinct);
+ 		if(only_get_distinct_pre)
+ 			for (TYPE_PREDICATE_ID i = 0; i < this->limitID_predicate; ++i)
+ 			{

@@ -1,0 +1,41 @@
+From 6f6d25da4acbd602608a50902337c5e4ff7a9800 Mon Sep 17 00:00:00 2001
+From: Jan <jan@laupetin.net>
+Date: Mon, 22 Mar 2021 12:30:02 +0100
+Subject: [PATCH] Always duplicate temp loaddef for T6 instead of only
+ duplicating it if resource size is bigger than 0
+
+---
+ .../T6/XAssets/gfximage/gfximage_actions.cpp  | 21 ++++++++++---------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
+
+diff --git a/src/ZoneLoading/Game/T6/XAssets/gfximage/gfximage_actions.cpp b/src/ZoneLoading/Game/T6/XAssets/gfximage/gfximage_actions.cpp
+index 9b73dbe5c..f0142acc4 100644
+--- a/src/ZoneLoading/Game/T6/XAssets/gfximage/gfximage_actions.cpp
++++ b/src/ZoneLoading/Game/T6/XAssets/gfximage/gfximage_actions.cpp
+@@ -17,15 +17,16 @@ void Actions_GfxImage::OnImageLoaded(GfxImage* image) const
+ 
+ void Actions_GfxImage::LoadImageData(GfxImageLoadDef* loadDef, GfxImage* image) const
+ {
+-    if(loadDef->resourceSize > 0)
+-    {
+-        const size_t loadDefSize = offsetof(T6::GfxImageLoadDef, data) + loadDef->resourceSize;
++    // if(loadDef->resourceSize > 0)
++    // {
++    //     
++    // }
++    // else
++    // {
++    //     image->texture.loadDef = nullptr;
++    // }
++    const size_t loadDefSize = offsetof(T6::GfxImageLoadDef, data) + loadDef->resourceSize;
+ 
+-        image->texture.loadDef = static_cast<GfxImageLoadDef*>(m_zone->GetMemory()->Alloc(loadDefSize));
+-        memcpy(image->texture.loadDef, loadDef, loadDefSize);
+-    }
+-    else
+-    {
+-        image->texture.loadDef = nullptr;
+-    }
++    image->texture.loadDef = static_cast<GfxImageLoadDef*>(m_zone->GetMemory()->Alloc(loadDefSize));
++    memcpy(image->texture.loadDef, loadDef, loadDefSize);
+ }

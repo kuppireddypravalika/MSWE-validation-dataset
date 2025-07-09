@@ -1,0 +1,29 @@
+From 82f606011917fd64861fc3fc80df441d95b36840 Mon Sep 17 00:00:00 2001
+From: Patrick Bruenn <p.bruenn@beckhoff.com>
+Date: Fri, 6 Oct 2017 06:21:28 +0200
+Subject: [PATCH] AdsLib: use std::atomic::compare_exchange_strong
+
+AmsConnection::Reserve() was spuriously failing on ARM, because it used
+std::atomic::compare_exchange_weak(). Using compare_exchange_strong()
+shows no performance degradation for our use case and avoids workarounds
+in application code.
+Fixes #20.
+
+Signed-off-by: Patrick Bruenn <p.bruenn@beckhoff.com>
+---
+ AdsLib/AmsConnection.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/AdsLib/AmsConnection.cpp b/AdsLib/AmsConnection.cpp
+index 2f4a60b3..b7926777 100644
+--- a/AdsLib/AmsConnection.cpp
++++ b/AdsLib/AmsConnection.cpp
+@@ -153,7 +153,7 @@ AmsResponse* AmsConnection::GetPending(uint32_t id, uint16_t port)
+ AmsResponse* AmsConnection::Reserve(uint32_t id, uint16_t port)
+ {
+     uint32_t isFree = 0;
+-    if (!queue[port - Router::PORT_BASE].invokeId.compare_exchange_weak(isFree, id)) {
++    if (!queue[port - Router::PORT_BASE].invokeId.compare_exchange_strong(isFree, id)) {
+         LOG_WARN("Port: " << port << " already in use as " << isFree);
+         return nullptr;
+     }

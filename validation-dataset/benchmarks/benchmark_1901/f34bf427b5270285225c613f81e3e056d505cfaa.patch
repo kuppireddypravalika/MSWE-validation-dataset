@@ -1,0 +1,31 @@
+From f34bf427b5270285225c613f81e3e056d505cfaa Mon Sep 17 00:00:00 2001
+From: pliden <unknown>
+Date: Tue, 20 May 2014 10:24:30 +0200
+Subject: [PATCH] 8039042: G1: Phantom zeros in cardtable Reviewed-by:
+ tschatzl, mgerdin
+
+---
+ .../gc_implementation/g1/g1SATBCardTableModRefBS.cpp   | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/src/share/vm/gc_implementation/g1/g1SATBCardTableModRefBS.cpp b/src/share/vm/gc_implementation/g1/g1SATBCardTableModRefBS.cpp
+index 9f20a920b..7382be27f 100644
+--- a/src/share/vm/gc_implementation/g1/g1SATBCardTableModRefBS.cpp
++++ b/src/share/vm/gc_implementation/g1/g1SATBCardTableModRefBS.cpp
+@@ -95,7 +95,15 @@ void G1SATBCardTableModRefBS::g1_mark_as_young(const MemRegion& mr) {
+   jbyte *const first = byte_for(mr.start());
+   jbyte *const last = byte_after(mr.last());
+ 
+-  memset(first, g1_young_gen, last - first);
++  // Below we may use an explicit loop instead of memset() because on
++  // certain platforms memset() can give concurrent readers phantom zeros.
++  if (UseMemSetInBOT) {
++    memset(first, g1_young_gen, last - first);
++  } else {
++    for (jbyte* i = first; i < last; i++) {
++      *i = g1_young_gen;
++    }
++  }
+ }
+ 
+ #ifndef PRODUCT

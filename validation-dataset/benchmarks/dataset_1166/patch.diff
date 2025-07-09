@@ -1,0 +1,23 @@
+From 2522d511dcf6a6a2bef7e65510ceb11a88a2dc79 Mon Sep 17 00:00:00 2001
+From: Hendrik Leppkes <h.leppkes@gmail.com>
+Date: Sat, 4 May 2013 13:16:19 +0200
+Subject: [PATCH] avcodec: sync mt decoders to the process thread
+
+This ensures smoother operation in real-world situations, especially
+transcoding or AviSynth processing.
+---
+ decoder/LAVVideo/decoders/avcodec.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/decoder/LAVVideo/decoders/avcodec.h b/decoder/LAVVideo/decoders/avcodec.h
+index 09c37bf5b..c608ca984 100644
+--- a/decoder/LAVVideo/decoders/avcodec.h
++++ b/decoder/LAVVideo/decoders/avcodec.h
+@@ -47,6 +47,7 @@ class CDecAvcodec : public CDecBase
+   STDMETHODIMP_(BOOL) IsInterlaced();
+   STDMETHODIMP_(const WCHAR*) GetDecoderName() { return L"avcodec"; }
+   STDMETHODIMP HasThreadSafeBuffers() { return S_OK; }
++  STDMETHODIMP SyncToProcessThread() { return m_pAVCtx && m_pAVCtx->thread_count > 1 ? S_OK : S_FALSE; }
+ 
+   // CDecBase
+   STDMETHODIMP Init();

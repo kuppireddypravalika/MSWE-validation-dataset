@@ -1,0 +1,24 @@
+From a6a8ea66ac3aba751889d9cfe3e9ccbd515c61b8 Mon Sep 17 00:00:00 2001
+From: Akram Hussein <akram.hussein@dyson.com>
+Date: Fri, 11 Oct 2013 13:25:10 +0100
+Subject: [PATCH] Changed post process circle highlight to square to render a
+ bit faster
+
+---
+ app/src/tracking/ScanUtility.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/app/src/tracking/ScanUtility.cpp b/app/src/tracking/ScanUtility.cpp
+index a4d6a1e..b9e3512 100644
+--- a/app/src/tracking/ScanUtility.cpp
++++ b/app/src/tracking/ScanUtility.cpp
+@@ -123,7 +123,8 @@ namespace ScanUtility
+ 	    CvPoint pos = cvPoint( scale*entry.x()+xoffset,
+                                scale*entry.y()+yoffset );
+ 
+-	    cvCircle( img, pos, 3, col, 1, CV_AA );
++        const int halfWidth = 3;
++        cvRectangle(img, cvPoint(pos.x - halfWidth, pos.y - halfWidth), cvPoint(pos.x + halfWidth, pos.y + halfWidth), col, 1, CV_AA);
+     }
+ 
+     /**

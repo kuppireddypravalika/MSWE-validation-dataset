@@ -1,0 +1,26 @@
+From 115b878a5c8c89f438826be481b5ebefcf34cb96 Mon Sep 17 00:00:00 2001
+From: Joshua Haberman <haberman@google.com>
+Date: Thu, 3 Nov 2022 16:06:16 -0700
+Subject: [PATCH] Optimization: do not generate oneofs for proto3 optional
+ fields.
+
+Proto3 optional fields should use a hasbit for their presence.  But we had been giving them oneof layouts, which makes them unnecessarily large.  This CL will shrink messages with proto3 optional fields, by using hasbits instead of oneof cases for them.
+
+PiperOrigin-RevId: 485998527
+---
+ upb/reflection/message_def.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/upb/reflection/message_def.c b/upb/reflection/message_def.c
+index 483403edec2e1..df43c16b9591e 100644
+--- a/upb/reflection/message_def.c
++++ b/upb/reflection/message_def.c
+@@ -496,7 +496,7 @@ static bool _upb_MessageDef_EncodeMessage(upb_DescState* s,
+     s->ptr = upb_MtDataEncoder_PutField(&s->e, s->ptr, type, number, modifiers);
+   }
+ 
+-  for (int i = 0; i < m->oneof_count; i++) {
++  for (int i = 0; i < m->real_oneof_count; i++) {
+     if (!_upb_DescState_Grow(s, a)) return false;
+     s->ptr = upb_MtDataEncoder_StartOneof(&s->e, s->ptr);
+ 

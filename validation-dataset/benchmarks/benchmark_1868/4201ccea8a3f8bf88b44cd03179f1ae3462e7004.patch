@@ -1,0 +1,23 @@
+From 4201ccea8a3f8bf88b44cd03179f1ae3462e7004 Mon Sep 17 00:00:00 2001
+From: Tobias Junghans <tobydox@veyon.io>
+Date: Mon, 22 Oct 2018 13:10:58 +0200
+Subject: [PATCH] Core: Logger: use qEnvironmentVariableIntValue()
+
+This is faster than qgetenv() + toInt().
+---
+ core/src/Logger.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/core/src/Logger.cpp b/core/src/Logger.cpp
+index 7a1ab967c..68c416ae7 100644
+--- a/core/src/Logger.cpp
++++ b/core/src/Logger.cpp
+@@ -58,7 +58,7 @@ Logger::Logger( const QString &appName ) :
+ 	auto configuredLogLevel = VeyonCore::config().logLevel();
+ 	if( qEnvironmentVariableIsSet( logLevelEnvironmentVariable() ) )
+ 	{
+-		configuredLogLevel = qgetenv( logLevelEnvironmentVariable() ).toInt();
++		configuredLogLevel = qEnvironmentVariableIntValue( logLevelEnvironmentVariable() );
+ 	}
+ 
+ 	m_logLevel = qBound( LogLevelMin, static_cast<LogLevel>( configuredLogLevel ), LogLevelMax );

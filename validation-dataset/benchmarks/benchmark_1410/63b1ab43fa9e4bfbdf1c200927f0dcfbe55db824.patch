@@ -1,0 +1,43 @@
+From 63b1ab43fa9e4bfbdf1c200927f0dcfbe55db824 Mon Sep 17 00:00:00 2001
+From: takahito-tejima <takahito-tejima@users.noreply.github.com>
+Date: Mon, 19 Sep 2016 09:52:50 -0700
+Subject: [PATCH] [Hd] drop the GIL in HdRenderIndex::SyncAll()
+
+ideally, or at least, we like to put this lock
+in UsdImagingDelegate, but instancer rprim syncing is a special
+case which we haven't split delegate query into two-step sync
+(delegate sync, then rprim sync), so it goes all the way down to
+UsdStage directly from HdRenderIndex::Sync in parallel
+(i.e. _UpdateSingleValue).
+
+(Internal change: 1655762)
+---
+ pxr/imaging/lib/hd/renderIndex.cpp | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/pxr/imaging/lib/hd/renderIndex.cpp b/pxr/imaging/lib/hd/renderIndex.cpp
+index 387043187a..abe4fe2f2e 100644
+--- a/pxr/imaging/lib/hd/renderIndex.cpp
++++ b/pxr/imaging/lib/hd/renderIndex.cpp
+@@ -46,6 +46,7 @@
+ 
+ #include "pxr/base/work/arenaDispatcher.h"
+ #include "pxr/base/work/loops.h"
++#include "pxr/base/tf/pyLock.h"
+ 
+ #include <tbb/concurrent_unordered_map.h>
+ #include <tbb/concurrent_vector.h>
+@@ -897,7 +898,12 @@ HdRenderIndex::SyncAll()
+                 ((float )numSkipped / (float)dirtyIds.size()) > 0.9f;
+         }
+ 
+-    } {
++    }
++
++    // Drop the GIL before we spawn parallel tasks.
++    TF_PY_ALLOW_THREADS_IN_SCOPE();
++
++    {
+         TRACE_SCOPE("Delegate Sync");
+         // Dispatch synchronization work to each delegate.
+         _Worker worker(&syncMap);

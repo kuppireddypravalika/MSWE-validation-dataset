@@ -1,0 +1,31 @@
+From f29618236eec69866c1ee6200df71d89e80243a7 Mon Sep 17 00:00:00 2001
+From: Dan Gohman <gohman@apple.com>
+Date: Mon, 16 Aug 2010 16:25:35 +0000
+Subject: [PATCH] Micro-optimize SCEVConstant comparison.
+
+llvm-svn: 111142
+---
+ llvm/lib/Analysis/ScalarEvolution.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/llvm/lib/Analysis/ScalarEvolution.cpp b/llvm/lib/Analysis/ScalarEvolution.cpp
+index 73bc8b17276..56777c3adb2 100644
+--- a/llvm/lib/Analysis/ScalarEvolution.cpp
++++ b/llvm/lib/Analysis/ScalarEvolution.cpp
+@@ -590,12 +590,12 @@ namespace {
+       // Compare constant values.
+       if (const SCEVConstant *LC = dyn_cast<SCEVConstant>(LHS)) {
+         const SCEVConstant *RC = cast<SCEVConstant>(RHS);
+-        const ConstantInt *LCC = LC->getValue();
+-        const ConstantInt *RCC = RC->getValue();
+-        unsigned LBitWidth = LCC->getBitWidth(), RBitWidth = RCC->getBitWidth();
++        const APInt &LA = LC->getValue()->getValue();
++        const APInt &RA = RC->getValue()->getValue();
++        unsigned LBitWidth = LA.getBitWidth(), RBitWidth = RA.getBitWidth();
+         if (LBitWidth != RBitWidth)
+           return LBitWidth < RBitWidth;
+-        return LCC->getValue().ult(RCC->getValue());
++        return LA.ult(RA);
+       }
+ 
+       // Compare addrec loop depths.

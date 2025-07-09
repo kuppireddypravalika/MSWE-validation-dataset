@@ -1,0 +1,182 @@
+You are evaluating how accurately and effectively the benchmark '{bench}' captures the essence of the original optimization patch seen in a repo. This evaluation is critical to ensure the benchmark represents real-world scenarios, maintains high fidelity to actual issues developers face, and provides meaningful insights into the capabilities and limitations of optimization techniques. Your careful scoring directly impacts the quality and reliability of future performance assessments and optimization evaluations.
+
+Original implementation:
+{orig}
+
+Optimized implementation:
+{opt}
+
+Patch diff:
+{patch}
+
+Upstream before/after code:
+{before_after}
+
+**Step 1: Patch Explanation**
+
+First, clearly and explicitly explain in simple terms:
+
+- What exactly is the patch changing?
+
+- Why might this change be implemented?
+
+- How could it potentially affect performance or behavior?
+
+- What knowldge is required for a novice software engineer to implement the change?
+
+- Does the patch alter compiler internals, global configurations, domain-specific logic, or repository-wide settings?
+
+
+
+** Step 2: Alignment Evaluation**
+
+Provide step-by-step reasoning clearly for each alignment dimension below. For each dimension, include a concise one-line justification for your reasoning.
+
+**Structural Fidelity (1-5):**
+How well does the benchmark preserve the original code structure, logic, function call, library usage?
+Example:
+
+----
+// Original:
+for(auto it=vec.begin(); it!=vec.end(); ++it) process(*it);
+
+// Benchmark:
+for(size_t i=0; i<vec.size(); ++i) process(vec[i]);
+----
+
+- Score: 4
+- Justification: "Minor indexing changes made; core loop structure preserved."
+
+Example 2:
+Original code:
+std::sort(vec.begin(), vec.end()); // standard library sort
+Generated benchmark:
+custom_sort(vec); // custom sorting algorithm 
+
+Structural Fidelity (2/5):
+- Justification: "Core sorting logic preserved but underlying implementation changed to custom sort algorithm, diverging from standard library."
+
+**Targeted Isolation (1-5):**
+Does the benchmark clearly isolate the optimization target without including unrelated code?
+Example:
+
+----
+// Benchmark explicitly targets the sorting algorithm:
+std::sort(vec.begin(), vec.end());
+----
+
+- Score: 5
+- Justification: "Explicitly targets the sorting algorithm, no unrelated functions included."
+
+**Side Effect Preservation (1-5):**
+Is the benchmark's context realistic, avoiding artificial or removable code?
+Example:
+
+------
+// Benchmark contains artificial removable context:
+int unused = heavyCalculation();
+-----
+
+- Score: 2
+- Justification: "Contains an unused calculation, artificially removable."
+
+**Correctness and Functional Equivalence (1-5):**
+Does the benchmark correctly replicate the original functionality?
+Example:
+
+----
+// Original:
+int result = compute(); use(result);
+// Benchmark (Incorrect):
+compute(); // missing use(result);
+----
+
+- Score: 2
+- Justification: "Missing use of critical computed value alters original functionality."
+
+**Computational Realism (1-5):**
+Does the benchmark realistically represent actual computational workloads?
+Example:
+-----
+// Unrealistic benchmark computation:
+for(int i=0; i<1000000; i++) heavy_compute();
+-----
+
+- Score: 1
+- Justification: "Contains artificially exaggerated computation loops."
+
+**Context Neutrality (1-5):**
+Are naming conventions and content free of unintentional hints or biases?
+Example:
+
+----
+// Suggestive naming providing optimization hints:
+optimizeMemoryAllocation();
+-----
+
+- Score: 2
+- Justification: "Function name clearly hints at optimization target."
+
+
+Performance Optimization Relevance (1-5):
+
+Is the patch genuinely related to computational performance optimization, directly improving execution efficiency, runtime speed, or resource utilization directly impacting computational performance?
+Example:
+
+// Example of genuine optimization:
+std::copy(vec.begin(), vec.end(), target); // optimized from a manual loop
+
+// Non-performance example:
+logger.log("Optimized method called"); // purely diagnostic
+
+Score: 2
+
+Justification: "The patch is related to logging/debugging, no direct runtime performance improvement."
+
+Contextual Dependency (Local vs. Repository) (1-5):
+Does the optimization require only local, self-contained knowledge, or does it depend heavily on repository-wide context, domain-specific knowledge, or broader algorithmic considerations?
+
+Score of 1: indicates the optimization heavily depends on broader repository-wide context or domain-specific knowledge.
+
+Score of 5: indicates the optimization requires only local, self-contained knowledge, clearly understandable without broader repository context.
+
+Compiler settings (`setOptionDefault(...)`) explicitly require repository-wide context—always assign score of 1.
+
+Example:
+
+// Example of local context:
+std::fill(vec.begin(), vec.end(), 0); // local, clearly understood
+Score: 5
+
+// Example of repository context:
+if (depth >= THRESHOLD && heuristicEval(score)) pruneMove(); // chess engine logic requiring repo context
+
+Score: 1
+
+Justification: "Heuristic evaluation and pruning logic depend significantly on broader repository and domain-specific context."
+
+Library/API Dependency (0-5, Yes/No):
+Does the optimization rely on a specific API or library call? Indicate whether a library call is used. If yes, rate how generic or well known that library is in this domain.
+Score 5: uses a widely known generic library such as OpenMP, BLAS, or the C++ STL.
+Score 0: relies on a custom or obscure project-specific library.
+Score null: no library or API call is used.
+Example:
+
+// Using OpenMP for parallelism
+#pragma omp parallel for
+Score: 5
+
+Important Note:
+- Evaluate structural fidelity rigorously. Penalize if the benchmark implements its own functionality instead of directly using original or standard library implementations.
+- Carefully assess computational realism, especially penalizing artificial computations (e.g., trivial gradient calculations or zeroed gradients) that do not reflect real-world scenarios.
+- Functional equivalence must include realistic gradient computations and meaningful computational logic. Simplified or unrealistic logic significantly reduces correctness.
+- Critically evaluate context neutrality, including subtle hints from hyperparameters or function names, ensuring complete neutrality.
+- Initialization realism: Ensure caching reflects realistic initialization, not just trivial caching that does not match real-world expensive lookups.
+- Complexity of Cached Functions: Consider if cached functions or pointers realistically reflect expensive computations from the original scenario.
+- Registry or Lookup Realism: Evaluate if registry initialization, entries, or lookup processes realistically reflect the original workload (avoiding trivial or overly simplified implementations).
+- If the benchmark uses simplified dummy functions (e.g., functions that do nothing or return trivially), explicitly penalize this under the Computational Realism and Side Effect Preservation dimensions.
+- Carefully assess whether the benchmark realistically represents the original optimization context, especially for computational workloads. Penalize benchmarks that use artificially exaggerated computations or irrelevant simulated workloads instead of realistic scenarios or operations relevant to the original optimization.
+
+
+
+Clearly provide your step-by-step reasoning with one-line justifications for each dimension listed above.

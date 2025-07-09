@@ -1,0 +1,22 @@
+From 91ca988275472be8ba25ae1a8b4332f137091f96 Mon Sep 17 00:00:00 2001
+From: Ivan Efremov <iefremov@igalia.com>
+Date: Tue, 4 Jun 2019 23:47:59 +0700
+Subject: [PATCH] P3A: Improving randomization of uploads order.
+
+---
+ components/p3a/brave_p3a_log_store.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/components/p3a/brave_p3a_log_store.cc b/components/p3a/brave_p3a_log_store.cc
+index 93b3fe10a..ad1afc3b1 100644
+--- a/components/p3a/brave_p3a_log_store.cc
++++ b/components/p3a/brave_p3a_log_store.cc
+@@ -107,7 +107,7 @@ const std::string& BraveP3ALogStore::staged_log_signature() const {
+ void BraveP3ALogStore::StageNextLog() {
+   // Stage the next item.
+   DCHECK(has_unsent_logs());
+-  uint64_t rand_idx = base::RandUint64() % unsent_entries_.size();
++  uint64_t rand_idx = base::RandGenerator(unsent_entries_.size());
+   staged_entry_key_ = *(unsent_entries_.begin() + rand_idx);
+   DCHECK(!log_.find(staged_entry_key_)->second.sent);
+ 

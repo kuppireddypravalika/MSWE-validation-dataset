@@ -1,0 +1,22 @@
+From 76494891cfc5b3ba71be32de12df6c21f835a39c Mon Sep 17 00:00:00 2001
+From: Geza Lore <gezalore@gmail.com>
+Date: Sun, 2 May 2021 11:23:09 +0100
+Subject: [PATCH] Speed up V3Width by pulling skip condition before node
+ iteration.
+
+---
+ src/V3Width.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/V3Width.cpp b/src/V3Width.cpp
+index a36501eb1f..dc556aa000 100644
+--- a/src/V3Width.cpp
++++ b/src/V3Width.cpp
+@@ -6125,6 +6125,7 @@ class WidthVisitor final : public AstNVisitor {
+     }
+     void userIterateAndNext(AstNode* nodep, WidthVP* vup) {
+         if (!nodep) return;
++        if (nodep->didWidth()) return;  // Avoid iterating list we have already iterated
+         {
+             VL_RESTORER(m_vup);
+             m_vup = vup;

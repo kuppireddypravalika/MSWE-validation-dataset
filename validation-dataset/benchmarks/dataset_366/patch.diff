@@ -1,0 +1,26 @@
+From 80a78327204c7946181787b77feb040ac799cf8f Mon Sep 17 00:00:00 2001
+From: "Herholz, Sebastian" <sebastian.herholz@intel.com>
+Date: Fri, 2 Feb 2024 09:24:52 +0100
+Subject: [PATCH] [knn] Avoiding copying statistics during KNN-tree build
+
+---
+ openpgl/spatial/KNN.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/openpgl/spatial/KNN.h b/openpgl/spatial/KNN.h
+index b04ec61..56d974d 100644
+--- a/openpgl/spatial/KNN.h
++++ b/openpgl/spatial/KNN.h
+@@ -197,9 +197,9 @@ struct KNearestRegionsSearchTree
+ 
+         for (size_t i = 0; i < num_points; i++)
+         {
+-            const auto region = regionStorage[i].first;
+-            openpgl::SampleStatistics combinedStats = region.sampleStatistics;
+-            openpgl::Point3 distributionPivot = combinedStats.mean;
++            const auto& region = regionStorage[i].first;
++            const openpgl::SampleStatistics& combinedStats = region.sampleStatistics;
++            const openpgl::Point3 distributionPivot = combinedStats.mean;
+             points[i].p = embree::Vec3f(distributionPivot[0], distributionPivot[1], distributionPivot[2]);
+         }
+ 

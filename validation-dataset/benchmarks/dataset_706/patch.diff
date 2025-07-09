@@ -1,0 +1,34 @@
+From e37de57b5939958100021ca00a37f99f99f45502 Mon Sep 17 00:00:00 2001
+From: vitamin-caig <vitamin.caig@gmail.com>
+Date: Fri, 4 Mar 2011 16:40:49 +0000
+Subject: [PATCH] TS files detecting speedup.
+
+git-svn-id: https://zxtune.googlecode.com/svn/trunk@979 e19a5227-2556-0410-816f-a35683127991
+---
+ src/core/plugins/players/ay/ts_supp.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/core/plugins/players/ay/ts_supp.cpp b/src/core/plugins/players/ay/ts_supp.cpp
+index de733d9654..aadcb2fa1f 100644
+--- a/src/core/plugins/players/ay/ts_supp.cpp
++++ b/src/core/plugins/players/ay/ts_supp.cpp
+@@ -52,7 +52,7 @@ namespace
+   const String TS_PLUGIN_VERSION(FromStdString("$Rev$"));
+ 
+   const std::size_t TS_MIN_SIZE = 256;
+-  const std::size_t MAX_MODULE_SIZE = 1 << 14;
++  const std::size_t MAX_MODULE_SIZE = 16384;
+   const std::size_t TS_MAX_SIZE = MAX_MODULE_SIZE * 2;
+   //TODO: parametrize
+   const std::size_t SEARCH_THRESHOLD = TS_MIN_SIZE;
+@@ -452,8 +452,8 @@ namespace
+   /////////////////////////////////////////////////////////////////////////////
+   std::size_t FindFooter(const IO::FastDump& dump, std::size_t threshold)
+   {
+-    const std::size_t limit = std::min(dump.Size(), TS_MAX_SIZE);
+-    if (limit < TS_MIN_SIZE)
++    const std::size_t limit = dump.Size();
++    if (!in_range(limit, TS_MIN_SIZE, TS_MAX_SIZE))
+     {
+       return 0;
+     }

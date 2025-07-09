@@ -1,0 +1,32 @@
+From f70c1e1ca9897043defb22c8c32c0de121a4d475 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Can=20B=C3=B6l=C3=BCk?= <can.boluk89@gmail.com>
+Date: Sun, 21 Jun 2020 05:05:10 +0200
+Subject: [PATCH] Major speedup by comparing UID by hash rather than value.
+
+---
+ VTIL-SymEx/expressions/unique_identifier.hpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/VTIL-SymEx/expressions/unique_identifier.hpp b/VTIL-SymEx/expressions/unique_identifier.hpp
+index dda43751..609bb957 100644
+--- a/VTIL-SymEx/expressions/unique_identifier.hpp
++++ b/VTIL-SymEx/expressions/unique_identifier.hpp
+@@ -118,6 +118,9 @@ namespace vtil::symbolic
+ 			//
+ 			compare_value = [ ] ( const unique_identifier& a, const unique_identifier& b )
+ 			{
++				if ( a.hash_value < b.hash_value ) return -1;
++				if ( a.hash_value > b.hash_value ) return +1;
++
+ 				auto& ta = a.get<T>();
+ 				auto& tb = b.get<T>();
+ 				if ( ta == tb ) return  0;
+@@ -159,7 +162,7 @@ namespace vtil::symbolic
+ 		//
+ 		operator bool() const { return ( bool ) value; }
+ 
+-		// Simple comparison operators.
++		// Simple comparison operators, will go through hash first.
+ 		//
+ 		bool operator==( const unique_identifier& o ) const;
+ 		bool operator<( const unique_identifier& o ) const;

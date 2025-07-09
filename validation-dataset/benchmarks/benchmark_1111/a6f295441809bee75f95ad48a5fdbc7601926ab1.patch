@@ -1,0 +1,30 @@
+From a6f295441809bee75f95ad48a5fdbc7601926ab1 Mon Sep 17 00:00:00 2001
+From: Nikhil Marathe <nsm.nikhil@gmail.com>
+Date: Tue, 14 Jun 2011 15:35:54 -0400
+Subject: [PATCH] Bug 656519 - Add an interpreter fast-path for getting length
+ from a typed array. r=mrbkap
+
+--HG--
+extra : rebase_source : b2d583778e14877cb0e01f0739d08cd31dc9c757
+---
+ js/src/jsinterp.cpp | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/js/src/jsinterp.cpp b/js/src/jsinterp.cpp
+index a408cc7e301..6b11af3b2b4 100644
+--- a/js/src/jsinterp.cpp
++++ b/js/src/jsinterp.cpp
+@@ -4100,6 +4100,13 @@ BEGIN_CASE(JSOP_LENGTH)
+                     DO_NEXT_OP(len);
+                 }
+             }
++
++            if (js_IsTypedArray(obj)) {
++                TypedArray *tarray = TypedArray::fromJSObject(obj);
++                regs.sp[-1].setNumber(tarray->length);
++                len = JSOP_LENGTH_LENGTH;
++                DO_NEXT_OP(len);
++            }
+         }
+ 
+         i = -2;

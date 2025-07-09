@@ -1,0 +1,40 @@
+From 48144d8598fdc2c1f154f879731fa81add30f67d Mon Sep 17 00:00:00 2001
+From: John Carter <psiorx@gmail.com>
+Date: Fri, 13 Mar 2015 10:59:15 -0400
+Subject: [PATCH] dropped conditional compilation for isFinite in
+ drakeFloatingPointUtil
+
+---
+ systems/plants/RigidBodyManipulator.cpp | 10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
+
+diff --git a/systems/plants/RigidBodyManipulator.cpp b/systems/plants/RigidBodyManipulator.cpp
+index 6269a68ca1ee..ee83086b9d78 100644
+--- a/systems/plants/RigidBodyManipulator.cpp
++++ b/systems/plants/RigidBodyManipulator.cpp
+@@ -10,7 +10,7 @@
+ #include <regex>
+ #include <stdexcept>
+ #include <limits>
+-#include <float.h>
++#include "drakeFloatingPointUtil.h" //for isFinite
+ //DEBUG
+ //#include <stdexcept>
+ //END_DEBUG
+@@ -267,15 +267,9 @@ void getFiniteIndexes(T const & v, std::vector<int> &finite_indexes)
+   const size_t n = v.size();
+   for (size_t x = 0; x < n; x++)
+   {
+-    #if defined(WIN32) || defined(WIN64)
+-    if (_finite(static_cast<double>(v[x]))) {
++    if (isFinite<double>(static_cast<double>(v[x]))) {
+       finite_indexes.push_back(x);
+     }
+-    #else
+-    if (isfinite(static_cast<double>(v[x]))) {
+-      finite_indexes.push_back(x);
+-    }
+-    #endif
+   }
+ }
+ 

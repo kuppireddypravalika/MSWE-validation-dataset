@@ -1,0 +1,39 @@
+From 49a5f324825493c6b4cb2f3b9a8443751f8ec3e3 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Anders=20Sandstr=C3=B6m?= <anders.sandstrom@esss.se>
+Date: Fri, 6 Mar 2020 22:29:44 +0100
+Subject: [PATCH] ecmcFileExist: Increase buffer size.
+
+---
+ devEcmcSup/com/ecmcAsynPortDriver.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/devEcmcSup/com/ecmcAsynPortDriver.cpp b/devEcmcSup/com/ecmcAsynPortDriver.cpp
+index 5b68a029..1fb14db1 100644
+--- a/devEcmcSup/com/ecmcAsynPortDriver.cpp
++++ b/devEcmcSup/com/ecmcAsynPortDriver.cpp
+@@ -1738,14 +1738,14 @@ int ecmcFileExist(const char *filename, int die, int checkDirs) {
+   
+   // Search EPICS_DB_INCLUDE_PATH if not found
+   if(checkDirs && !fileExist) {
+-    char buffer[1024];
++    char buffer[4096];
+     char* dirs = getenv("EPICS_DB_INCLUDE_PATH");
+     char* pdirs=dirs; 
+     char *pdirs_old=pdirs;
+     if(dirs){
+       bool stop = false;
+       while((pdirs=strchr(pdirs,':')) && !stop){
+-        memset(buffer,0,1024);
++        memset(buffer,0,4096);
+         int chars=(int)(pdirs-pdirs_old);
+         strncpy(buffer,pdirs_old,chars);
+         buffer[chars]='/';
+@@ -1766,7 +1766,7 @@ int ecmcFileExist(const char *filename, int die, int checkDirs) {
+ 
+       //take the last also (if not already found)
+       if(strlen(pdirs_old)>0 && !fileExist){
+-        memset(buffer,0,1024);
++        memset(buffer,0,4096);
+         int chars=strlen(pdirs_old);
+         strncpy(buffer,pdirs_old,chars);
+         buffer[chars]='/';

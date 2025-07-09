@@ -1,0 +1,24 @@
+From 6c6bf8714c968c3c1b2214b00c93f53894d53609 Mon Sep 17 00:00:00 2001
+From: Connor McLaughlin <mclaughc@outlook.com>
+Date: Sun, 24 Nov 2019 16:51:08 +1000
+Subject: [PATCH] CPU/Recompiler: Only check interpreter load delay when it's
+ dirty
+
+---
+ src/core/cpu_recompiler_code_generator_x64.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/core/cpu_recompiler_code_generator_x64.cpp b/src/core/cpu_recompiler_code_generator_x64.cpp
+index 68672a877..cbff876ee 100644
+--- a/src/core/cpu_recompiler_code_generator_x64.cpp
++++ b/src/core/cpu_recompiler_code_generator_x64.cpp
+@@ -1661,6 +1661,9 @@ void CodeGenerator::EmitMoveNextInterpreterLoadDelay()
+ 
+ void CodeGenerator::EmitCancelInterpreterLoadDelayForReg(Reg reg)
+ {
++  if (!m_load_delay_dirty)
++    return;
++
+   auto load_delay_reg = m_emit->byte[GetCPUPtrReg() + offsetof(Core, m_load_delay_reg)];
+ 
+   Xbyak::Label skip_cancel;

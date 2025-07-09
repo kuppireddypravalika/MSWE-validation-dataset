@@ -1,0 +1,30 @@
+From 555295e2ed6a04b568c07fd0200b2d94cab498b0 Mon Sep 17 00:00:00 2001
+From: Sergey Sharybin <sergey.vfx@gmail.com>
+Date: Thu, 1 Feb 2018 15:11:17 +0100
+Subject: [PATCH] Fix for non-vectorized version of bitscan()
+
+It was doing bit search in an opposite direction comparing to a
+vectorized version.
+---
+ src/util/util_simd.h | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/util/util_simd.h b/src/util/util_simd.h
+index f432fd795..8f6eb3995 100644
+--- a/src/util/util_simd.h
++++ b/src/util/util_simd.h
+@@ -454,13 +454,12 @@ ccl_device_inline int bitscan(int value)
+ {
+ 	assert(value != 0);
+ 	int bit = 0;
+-	while(value >>= 1) {
++	while((value & (1 << bit)) == 0) {
+ 		++bit;
+ 	}
+ 	return bit;
+ }
+ 
+-
+ #endif /* __KERNEL_SSE2__ */
+ 
+ /* quiet unused define warnings */

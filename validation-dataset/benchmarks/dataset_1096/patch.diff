@@ -1,0 +1,23 @@
+From 05db1261a54ad9ec4ad3817b7583b4c796b413f8 Mon Sep 17 00:00:00 2001
+From: Peter Caspers <peter.caspers@quaternion.com>
+Date: Wed, 13 Apr 2016 21:35:24 +0200
+Subject: [PATCH] reuse result instead of recalculating discount factor
+
+---
+ QuantExt/qle/pricingengines/discountingswapengine.hpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/QuantExt/qle/pricingengines/discountingswapengine.hpp b/QuantExt/qle/pricingengines/discountingswapengine.hpp
+index b6169b4e8d..c34c6d7b67 100644
+--- a/QuantExt/qle/pricingengines/discountingswapengine.hpp
++++ b/QuantExt/qle/pricingengines/discountingswapengine.hpp
+@@ -185,8 +185,7 @@ namespace QuantExt {
+                 npv += tmp * df;
+             }
+         }
+-        DiscountFactor d = discountCurve.discount(npvDate);
+-        npv /= d;
++        npv /= results_.npvDateDiscount;
+         return npv;
+     }
+ 

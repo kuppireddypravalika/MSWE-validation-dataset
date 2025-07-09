@@ -1,0 +1,35 @@
+From d0882ffaf565dd382b1011286301be2db5b2104c Mon Sep 17 00:00:00 2001
+From: Stefan Kersten <kersten@users.sourceforge.net>
+Date: Thu, 25 Aug 2005 15:58:56 +0000
+Subject: [PATCH] use memmove for overlapping areas in CopyBuf
+
+git-svn-id: https://supercollider.svn.sourceforge.net/svnroot/supercollider/trunk@4818 a380766d-ff14-0410-b294-a243070f3f08
+---
+ source/plugins/OscUGens.cpp | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/source/plugins/OscUGens.cpp b/source/plugins/OscUGens.cpp
+index e77c2ec6e6e..fde09bf0f6a 100644
+--- a/source/plugins/OscUGens.cpp
++++ b/source/plugins/OscUGens.cpp
+@@ -20,6 +20,7 @@
+ 
+ #include "SC_PlugIn.h"
+ #include <limits.h>
++#include <string.h>
+ 
+ static InterfaceTable *ft;
+ 
+@@ -4142,7 +4143,11 @@ void CopyBuf(World *world, struct SndBuf *buf, struct sc_msg_iter *msg)
+ 	float *data1 = buf->data + toPos * channels1;
+ 	float *data2 = buf2->data + fromPos * channels2;
+ 	
+-	memcpy(data1, data2, numbytes);
++	if ((((char*)data1 + numbytes) > (char*)data2) || (((char*)data2 + numbytes) > (char*)data1)) {
++		memmove(data1, data2, numbytes);
++	} else {
++		memcpy(data1, data2, numbytes);
++	}
+ }
+ 
+ 

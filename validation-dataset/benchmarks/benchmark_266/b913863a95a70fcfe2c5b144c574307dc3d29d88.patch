@@ -1,0 +1,33 @@
+From b913863a95a70fcfe2c5b144c574307dc3d29d88 Mon Sep 17 00:00:00 2001
+From: Bob Wilson <bob.wilson@apple.com>
+Date: Wed, 21 Apr 2010 18:39:03 +0000
+Subject: [PATCH] Fix a performance problem with the new SSAUpdater.  This
+ showed up in the GCCAS time for MultiSource/Benchmarks/ASCI_Purple/SMG2000.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@102009 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Transforms/Utils/SSAUpdater.cpp | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/lib/Transforms/Utils/SSAUpdater.cpp b/lib/Transforms/Utils/SSAUpdater.cpp
+index d491cbb9155..25d50dbf2a8 100644
+--- a/lib/Transforms/Utils/SSAUpdater.cpp
++++ b/lib/Transforms/Utils/SSAUpdater.cpp
+@@ -529,9 +529,15 @@ void SSAUpdater::FindAvailableVals(BlockListTy *BlockList) {
+          E = BlockList->rend(); I != E; ++I) {
+     BBInfo *Info = *I;
+ 
+-    // Check if this block contains a newly added PHI.
+-    if (Info->DefBB != Info)
++    if (Info->DefBB != Info) {
++      // Record the available value at join nodes to speed up subsequent
++      // uses of this SSAUpdater for the same value.
++      if (Info->NumPreds > 1)
++        AvailableVals[Info->BB] = Info->DefBB->AvailableVal;
+       continue;
++    }
++
++    // Check if this block contains a newly added PHI.
+     PHINode *PHI = dyn_cast<PHINode>(Info->AvailableVal);
+     if (!PHI || PHI->getNumIncomingValues() == Info->NumPreds)
+       continue;

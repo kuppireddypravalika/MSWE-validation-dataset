@@ -1,0 +1,48 @@
+From 58995315558439c138c90a31407715e057b3f69d Mon Sep 17 00:00:00 2001
+From: mr-russ <>
+Date: Tue, 14 Jan 2003 23:43:03 +0000
+Subject: [PATCH] changed distance calculations to use isqrt.
+
+---
+ src/unit/unit.cpp | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/src/unit/unit.cpp b/src/unit/unit.cpp
+index 1ad973703..540a25adf 100644
+--- a/src/unit/unit.cpp
++++ b/src/unit/unit.cpp
+@@ -584,12 +584,12 @@ global void RemoveUnit(Unit* unit, Unit* host)
+ 	    MapUnmarkSight(unit->Player,unit->X+unit->Type->TileWidth/2
+ 				,unit->Y+unit->Type->TileHeight/2
+ 				,unit->CurrentSightRange);
+-	if( host ) {
+-	    unit->CurrentSightRange=host->CurrentSightRange;
+-	    MapMarkSight(unit->Player,host->X+host->Type->TileWidth/2,
++	    if( host ) {
++		unit->CurrentSightRange=host->CurrentSightRange;
++		MapMarkSight(unit->Player,host->X+host->Type->TileWidth/2,
+ 				host->Y+host->Type->TileWidth/2,
+ 				unit->CurrentSightRange);
+-	}
++	    }
+     }
+ #endif
+ 
+@@ -3455,7 +3455,7 @@ global void HitUnit(Unit* attacker,Unit* target,int damage)
+ */
+ global int MapDistance(int x1,int y1,int x2,int y2)
+ {
+-    return max(abs(x1-x2),abs(y1-y2));
++    return isqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
+ }
+ 
+ /**
+@@ -3555,7 +3555,7 @@ global int MapDistanceBetweenUnits(const Unit* src,const Unit* dst)
+ 	}
+     }
+ 
+-    return (dy<dx) ? dx : dy;
++    return isqrt(dx*dx+dy*dy);
+ }
+ 
+ /**

@@ -1,0 +1,42 @@
+From e924197c48b826ffd12b975012ba5342a449d390 Mon Sep 17 00:00:00 2001
+From: Niels Martin Hansen <nielsm@aegisub.org>
+Date: Thu, 20 Nov 2008 22:08:34 +0000
+Subject: [PATCH] Make the libass fonts_dir something sensible so it doesn't
+ search the entire homedir (or whereever) through for fonts on init, causing
+ huge delays. (?user/libass_fonts/ is used now, it's created if it doesn't
+ exist.)
+
+Originally committed to SVN as r2468.
+---
+ aegisub/subtitles_provider_libass.cpp | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/aegisub/subtitles_provider_libass.cpp b/aegisub/subtitles_provider_libass.cpp
+index d3a52434f..29a491268 100644
+--- a/aegisub/subtitles_provider_libass.cpp
++++ b/aegisub/subtitles_provider_libass.cpp
+@@ -42,6 +42,8 @@
+ #include "ass_file.h"
+ #include "video_context.h"
+ #include "utils.h"
++#include "standard_paths.h"
++#include <wx/filefn.h>
+ 
+ 
+ ///////////////
+@@ -52,8 +54,13 @@ LibassSubtitlesProvider::LibassSubtitlesProvider() {
+ 	if (first) {
+ 		ass_library = ass_library_init();
+ 		if (!ass_library) throw _T("ass_library_init failed");
+-
+-		ass_set_fonts_dir(ass_library, "");
++		
++		wxString fonts_dir = StandardPaths::DecodePath(_T("?user/libass_fonts/"));
++		if (!wxDirExists(fonts_dir))
++			// It's only one level below the user dir, and we assume the user dir already exists at this point.
++			wxMkdir(fonts_dir);
++		
++		ass_set_fonts_dir(ass_library, fonts_dir.mb_str(wxConvFile));
+ 		ass_set_extract_fonts(ass_library, 0);
+ 		ass_set_style_overrides(ass_library, NULL);
+ 		first = false;

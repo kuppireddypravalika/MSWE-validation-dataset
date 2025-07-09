@@ -1,0 +1,44 @@
+From c819304ff3279c5504e7ecfbe8f4a3f8cd9640a5 Mon Sep 17 00:00:00 2001
+From: HydrogenSulfate <490868991@qq.com>
+Date: Tue, 27 Feb 2024 14:54:31 +0800
+Subject: [PATCH] [Prim] Optimize composite OP subtract_double_grad (#61912)
+
+* optimize subtract_double_grad
+
+* Update composite_double_backward_api.h
+
+Fix
+---
+ .../composite_double_backward_api.h            | 18 +++++++-----------
+ 1 file changed, 7 insertions(+), 11 deletions(-)
+
+diff --git a/paddle/fluid/prim/api/composite_backward/composite_double_backward_api.h b/paddle/fluid/prim/api/composite_backward/composite_double_backward_api.h
+index 8e0827eeb0b7e2..02bd7e29443c0b 100644
+--- a/paddle/fluid/prim/api/composite_backward/composite_double_backward_api.h
++++ b/paddle/fluid/prim/api/composite_backward/composite_double_backward_api.h
+@@ -609,18 +609,14 @@ void subtract_double_grad(const Tensor& y,
+                           Tensor* grad_out_grad) {
+   if (grad_out_grad) {
+     // ddout = ddx - ddy
+-    if (!grad_x_grad && !grad_y_grad) {
+-      grad_out_grad = nullptr;
++    if (grad_x_grad && grad_y_grad) {
++      set_output<T>(grad_x_grad.get() - grad_y_grad.get(), grad_out_grad);
++    } else if (grad_x_grad) {
++      set_output<T>(grad_x_grad.get(), grad_out_grad);
++    } else if (grad_y_grad) {
++      set_output<T>(-grad_y_grad.get(), grad_out_grad);
+     } else {
+-      Tensor ddout =
+-          full<T>(common::vectorize(grad_out.dims()), 0.0, y.dtype());
+-      if (grad_x_grad) {
+-        ddout = ddout + grad_x_grad.get();
+-      }
+-      if (grad_y_grad) {
+-        ddout = ddout - grad_y_grad.get();
+-      }
+-      set_output<T>(ddout, grad_out_grad);
++      grad_out_grad = nullptr;
+     }
+   }
+ }

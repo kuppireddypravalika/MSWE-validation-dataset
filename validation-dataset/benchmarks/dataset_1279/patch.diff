@@ -1,0 +1,35 @@
+From f15f2807c93ba038a031f272c937e9004ffb2111 Mon Sep 17 00:00:00 2001
+From: Nigel Pearson <npearson@mythtv.org>
+Date: Fri, 30 Jul 2010 05:03:55 +0000
+Subject: [PATCH] Efficiency fix. Both CreateLiveTVRingBuffer() and
+ SwitchLiveTVRingBuffer() delete + new curRecording, so there is no need to
+ fake a new RecordingInfo. Will infinitesimally speed up LiveTV startup, and
+ fixes this problem when using file:// or IMPORT tuner against a database with
+ no programme records:
+
+2010-07-30 14:57:26.507 RecBase(2:/Volumes/Backups/Movies/Moonlighting.nuv): SetRingBuffer(0x5526c60) '/Volumes/Backups/Movies/9999_20100730145726.mpg'
+2010-07-30 14:57:26.507 RecBase(2:/Volumes/Backups/Movies/test.mpg): SetRecording(0x5426f80) title()
+2010-07-30 14:57:26.508 ImportRec(2:/Volumes/Backups/Movies/test.mpg): StartRecording -- begin
+2010-07-30 14:57:26.508 ImportRec(2:/Volumes/Backups/Movies/test.mpg): StartRecording -- attempting to open 'myth://127.0.0.1:6543/9999_20100730145726.mpg'
+
+
+git-svn-id: http://svn.mythtv.org/svn/trunk@25493 7dbf422c-18fa-0310-86e9-fd20926502f2
+---
+ mythtv/libs/libmythtv/tv_rec.cpp | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/mythtv/libs/libmythtv/tv_rec.cpp b/mythtv/libs/libmythtv/tv_rec.cpp
+index 7358c31938f..3d506c0f11c 100644
+--- a/mythtv/libs/libmythtv/tv_rec.cpp
++++ b/mythtv/libs/libmythtv/tv_rec.cpp
+@@ -3987,9 +3987,7 @@ void TVRec::TuningNewRecorder(MPEGStreamData *streamData)
+             VERBOSE(VB_IMPORTANT, LOC_ERR + "Failed to create RingBuffer 2");
+             goto err_ret;
+         }
+-        ProgramInfo *pi = tvchain->GetProgramAt(-1);
+-        rec = new RecordingInfo(*pi);
+-        delete pi;
++        rec = curRecording;  // new'd in Create/SwitchLiveTVRingBuffer()
+     }
+ 
+     if (lastTuningRequest.flags & kFlagRecording)

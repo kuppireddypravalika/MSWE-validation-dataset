@@ -1,0 +1,34 @@
+From 2f41eba100f85f340ec9ca6b31f82dd3f22a01ff Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@duempel.org>
+Date: Thu, 5 Mar 2015 08:45:04 +0100
+Subject: [PATCH] fs/Path: reimplement GetSuffix() using GetBase() and
+ StringFindLast()
+
+---
+ src/fs/Path.cxx | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/src/fs/Path.cxx b/src/fs/Path.cxx
+index 466d952b38..99a4ffb613 100644
+--- a/src/fs/Path.cxx
++++ b/src/fs/Path.cxx
+@@ -21,6 +21,7 @@
+ #include "Path.hxx"
+ #include "Charset.hxx"
+ #include "util/UriUtil.hxx"
++#include "util/StringUtil.hxx"
+ 
+ std::string
+ Path::ToUTF8() const
+@@ -31,5 +32,10 @@ Path::ToUTF8() const
+ Path::const_pointer
+ Path::GetSuffix() const
+ {
+-	return uri_get_suffix(c_str());
++	const auto base = GetBase().c_str();
++	const auto *dot = StringFindLast(base, '.');
++	if (dot == nullptr || dot == base)
++		return nullptr;
++
++	return dot + 1;
+ }

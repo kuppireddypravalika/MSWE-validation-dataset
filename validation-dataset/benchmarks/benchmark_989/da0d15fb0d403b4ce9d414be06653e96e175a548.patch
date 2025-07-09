@@ -1,0 +1,33 @@
+From da0d15fb0d403b4ce9d414be06653e96e175a548 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Mon, 25 Jan 2016 20:44:30 +0000
+Subject: [PATCH] GTiff: fix compilation problem with internal libtiff if
+ DEFER_STRILE_LOAD isn't defined (which is not the default configuration)
+ (patch by drons, https://github.com/OSGeo/gdal/pull/90)
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@33164 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/frmts/gtiff/geotiff.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/gdal/frmts/gtiff/geotiff.cpp b/gdal/frmts/gtiff/geotiff.cpp
+index fa52b3985ce9..0138ebc70e82 100644
+--- a/gdal/frmts/gtiff/geotiff.cpp
++++ b/gdal/frmts/gtiff/geotiff.cpp
+@@ -7556,7 +7556,7 @@ int GTiffDataset::IsBlockAvailable( int nBlockId )
+ 
+ {
+ #ifdef INTERNAL_LIBTIFF
+-
++#ifdef DEFER_STRILE_LOAD
+     /* Optimization to avoid fetching the whole Strip/TileCounts and Strip/TileOffsets arrays */
+     if( eAccess == GA_ReadOnly &&
+         !(hTIFF->tif_flags & TIFF_SWAB) &&
+@@ -7660,6 +7660,7 @@ int GTiffDataset::IsBlockAvailable( int nBlockId )
+         }
+         return hTIFF->tif_dir.td_stripbytecount[nBlockId] != 0;
+     }
++#endif /* DEFER_STRILE_LOAD */
+ #endif /* INTERNAL_LIBTIFF */
+     toff_t *panByteCounts = NULL;
+ 

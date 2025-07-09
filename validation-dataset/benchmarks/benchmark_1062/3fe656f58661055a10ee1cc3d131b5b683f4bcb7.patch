@@ -1,0 +1,41 @@
+From 3fe656f58661055a10ee1cc3d131b5b683f4bcb7 Mon Sep 17 00:00:00 2001
+From: Matt Morehouse <mascasa@google.com>
+Date: Fri, 23 Mar 2018 23:35:28 +0000
+Subject: [PATCH] [libFuzzer] Use OptForFuzzing attribute with
+ -fsanitize=fuzzer.
+
+Summary:
+Disables certain CMP optimizations to improve fuzzing signal under -O1
+and -O2.
+
+Switches all fuzzer tests to -O2 except for a few leak tests where the
+leak is optimized out under -O2.
+
+Reviewers: kcc, vitalybuka
+
+Reviewed By: vitalybuka
+
+Subscribers: cfe-commits, llvm-commits
+
+Differential Revision: https://reviews.llvm.org/D44798
+
+git-svn-id: https://llvm.org/svn/llvm-project/cfe/trunk@328384 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/CodeGen/CodeGenFunction.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/lib/CodeGen/CodeGenFunction.cpp b/lib/CodeGen/CodeGenFunction.cpp
+index c5de16bc6e..3d7b906587 100644
+--- a/lib/CodeGen/CodeGenFunction.cpp
++++ b/lib/CodeGen/CodeGenFunction.cpp
+@@ -862,6 +862,10 @@ void CodeGenFunction::StartFunction(GlobalDecl GD,
+   if (SanOpts.has(SanitizerKind::SafeStack))
+     Fn->addFnAttr(llvm::Attribute::SafeStack);
+ 
++  // Apply fuzzing attribute to the function.
++  if (SanOpts.hasOneOf(SanitizerKind::Fuzzer | SanitizerKind::FuzzerNoLink))
++    Fn->addFnAttr(llvm::Attribute::OptForFuzzing);
++
+   // Ignore TSan memory acesses from within ObjC/ObjC++ dealloc, initialize,
+   // .cxx_destruct, __destroy_helper_block_ and all of their calees at run time.
+   if (SanOpts.has(SanitizerKind::Thread)) {

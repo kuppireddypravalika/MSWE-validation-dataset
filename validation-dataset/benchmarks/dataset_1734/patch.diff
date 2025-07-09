@@ -1,0 +1,34 @@
+From 369572f892a5e748098c038b76b0f4331d2dd201 Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Tue, 26 Jan 2016 19:45:58 +0100
+Subject: [PATCH] xcb: don't iterate over .keys()
+
+... iterate over the container itself instead. Avoids
+temporary QList creation as well as the lookup cost
+when actually calling value(key).
+
+Saves more than 1KiB in text size on optimized GCC 6.0
+Linux AMD64 builds.
+
+Change-Id: If4b2fb7eada0e9cde72ab101a5f6e5cb1ba64054
+Reviewed-by: Lars Knoll <lars.knoll@theqtcompany.com>
+---
+ src/plugins/platforms/xcb/qxcbconnection_xi2.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/src/plugins/platforms/xcb/qxcbconnection_xi2.cpp b/src/plugins/platforms/xcb/qxcbconnection_xi2.cpp
+index 46a26877c993..11577ba1f4a5 100644
+--- a/src/plugins/platforms/xcb/qxcbconnection_xi2.cpp
++++ b/src/plugins/platforms/xcb/qxcbconnection_xi2.cpp
+@@ -833,9 +833,8 @@ void QXcbConnection::xi2HandleHierachyEvent(void *event)
+         return;
+     xi2SetupDevices();
+     // Reselect events for all event-listening windows.
+-    Q_FOREACH (xcb_window_t window, m_mapper.keys()) {
+-        xi2Select(window);
+-    }
++    for (auto it = m_mapper.cbegin(), end = m_mapper.cend(); it != end; ++it)
++        xi2Select(it.key());
+ }
+ 
+ void QXcbConnection::xi2HandleDeviceChangedEvent(void *event)

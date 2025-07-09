@@ -1,0 +1,45 @@
+From ed0b0818033cab39da39b37c7bfe5237dd37954a Mon Sep 17 00:00:00 2001
+From: Daniel Jour <musteresel@gmail.com>
+Date: Tue, 3 Dec 2019 17:27:28 +0100
+Subject: [PATCH] Keyframe::IsIncreasing(): Search over points, not values
+
+Searching over the keyframe points is considerably faster than
+calculating interpolating values and searching over them.
+---
+ src/KeyFrame.cpp | 22 ++++++++++++++++------
+ 1 file changed, 16 insertions(+), 6 deletions(-)
+
+diff --git a/src/KeyFrame.cpp b/src/KeyFrame.cpp
+index 8982f29d2..ba2fda32a 100644
+--- a/src/KeyFrame.cpp
++++ b/src/KeyFrame.cpp
+@@ -282,13 +282,23 @@ bool Keyframe::IsIncreasing(int index) const
+ 	if (index < 1 || (index + 1) >= GetLength()) {
+ 		return true;
+ 	}
+-	int64_t const current = GetLong(index);
+-	// TODO: skip over constant sections.
++	std::vector<Point>::const_iterator candidate =
++		std::lower_bound(begin(Points), end(Points), static_cast<double>(index), IsPointBeforeX);
++	if (candidate == end(Points)) {
++		return false; // After the last point, thus constant.
++	}
++	if ((candidate->co.X == index) || (candidate == begin(Points))) {
++		++candidate;
++	}
++	int64_t const value = GetLong(index);
+ 	do {
+-		int64_t const next = GetLong(++index);
+-		if (next > current) return true;
+-		if (next < current) return false;
+-	} while (index < GetLength());
++		if (value < round(candidate->co.Y)) {
++			return true;
++		} else if (value > round(candidate->co.Y)) {
++			return false;
++		}
++		++candidate;
++	} while (candidate != end(Points));
+ 	return false;
+ }
+ 

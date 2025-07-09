@@ -1,0 +1,27 @@
+From 3dcb51e43333322df2ea4f1cfcb169a2a8f6bd1e Mon Sep 17 00:00:00 2001
+From: Nukem <Nukem@outlook.com>
+Date: Tue, 6 Dec 2016 00:20:20 -0500
+Subject: [PATCH] Speed up reflection generation (untested)
+
+---
+ components/game_mod/patch_reflections.cpp | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/components/game_mod/patch_reflections.cpp b/components/game_mod/patch_reflections.cpp
+index 30102863..2623424f 100644
+--- a/components/game_mod/patch_reflections.cpp
++++ b/components/game_mod/patch_reflections.cpp
+@@ -113,6 +113,13 @@ BOOL ReflectionMod_Init()
+ 	if (IsInjectionMode() || !LaunchArg_NoFF())
+ 		PatchMemory(0x0049EF60, (PBYTE)"\xB8\x00\x00\x00\x00\xC3", 6);
+ 
++	//
++	// Change each cubemap shot delay to 16ms
++	//
++	PatchMemory(0x006E4F52, (PBYTE)"\x6A\x16", 2);				// R_Resolve
++	PatchMemory(0x00708AD8, (PBYTE)"\x68\x16\x00\x00\x00", 5);	// R_CreateReflectionRawDataFromCubemapShot
++	PatchMemory(0x00707146, (PBYTE)"\x68\x40\x00\x00\x00", 5);	// R_GetBackBufferDataHDR
++
+ 	return TRUE;
+ }
+ 

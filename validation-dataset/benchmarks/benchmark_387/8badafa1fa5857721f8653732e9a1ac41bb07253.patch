@@ -1,0 +1,29 @@
+From 8badafa1fa5857721f8653732e9a1ac41bb07253 Mon Sep 17 00:00:00 2001
+From: Sambit Das <dsambit@umich.edu>
+Date: Wed, 22 Aug 2018 17:09:11 -0400
+Subject: [PATCH] Minor memory alignment improvement. ctests passed
+
+---
+ src/dftOperator/hamiltonianMatrixCalculator.cc | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/src/dftOperator/hamiltonianMatrixCalculator.cc b/src/dftOperator/hamiltonianMatrixCalculator.cc
+index ed4901830..e608b4202 100644
+--- a/src/dftOperator/hamiltonianMatrixCalculator.cc
++++ b/src/dftOperator/hamiltonianMatrixCalculator.cc
+@@ -153,7 +153,14 @@ void kohnShamDFTOperatorClass<FEOrder>::computeHamiltonianMatrix(unsigned int kP
+ 
+       for(unsigned int iSubCell = 0; iSubCell < n_sub_cells; ++iSubCell)
+ 	{
+-	  d_cellHamiltonianMatrix[iElem].resize(numberDofsPerElement*numberDofsPerElement,0.0);
++	  //FIXME: Aligning to 16 byte memory boundaries. However, this is not a guaranteed to align for 64 byte boundaries
++	  //as required for efficient AVX512 vectorization.
++	  //Use functions like mkl_malloc for 64 byte memory alignment.
++#ifdef USE_COMPLEX
++	  d_cellHamiltonianMatrix[iElem].resize(numberDofsPerElement*numberDofsPerElement+(numberDofsPerElement*numberDofsPerElement)%4);
++#else
++	  d_cellHamiltonianMatrix[iElem].resize(numberDofsPerElement*numberDofsPerElement+(numberDofsPerElement*numberDofsPerElement)%8);
++#endif
+ 	  for(unsigned int iNode = 0; iNode < numberDofsPerElement; ++iNode)
+ 	    {
+ 	      for(unsigned int jNode = 0; jNode < numberDofsPerElement; ++jNode)

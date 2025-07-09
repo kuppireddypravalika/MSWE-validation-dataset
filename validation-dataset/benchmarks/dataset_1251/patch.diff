@@ -1,0 +1,24 @@
+From 9b8df3488a123efc77c7d8d030162f2d65b84f65 Mon Sep 17 00:00:00 2001
+From: Alexandre Gauthier <alexandre230@msn.com>
+Date: Thu, 5 Feb 2015 10:03:34 +0100
+Subject: [PATCH] Use
+ setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate) for maximum
+ efficiency of node graph redrawing
+
+---
+ Gui/NodeGraph.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Gui/NodeGraph.cpp b/Gui/NodeGraph.cpp
+index 1816bc2783..dcf48795b8 100644
+--- a/Gui/NodeGraph.cpp
++++ b/Gui/NodeGraph.cpp
+@@ -399,7 +399,7 @@ NodeGraph::NodeGraph(Gui* gui,
+ 
+     setMouseTracking(true);
+     setCacheMode(CacheBackground);
+-    setViewportUpdateMode(QGraphicsView::MinimalViewportUpdate);
++    setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
+     setRenderHint(QPainter::Antialiasing);
+     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
+     //setTransformationAnchor(QGraphicsView::AnchorUnderMouse);

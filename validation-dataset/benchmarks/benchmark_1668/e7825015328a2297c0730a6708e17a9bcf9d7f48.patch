@@ -1,0 +1,27 @@
+From e7825015328a2297c0730a6708e17a9bcf9d7f48 Mon Sep 17 00:00:00 2001
+From: Simon Hausmann <simon.hausmann@theqtcompany.com>
+Date: Fri, 22 Jan 2016 13:15:19 +0100
+Subject: [PATCH] Speed up QObject::connect with function pointers
+
+When resolving the signal/slot of connect(&Foo::bar, ...) we place a meta-call
+to map the address to the method index. Once we have found the index, we don't
+need to continue but can return the result right away.
+
+Change-Id: I67bb22df394d7c22dc1731367c0961b958ed77b3
+Reviewed-by: Olivier Goffart (Woboq GmbH) <ogoffart@woboq.com>
+---
+ src/tools/moc/generator.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/tools/moc/generator.cpp b/src/tools/moc/generator.cpp
+index 5be58d3c4bd..99629f0427b 100644
+--- a/src/tools/moc/generator.cpp
++++ b/src/tools/moc/generator.cpp
+@@ -1254,6 +1254,7 @@ void Generator::generateStaticMetacall()
+             fprintf(out, "            if (*reinterpret_cast<_t *>(func) == static_cast<_t>(&%s::%s)) {\n",
+                     cdef->classname.constData(), f.name.constData());
+             fprintf(out, "                *result = %d;\n", methodindex);
++            fprintf(out, "                return;\n");
+             fprintf(out, "            }\n        }\n");
+         }
+         if (!anythingUsed)

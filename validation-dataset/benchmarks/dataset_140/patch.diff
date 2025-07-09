@@ -1,0 +1,31 @@
+From c313f323842d8ddeea2d23a1bd87eec4de71b558 Mon Sep 17 00:00:00 2001
+From: Thomas Goyne <plorkyeran@aegisub.org>
+Date: Wed, 24 Dec 2014 16:59:08 -0800
+Subject: [PATCH] Special-case all lines being selected in validate_adjoinable
+
+GetSortedSelection is kinda slow with large selections and all lines
+being selected is an easy thing to special-case.
+---
+ src/command/time.cpp | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/src/command/time.cpp b/src/command/time.cpp
+index 3e7a8f66b..d703ebdc0 100644
+--- a/src/command/time.cpp
++++ b/src/command/time.cpp
+@@ -60,10 +60,12 @@ struct validate_video_loaded : public Command {
+ struct validate_adjoinable : public Command {
+ 	CMD_TYPE(COMMAND_VALIDATE)
+ 	bool Validate(const agi::Context *c) override {
+-		auto sel = c->selectionController->GetSortedSelection();
+-		if (sel.empty()) return false;
++		size_t sel_size = c->selectionController->GetSelectedSet().size();
++		if (sel_size == 0) return false;
++		if (sel_size == 1 || sel_size == c->ass->Events.size()) return true;
+ 
+-		for (size_t i = 1; i < sel.size(); ++i) {
++		auto sel = c->selectionController->GetSortedSelection();
++		for (size_t i = 1; i < sel_size; ++i) {
+ 			if (sel[i]->Row != sel[i - 1]->Row + 1)
+ 				return false;
+ 		}

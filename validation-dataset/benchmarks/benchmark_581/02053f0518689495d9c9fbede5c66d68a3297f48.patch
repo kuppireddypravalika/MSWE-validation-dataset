@@ -1,0 +1,25 @@
+From 02053f0518689495d9c9fbede5c66d68a3297f48 Mon Sep 17 00:00:00 2001
+From: Bernhard Kauer <kauer@os.inf.tu-dresden.de>
+Date: Wed, 15 Sep 2010 13:55:41 +0200
+Subject: [PATCH] reduce register pressure in cpunr()
+
+---
+ vancouver/include/service/cpu.h | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/vancouver/include/service/cpu.h b/vancouver/include/service/cpu.h
+index 24e64b29..505a8bb4 100644
+--- a/vancouver/include/service/cpu.h
++++ b/vancouver/include/service/cpu.h
+@@ -103,8 +103,9 @@ class Cpu
+    * Return the CPU number.
+    */
+   static  unsigned cpunr() {
+-    unsigned ebx=0, ecx=0, edx=0;
+-    cpuid(0x1, ebx, ecx, edx);
++    unsigned ebx;
++    unsigned eax = 1;
++    asm volatile ("cpuid": "=b"(ebx), "+a"(eax) : : "ecx", "edx");
+     return (ebx >> 24) & 0xff;
+   }
+ 

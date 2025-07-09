@@ -1,0 +1,31 @@
+From 722ae0e0478c9a78ce8b7d92a28ae3cce67ac9f5 Mon Sep 17 00:00:00 2001
+From: wwwg <joshpauten@gmail.com>
+Date: Wed, 10 Oct 2018 10:51:16 -0500
+Subject: [PATCH] Use bitwise C operators when parsing binary expressions
+
+---
+ src/convert/Conversion.cc | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/convert/Conversion.cc b/src/convert/Conversion.cc
+index a4ed7ec8..4561c322 100644
+--- a/src/convert/Conversion.cc
++++ b/src/convert/Conversion.cc
+@@ -42,7 +42,7 @@ string wasmdec::Convert::getBinOperator(string e1, wasm::BinaryOp bop, string e2
+ 			break;
+ 		case OrInt64:
+ 		case OrInt32:
+-			op = "||"; return e1 + " " + op + " " + e2;
++			op = "|"; return e1 + " " + op + " " + e2;
+ 			break;
+ 		case MulInt32:
+ 		case MulInt64:
+@@ -64,7 +64,7 @@ string wasmdec::Convert::getBinOperator(string e1, wasm::BinaryOp bop, string e2
+ 			break;
+ 		case AndInt32:
+ 		case AndInt64:
+-			op = "&&"; return e1 + " " + op + " " + e2;
++			op = "&"; return e1 + " " + op + " " + e2;
+ 			break;
+ 		case LeSInt64:
+ 		case LeSInt32:

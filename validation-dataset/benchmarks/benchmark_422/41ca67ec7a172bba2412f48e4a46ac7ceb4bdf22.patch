@@ -1,0 +1,42 @@
+From 41ca67ec7a172bba2412f48e4a46ac7ceb4bdf22 Mon Sep 17 00:00:00 2001
+From: EmilyV99 <emilygamergirl99@gmail.com>
+Date: Sat, 15 Jul 2023 01:14:41 -0400
+Subject: [PATCH] refactor(zscript): optimize 'SETV reg,X - TRACER reg' to
+ 'TRACEV X'
+
+---
+ src/parser/ScriptParser.cpp | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
+
+diff --git a/src/parser/ScriptParser.cpp b/src/parser/ScriptParser.cpp
+index fcf438584f..148694306f 100644
+--- a/src/parser/ScriptParser.cpp
++++ b/src/parser/ScriptParser.cpp
+@@ -892,6 +892,27 @@ vector<shared_ptr<Opcode>> ScriptParser::assembleOne(
+ 			continue;
+ 		}
+ 		
++		if(OSetImmediate* setop = dynamic_cast<OSetImmediate*>(ocode))
++		{
++			Argument const* regarg = setop->getFirstArgument();
++			auto it2 = it;
++			++it2;
++			Opcode* nextcode = it2->get();
++			if(OTraceRegister* traceop = dynamic_cast<OTraceRegister*>(nextcode))
++			{
++				if(traceop->getLabel() == -1 && !regarg->toString().compare(
++					traceop->getArgument()->toString()))
++				{
++					Argument* arg = setop->getSecondArgument()->clone();
++					it2 = rval.erase(it2);
++					it = rval.erase(it);
++					it = rval.insert(it, std::shared_ptr<Opcode>(new OTraceImmediate(arg)));
++					(*it)->setLabel(lbl);
++					++it;
++					continue;
++				}
++			}
++		}
+ 		//Not an opcode that has any special optimizations
+ 		++it;
+ 	}

@@ -1,0 +1,29 @@
+From 633fa0e4d771a8b84b3a0e35044410fea923ef14 Mon Sep 17 00:00:00 2001
+From: Thomas Goyne <plorkyeran@aegisub.org>
+Date: Thu, 12 Jun 2014 16:15:44 -0700
+Subject: [PATCH] Only repaint the video slider on seek if the thumb will
+ actually move
+
+Cuts CPU usage for playback in totally arbitrary circumstances by about
+5%.
+---
+ src/video_slider.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/video_slider.cpp b/src/video_slider.cpp
+index 7c9a1a42d..705def983 100644
+--- a/src/video_slider.cpp
++++ b/src/video_slider.cpp
+@@ -67,8 +67,10 @@ VideoSlider::VideoSlider (wxWindow* parent, agi::Context *c)
+ 
+ void VideoSlider::SetValue(int value) {
+ 	if (val == value) return;
+-	val = mid(0, value, max);
+-	Refresh(false);
++	value = mid(0, value, max);
++	if (GetXAtValue(val) != GetXAtValue(value))
++		Refresh(false);
++	val = value;
+ }
+ 
+ void VideoSlider::VideoOpened(AsyncVideoProvider *provider) {

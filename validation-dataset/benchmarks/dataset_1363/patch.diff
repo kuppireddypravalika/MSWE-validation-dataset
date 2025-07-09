@@ -1,0 +1,29 @@
+From 221e975b964e12880c633322baf679ba870a9ff4 Mon Sep 17 00:00:00 2001
+From: Sebastian Geerken <devnull@localhost>
+Date: Fri, 29 Aug 2014 01:51:01 +0200
+Subject: [PATCH] Fixed another CPU hogging cause.
+
+---
+ dw/textblock.cc | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/dw/textblock.cc b/dw/textblock.cc
+index d2fb7857f..34e4632bd 100644
+--- a/dw/textblock.cc
++++ b/dw/textblock.cc
+@@ -591,9 +591,12 @@ void Textblock::sizeAllocateImpl (core::Allocation *allocation)
+             /* Commented lines break the n2 and n3 test cases at
+              * http://www.dillo.org/test/img/ */
+             childAllocation.y =
+-               lineYOffsetCanvasAllocation (line, allocation)
+-               + (line->boxAscent - word->size.ascent)
+-               - word->content.widget->getStyle()->margin.top;
++               misc::max (lineYOffsetCanvasAllocation (line, allocation)
++                          + (line->boxAscent - word->size.ascent)
++                          - word->content.widget->getStyle()->margin.top,
++                          // Should not exceed the top padding/border/margin
++                          // (could cause CPU hogging in some cases) ...
++                          boxOffsetY ());
+ 
+             DBG_OBJ_MSG_START ();
+             DBG_OBJ_MSGF ("resize", 1,

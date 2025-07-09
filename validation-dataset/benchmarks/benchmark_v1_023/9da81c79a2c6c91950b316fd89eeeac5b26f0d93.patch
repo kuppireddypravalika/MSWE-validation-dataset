@@ -1,0 +1,38 @@
+From 9da81c79a2c6c91950b316fd89eeeac5b26f0d93 Mon Sep 17 00:00:00 2001
+From: gbeauche <>
+Date: Mon, 26 Jan 2004 13:52:31 +0000
+Subject: [PATCH] Use bswap instruction on IA-32 too. Optimize bswap_64 on
+ little-endian (x86 for now) systems.
+
+---
+ SheepShaver/src/Unix/sysdeps.h | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/SheepShaver/src/Unix/sysdeps.h b/SheepShaver/src/Unix/sysdeps.h
+index 8fe237be..9d52661e 100644
+--- a/SheepShaver/src/Unix/sysdeps.h
++++ b/SheepShaver/src/Unix/sysdeps.h
+@@ -139,7 +139,7 @@ typedef int64 intptr;
+  **/
+ 
+ #if defined(__GNUC__)
+-#if defined(__x86_64__)
++#if defined(__x86_64__) || defined(__i386__)
+ // Linux/AMD64 currently has no asm optimized bswap_32() in <byteswap.h>
+ #define opt_bswap_32 do_opt_bswap_32
+ static inline uint32 do_opt_bswap_32(uint32 x)
+@@ -184,6 +184,14 @@ static inline uint32 generic_bswap_32(uint32 x)
+ 		  ((x & 0x000000ff) << 24) );
+ }
+ 
++#if defined(__i386__)
++#define opt_bswap_64 do_opt_bswap_64
++static inline uint64 do_opt_bswap_64(uint64 x)
++{
++  return (bswap_32(x >> 32) | (((uint64)bswap_32((uint32)x)) << 32));
++}
++#endif
++
+ #ifdef  opt_bswap_64
+ #undef  bswap_64
+ #define bswap_64 opt_bswap_64

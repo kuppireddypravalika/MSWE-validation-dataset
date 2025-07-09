@@ -1,0 +1,22 @@
+From bd60398855a22ff7805a473e4acbdec40b382252 Mon Sep 17 00:00:00 2001
+From: datajake1999 <datajake@gmail.com>
+Date: Mon, 27 Sep 2021 11:37:06 -0700
+Subject: [PATCH] Changed calls to floorf and ceilf to floor and ceil.
+
+---
+ src/OPL3GM.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/OPL3GM.cpp b/src/OPL3GM.cpp
+index e25f212..c0d2371 100644
+--- a/src/OPL3GM.cpp
++++ b/src/OPL3GM.cpp
+@@ -163,7 +163,7 @@ void OPL3GM::getParameterLabel (VstInt32 index, char* label)
+ 		}
+ 		break;
+ 	case kTranspose:
+-		if (floorf(Transpose) == 1 || ceilf(Transpose) == -1)
++		if (floor(Transpose) == 1 || ceil(Transpose) == -1)
+ 		{
+ 			strcpy (label, "Semitone");
+ 		}

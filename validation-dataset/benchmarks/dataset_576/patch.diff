@@ -1,0 +1,33 @@
+From 248c80a17852ef1ebda5df1bfd259223bb03b9fd Mon Sep 17 00:00:00 2001
+From: Tobias Doerffel <tobias.doerffel@gmail.com>
+Date: Thu, 21 Oct 2010 15:54:51 +0200
+Subject: [PATCH] ItalcCore/ItalcVncConnection: do not only process one message
+ per loop
+
+If more than one client event in the queue generates a reply, there
+will be more incoming messages than calls to HandleRFBServerMessage()
+resulting in increasing delays. Therefore process as many messages as
+available before processing the client events.
+---
+ lib/src/ItalcVncConnection.cpp | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/lib/src/ItalcVncConnection.cpp b/lib/src/ItalcVncConnection.cpp
+index f1d593b76..22dd3f6a2 100644
+--- a/lib/src/ItalcVncConnection.cpp
++++ b/lib/src/ItalcVncConnection.cpp
+@@ -560,7 +560,13 @@ void ItalcVncConnection::doConnection()
+ 		}
+ 		else if( i )
+ 		{
+-			if( !HandleRFBServerMessage( m_cl ) )
++			// read and process remaining messages many messages as available
++			bool handledOkay = true;
++			while( WaitForMessage( m_cl, 0 ) && handledOkay )
++			{
++				handledOkay = HandleRFBServerMessage( m_cl );
++			}
++			if( handledOkay == false )
+ 			{
+ 				break;
+ 			}

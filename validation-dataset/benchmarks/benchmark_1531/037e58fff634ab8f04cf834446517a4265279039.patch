@@ -1,0 +1,26 @@
+From 037e58fff634ab8f04cf834446517a4265279039 Mon Sep 17 00:00:00 2001
+From: Anton Kudryavtsev <a.kudryavtsev@netris.ru>
+Date: Sun, 24 Jan 2016 17:24:32 +0300
+Subject: [PATCH] QVariant: replace QLatin1String with QStringLiteral
+
+... in convert() to optimize string creation.
+
+Change-Id: Id012f2f52606c026ed216655ff3ce63bd5154da6
+Reviewed-by: Marc Mutz <marc.mutz@kdab.com>
+---
+ src/corelib/kernel/qvariant.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/corelib/kernel/qvariant.cpp b/src/corelib/kernel/qvariant.cpp
+index c7d9c9767a0..39954ebfbb0 100644
+--- a/src/corelib/kernel/qvariant.cpp
++++ b/src/corelib/kernel/qvariant.cpp
+@@ -446,7 +446,7 @@ static bool convert(const QVariant::Private *d, int t, void *result, bool *ok)
+             break;
+ #endif
+         case QVariant::Bool:
+-            *str = QLatin1String(d->data.b ? "true" : "false");
++            *str = d->data.b ? QStringLiteral("true") : QStringLiteral("false");
+             break;
+         case QVariant::ByteArray:
+             *str = QString::fromUtf8(v_cast<QByteArray>(d)->constData());

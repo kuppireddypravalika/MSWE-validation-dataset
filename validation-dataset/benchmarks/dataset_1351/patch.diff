@@ -1,0 +1,31 @@
+From 6951b1f2d5cb5bf5ad4c8c8b919404cb19ef76c6 Mon Sep 17 00:00:00 2001
+From: jcid <devnull@localhost>
+Date: Mon, 17 Mar 2008 19:49:27 +0100
+Subject: [PATCH] - Minor optimization to Html_parse_entities().
+
+---
+ src/html.cc | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/src/html.cc b/src/html.cc
+index 4b9db50b2..234724ccb 100644
+--- a/src/html.cc
++++ b/src/html.cc
+@@ -1397,13 +1397,14 @@ static char *
+ {
+    const char *esc_set = "&\xE2\xC2";
+    char *new_str, buf[4];
+-   int i, j, k, n, isocode, entsize;
++   int i, j, k, n, s, isocode, entsize;
+ 
+    new_str = dStrndup(token, toksize);
+-   if (new_str[strcspn(new_str, esc_set)] == 0)
++   s = strcspn(new_str, esc_set);
++   if (new_str[s] == 0)
+       return new_str;
+ 
+-   for (i = j = 0; i < toksize; i++) {
++   for (i = j = s; i < toksize; i++) {
+       if (token[i] == '&' &&
+           (isocode = Html_parse_entity(html, token+i,
+                                        toksize-i, &entsize)) >= 0) {

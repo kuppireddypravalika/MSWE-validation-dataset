@@ -1,0 +1,23 @@
+From 2426f1dd3a50e1658157ff6fa28a88854c7dc4b3 Mon Sep 17 00:00:00 2001
+From: Paul Riseborough <p_riseborough@live.com.au>
+Date: Sat, 18 Mar 2017 08:57:49 +1100
+Subject: [PATCH] EKF: remove use of memset to initialise variable
+
+When using a union of flags and integer value it is safer to initialise the value to 0 rather than memset the flags because the flags may not define all bits in the integer.
+---
+ EKF/estimator_interface.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/EKF/estimator_interface.cpp b/EKF/estimator_interface.cpp
+index 3e3e317f8ef7..6545edc45bcb 100644
+--- a/EKF/estimator_interface.cpp
++++ b/EKF/estimator_interface.cpp
+@@ -435,7 +435,7 @@ bool EstimatorInterface::initialise_interface(uint64_t timestamp)
+ 	_time_last_range = 0;
+ 	_time_last_airspeed = 0;
+ 	_time_last_optflow = 0;
+-	memset(&_fault_status.flags, 0, sizeof(_fault_status.flags));
++	_fault_status.value = 0;
+ 	_time_last_ext_vision = 0;
+ 	return true;
+ }

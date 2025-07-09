@@ -1,0 +1,22 @@
+From 1a1250cb46ead4d9ece35a3559df989830b86745 Mon Sep 17 00:00:00 2001
+From: Hanna K <hanna.knutsson@protonmail.com>
+Date: Sat, 10 Feb 2018 18:10:47 +0100
+Subject: [PATCH] Simplify result inbetween each run for high order derivatives
+ to increase performance (issue #61)
+
+---
+ libqalculate/BuiltinFunctions.cc | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/libqalculate/BuiltinFunctions.cc b/libqalculate/BuiltinFunctions.cc
+index cc2b9daa..3b335962 100644
+--- a/libqalculate/BuiltinFunctions.cc
++++ b/libqalculate/BuiltinFunctions.cc
+@@ -3931,6 +3931,7 @@ int DeriveFunction::calculate(MathStructure &mstruct, const MathStructure &vargs
+ 	mstruct = vargs[0];
+ 	bool b = false;
+ 	while(i) {
++		if(i > 0) mstruct.calculatesub(eo, eo, true);
+ 		if(CALCULATOR->aborted()) return 0;
+ 		if(!mstruct.differentiate(vargs[1], eo) && !b) {
+ 			return 0;

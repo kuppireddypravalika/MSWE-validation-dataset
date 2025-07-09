@@ -1,0 +1,32 @@
+From 99c6190bdf3906bd84ed1368a4d41abe08470f78 Mon Sep 17 00:00:00 2001
+From: Ahmad Samir <a.samirh78@gmail.com>
+Date: Thu, 10 Aug 2023 21:17:30 +0300
+Subject: [PATCH] QGestureManager: prevent double-lookup in a QHash
+
+First lookup with value(key), second lookup with remove(key). Use
+constFind() to get an iterator and use that instead.
+
+Pick-to: 6.6 6.5
+Change-Id: Idce585ad2269be91eda0381aeb2f2d164033f71f
+Reviewed-by: Thiago Macieira <thiago.macieira@intel.com>
+---
+ src/widgets/kernel/qgesturemanager.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/widgets/kernel/qgesturemanager.cpp b/src/widgets/kernel/qgesturemanager.cpp
+index d3eb30a5771..c44bd9f9722 100644
+--- a/src/widgets/kernel/qgesturemanager.cpp
++++ b/src/widgets/kernel/qgesturemanager.cpp
+@@ -112,8 +112,10 @@ void QGestureManager::unregisterGestureRecognizer(Qt::GestureType type)
+         ObjectGesture objectGesture = iter.key();
+         if (objectGesture.gesture == type) {
+             foreach (QGesture *g, iter.value()) {
+-                if (QGestureRecognizer *recognizer = m_gestureToRecognizer.value(g)) {
+-                    m_gestureToRecognizer.remove(g);
++                auto it = m_gestureToRecognizer.constFind(g);
++                if (it != m_gestureToRecognizer.cend() && it.value()) {
++                    QGestureRecognizer *recognizer = it.value();
++                    m_gestureToRecognizer.erase(it);
+                     m_obsoleteGestures[recognizer].insert(g);
+                 }
+             }

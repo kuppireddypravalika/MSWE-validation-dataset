@@ -1,0 +1,32 @@
+From 0fcc59a8ac7104a2ef00cc2f5ea95e230a04c8fd Mon Sep 17 00:00:00 2001
+From: Didier Levet <kakace@distributed.net>
+Date: Sun, 2 Mar 2008 20:08:46 +0000
+Subject: [PATCH] Fixed fastlock_trylock()/GNUC after having experienced an
+ illegal memory access (due to optimizations)
+
+---
+ common/clisync.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/common/clisync.h b/common/clisync.h
+index 6ba6397fb..b51589c70 100644
+--- a/common/clisync.h
++++ b/common/clisync.h
+@@ -62,7 +62,7 @@
+  */
+ 
+ #ifndef __CLISYNC_H__
+-#define __CLISYNC_H__ "@(#)$Id: clisync.h,v 1.8 2008/02/10 00:24:30 kakace Exp $"
++#define __CLISYNC_H__ "@(#)$Id: clisync.h,v 1.9 2008/03/02 20:08:46 kakace Exp $"
+ 
+ #include "cputypes.h"           /* thread defines */
+ #include "sleepdef.h"           /* NonPolledUSleep() */
+@@ -199,7 +199,7 @@
+     asm volatile("movl  $1,%0 \n\t" \
+                  "xchgl %0,%1 \n\t" \
+                  "xorl  $1,%0"
+-                 : "=r"(lacquired)
++                 : "=&r"(lacquired)
+                  : "m"(*l)
+                  : "memory");
+ # elif defined(__BORLANDC__) /* BCC can't do inline assembler in inline functions */

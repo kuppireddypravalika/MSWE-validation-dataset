@@ -1,0 +1,22 @@
+From 785ff24d040e5e2483c266a90a7e00bab29c52e0 Mon Sep 17 00:00:00 2001
+From: tchipevn <tchipevn@atsccs72.informatik.tu-muenchen.de>
+Date: Mon, 18 Feb 2019 11:01:10 +0100
+Subject: [PATCH] remove inlining of VCP1CLJRMM::_calculatePairs
+
+---
+ src/particleContainer/adapter/VCP1CLJRMM.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/particleContainer/adapter/VCP1CLJRMM.cpp b/src/particleContainer/adapter/VCP1CLJRMM.cpp
+index 439090e9f9..bee488878f 100644
+--- a/src/particleContainer/adapter/VCP1CLJRMM.cpp
++++ b/src/particleContainer/adapter/VCP1CLJRMM.cpp
+@@ -238,7 +238,7 @@ vcp_inline void VCP1CLJRMM::_loopBodyLJ(
+ }
+ 
+ template<class ForcePolicy, bool CalculateMacroscopic, class MaskGatherChooser>
+-vcp_inline void VCP1CLJRMM::_calculatePairs(CellDataSoARMM& soa1, CellDataSoARMM& soa2) {
++void VCP1CLJRMM::_calculatePairs(CellDataSoARMM& soa1, CellDataSoARMM& soa2) {
+ 
+ 	const int tid = mardyn_get_thread_num();
+ 	VCP1CLJRMMThreadData &my_threadData = *_threadData[tid];

@@ -1,0 +1,30 @@
+From d0ae7bef48958eab7f4c8481ffcb1664e91067fc Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Fri, 17 Aug 2012 10:55:38 +0200
+Subject: [PATCH] QThreadPool: use swap() when making a copy of allThreads
+
+This is the C++98 version of std::move().
+
+Change-Id: Icb73da16bb05bf07114a38e4fd48732b612e2d51
+Reviewed-by: Olivier Goffart <ogoffart@woboq.com>
+---
+ src/corelib/thread/qthreadpool.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/corelib/thread/qthreadpool.cpp b/src/corelib/thread/qthreadpool.cpp
+index 4c705f5a93..a923b8aa41 100644
+--- a/src/corelib/thread/qthreadpool.cpp
++++ b/src/corelib/thread/qthreadpool.cpp
+@@ -269,9 +269,9 @@ void QThreadPoolPrivate::reset()
+     runnableReady.wakeAll();
+ 
+     while (!allThreads.empty()) {
+-        // make a copy of the set so that we can iterate without the lock
+-        QSet<QThreadPoolThread *> allThreadsCopy = allThreads;
+-        allThreads.clear();
++        // move the contents of the set out so that we can iterate without the lock
++        QSet<QThreadPoolThread *> allThreadsCopy;
++        allThreadsCopy.swap(allThreads);
+         locker.unlock();
+ 
+         foreach (QThreadPoolThread *thread, allThreadsCopy) {

@@ -1,0 +1,34 @@
+From fdebd1c8d36691a1ef02da86b33520028b434da2 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Fri, 29 Aug 2008 18:18:23 +0000
+Subject: [PATCH] Use BlockBasedRasterIO in GDALDataset::IRasterIO for
+ pixel-interleaved datasets when source and destination have the same size
+ (https://trac.osgeo.org/gdal/ticket/2536)
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@15250 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/gcore/gdaldataset.cpp | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/gdal/gcore/gdaldataset.cpp b/gdal/gcore/gdaldataset.cpp
+index 4fb542cd7eab..7dc8acd104b9 100644
+--- a/gdal/gcore/gdaldataset.cpp
++++ b/gdal/gcore/gdaldataset.cpp
+@@ -1336,6 +1336,17 @@ CPLErr GDALDataset::IRasterIO( GDALRWFlag eRWFlag,
+     int iBandIndex; 
+     CPLErr eErr = CE_None;
+ 
++    const char* pszInterleave;
++    if (nXSize == nBufXSize && nYSize == nBufYSize &&
++        (pszInterleave = GetMetadataItem("INTERLEAVE", "IMAGE_STRUCTURE")) != NULL &&
++        EQUAL(pszInterleave, "PIXEL"))
++    {
++        return BlockBasedRasterIO( eRWFlag, nXOff, nYOff, nXSize, nYSize, 
++                                   pData, nBufXSize, nBufYSize,
++                                   eBufType, nBandCount, panBandMap,
++                                   nPixelSpace, nLineSpace, nBandSpace );
++    }
++
+     for( iBandIndex = 0; 
+          iBandIndex < nBandCount && eErr == CE_None; 
+          iBandIndex++ )

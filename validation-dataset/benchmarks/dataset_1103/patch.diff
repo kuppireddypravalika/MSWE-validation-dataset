@@ -1,0 +1,22 @@
+From fbe8565897055fa0c78743cc91bad5008d1ca2f9 Mon Sep 17 00:00:00 2001
+From: Peter Caspers <peter.caspers@acadia.inc>
+Date: Wed, 4 May 2022 18:12:55 +0200
+Subject: [PATCH] QPR-10782 unique instead of shared lock
+
+---
+ OREData/ored/utilities/indexnametranslator.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/OREData/ored/utilities/indexnametranslator.cpp b/OREData/ored/utilities/indexnametranslator.cpp
+index d3d820ff60..7806e7eb47 100644
+--- a/OREData/ored/utilities/indexnametranslator.cpp
++++ b/OREData/ored/utilities/indexnametranslator.cpp
+@@ -43,7 +43,7 @@ void IndexNameTranslator::add(const std::string& qlName, const std::string& oreN
+ }
+ 
+ void IndexNameTranslator::clear() {
+-    boost::shared_lock<boost::shared_mutex> lock(mutex_);
++    boost::unique_lock<boost::shared_mutex> lock(mutex_);
+     data_.clear();
+ }
+ 

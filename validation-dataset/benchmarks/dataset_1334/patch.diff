@@ -1,0 +1,26 @@
+From a9bd8dc1e30b82bc99a445f80df09488b4f9d1f4 Mon Sep 17 00:00:00 2001
+From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
+Date: Sun, 19 Jan 2014 18:41:21 +0100
+Subject: [PATCH] Turn off .dot and .frag file generation during unit tests.
+
+Even though this is sometimes useful in the effect_chain_test,
+this makes the test suite literally five times as fast on my
+machine due to all the disk I/O. We can always turn it on again
+when debugging specific issues.
+---
+ test_util.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/test_util.cpp b/test_util.cpp
+index 33a6916..eaa5fc6 100644
+--- a/test_util.cpp
++++ b/test_util.cpp
+@@ -44,7 +44,7 @@ EffectChainTester::EffectChainTester(const float *data, unsigned width, unsigned
+                                      GLenum framebuffer_format)
+ 	: chain(width, height, get_static_pool()), width(width), height(height), finalized(false)
+ {
+-	init_movit(".", MOVIT_DEBUG_ON);
++	init_movit(".", MOVIT_DEBUG_OFF);
+ 
+ 	if (data != NULL) {
+ 		add_input(data, pixel_format, color_space, gamma_curve);

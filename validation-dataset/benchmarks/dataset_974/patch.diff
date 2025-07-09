@@ -1,0 +1,25 @@
+From a9623f0e2ae3cf4d747f14254e9f6ea77a119d37 Mon Sep 17 00:00:00 2001
+From: Lioncash <mathew1800@gmail.com>
+Date: Wed, 16 Jun 2021 16:59:53 -0400
+Subject: [PATCH] Frontend: Shrink MapModRMToReg array size from uint64_t to
+ uint32_t
+
+This function only returns a 32-bit value, so we can save some space by
+using uint32_t instead.
+---
+ External/FEXCore/Source/Interface/Core/Frontend.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/External/FEXCore/Source/Interface/Core/Frontend.cpp b/External/FEXCore/Source/Interface/Core/Frontend.cpp
+index 9876d80887..a00997f85f 100644
+--- a/External/FEXCore/Source/Interface/Core/Frontend.cpp
++++ b/External/FEXCore/Source/Interface/Core/Frontend.cpp
+@@ -21,7 +21,7 @@ namespace FEXCore::Frontend {
+ using namespace FEXCore::X86Tables;
+ 
+ static uint32_t MapModRMToReg(uint8_t REX, uint8_t bits, bool HighBits, bool HasREX, bool HasXMM, bool HasMM, uint8_t InvalidOffset = 16) {
+-  using GPRArray = std::array<uint64_t, 16>;
++  using GPRArray = std::array<uint32_t, 16>;
+ 
+   static constexpr GPRArray GPRIndexes = {
+     // Classical ordering?

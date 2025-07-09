@@ -1,0 +1,22 @@
+From d9c631e9d8ed1df067dbfc989fd5f609428b3494 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@spatialys.com>
+Date: Sun, 4 Feb 2024 20:48:04 +0100
+Subject: [PATCH] TileDB: fix performance warning (CID 1534301)
+
+---
+ frmts/tiledb/tiledbcommon.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/frmts/tiledb/tiledbcommon.cpp b/frmts/tiledb/tiledbcommon.cpp
+index 21f51959d324..3c80c1cfd3f1 100644
+--- a/frmts/tiledb/tiledbcommon.cpp
++++ b/frmts/tiledb/tiledbcommon.cpp
+@@ -289,7 +289,7 @@ GDALDataset *TileDBDataset::Open(GDALOpenInfo *poOpenInfo)
+                             {
+                                 if (!poCandidateArray)
+                                 {
+-                                    poCandidateArray = poArray;
++                                    poCandidateArray = std::move(poArray);
+                                 }
+                                 else
+                                 {

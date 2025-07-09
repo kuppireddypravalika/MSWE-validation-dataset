@@ -1,0 +1,22 @@
+From 1b60e6a6b76878deea808df91cb62bfa9ea7bda9 Mon Sep 17 00:00:00 2001
+From: Hendrik Leppkes <h.leppkes@gmail.com>
+Date: Sat, 27 Oct 2012 10:25:28 +0200
+Subject: [PATCH] Make a variable const to help the optimizer
+
+---
+ decoder/LAVAudio/PostProcessor.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/decoder/LAVAudio/PostProcessor.cpp b/decoder/LAVAudio/PostProcessor.cpp
+index 71516d05f..0e8c898a2 100644
+--- a/decoder/LAVAudio/PostProcessor.cpp
++++ b/decoder/LAVAudio/PostProcessor.cpp
+@@ -647,7 +647,7 @@ HRESULT CLAVAudio::PerformMixing(BufferDetails *buffer)
+     BOOL bNeedNormalize = (m_fMixingClipThreshold > 1.0f);
+     float *pfOut = (float *)pOut;
+     for (DWORD i = 0; i < dwSamples; i++) {
+-      float fVal = abs(pfOut[i]);
++      const float fVal = abs(pfOut[i]);
+       if (fVal > m_fMixingClipThreshold) {
+         m_fMixingClipThreshold = fVal;
+         bNeedNormalize = TRUE;

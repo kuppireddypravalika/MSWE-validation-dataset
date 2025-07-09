@@ -1,0 +1,36 @@
+From 60f8b2f4d019e49402fbfd91fddeb4139dd973ac Mon Sep 17 00:00:00 2001
+From: Oswald Buddenhagen <oswald.buddenhagen@digia.com>
+Date: Tue, 3 Sep 2013 19:56:22 +0200
+Subject: [PATCH] micro-optimization/-clarification
+
+close stdin and let the process finish right away instead of first
+waiting for a reaction (which is not supposed to come) and then
+finishing.
+
+Change-Id: Ifcf200eead5ed95217843e105f9d2dbb5398d646
+Reviewed-by: Lars Knoll <lars.knoll@digia.com>
+---
+ tests/auto/corelib/io/qprocess/testForwarding/main.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/tests/auto/corelib/io/qprocess/testForwarding/main.cpp b/tests/auto/corelib/io/qprocess/testForwarding/main.cpp
+index e69ae173f4b4..d9571141aef8 100644
+--- a/tests/auto/corelib/io/qprocess/testForwarding/main.cpp
++++ b/tests/auto/corelib/io/qprocess/testForwarding/main.cpp
+@@ -57,12 +57,12 @@ int main()
+     if (process.write("forwarded\n") != 10)
+         return -1;
+ 
+-    process.waitForReadyRead(250);
+-    if (process.bytesAvailable() != 0)
++    process.closeWriteChannel();
++    if (!process.waitForFinished(5000))
+         return -1;
+ 
+-    process.closeWriteChannel();
+-    process.waitForFinished(5000);
++    if (process.bytesAvailable() != 0)
++        return -1;
+ #endif
+     return 0;
+ }

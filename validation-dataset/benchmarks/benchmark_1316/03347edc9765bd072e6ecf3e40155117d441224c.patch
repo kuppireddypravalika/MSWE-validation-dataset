@@ -1,0 +1,26 @@
+From 03347edc9765bd072e6ecf3e40155117d441224c Mon Sep 17 00:00:00 2001
+From: Wilfried Karel <wilfried.karel@geo.tuwien.ac.at>
+Date: Sat, 25 Nov 2023 21:08:10 +0100
+Subject: [PATCH] missed optimization opportunity in
+ ``type_caster<ref>::from_cpp``: use ``ref->self_py`` (#372)
+
+---
+ include/nanobind/intrusive/ref.h | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/include/nanobind/intrusive/ref.h b/include/nanobind/intrusive/ref.h
+index 7014753e..b383fbb2 100644
+--- a/include/nanobind/intrusive/ref.h
++++ b/include/nanobind/intrusive/ref.h
+@@ -136,6 +136,11 @@ template <typename T> struct type_caster<nanobind::ref<T>> {
+ 
+     static handle from_cpp(const ref<T> &value, rv_policy policy,
+                            cleanup_list *cleanup) noexcept {
++        if constexpr (std::is_base_of_v<intrusive_base, T>)
++            if (policy != rv_policy::copy && policy != rv_policy::move && value.get())
++                if (PyObject* obj = value->self_py())
++                    return handle(obj).inc_ref();
++
+         return Caster::from_cpp(value.get(), policy, cleanup);
+     }
+ };

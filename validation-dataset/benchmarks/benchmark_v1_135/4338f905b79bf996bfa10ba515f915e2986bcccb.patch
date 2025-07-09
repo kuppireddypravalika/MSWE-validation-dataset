@@ -1,0 +1,25 @@
+From 4338f905b79bf996bfa10ba515f915e2986bcccb Mon Sep 17 00:00:00 2001
+From: Dan Gohman <gohman@apple.com>
+Date: Sun, 27 Sep 2009 15:32:21 +0000
+Subject: [PATCH] Micro-optimize DerivedType::dropAllTypeUses.
+
+llvm-svn: 82900
+---
+ llvm/lib/VMCore/Type.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/llvm/lib/VMCore/Type.cpp b/llvm/lib/VMCore/Type.cpp
+index da53800ad7e..820789d89e7 100644
+--- a/llvm/lib/VMCore/Type.cpp
++++ b/llvm/lib/VMCore/Type.cpp
+@@ -498,8 +498,9 @@ void DerivedType::dropAllTypeUses() {
+     // pick so long as it doesn't point back to this type.  We choose something
+     // concrete to avoid overhead for adding to AbstractTypeUser lists and
+     // stuff.
++    const Type *ConcreteTy = Type::getInt32Ty(getContext());
+     for (unsigned i = 1, e = NumContainedTys; i != e; ++i)
+-      ContainedTys[i] = Type::getInt32Ty(getContext());
++      ContainedTys[i] = ConcreteTy;
+   }
+ }
+ 

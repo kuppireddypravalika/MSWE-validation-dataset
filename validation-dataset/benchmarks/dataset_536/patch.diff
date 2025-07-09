@@ -1,0 +1,28 @@
+From e2e7d113ad085e276fbf3803934416c8ac7a70d1 Mon Sep 17 00:00:00 2001
+From: Eric Wong <normalperson@yhbt.net>
+Date: Wed, 29 Mar 2006 07:38:58 +0000
+Subject: [PATCH] myfprintf: we should be near -ke speeds on most desktops
+
+git-svn-id: https://svn.musicpd.org/mpd/trunk@3970 09075e82-0dd4-0310-85a5-a0d7c8717e4f
+---
+ src/myfprintf.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/src/myfprintf.c b/src/myfprintf.c
+index c333e9c7f8..2c68ad4a13 100644
+--- a/src/myfprintf.c
++++ b/src/myfprintf.c
+@@ -67,12 +67,10 @@ void myfprintfStdLogMode(FILE * out, FILE * err) {
+ }
+ 
+ void myfprintf(FILE * fp, char * format, ... ) {
+-	char buffer[BUFFER_LENGTH+1];
++	static char buffer[BUFFER_LENGTH+1];
+ 	va_list arglist;
+ 	int fd = fileno(fp);
+ 
+-	memset(buffer,0,BUFFER_LENGTH+1);
+-
+ 	va_start(arglist,format);
+ 	if(fd==1 || fd==2) {
+ 		if(myfprintf_stdLogMode) {

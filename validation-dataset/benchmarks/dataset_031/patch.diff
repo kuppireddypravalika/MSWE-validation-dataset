@@ -1,0 +1,34 @@
+From f54fb046e48694840384e42b97e601a6d2a66977 Mon Sep 17 00:00:00 2001
+From: Gioacchino Mazzurco <gio@eigenlab.org>
+Date: Sun, 12 Apr 2020 22:46:58 +0200
+Subject: [PATCH] Use a a loop instead of std::trasform as suggested by Cyril
+
+---
+ libretroshare/src/ft/ftserver.cc | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/libretroshare/src/ft/ftserver.cc b/libretroshare/src/ft/ftserver.cc
+index d2c2f9f0a6..3ae1af491a 100644
+--- a/libretroshare/src/ft/ftserver.cc
++++ b/libretroshare/src/ft/ftserver.cc
+@@ -43,7 +43,7 @@
+ #include "retroshare/rstypes.h"
+ #include "retroshare/rspeers.h"
+ #include "retroshare/rsinit.h"
+-
++#include "util/cxx17retrocompat.h"
+ #include "rsitems/rsfiletransferitems.h"
+ #include "rsitems/rsserviceids.h"
+ #include "util/rsmemory.h"
+@@ -1975,9 +1975,8 @@ void ftServer::ftReceiveSearchResult(RsTurtleFTSearchResultItem *item)
+ 			hasCallback = true;
+ 
+ 			std::vector<TurtleFileInfoV2> cRes;
+-			std::transform( item->result.begin(), item->result.end(),
+-			                std::back_inserter(cRes),
+-			                [](const auto& it){ return TurtleFileInfoV2(it); } );
++			for(auto& res: std::as_const(item->result))
++				cRes.push_back(TurtleFileInfoV2(res));
+ 
+ 			cbpt->second.first(cRes);
+ 		}

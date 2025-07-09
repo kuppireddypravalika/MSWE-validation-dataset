@@ -1,0 +1,26 @@
+From 2310bccb4dbb9188d5cd315d10909152d87585c9 Mon Sep 17 00:00:00 2001
+From: Lawrence Kidder <kidder@astro.cornell.edu>
+Date: Tue, 9 Feb 2021 16:22:42 -0500
+Subject: [PATCH] Use tmpl::filter instead of list_difference in type alias
+
+This should compile faster
+---
+ src/DataStructures/DataBox/DataBox.hpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/DataStructures/DataBox/DataBox.hpp b/src/DataStructures/DataBox/DataBox.hpp
+index ce2438563706..72fdf5c6adcf 100644
+--- a/src/DataStructures/DataBox/DataBox.hpp
++++ b/src/DataStructures/DataBox/DataBox.hpp
+@@ -1111,8 +1111,9 @@ SPECTRE_ALWAYS_INLINE constexpr auto create_from(Box&& box,
+   // 2. Expand subitems of tags to remove
+   using immutable_item_tags_to_remove = expand_subitems<
+       tmpl::filter<remove_tags, db::is_immutable_item_tag<tmpl::_1>>>;
+-  using mutable_item_tags_to_remove = expand_subitems<
+-      tmpl::list_difference<remove_tags, immutable_item_tags_to_remove>>;
++  using mutable_item_tags_to_remove = expand_subitems<tmpl::filter<
++      remove_tags,
++      tmpl::not_<tmpl::bind<db::is_immutable_item_tag, tmpl::_1>>>>;
+ 
+   // 3. Expand subitems of tags to add
+   using mutable_item_tags_to_add = expand_subitems<AddTags>;

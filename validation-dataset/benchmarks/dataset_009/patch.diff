@@ -1,0 +1,35 @@
+From 7342c2b6171e045069059f208574be71e7c0547e Mon Sep 17 00:00:00 2001
+From: Niels Martin Hansen <nielsm@aegisub.org>
+Date: Wed, 23 Jul 2008 16:09:27 +0000
+Subject: [PATCH] Fix search/replace deleting part of line following the last
+ match on that line. Also a minor optimisation.
+
+Originally committed to SVN as r2280.
+---
+ aegisub/dialog_search_replace.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/aegisub/dialog_search_replace.cpp b/aegisub/dialog_search_replace.cpp
+index d21fc8908..466864d94 100644
+--- a/aegisub/dialog_search_replace.cpp
++++ b/aegisub/dialog_search_replace.cpp
+@@ -481,8 +481,9 @@ void SearchReplaceEngine::ReplaceAll() {
+ 		// Normal replace
+ 		else {
+ 			if (!Search.matchCase) {
+-				wxString Left, Right = *Text;
++				wxString Left = _T(""), Right = *Text;
+ 				int pos = 0;
++				Left.Alloc(Right.Len());
+ 				while (pos <= (int)(Right.Len() - LookFor.Len())) {
+ 					if (Right.Mid(pos, LookFor.Len()).CmpNoCase(LookFor) == 0) {
+ 						Left.Append(Right.Mid(0,pos)).Append(ReplaceWith);
+@@ -496,7 +497,7 @@ void SearchReplaceEngine::ReplaceAll() {
+ 					}
+ 				}
+ 				if (replaced) {
+-					*Text = Left;
++					*Text = Left + Right;
+ 				}
+ 			}
+ 			else {

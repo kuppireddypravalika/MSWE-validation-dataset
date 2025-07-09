@@ -1,0 +1,26 @@
+From 3eb5e3fc2ed9e6ce2ef38c050e876e17348c5f7e Mon Sep 17 00:00:00 2001
+From: garth <devnull@localhost>
+Date: Wed, 7 Dec 2005 20:09:39 +0000
+Subject: [PATCH] Tailorized "2005-12-07 14:09:39 by garth" LA:
+
+Apply PCFactorSetShiftNonzero() in LU to allow matrices with zero diagonals (such as Stokes) to be solved using the LU solver.
+---
+ src/kernel/la/LU.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/kernel/la/LU.cpp b/src/kernel/la/LU.cpp
+index 1ac86c6cf29..22fc1af4c70 100644
+--- a/src/kernel/la/LU.cpp
++++ b/src/kernel/la/LU.cpp
+@@ -25,7 +25,10 @@ LU::LU() : LinearSolver(), ksp(0), B(0), idxm(0), idxn(0)
+   KSPGetPC(ksp, &pc);
+   PCSetType(pc, PCLU);
+ 
+-  // Do LU factorizatio in-place (saves memory)
++  // Allow matrices with zero diagonals to be solved
++  PCFactorSetShiftNonzero(pc, PETSC_DECIDE);
++
++  // Do LU factorization in-place (saves memory)
+   PCASMSetUseInPlace(pc);
+ }
+ //-----------------------------------------------------------------------------

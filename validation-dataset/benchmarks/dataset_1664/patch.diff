@@ -1,0 +1,36 @@
+From 48586b2bac623605e9f300f8e5380e4f4b484dab Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Wed, 11 Sep 2013 23:10:18 +0200
+Subject: [PATCH] QTest: use nth_element to calculate the median
+
+Sorting is O(NlogN) complexity, while nth_element is linear.
+
+Change-Id: Ic6596affe183494e87abe7bdaa7c9985f5b7cd58
+Reviewed-by: Olivier Goffart <ogoffart@woboq.com>
+---
+ src/testlib/qtestcase.cpp | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/src/testlib/qtestcase.cpp b/src/testlib/qtestcase.cpp
+index 9d9fcced76b9..0cf2f3256bc6 100644
+--- a/src/testlib/qtestcase.cpp
++++ b/src/testlib/qtestcase.cpp
+@@ -1631,13 +1631,14 @@ QBenchmarkResult qMedian(const QList<QBenchmarkResult> &container)
+     if (count == 1)
+         return container.at(0);
+ 
+-    QList<QBenchmarkResult> containerCopy = container;
+-    std::sort(containerCopy.begin(), containerCopy.end());
+-
+     const int middle = count / 2;
+ 
++    QList<QBenchmarkResult> containerCopy = container;
++    const QList<QBenchmarkResult>::iterator begin = containerCopy.begin(), mid = begin + middle, end = containerCopy.end();
++    std::nth_element(begin, mid, end);
++
+     // ### handle even-sized containers here by doing an aritmetic mean of the two middle items.
+-    return containerCopy.at(middle);
++    return *mid;
+ }
+ 
+ struct QTestDataSetter

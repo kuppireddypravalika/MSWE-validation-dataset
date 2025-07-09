@@ -1,0 +1,38 @@
+From af83ac5ec6c29be8b95513ad65dace6cecab617a Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@duempel.org>
+Date: Tue, 26 Aug 2008 08:27:12 +0200
+Subject: [PATCH] mp3: dither a whole block at a time
+
+Fill the whole output buffer at a time by using dither_buffer()'s
+ability to decode blocks.  Calculate how many samples fit into the
+output buffer before each invocation.
+---
+ src/inputPlugins/mp3_plugin.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/src/inputPlugins/mp3_plugin.c b/src/inputPlugins/mp3_plugin.c
+index 2a6346bda1..0a99cab21f 100644
+--- a/src/inputPlugins/mp3_plugin.c
++++ b/src/inputPlugins/mp3_plugin.c
+@@ -932,12 +932,18 @@ static int mp3Read(mp3DecodeData * data, struct decoder *decoder,
+ 				pcm_length -= data->dropSamplesAtEnd;
+ 		}
+ 
+-		for (; i < pcm_length; i++) {
+-			unsigned int num_samples;
++		while (i < pcm_length) {
++			unsigned int num_samples =
++				(data->outputBufferEnd - data->outputPtr) /
++				(2 * MAD_NCHANNELS(&(data->frame).header));
++			if (num_samples > pcm_length - i)
++				num_samples = pcm_length - i;
++
++			i += num_samples;
+ 
+ 			num_samples = dither_buffer((mpd_sint16 *) data->outputPtr,
+ 						    &data->synth, &data->dither,
+-						    i, i + 1,
++						    i - num_samples, i,
+ 						    MAD_NCHANNELS(&(data->frame).header));
+ 			data->outputPtr += 2 * num_samples;
+ 

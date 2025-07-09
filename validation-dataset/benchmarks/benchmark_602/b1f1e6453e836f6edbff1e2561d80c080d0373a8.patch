@@ -1,0 +1,30 @@
+From b1f1e6453e836f6edbff1e2561d80c080d0373a8 Mon Sep 17 00:00:00 2001
+From: Andrei Maiboroda <andrei@ethereum.org>
+Date: Tue, 6 Oct 2020 12:34:47 +0200
+Subject: [PATCH] bench: don't copy module and imports in
+ FizzyEngine::instantiate
+
+---
+ test/utils/fizzy_engine.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/test/utils/fizzy_engine.cpp b/test/utils/fizzy_engine.cpp
+index 59f76b796..7eb698a8f 100644
+--- a/test/utils/fizzy_engine.cpp
++++ b/test/utils/fizzy_engine.cpp
+@@ -84,13 +84,13 @@ bool FizzyEngine::instantiate(bytes_view wasm_binary)
+ {
+     try
+     {
+-        const auto module = fizzy::parse(wasm_binary);
++        auto module = fizzy::parse(wasm_binary);
+         auto imports = fizzy::resolve_imported_functions(
+             module, {
+                         {"env", "adler32", {fizzy::ValType::i32, fizzy::ValType::i32},
+                             fizzy::ValType::i32, env_adler32},
+                     });
+-        m_instance = fizzy::instantiate(module, imports);
++        m_instance = fizzy::instantiate(std::move(module), std::move(imports));
+     }
+     catch (...)
+     {

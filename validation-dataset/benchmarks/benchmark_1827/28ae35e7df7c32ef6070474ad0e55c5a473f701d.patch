@@ -1,0 +1,48 @@
+From 28ae35e7df7c32ef6070474ad0e55c5a473f701d Mon Sep 17 00:00:00 2001
+From: Berthold Stoeger <bstoeger@mail.tuwien.ac.at>
+Date: Wed, 20 Dec 2017 00:01:42 +0100
+Subject: [PATCH] Make QMap<> access in deleteGpsFix() more idiomatic
+
+To access a QMap<> entry, the value() function is used with a sentinel
+as default value. If the sentinel is returned, the code assumes that
+the searched for entry doesn't exist.
+
+Make this code more idiomatic by using an iterator and testing for
+end().
+
+This fixes a compiler warning, because only one of the elements of
+the sentinel was initialized, but the remaining elements were
+copied. Harmless, because the code would exit early if it found
+the sentinel. Still not nice.
+
+While redoing this function, the entry-not-found message was improved
+(adding of function name, space between massage and timestamp) and
+elevated from debug to warning level.
+
+Signed-off-by: Berthold Stoeger <bstoeger@mail.tuwien.ac.at>
+---
+ core/gpslocation.cpp | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/core/gpslocation.cpp b/core/gpslocation.cpp
+index 2d65ae2117..9db829b02f 100644
+--- a/core/gpslocation.cpp
++++ b/core/gpslocation.cpp
+@@ -436,13 +436,12 @@ void GpsLocation::deleteFixFromStorage(gpsTracker &gt)
+ 
+ void GpsLocation::deleteGpsFix(qint64 when)
+ {
+-	struct gpsTracker defaultTracker;
+-	defaultTracker.when = 0;
+-	struct gpsTracker deletedTracker = m_trackers.value(when, defaultTracker);
+-	if (deletedTracker.when != when) {
+-		qDebug() << "can't find tracker for timestamp" << when;
++	auto it = m_trackers.find(when);
++	if (it == m_trackers.end()) {
++		qWarning() << "GpsLocation::deleteGpsFix(): can't find tracker for timestamp " << when;
+ 		return;
+ 	}
++	struct gpsTracker deletedTracker = *it;
+ 	deleteFixFromStorage(deletedTracker);
+ 	m_deletedTrackers.append(deletedTracker);
+ }

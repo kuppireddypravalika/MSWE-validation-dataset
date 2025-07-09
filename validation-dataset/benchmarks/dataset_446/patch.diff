@@ -1,0 +1,41 @@
+From d2e47e014a2f15413b4b3c414ec92c6555cb77d8 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@musicpd.org>
+Date: Wed, 14 Dec 2016 20:24:52 +0100
+Subject: [PATCH] player/Thread: reduce unlock/lock overhead in
+ PlayerCommand::PAUSE handler
+
+---
+ src/player/Thread.cxx | 12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
+
+diff --git a/src/player/Thread.cxx b/src/player/Thread.cxx
+index c563c3799b..6d927df410 100644
+--- a/src/player/Thread.cxx
++++ b/src/player/Thread.cxx
+@@ -681,23 +681,17 @@ Player::ProcessCommand()
+ 		break;
+ 
+ 	case PlayerCommand::PAUSE:
+-		pc.Unlock();
+-
+ 		paused = !paused;
+ 		if (paused) {
+-			pc.outputs.Pause();
+-			pc.Lock();
+-
+ 			pc.state = PlayerState::PAUSE;
++
++			const ScopeUnlock unlock(pc.mutex);
++			pc.outputs.Pause();
+ 		} else if (!play_audio_format.IsDefined()) {
+ 			/* the decoder hasn't provided an audio format
+ 			   yet - don't open the audio device yet */
+-			pc.Lock();
+-
+ 			pc.state = PlayerState::PLAY;
+ 		} else {
+-			pc.Lock();
+-
+ 			OpenOutput();
+ 		}
+ 

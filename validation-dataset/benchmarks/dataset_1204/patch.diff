@@ -1,0 +1,29 @@
+From 625186c3e0256c7e37deb843c90910fec122c27b Mon Sep 17 00:00:00 2001
+From: ldicker83 <leeor_net@yahoo.com>
+Date: Sun, 6 Sep 2020 00:15:24 -0400
+Subject: [PATCH] Eliminate CC resource computation in
+ MapViewState::refinedResourcesInStorage() since the mPlayerResources variable
+ is now a cached value
+
+---
+ OPHD/States/MapViewState.cpp | 7 -------
+ 1 file changed, 7 deletions(-)
+
+diff --git a/OPHD/States/MapViewState.cpp b/OPHD/States/MapViewState.cpp
+index f0431928f..58adc98b8 100644
+--- a/OPHD/States/MapViewState.cpp
++++ b/OPHD/States/MapViewState.cpp
+@@ -257,13 +257,6 @@ int MapViewState::refinedResourcesInStorage()
+ 	{
+ 		total += mPlayerResources.resources[i];
+ 	}
+-
+-	auto commandCenterResources = mTileMap->getTile(ccLocation()).structure()->storage();
+-	for (size_t i = 0; i < commandCenterResources.resources.size(); ++i)
+-	{
+-		total += commandCenterResources.resources[i];
+-	}
+-
+ 	return total;
+ }
+ 

@@ -1,0 +1,28 @@
+From 41fecdd3ff7efb8571a13e8fc88b2b214bfbb4bc Mon Sep 17 00:00:00 2001
+From: Avi Kivity <avi@scylladb.com>
+Date: Thu, 6 Apr 2017 10:37:28 +0300
+Subject: [PATCH] metrics: change push_back({...}) to emplace_back(...)
+
+Some compilers interpret {...} as an initializer list, probably due to
+std::tuple's constructor (which is the value type) being explicit.
+
+Changing to emplace_back() avoids the issue.
+
+Fixes #275.
+---
+ core/metrics.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/core/metrics.cc b/core/metrics.cc
+index 431c0ddd942..503c3f40733 100644
+--- a/core/metrics.cc
++++ b/core/metrics.cc
+@@ -251,7 +251,7 @@ values_copy get_values() {
+         std::vector<std::tuple<shared_ptr<registered_metric>, metric_value>> values;
+         for (auto&& v : i.second) {
+             if (v.second.get() && v.second->is_enabled()) {
+-                values.push_back({v.second, (*(v.second))()});
++                values.emplace_back(v.second, (*(v.second))());
+             }
+         }
+         if (values.size() > 0) {

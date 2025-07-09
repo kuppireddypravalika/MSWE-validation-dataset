@@ -1,0 +1,43 @@
+From 15daec56961684f5d291c3355fd0ee3e66a4ab08 Mon Sep 17 00:00:00 2001
+From: Roman Siromakha <elsid@yandex-team.ru>
+Date: Tue, 26 Jan 2016 20:09:36 +0300
+Subject: [PATCH] =?UTF-8?q?=D0=9E=D1=82=D0=BC=D0=B5=D0=BD=D1=8F=D0=B5?=
+ =?UTF-8?q?=D0=BC=20=D0=B7=D0=B0=D0=BF=D1=80=D0=BE=D1=81=D1=8B=20=D0=B2=20?=
+ =?UTF-8?q?=D0=BE=D1=87=D0=B5=D1=80=D0=B5=D0=B4=D0=B8=20=D0=B2=D1=81=D0=B5?=
+ =?UTF-8?q?=20=D0=B4=D0=BE=20=D1=82=D0=B5=D0=BA=D1=83=D1=89=D0=B5=D0=B3?=
+ =?UTF-8?q?=D0=BE=20=D0=B2=D1=80=D0=B5=D0=BC=D0=B5=D0=BD=D0=B8?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../resource_pool/async/detail/request_queue/queue.hpp    | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/include/yamail/resource_pool/async/detail/request_queue/queue.hpp b/include/yamail/resource_pool/async/detail/request_queue/queue.hpp
+index 2809a71..c9f21f0 100644
+--- a/include/yamail/resource_pool/async/detail/request_queue/queue.hpp
++++ b/include/yamail/resource_pool/async/detail/request_queue/queue.hpp
+@@ -78,7 +78,6 @@ class queue : public boost::enable_shared_from_this<queue<Value, IoService, Time
+     typedef typename request_list::iterator request_list_it;
+     typedef std::multimap<time_point, expiring_request_ptr> request_multimap;
+     typedef typename request_multimap::iterator request_multimap_it;
+-    typedef typename std::pair<request_multimap_it, request_multimap_it> request_multimap_range;
+     typedef typename request_multimap::value_type request_multimap_value;
+ 
+     struct expiring_request {
+@@ -151,10 +150,11 @@ void queue<V, I, T>::cancel(const boost::system::error_code& ec) {
+         return;
+     }
+     const lock_guard lock(_mutex);
+-    const request_multimap_range& range = _expires_at_requests.equal_range(
++    const request_multimap_it end = _expires_at_requests.upper_bound(
+         _timer->expires_at());
+-    boost::for_each(range, bind(&queue::cancel_one, this, _1));
+-    _expires_at_requests.erase(range.first, range.second);
++    std::for_each(_expires_at_requests.begin(), end,
++                  bind(&queue::cancel_one, this, _1));
++    _expires_at_requests.erase(_expires_at_requests.begin(), end);
+     update_timer();
+ }
+ 

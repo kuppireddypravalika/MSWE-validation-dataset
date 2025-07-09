@@ -1,0 +1,31 @@
+From 0619f17c4c6ce6ac7f3545008c03bd6e57e32c99 Mon Sep 17 00:00:00 2001
+From: David Roundy <roundyd@physics.oregonstate.edu>
+Date: Tue, 2 Nov 2010 17:56:22 -0400
+Subject: [PATCH] speed up EliminateThisSubexpression using depth.
+
+Tested-on: collins (Linux 2.6.32-5-amd64)
+---
+ src/CSE.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/CSE.cpp b/src/CSE.cpp
+index 0faa6d96e..d13385141 100644
+--- a/src/CSE.cpp
++++ b/src/CSE.cpp
+@@ -59,7 +59,7 @@ void Expression::EliminateThisDouble(const Expression &c, const std::string name
+ }
+ 
+ void Expression::EliminateThisSubexpression(const Expression &c, const std::string name) {
+-  if (c.typeIs(type)) {
++  if (c.typeIs(type) && c.depth == depth) {
+     // If the type is right, then it's possible that we *are* the subexpression.
+     // First check if we are the same as the subexpression we're trying to eliminate.
+     if (c.kindIs(kind) && c == *this) {
+@@ -77,6 +77,7 @@ void Expression::EliminateThisSubexpression(const Expression &c, const std::stri
+     //  return true;
+     //}
+   }
++  if (c.depth >= depth) return; // It can't be here!
+   // Try to recursively eliminate this subexpression in our children.
+   if (arg1) arg1->EliminateThisSubexpression(c, name);
+   if (arg2) arg2->EliminateThisSubexpression(c, name);

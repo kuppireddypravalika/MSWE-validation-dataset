@@ -1,0 +1,23 @@
+From 37c486365821f3d2de71dfb490bc194b5e2736ec Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Wed, 22 Jan 2014 11:41:24 +0100
+Subject: [PATCH] Increase initial size (reduce grows); might speed up
+ stressGraphics.
+
+---
+ .../llvm/src/lib/CodeGen/SelectionDAG/ScheduleDAGSDNodes.cpp    | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/interpreter/llvm/src/lib/CodeGen/SelectionDAG/ScheduleDAGSDNodes.cpp b/interpreter/llvm/src/lib/CodeGen/SelectionDAG/ScheduleDAGSDNodes.cpp
+index 7eaf40c55404b..1ac1c1e0ebabd 100644
+--- a/interpreter/llvm/src/lib/CodeGen/SelectionDAG/ScheduleDAGSDNodes.cpp
++++ b/interpreter/llvm/src/lib/CodeGen/SelectionDAG/ScheduleDAGSDNodes.cpp
+@@ -214,7 +214,7 @@ void ScheduleDAGSDNodes::ClusterNeighboringLoads(SDNode *Node) {
+ 
+   // Look for other loads of the same chain. Find loads that are loading from
+   // the same base pointer and different offsets.
+-  SmallPtrSet<SDNode*, 16> Visited;
++  SmallPtrSet<SDNode*, 64> Visited;
+   SmallVector<int64_t, 4> Offsets;
+   DenseMap<long long, SDNode*> O2SMap;  // Map from offset to SDNode.
+   bool Cluster = false;

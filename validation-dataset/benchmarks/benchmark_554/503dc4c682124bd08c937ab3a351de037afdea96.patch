@@ -1,0 +1,32 @@
+From 503dc4c682124bd08c937ab3a351de037afdea96 Mon Sep 17 00:00:00 2001
+From: Tristan Brindle <t.c.brindle@gmail.com>
+Date: Thu, 22 Aug 2024 13:24:34 +0100
+Subject: [PATCH] Simplify overflowing_cast
+
+Use the new C++20 std::in_range(), which seems to generate better code with GCC (and exactly the same with Clang)
+---
+ include/flux/core/numeric.hpp | 11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
+
+diff --git a/include/flux/core/numeric.hpp b/include/flux/core/numeric.hpp
+index 72f4f6c8..01eab7a3 100644
+--- a/include/flux/core/numeric.hpp
++++ b/include/flux/core/numeric.hpp
+@@ -57,16 +57,7 @@ struct overflowing_cast_fn {
+         if constexpr (requires { To{from}; }) {
+             return {To{from}, false}; // not a narrowing conversion
+         } else {
+-            To to = static_cast<To>(from);
+-            if (static_cast<From>(to) != from) {
+-                return {to, true};
+-            }
+-            if constexpr (std::is_signed_v<From> != std::is_signed_v<To>) {
+-                if ((to < To{}) != (from < From{})) {
+-                    return {to, true};
+-                }
+-            }
+-            return {to, false};
++            return {static_cast<To>(from), !std::in_range<To>(from)};
+         }
+     }
+ };

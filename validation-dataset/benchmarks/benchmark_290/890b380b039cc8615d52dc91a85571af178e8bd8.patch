@@ -1,0 +1,23 @@
+From 890b380b039cc8615d52dc91a85571af178e8bd8 Mon Sep 17 00:00:00 2001
+From: Tim Blechmann <tim@klingt.org>
+Date: Tue, 15 Jan 2013 18:41:27 +0100
+Subject: [PATCH] Nova UGens: GendyI - ensure inlining of Gendyn_distribution
+
+Signed-off-by: Tim Blechmann <tim@klingt.org>
+---
+ source/NovaUGens/NovaGendy.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/source/NovaUGens/NovaGendy.cpp b/source/NovaUGens/NovaGendy.cpp
+index 6de2d35b49..c79c5625e9 100644
+--- a/source/NovaUGens/NovaGendy.cpp
++++ b/source/NovaUGens/NovaGendy.cpp
+@@ -110,7 +110,7 @@ inline Float bspline_6p_5o(Float phase, Float ym2, Float ym1, Float y0, Float y1
+ 
+ // adapted from Nick's Gendy
+ template <typename Float>
+-static Float Gendyn_distribution( int which, Float a, Float f)
++static inline Float Gendyn_distribution( int which, Float a, Float f)
+ {
+ 	using namespace std;
+ 	Float temp, c;

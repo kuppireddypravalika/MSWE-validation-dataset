@@ -1,0 +1,26 @@
+From 6037bc1a78b9bad43bc334f61f1c7cc40181048c Mon Sep 17 00:00:00 2001
+From: Greg Langer <ghlanger@gmail.com>
+Date: Wed, 29 Apr 2020 14:11:37 -0400
+Subject: [PATCH] [surface] used & instead of listing all captures. initial
+ compilation errors led me to believe that I needed to list all captures, but
+ now that those other errors have been ironed out, @kunaltyagi and @morwenn
+ have pointed out that that was unnecessary and is in fact computationally
+ wasteful.
+
+---
+ surface/include/pcl/surface/impl/texture_mapping.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/surface/include/pcl/surface/impl/texture_mapping.hpp b/surface/include/pcl/surface/impl/texture_mapping.hpp
+index 81e13ceeca9..4b251f791da 100644
+--- a/surface/include/pcl/surface/impl/texture_mapping.hpp
++++ b/surface/include/pcl/surface/impl/texture_mapping.hpp
+@@ -593,7 +593,7 @@ pcl::TextureMapping<PointInT>::sortFacesByCamera (pcl::TextureMesh &tex_mesh, pc
+       // iterate over face's vertex
+       const auto faceIsVisible = std::all_of(tex_mesh.tex_polygons[0][faces].vertices.cbegin(),
+                                              tex_mesh.tex_polygons[0][faces].vertices.cend(),
+-                                             [this, occluded_set, transformed_cloud, camera](const auto& vertex)
++                                             [&](const auto& vertex)
+       {
+           if (occluded_set.find(vertex) != occluded_set.cend()) {
+             return false;  // point is occluded

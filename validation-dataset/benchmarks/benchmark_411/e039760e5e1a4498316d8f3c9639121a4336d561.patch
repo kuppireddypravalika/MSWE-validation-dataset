@@ -1,0 +1,30 @@
+From e039760e5e1a4498316d8f3c9639121a4336d561 Mon Sep 17 00:00:00 2001
+From: Lin Hu <linhu@ca.ibm.com>
+Date: Wed, 27 Mar 2019 15:35:42 -0400
+Subject: [PATCH] Enable CopyForwardMarkCompactHybrid mode
+
+	- enable CopyForwardMarkCompactHybrid mode by default for fully
+	testing.
+	CopyForwardMarkCompactHybrid mode intends to avoid MarkCompactOnly
+	PGCs, which are caused by jniCritical or abort case during GMP.
+	it would improve the GC performance for the most cases, but in
+	some cases, it might be no performance difference or slight draw back.
+
+Signed-off-by: Lin Hu <linhu@ca.ibm.com>
+---
+ gc/base/GCExtensionsBase.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gc/base/GCExtensionsBase.hpp b/gc/base/GCExtensionsBase.hpp
+index c92786fe38..8279b5d7ed 100644
+--- a/gc/base/GCExtensionsBase.hpp
++++ b/gc/base/GCExtensionsBase.hpp
+@@ -1654,7 +1654,7 @@ class MM_GCExtensionsBase : public MM_BaseVirtual {
+ 		, tarokMinimumGMPWorkTargetBytes()
+ 		, tarokConcurrentMarkingCostWeight(0.05)
+ 		, tarokAutomaticDefragmentEmptinessThreshold(false)
+-		, tarokEnableCopyForwardHybrid(false)
++		, tarokEnableCopyForwardHybrid(true)
+ #endif /* defined (OMR_GC_VLHGC) */
+ 		, tarokEnableExpensiveAssertions(false)
+ 		, sweepPoolManagerAddressOrderedList(NULL)

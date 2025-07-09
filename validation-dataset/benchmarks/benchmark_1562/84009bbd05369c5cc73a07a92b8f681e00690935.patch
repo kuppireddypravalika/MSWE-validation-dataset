@@ -1,0 +1,27 @@
+From 84009bbd05369c5cc73a07a92b8f681e00690935 Mon Sep 17 00:00:00 2001
+From: Robert Blake <blake14@llnl.gov>
+Date: Thu, 31 Jan 2019 00:27:15 -0800
+Subject: [PATCH] Fixing memory problem when using simd
+
+---
+ hack/cardiac_coefficients.cpp | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/hack/cardiac_coefficients.cpp b/hack/cardiac_coefficients.cpp
+index 5ab2e01..ab7f66e 100644
+--- a/hack/cardiac_coefficients.cpp
++++ b/hack/cardiac_coefficients.cpp
+@@ -17,9 +17,10 @@ ReactionFunction::ReactionFunction(QuadratureSpace *qs, FiniteElementSpace *f, c
+ {
+    nCells = this->Size();
+ 
+-   Vm.resize(nCells);
+-   dVm.resize(nCells);
+-   iStim.resize(nCells);
++   int vectorLength = ((nCells+31)/32)*32;
++   Vm.resize(vectorLength);
++   dVm.resize(vectorLength);
++   iStim.resize(vectorLength);
+ 
+    double* VmRaw = Vm.writeonly(CPU).raw();
+    VmQuad.SetSpace(QuadS, VmRaw, 1);

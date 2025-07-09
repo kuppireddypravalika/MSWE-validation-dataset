@@ -1,0 +1,22 @@
+From dde43de786bb890b98e6903a075d4a732aa3b9a7 Mon Sep 17 00:00:00 2001
+From: Jeffrey Walton <noloader@gmail.com>
+Date: Wed, 6 Feb 2019 19:20:48 -0500
+Subject: [PATCH] Use SECRET_KEYLENGTH for ed25519PrivateKey::GenerateRandom
+
+---
+ xed25519.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/xed25519.cpp b/xed25519.cpp
+index 05414e45b..f8544f345 100644
+--- a/xed25519.cpp
++++ b/xed25519.cpp
+@@ -468,7 +468,7 @@ void ed25519PrivateKey::GenerateRandom(RandomNumberGenerator &rng, const NameVal
+     if (params.GetValue(Name::Seed(), seed) && rng.CanIncorporateEntropy())
+         rng.IncorporateEntropy(seed.begin(), seed.size());
+ 
+-    rng.GenerateBlock(m_sk, 32);
++    rng.GenerateBlock(m_sk, SECRET_KEYLENGTH);
+     m_sk[0] &= 248; m_sk[31] &= 127; m_sk[31] |= 64;
+     int ret = Donna::ed25519_publickey(m_pk, m_sk);
+     CRYPTOPP_ASSERT(ret == 0); CRYPTOPP_UNUSED(ret);

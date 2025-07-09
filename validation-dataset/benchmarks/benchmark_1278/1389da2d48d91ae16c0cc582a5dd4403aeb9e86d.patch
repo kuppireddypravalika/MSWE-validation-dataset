@@ -1,0 +1,24 @@
+From 1389da2d48d91ae16c0cc582a5dd4403aeb9e86d Mon Sep 17 00:00:00 2001
+From: Nader Khammassi <nader.khammassi@gmail.com>
+Date: Fri, 24 Nov 2017 15:26:28 +0100
+Subject: [PATCH] CBox Trace File is now Generated only when Verbose Mode
+ Enabled
+
+Restricted Trace File Generation to Verbose mode to Avoid Slowing down the Compilation for Long Sequences
+---
+ ql/program.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ql/program.h b/ql/program.h
+index 002913fa4..141aad76c 100644
+--- a/ql/program.h
++++ b/ql/program.h
+@@ -245,7 +245,7 @@ class quantum_program
+          backend_compiler->write_eqasm( ql::utils::get_output_dir() + "/" + name + ".asm");
+ 
+          if(verbose) COUT("writing traces to '" << ( ql::utils::get_output_dir() + "/trace.dat"));
+-         backend_compiler->write_traces( ql::utils::get_output_dir() + "/trace.dat");
++         if (verbose) backend_compiler->write_traces( ql::utils::get_output_dir() + "/trace.dat");
+ 
+          // deprecated hardcoded microcode generation 
+ 

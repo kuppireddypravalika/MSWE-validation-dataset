@@ -1,0 +1,44 @@
+From 33e7151ec3a27e95bcf1eaebf805c6232957cc14 Mon Sep 17 00:00:00 2001
+From: tecnovert <tecnovert@particl.io>
+Date: Sat, 7 Jul 2018 20:46:26 +0200
+Subject: [PATCH] Avoid calling tryGetBalances in pollBalanceChanged if the
+ result won't be used. getBalances takes significant processing if the wallet
+ has many transactions.
+
+---
+ src/qt/walletmodel.cpp | 21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
+
+diff --git a/src/qt/walletmodel.cpp b/src/qt/walletmodel.cpp
+index 9d3d081136..e6b8b90a45 100644
+--- a/src/qt/walletmodel.cpp
++++ b/src/qt/walletmodel.cpp
+@@ -73,18 +73,17 @@ void WalletModel::updateStatus()
+ 
+ void WalletModel::pollBalanceChanged()
+ {
+-    // Try to get balances and return early if locks can't be acquired. This
+-    // avoids the GUI from getting stuck on periodical polls if the core is
+-    // holding the locks for a longer time - for example, during a wallet
+-    // rescan.
+-    interfaces::WalletBalances new_balances;
+-    int numBlocks = -1;
+-    if (!m_wallet->tryGetBalances(new_balances, numBlocks)) {
+-        return;
+-    }
++    if (fForceCheckBalanceChanged || m_node.getNumBlocks() != cachedNumBlocks) {
++        // Try to get balances and return early if locks can't be acquired. This
++        // avoids the GUI from getting stuck on periodical polls if the core is
++        // holding the locks for a longer time - for example, during a wallet
++        // rescan.
++        interfaces::WalletBalances new_balances;
++        int numBlocks = -1;
++        if (!m_wallet->tryGetBalances(new_balances, numBlocks)) {
++            return;
++        }
+ 
+-    if(fForceCheckBalanceChanged || m_node.getNumBlocks() != cachedNumBlocks)
+-    {
+         fForceCheckBalanceChanged = false;
+ 
+         // Balance and number of transactions might have changed

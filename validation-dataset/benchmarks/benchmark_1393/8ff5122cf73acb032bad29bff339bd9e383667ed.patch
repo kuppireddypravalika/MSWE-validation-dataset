@@ -1,0 +1,35 @@
+From 8ff5122cf73acb032bad29bff339bd9e383667ed Mon Sep 17 00:00:00 2001
+From: Mario Lang <mlang@debian.org>
+Date: Fri, 2 Mar 2012 17:48:04 +0100
+Subject: [PATCH] Convert one use of BOOST_FOREACH to C++11 range-based for
+ loops.
+
+---
+ octave_calculator.hpp | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/octave_calculator.hpp b/octave_calculator.hpp
+index 9e9bdbc..161d69f 100644
+--- a/octave_calculator.hpp
++++ b/octave_calculator.hpp
+@@ -7,7 +7,6 @@
+ #ifndef BMC_OCTAVE_CALCULATOR_HPP
+ #define BMC_OCTAVE_CALCULATOR_HPP
+ 
+-#include <boost/foreach.hpp>
+ #include <boost/variant/static_visitor.hpp>
+ #include "ambiguous.hpp"
+ #include "compiler_pass.hpp"
+@@ -32,9 +31,9 @@ class octave_calculator
+ 
+   result_type operator()(ambiguous::measure& measure)
+   {
+-    BOOST_FOREACH(ambiguous::voice& voice, measure.voices) {
+-      BOOST_FOREACH(ambiguous::partial_measure& part, voice) {
+-        BOOST_FOREACH(ambiguous::partial_voice& partial_voice, part) {
++    for (ambiguous::voice& voice: measure.voices) {
++      for (ambiguous::partial_measure& part: voice) {
++        for (ambiguous::partial_voice& partial_voice: part) {
+           ambiguous::partial_voice::iterator iter = partial_voice.begin();
+           bool ok = true;
+           while (ok && iter != partial_voice.end())

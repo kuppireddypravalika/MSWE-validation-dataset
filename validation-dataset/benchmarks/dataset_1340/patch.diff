@@ -1,0 +1,44 @@
+From 8955fe9af76ed5c811de39a209f968cf94181111 Mon Sep 17 00:00:00 2001
+From: Defisym <defisym@outlook.com>
+Date: Tue, 27 Aug 2024 17:21:08 +0800
+Subject: [PATCH] use `InsertSorted` instead of sort
+
+---
+ Extensions/_DeLib/FindTheWay.h | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/Extensions/_DeLib/FindTheWay.h b/Extensions/_DeLib/FindTheWay.h
+index 40d3d87d..169179f7 100644
+--- a/Extensions/_DeLib/FindTheWay.h
++++ b/Extensions/_DeLib/FindTheWay.h
+@@ -1212,12 +1212,15 @@ namespace FindTheWay {
+ 				}
+ 			}
+ 
++#define USE_INSERT_SORTED
+ 			while (!open_set.empty()) {
++#ifndef USE_INSERT_SORTED
+ 				// Descending
+ 				std::ranges::sort(open_set,
+ 					[] (const Point& A, const Point& B) ->bool {
+ 						return A.priority > B.priority;
+ 					});
++#endif
+ 
+ 				if (open_set.back().coord == destination) {
+ 					Point* parent = &open_set.back();
+@@ -1288,7 +1291,14 @@ namespace FindTheWay {
+ 
+ 					if (next == nullptr) {
+ 						updatePoint(neighPoint);
++#ifdef USE_INSERT_SORTED
++						InsertSortedUpperBound(open_set, neighPoint,
++							[] (const Point& A, const Point& B) ->bool {
++								return A.priority > B.priority;
++					});
++#else
+ 						open_set.emplace_back(neighPoint);
++#endif
+ 					}
+ 					else if (next->cost > neighPoint.cost) {
+ 						updatePoint(*next);

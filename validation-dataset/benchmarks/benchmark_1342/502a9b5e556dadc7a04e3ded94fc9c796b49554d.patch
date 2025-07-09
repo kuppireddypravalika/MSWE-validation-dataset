@@ -1,0 +1,27 @@
+From 502a9b5e556dadc7a04e3ded94fc9c796b49554d Mon Sep 17 00:00:00 2001
+From: "dvander@traceknight.local" <dvander@traceknight.local>
+Date: Fri, 20 Jun 2008 11:38:46 -0700
+Subject: [PATCH] use valloc() on Darwin for GCHeap
+
+---
+ nanojit/avmplus.h | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/nanojit/avmplus.h b/nanojit/avmplus.h
+index 0d4325f..85fc082 100644
+--- a/nanojit/avmplus.h
++++ b/nanojit/avmplus.h
+@@ -83,9 +83,13 @@ class GCHeap
+     inline void*
+     Alloc(uint32_t pages) 
+     {
++#if defined DARWIN
++        return valloc(pages * kNativePageSize);
++#else
+         void* p = malloc((pages + 1) * kNativePageSize);
+         p = (void*)(((int)(((char*)p) + kNativePageSize - 1)) & (~0xfff));
+         return p;
++#endif
+     }
+     
+     inline void

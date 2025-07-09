@@ -1,0 +1,32 @@
+From 5a06a2cac0ea8cc9fdaf7cb2ff943c06278d0f3a Mon Sep 17 00:00:00 2001
+From: aph <unknown>
+Date: Tue, 21 May 2013 15:42:28 +0100
+Subject: [PATCH] In native calls, don't copy registers unnecessarily.
+
+---
+ src/cpu/aarch64/vm/sharedRuntime_aarch64.cpp | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
+
+diff --git a/src/cpu/aarch64/vm/sharedRuntime_aarch64.cpp b/src/cpu/aarch64/vm/sharedRuntime_aarch64.cpp
+index cd6248ecd..50e706654 100644
+--- a/src/cpu/aarch64/vm/sharedRuntime_aarch64.cpp
++++ b/src/cpu/aarch64/vm/sharedRuntime_aarch64.cpp
+@@ -1030,11 +1030,13 @@ static void long_move(MacroAssembler* masm, VMRegPair src, VMRegPair dst) {
+ 
+ 
+ // A double move
+-static void double_move(MacroAssembler* masm, VMRegPair src, VMRegPair dst) { 
+-  if (src.is_single_phys_reg() && dst.is_single_phys_reg())
+-    __ fmovd(dst.first()->as_FloatRegister(), src.first()->as_FloatRegister());
+-  else
+-    ShouldNotReachHere();
++static void double_move(MacroAssembler* masm, VMRegPair src, VMRegPair dst) {
++  if (src.first() != dst.first()) {
++    if (src.is_single_phys_reg() && dst.is_single_phys_reg())
++      __ fmovd(dst.first()->as_FloatRegister(), src.first()->as_FloatRegister());
++    else
++      ShouldNotReachHere();
++  }
+ }
+ 
+ 

@@ -1,0 +1,55 @@
+From 444ca32ab8f8d490dc8078b5cd12f6a621adb955 Mon Sep 17 00:00:00 2001
+From: Kostya Kortchinsky <kostyak@google.com>
+Date: Mon, 23 Apr 2018 14:53:13 +0000
+Subject: [PATCH] [scudo] Read ARM feature bits using Fuchsia APIs.
+
+Summary:
+    Fuchsia uses zx_system_get_features in lieu of getauxval.
+
+    Use this call when checking for CRC32 support.
+
+Reviewers: cryptoad
+
+Reviewed By: cryptoad
+
+Subscribers: delcypher, llvm-commits, #sanitizers, kristof.beyls, chrib
+
+Differential Revision: https://reviews.llvm.org/D45896
+---
+ compiler-rt/lib/scudo/scudo_utils.cpp | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/compiler-rt/lib/scudo/scudo_utils.cpp b/compiler-rt/lib/scudo/scudo_utils.cpp
+index 05e63217d966..42c626033092 100644
+--- a/compiler-rt/lib/scudo/scudo_utils.cpp
++++ b/compiler-rt/lib/scudo/scudo_utils.cpp
+@@ -17,7 +17,10 @@
+ # include <cpuid.h>
+ #elif defined(__arm__) || defined(__aarch64__)
+ # include "sanitizer_common/sanitizer_getauxval.h"
+-# if SANITIZER_POSIX
++# if SANITIZER_FUCHSIA
++#  include <zircon/syscalls.h>
++#  include <zircon/features.h>
++# elif SANITIZER_POSIX
+ #  include "sanitizer_common/sanitizer_posix.h"
+ #  include <fcntl.h>
+ # endif
+@@ -110,9 +113,17 @@ INLINE bool areBionicGlobalsInitialized() {
+ }
+ 
+ bool hasHardwareCRC32() {
++#if SANITIZER_FUCHSIA
++  u32 HWCap;
++  zx_status_t Status = zx_system_get_features(ZX_FEATURE_KIND_CPU, &HWCap);
++  if (Status != ZX_OK || (HWCap & ZX_ARM64_FEATURE_ISA_CRC32) == 0)
++    return false;
++  return true;
++#else
+   if (&getauxval && areBionicGlobalsInitialized())
+     return !!(getauxval(AT_HWCAP) & HWCAP_CRC32);
+   return hasHardwareCRC32ARMPosix();
++#endif  // SANITIZER_FUCHSIA
+ }
+ #else
+ bool hasHardwareCRC32() { return false; }

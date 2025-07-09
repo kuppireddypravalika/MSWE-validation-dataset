@@ -1,0 +1,46 @@
+From 870062e8cc0b6ecded85721f92ed172152dd80fc Mon Sep 17 00:00:00 2001
+From: Jason Rhinelander <jason@imaginary.ca>
+Date: Sat, 22 Feb 2020 17:42:16 -0400
+Subject: [PATCH] Remove absl optimization
+
+This was being used to get at gcc/clang's __builtin_expect, but we don't
+really need that: we can just avoid the check entirely when not in debug
+mode which should be even faster.
+---
+ llarp/crypto/crypto.hpp | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/llarp/crypto/crypto.hpp b/llarp/crypto/crypto.hpp
+index 2e8c567fa..096b57515 100644
+--- a/llarp/crypto/crypto.hpp
++++ b/llarp/crypto/crypto.hpp
+@@ -6,7 +6,6 @@
+ 
+ #include <util/buffer.hpp>
+ 
+-#include <absl/base/optimization.h>
+ #include <functional>
+ 
+ #include <cstdint>
+@@ -140,15 +139,17 @@ namespace llarp
+     }
+ 
+     static Crypto *
+-    instance() ABSL_ATTRIBUTE_RETURNS_NONNULL
++    instance()
+     {
+-      if(ABSL_PREDICT_TRUE(m_crypto))
+-      {
++#ifdef NDEBUG
++      return m_crypto;
++#else
++      if(m_crypto)
+         return m_crypto;
+-      }
+ 
+       assert(false && "Cryptomanager::instance() was undefined");
+       abort();
++#endif
+     }
+   };
+ 

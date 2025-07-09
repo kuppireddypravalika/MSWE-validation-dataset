@@ -1,0 +1,23 @@
+From 8062bedc43fd644bd5c6e5bf432ccccacd5f0890 Mon Sep 17 00:00:00 2001
+From: Mark Burton <markb@smartavionics.com>
+Date: Fri, 3 Nov 2017 00:20:54 +0000
+Subject: [PATCH] Increase non_trivial_move_penalty_factor to 10000 which is
+ equal to multiplying the distance by 100.
+
+---
+ src/pathOrderOptimizer.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/pathOrderOptimizer.cpp b/src/pathOrderOptimizer.cpp
+index 67d4cc47f4..7bb8e218c7 100644
+--- a/src/pathOrderOptimizer.cpp
++++ b/src/pathOrderOptimizer.cpp
+@@ -335,7 +335,7 @@ inline void LineOrderOptimizer::updateBestLine(unsigned int poly_idx, int& best,
+     const Point& p1 = (*polygons[poly_idx])[1];
+     float dot_score = (just_point >= 0) ? 0 : getAngleScore(incoming_perpundicular_normal, p0, p1);
+     const int move_inside_distance = 100; // how far to move points inside part boundary
+-    const int non_trivial_move_penalty_factor = 1000; // if a travel move is not a single straight line, multiply the score by this factor
++    const int non_trivial_move_penalty_factor = 10000; // if a travel move is not a single straight line, multiply the score by this factor
+ 
+     if (just_point != 1)
+     { /// check distance to first point on line (0)

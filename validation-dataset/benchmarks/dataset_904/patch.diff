@@ -1,0 +1,24 @@
+From 4ea18647ed81e858ed8d2c51aa12771f297bbb20 Mon Sep 17 00:00:00 2001
+From: Ryan Houdek <Sonicadvance1@gmail.com>
+Date: Tue, 17 Mar 2020 09:33:06 -0700
+Subject: [PATCH] Make the unit test runner allocate less SHM space
+
+It doesn't need 64GB of virtual memory, so knock it down to its minimum
+virtual memory required
+---
+ Source/Tests/TestHarnessRunner.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Source/Tests/TestHarnessRunner.cpp b/Source/Tests/TestHarnessRunner.cpp
+index edcf7c6941..7256651f10 100644
+--- a/Source/Tests/TestHarnessRunner.cpp
++++ b/Source/Tests/TestHarnessRunner.cpp
+@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
+   LogMan::Throw::A(Args.size() > 1, "Not enough arguments");
+ 
+   FEXCore::Context::InitializeStaticTables();
+-  auto SHM = FEXCore::SHM::AllocateSHMRegion(1ULL << 36);
++  auto SHM = FEXCore::SHM::AllocateSHMRegion(1ULL << 34);
+   auto CTX = FEXCore::Context::CreateNewContext();
+ 
+   FEXCore::Context::SetCustomCPUBackendFactory(CTX, VMFactory::CPUCreationFactory);

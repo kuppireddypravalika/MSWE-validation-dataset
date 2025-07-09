@@ -1,0 +1,24 @@
+From 2700eed08d3d7fdcc9eab6f9f8a21ebefc028222 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@musicpd.org>
+Date: Sun, 24 Mar 2019 22:26:09 +0100
+Subject: [PATCH] filter/ffmpeg: remove unnecessary av_frame_make_writable()
+ call
+
+A newly allocated buffer doesn't need this call; it only adds overhead
+for copying the data.
+---
+ src/filter/plugins/FfmpegFilter.cxx | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/src/filter/plugins/FfmpegFilter.cxx b/src/filter/plugins/FfmpegFilter.cxx
+index 0bdae78e21..af90b795ac 100644
+--- a/src/filter/plugins/FfmpegFilter.cxx
++++ b/src/filter/plugins/FfmpegFilter.cxx
+@@ -57,7 +57,6 @@ FfmpegFilter::FilterPCM(ConstBuffer<void> src)
+ 	in_frame->nb_samples = src.size / in_audio_frame_size;
+ 
+ 	in_frame.GetBuffer();
+-	in_frame.MakeWritable();
+ 
+ 	memcpy(in_frame.GetData(0), src.data, src.size);
+ 

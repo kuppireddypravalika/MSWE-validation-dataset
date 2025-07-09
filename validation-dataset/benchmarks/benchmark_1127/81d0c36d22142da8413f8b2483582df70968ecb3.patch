@@ -1,0 +1,27 @@
+From 81d0c36d22142da8413f8b2483582df70968ecb3 Mon Sep 17 00:00:00 2001
+From: Dan Gohman <gohman@apple.com>
+Date: Tue, 9 Mar 2010 03:01:40 +0000
+Subject: [PATCH] Don't try to fold V_SET0 and V_SETALLONES to loads in medium
+ and large code models.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@98042 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Target/X86/X86InstrInfo.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/lib/Target/X86/X86InstrInfo.cpp b/lib/Target/X86/X86InstrInfo.cpp
+index 39bda04b4d1..4fd91bbc2fd 100644
+--- a/lib/Target/X86/X86InstrInfo.cpp
++++ b/lib/Target/X86/X86InstrInfo.cpp
+@@ -2525,6 +2525,11 @@ MachineInstr* X86InstrInfo::foldMemoryOperandImpl(MachineFunction &MF,
+     // Folding a V_SET0 or V_SETALLONES as a load, to ease register pressure.
+     // Create a constant-pool entry and operands to load from it.
+ 
++    // Medium and large mode can't fold loads this way.
++    if (TM.getCodeModel() != CodeModel::Small &&
++        TM.getCodeModel() != CodeModel::Kernel)
++      return NULL;
++
+     // x86-32 PIC requires a PIC base register for constant pools.
+     unsigned PICBase = 0;
+     if (TM.getRelocationModel() == Reloc::PIC_) {

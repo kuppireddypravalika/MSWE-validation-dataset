@@ -1,0 +1,30 @@
+From 5109627c80b611bcdff2028bd178536ff48ea72b Mon Sep 17 00:00:00 2001
+From: Michael Niedermayer <michaelni@gmx.at>
+Date: Fri, 6 Dec 2013 16:49:35 +0100
+Subject: [PATCH] avcodec/error_resilience: check that er is supported before
+ attempting to read the status of the previous slice
+
+Fixes incorrectly set error_occured and improves speed
+
+Signed-off-by: Michael Niedermayer <michaelni@gmx.at>
+(cherry picked from commit 90539cea336fd513c47295a03c164cb4a851166f)
+
+Signed-off-by: Michael Niedermayer <michaelni@gmx.at>
+Signed-off-by: Jean-Yves Avenard <jyavenard@mythtv.org>
+---
+ mythtv/external/FFmpeg/libavcodec/error_resilience.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/mythtv/external/FFmpeg/libavcodec/error_resilience.c b/mythtv/external/FFmpeg/libavcodec/error_resilience.c
+index de84d84cc6e..6d18aa868a9 100644
+--- a/mythtv/external/FFmpeg/libavcodec/error_resilience.c
++++ b/mythtv/external/FFmpeg/libavcodec/error_resilience.c
+@@ -839,7 +839,7 @@ void ff_er_add_slice(ERContext *s, int startx, int starty,
+     s->error_status_table[start_xy] |= VP_START;
+ 
+     if (start_xy > 0 && !(s->avctx->active_thread_type & FF_THREAD_SLICE) &&
+-        s->avctx->skip_top * s->mb_width < start_i) {
++        er_supported(s) && s->avctx->skip_top * s->mb_width < start_i) {
+         int prev_status = s->error_status_table[s->mb_index2xy[start_i - 1]];
+ 
+         prev_status &= ~ VP_START;

@@ -1,0 +1,28 @@
+From bf23cf116ff94db71788d1c6404816366bcf0260 Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Sat, 20 Aug 2022 23:32:36 -0600
+Subject: [PATCH] Use explicit cast for `int` `float` conversion in
+ `FactoryListBox`
+
+The order of the casts may be different than the previous conversion,
+which may affect rounding of the result. I suspect the old code did
+integer division, and then converted to `float`, which would only ever
+produce `0.0` or `1.0` with typical values. The update should allow for
+continuous values in the range `0.0 .. 1.0`.
+---
+ OPHD/UI/FactoryListBox.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/OPHD/UI/FactoryListBox.cpp b/OPHD/UI/FactoryListBox.cpp
+index 474fa3f9a..eabb1c5b0 100644
+--- a/OPHD/UI/FactoryListBox.cpp
++++ b/OPHD/UI/FactoryListBox.cpp
+@@ -45,7 +45,7 @@ static void drawItem(Renderer& renderer, FactoryListBox::FactoryListBoxItem& ite
+ 	renderer.drawText(*MAIN_FONT, productDescription(f->productType()), NAS2D::Point{x + w - 112, ((y + 19) - MAIN_FONT_BOLD->height() / 2) - offset}, structureTextColor);
+ 
+ 	// PROGRESS BAR
+-	float percentage = (f->productType() == ProductType::PRODUCT_NONE) ? 0.0f : (f->productionTurnsCompleted() / f->productionTurnsToComplete());
++	float percentage = (f->productType() == ProductType::PRODUCT_NONE) ? 0.0f : (static_cast<float>(f->productionTurnsCompleted()) / static_cast<float>(f->productionTurnsToComplete()));
+ 	drawBasicProgressBar(x + w - 112, y + 30 - offset, 105, 11, percentage, 2);
+ }
+ 

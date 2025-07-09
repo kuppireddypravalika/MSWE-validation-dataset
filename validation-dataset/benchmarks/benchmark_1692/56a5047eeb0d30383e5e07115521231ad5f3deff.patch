@@ -1,0 +1,22 @@
+From 56a5047eeb0d30383e5e07115521231ad5f3deff Mon Sep 17 00:00:00 2001
+From: Sven Brauch <svenbrauch@googlemail.com>
+Date: Sun, 14 Sep 2014 23:19:51 +0200
+Subject: [PATCH] template handler: qSort -> std::sort
+
+---
+ src/utils/katetemplatehandler.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/utils/katetemplatehandler.cpp b/src/utils/katetemplatehandler.cpp
+index e493ec40b..442171653 100644
+--- a/src/utils/katetemplatehandler.cpp
++++ b/src/utils/katetemplatehandler.cpp
+@@ -118,7 +118,7 @@ KateTemplateHandler::~KateTemplateHandler()
+ 
+ void KateTemplateHandler::sortFields()
+ {
+-    qSort(m_fields.begin(), m_fields.end(), [](const TemplateField& l, const TemplateField& r) {
++    std::sort(m_fields.begin(), m_fields.end(), [](const TemplateField& l, const TemplateField& r) {
+         // always sort the final cursor pos last
+         if ( l.kind == TemplateField::FinalCursorPosition ) {
+             return false;

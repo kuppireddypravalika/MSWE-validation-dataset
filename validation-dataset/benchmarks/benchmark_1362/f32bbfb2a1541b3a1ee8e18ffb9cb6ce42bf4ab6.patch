@@ -1,0 +1,28 @@
+From f32bbfb2a1541b3a1ee8e18ffb9cb6ce42bf4ab6 Mon Sep 17 00:00:00 2001
+From: Krzysztof Parzyszek <kparzysz@codeaurora.org>
+Date: Thu, 12 Apr 2018 15:11:11 +0000
+Subject: [PATCH] [Pipeliner] Use std::stable_sort when ordering NodeSets
+
+There are cases when individual NodeSets can be equal with respect to
+the ordering criteria. Since they are stored in an ordered container,
+use stable_sort to preserve the relative order of equal NodeSets.
+
+This should remove non-determinism discovered by shuffling done in
+llvm::sort with expensive checks enabled.
+---
+ llvm/lib/CodeGen/MachinePipeliner.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/llvm/lib/CodeGen/MachinePipeliner.cpp b/llvm/lib/CodeGen/MachinePipeliner.cpp
+index 061d9712036f..56d998a6bbc7 100644
+--- a/llvm/lib/CodeGen/MachinePipeliner.cpp
++++ b/llvm/lib/CodeGen/MachinePipeliner.cpp
+@@ -931,7 +931,7 @@ void SwingSchedulerDAG::schedule() {
+     }
+   });
+ 
+-  llvm::sort(NodeSets.begin(), NodeSets.end(), std::greater<NodeSet>());
++  std::stable_sort(NodeSets.begin(), NodeSets.end(), std::greater<NodeSet>());
+ 
+   groupRemainingNodes(NodeSets);
+ 

@@ -1,0 +1,30 @@
+From 370b406c711e97b2dcbbd4cc5c4c8e85dafa8597 Mon Sep 17 00:00:00 2001
+From: Mart Raudsepp <leio@gentoo.org>
+Date: Sun, 9 Jul 2006 03:46:01 +0000
+Subject: [PATCH] Use PangoFontMetrics to get wxDC::GetCharHeight, because
+ that's the proper and clean way to get the body size of a particular font,
+ and it doesn't go through all the layoutting code (hence, 20-35% quicker than
+ measuring H for logical extents).
+
+git-svn-id: https://svn.wxwidgets.org/svn/wx/wxWidgets/trunk@40049 c3d73ce0-8a6f-49c7-b76d-6d57e0e08775
+---
+ src/gtk/dcclient.cpp | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/src/gtk/dcclient.cpp b/src/gtk/dcclient.cpp
+index 805f66d495d0..e0898d91d0ae 100644
+--- a/src/gtk/dcclient.cpp
++++ b/src/gtk/dcclient.cpp
+@@ -1762,10 +1762,8 @@ wxCoord wxWindowDC::GetCharWidth() const
+ 
+ wxCoord wxWindowDC::GetCharHeight() const
+ {
+-    pango_layout_set_text( m_layout, "H", 1 );
+-    int h;
+-    pango_layout_get_pixel_size( m_layout, NULL, &h );
+-    return h;
++    PangoFontMetrics *metrics = pango_context_get_metrics (m_context, m_fontdesc, NULL);
++    return PANGO_PIXELS (pango_font_metrics_get_descent (metrics) + pango_font_metrics_get_ascent (metrics));
+ }
+ 
+ void wxWindowDC::Clear()

@@ -1,0 +1,36 @@
+From 9fef214c180d27f30b0c4921814b4fb45bc56070 Mon Sep 17 00:00:00 2001
+From: "Matthew \"strager\" Glazar" <strager.nds@gmail.com>
+Date: Wed, 8 Sep 2021 23:47:40 -0700
+Subject: [PATCH] Optimize buffering_error_reporter::copy_into
+
+Optimize copy_into for binary size by calling report_impl instead of
+using a switch statement.
+
+On my machine, this shrinks quick-lint-js-vscode-node_darwin-x64.node
+from 866 KiB to 858 KiB.
+
+This commit should not change behavior.
+---
+ src/buffering-error-reporter.cpp | 9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
+
+diff --git a/src/buffering-error-reporter.cpp b/src/buffering-error-reporter.cpp
+index f14edfd6bd..2dd8f95cbb 100644
+--- a/src/buffering-error-reporter.cpp
++++ b/src/buffering-error-reporter.cpp
+@@ -56,14 +56,7 @@ void buffering_error_reporter::report_impl(error_type type, void *error) {
+ 
+ void buffering_error_reporter::copy_into(error_reporter *other) const {
+   for (impl::any_error &error : this->impl_->errors_) {
+-    switch (error.type) {
+-#define QLJS_ERROR_TYPE(name, code, struct_body, format) \
+-  case error_type::name:                                 \
+-    other->report(error.error.name);                     \
+-    break;
+-      QLJS_X_ERROR_TYPES
+-#undef QLJS_ERROR_TYPE
+-    }
++    other->report_impl(error.type, &error.error);
+   }
+ }
+ 

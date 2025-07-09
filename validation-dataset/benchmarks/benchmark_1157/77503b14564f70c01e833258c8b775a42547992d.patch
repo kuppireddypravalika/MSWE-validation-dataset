@@ -1,0 +1,34 @@
+From 77503b14564f70c01e833258c8b775a42547992d Mon Sep 17 00:00:00 2001
+From: ryandmack <ryan.d.mack@facebook.com>
+Date: Fri, 15 Jan 2010 13:42:30 -0800
+Subject: [PATCH] Skip fsync on O_DIRECT tablespaces.
+
+Summary:Innodb calls fsync after writes when
+innodb_flush_method=O_DIRECT and doesn't need to.
+
+Reviewed By: mcallaghan
+
+Test Plan:
+mysql-test-run, run as shadow, probably should do crash
+recovery tests (will need some advice on this), should do perf qrt
+---
+ storage/innodb_plugin/fil/fil0fil.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/storage/innodb_plugin/fil/fil0fil.c b/storage/innodb_plugin/fil/fil0fil.c
+index 0e443a54..1c975b08 100644
+--- a/storage/innodb_plugin/fil/fil0fil.c
++++ b/storage/innodb_plugin/fil/fil0fil.c
+@@ -4351,6 +4351,12 @@ fil_flush(
+ 				goto skip_flush;
+ 			}
+ #endif
++#ifdef UNIV_LINUX
++			if (space->purpose == FIL_TABLESPACE
++			    && srv_unix_file_flush_method == SRV_UNIX_O_DIRECT) {
++				goto skip_flush;
++			}
++#endif
+ retry:
+ 			if (node->n_pending_flushes > 0) {
+ 				/* We want to avoid calling os_file_flush() on

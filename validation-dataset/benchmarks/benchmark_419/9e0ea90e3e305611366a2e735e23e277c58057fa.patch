@@ -1,0 +1,21 @@
+From 9e0ea90e3e305611366a2e735e23e277c58057fa Mon Sep 17 00:00:00 2001
+From: Christian Persch <chpe@gnome.org>
+Date: Sat, 26 Dec 2015 21:50:14 +0100
+Subject: [PATCH] screen: Compile dingu regexes with MULTILINE option
+
+---
+ src/terminal-screen.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/terminal-screen.c b/src/terminal-screen.c
+index 8d69f2787..489573bf8 100644
+--- a/src/terminal-screen.c
++++ b/src/terminal-screen.c
+@@ -269,6 +269,7 @@ precompile_regexes (const TerminalRegexPattern *regex_patterns,
+ #else
+       (*regexes)[i] = g_regex_new (regex_patterns[i].pattern,
+                                    G_REGEX_OPTIMIZE |
++                                   G_REGEX_MULTILINE |
+                                    (regex_patterns[i].caseless ? G_REGEX_CASELESS : 0),
+                                    0, &error);
+       g_assert_no_error (error);

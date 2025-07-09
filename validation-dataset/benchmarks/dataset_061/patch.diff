@@ -1,0 +1,27 @@
+From 8347354d99665dd8e4b571dd9efca9055b171f2b Mon Sep 17 00:00:00 2001
+From: Ruibiao Chen <chenruibiao@baidu.com>
+Date: Mon, 14 Nov 2022 14:04:59 +0800
+Subject: [PATCH] Do not release memory cache after build_op_func_list in
+ interpretercore (#47910)
+
+---
+ .../framework/new_executor/interpreter/interpreter_util.cc  | 6 ------
+ 1 file changed, 6 deletions(-)
+
+diff --git a/paddle/fluid/framework/new_executor/interpreter/interpreter_util.cc b/paddle/fluid/framework/new_executor/interpreter/interpreter_util.cc
+index 167f24796593c4..2a6a03389f4356 100644
+--- a/paddle/fluid/framework/new_executor/interpreter/interpreter_util.cc
++++ b/paddle/fluid/framework/new_executor/interpreter/interpreter_util.cc
+@@ -813,12 +813,6 @@ void BuildOpFuncList(const platform::Place& place,
+ 
+     interpreter::LogDeviceMemoryStats(place);
+   }
+-
+-  // NOTE(Ruibiao): Release memory cache to avoid memory fragments in Allocator.
+-  // It reduce about 10% memory usage for V100 8-GPU training of
+-  // transformer_base_bs4096_amp_fp16 and transformer_base_bs4096_pure_fp16
+-  // model.
+-  memory::Release(place);
+ }
+ 
+ void LogDeviceMemoryStats(const platform::Place& place) {

@@ -1,0 +1,25 @@
+From c7f0f0609b7502bf8a481315864edda57ce3464d Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Wed, 24 Jun 2020 23:46:42 -0600
+Subject: [PATCH] Remove unnecessary conversion between int and float
+
+Dividing `size.y / 2.0f` converts from `int` to `float`, only to be
+casted back to `int`. Simply doing the division with integers would have
+the same effect, and better efficiency.
+---
+ OPHD/States/MapViewStateUi.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/OPHD/States/MapViewStateUi.cpp b/OPHD/States/MapViewStateUi.cpp
+index 63de647b5..ad5576132 100644
+--- a/OPHD/States/MapViewStateUi.cpp
++++ b/OPHD/States/MapViewStateUi.cpp
+@@ -196,7 +196,7 @@ void MapViewState::setupUiPositions(NAS2D::Vector<int> size)
+ 	mAnnouncement.position(centerWindowWidth(mAnnouncement.width()), centerWindowHeight(mAnnouncement.height()) - 100.0f);
+ 	mGameOptionsDialog.position(centerWindowWidth(mGameOptionsDialog.width()), centerWindowHeight(mGameOptionsDialog.height()) - 100.0f);
+ 
+-	mDiggerDirection.position(centerWindowWidth(mDiggerDirection.width()), static_cast<int>(size.y / 2.0f) - 125.0f);
++	mDiggerDirection.position(centerWindowWidth(mDiggerDirection.width()), size.y / 2 - 125.0f);
+ 
+ 	mWarehouseInspector.position(centerWindowWidth(mWarehouseInspector.width()), centerWindowHeight(mWarehouseInspector.height()) - 100.0f);
+ 	mMineOperationsWindow.position(centerWindowWidth(mMineOperationsWindow.width()), centerWindowHeight(mMineOperationsWindow.height()) - 100.0f);

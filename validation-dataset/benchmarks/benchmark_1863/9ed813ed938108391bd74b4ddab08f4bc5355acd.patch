@@ -1,0 +1,43 @@
+From 9ed813ed938108391bd74b4ddab08f4bc5355acd Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@gmail.com>
+Date: Tue, 9 May 2017 07:04:04 +0000
+Subject: [PATCH] [ConstantRange] Rewrite shl to avoid repeated calls to
+ getUnsignedMax and avoid creating the min APInt until we're sure we need it.
+ Use inplace shift operations.
+
+---
+ llvm/lib/IR/ConstantRange.cpp | 18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
+
+diff --git a/llvm/lib/IR/ConstantRange.cpp b/llvm/lib/IR/ConstantRange.cpp
+index 6801ed4fb511..a33d062dbeaa 100644
+--- a/llvm/lib/IR/ConstantRange.cpp
++++ b/llvm/lib/IR/ConstantRange.cpp
+@@ -892,16 +892,20 @@ ConstantRange::shl(const ConstantRange &Other) const {
+   if (isEmptySet() || Other.isEmptySet())
+     return ConstantRange(getBitWidth(), /*isFullSet=*/false);
+ 
+-  APInt min = getUnsignedMin().shl(Other.getUnsignedMin());
+-  APInt max = getUnsignedMax().shl(Other.getUnsignedMax());
++  APInt max = getUnsignedMax();
++  APInt Other_umax = Other.getUnsignedMax();
+ 
+-  // there's no overflow!
+-  APInt Zeros(getBitWidth(), getUnsignedMax().countLeadingZeros());
+-  if (Zeros.ugt(Other.getUnsignedMax()))
+-    return ConstantRange(std::move(min), std::move(max) + 1);
++  // there's overflow!
++  if (Other_umax.uge(max.countLeadingZeros()))
++    return ConstantRange(getBitWidth(), /*isFullSet=*/true);
+ 
+   // FIXME: implement the other tricky cases
+-  return ConstantRange(getBitWidth(), /*isFullSet=*/true);
++
++  APInt min = getUnsignedMin();
++  min <<= Other.getUnsignedMin();
++  max <<= Other_umax;
++
++  return ConstantRange(std::move(min), std::move(max) + 1);
+ }
+ 
+ ConstantRange

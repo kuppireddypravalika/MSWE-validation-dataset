@@ -1,0 +1,22 @@
+From e7679454c55229ad6f84d17a21a82727156f85a9 Mon Sep 17 00:00:00 2001
+From: thesupremecommander <thesupremecmdr@gmail.com>
+Date: Thu, 26 Jun 2014 12:51:12 -0400
+Subject: [PATCH] Multiply instead of dividing.
+
+---
+ src/modules/playeroutlines.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/modules/playeroutlines.cpp b/src/modules/playeroutlines.cpp
+index 9d7e390..58ebec2 100644
+--- a/src/modules/playeroutlines.cpp
++++ b/src/modules/playeroutlines.cpp
+@@ -107,7 +107,7 @@ bool PlayerOutlines::GetGlowEffectColorOverride(C_TFPlayer *tfPlayer, float *r,
+ 					int maxBuffedHealth = ((maxHealth / 5) * 3 / 2) * 5;
+ 
+ 					// calculate this once instead of several times
+-					float halfHealth = float(maxHealth) / 2.0f;
++					float halfHealth = maxHealth * 0.5f;
+ 
+ 					if (team == TFTeam_Red) {
+ 						float red;

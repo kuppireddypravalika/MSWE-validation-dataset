@@ -1,0 +1,34 @@
+From a8fe80f0e3db0744f0c6bfda83ac227fd29e8b29 Mon Sep 17 00:00:00 2001
+From: Frank Warmerdam <warmerdam@pobox.com>
+Date: Mon, 8 Jan 2001 14:17:27 +0000
+Subject: [PATCH] Use nDictMax for CPLMalloc().
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@1924 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ frmts/hfa/hfaopen.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/frmts/hfa/hfaopen.cpp b/frmts/hfa/hfaopen.cpp
+index aeb071b864fe..aba07d055ca7 100644
+--- a/frmts/hfa/hfaopen.cpp
++++ b/frmts/hfa/hfaopen.cpp
+@@ -35,6 +35,9 @@
+  * of the GDAL core, but dependent on the Common Portability Library.
+  *
+  * $Log$
++ * Revision 1.13  2001/01/08 14:17:27  warmerda
++ * Use nDictMax for CPLMalloc().
++ *
+  * Revision 1.12  2001/01/03 16:20:10  warmerda
+  * Converted to large file API
+  *
+@@ -83,8 +86,8 @@
+ static char * HFAGetDictionary( HFAHandle hHFA )
+ 
+ {
+-    char	*pszDictionary = (char *) CPLMalloc(100); 
+     int		nDictMax = 100;
++    char	*pszDictionary = (char *) CPLMalloc(nDictMax); 
+     int		nDictSize = 0;
+     
+     VSIFSeekL( hHFA->fp, hHFA->nDictionaryPos, SEEK_SET );

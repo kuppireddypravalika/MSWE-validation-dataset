@@ -1,0 +1,30 @@
+From 28ff65f4dc67349ff88e4cd161b6bced7e9bf477 Mon Sep 17 00:00:00 2001
+From: Peter Hartmann <phartmann@blackberry.com>
+Date: Mon, 22 Jul 2013 14:58:27 +0200
+Subject: [PATCH] QNX: hardcode on-demand SSL root cert loading
+
+The c_rehash'ed symlinks are always there on QNX, so no need to check
+at every app start for the feature. This saves ~ 17ms at each app
+start.
+
+Task-number: QTBUG-32549
+Change-Id: Ia9df60aba9d1bd70868b7004b847867a2128f600
+Reviewed-by: Andreas Holzammer <andreas.holzammer@kdab.com>
+Reviewed-by: Rafael Roquetto <rafael.roquetto@kdab.com>
+---
+ src/network/ssl/qsslsocket_openssl.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/network/ssl/qsslsocket_openssl.cpp b/src/network/ssl/qsslsocket_openssl.cpp
+index 675bd7d9f7ea..9de281137489 100644
+--- a/src/network/ssl/qsslsocket_openssl.cpp
++++ b/src/network/ssl/qsslsocket_openssl.cpp
+@@ -522,6 +522,8 @@ void QSslSocketPrivate::ensureCiphersAndCertsLoaded()
+     } else {
+         qWarning("could not load crypt32 library"); // should never happen
+     }
++#elif defined(Q_OS_QNX)
++    s_loadRootCertsOnDemand = true;
+ #elif defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
+     // check whether we can enable on-demand root-cert loading (i.e. check whether the sym links are there)
+     QList<QByteArray> dirs = unixRootCertDirectories();

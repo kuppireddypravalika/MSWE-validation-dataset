@@ -1,0 +1,31 @@
+From 0686cd8841d98f0560b52457c10fec7f0bb2887e Mon Sep 17 00:00:00 2001
+From: Shadab Zafar <dufferzafar0@gmail.com>
+Date: Fri, 26 Oct 2018 13:45:56 +0530
+Subject: [PATCH] Improve connected cities GCD - All cases passing!
+
+---
+ topics/disjoint-set/connected-cities-gcd.cpp | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
+
+diff --git a/topics/disjoint-set/connected-cities-gcd.cpp b/topics/disjoint-set/connected-cities-gcd.cpp
+index a349677..525ad26 100644
+--- a/topics/disjoint-set/connected-cities-gcd.cpp
++++ b/topics/disjoint-set/connected-cities-gcd.cpp
+@@ -45,12 +45,11 @@ vi connectedCities(int n, int g, vi& org, vi& dst) {
+ 
+     DSU dsu(n);
+ 
+-    // O(n**2) bad loop!
+-    for(int i = 0; i < n; ++i)
+-        for(int j = 0; j < n; ++j) {
+-            if (__gcd(i+1, j+1) > g) {
+-                dsu.Union(i, j);
+-            }
++    // Instead of checking GCD of all pair of numbers
++    // Just pick all multiples of g+1 to n
++    for(int i = g+1; i <= n; ++i)
++        for(int j = i; j <= n; j += i) {
++            dsu.Union(i-1, j-1);
+         }
+ 
+     vi res;

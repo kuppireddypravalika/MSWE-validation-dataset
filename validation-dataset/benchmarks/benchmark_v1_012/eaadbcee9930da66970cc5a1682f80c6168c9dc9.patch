@@ -1,0 +1,34 @@
+From eaadbcee9930da66970cc5a1682f80c6168c9dc9 Mon Sep 17 00:00:00 2001
+From: Tristan Brindle <t.c.brindle@gmail.com>
+Date: Tue, 24 Jan 2023 20:18:58 +0000
+Subject: [PATCH] Use unchecked() wrapper in sort()
+
+So it turns out that our new "Bounds Check All The Things" policy didn't do great things for our sort benchmark. We were still faster than std::sort in most cases, but not by as much as before.
+
+Fortunately, because we're confident in our sort implementation (I hope?), we should be fine to not do bounds checking internally.
+---
+ include/flux/op/sort.hpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/include/flux/op/sort.hpp b/include/flux/op/sort.hpp
+index cfa8d1d3..c1af4675 100644
+--- a/include/flux/op/sort.hpp
++++ b/include/flux/op/sort.hpp
+@@ -4,6 +4,7 @@
+ 
+ #include <flux/core.hpp>
+ #include <flux/op/detail/pdqsort.hpp>
++#include <flux/op/unchecked.hpp>
+ 
+ namespace flux {
+ 
+@@ -17,7 +18,8 @@ struct sort_fn {
+                  std::predicate<Cmp&, projected_t<Proj, Seq>, projected_t<Proj, Seq>>
+     constexpr auto operator()(Seq&& seq, Cmp cmp = {}, Proj proj = {}) const
+     {
+-        detail::pdqsort(seq, cmp, proj);
++        auto wrapper = flux::unchecked(flux::ref(seq));
++        detail::pdqsort(wrapper, cmp, proj);
+     }
+ };
+ 

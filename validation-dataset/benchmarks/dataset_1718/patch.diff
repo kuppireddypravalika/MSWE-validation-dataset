@@ -1,0 +1,25 @@
+From d55b685d237be7a6bd01b52600bcc9ffcee4e2a5 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?S=C3=A9rgio=20Martins?= <sergio.martins@kdab.com>
+Date: Fri, 5 Feb 2016 18:48:30 +0000
+Subject: [PATCH] Suppress memory allocation due to temporary container
+
+Change-Id: I337c3f7ed63444ac0950a30298eb619f462b7a16
+Reviewed-by: Olivier Goffart (Woboq GmbH) <ogoffart@woboq.com>
+Reviewed-by: Marc Mutz <marc.mutz@kdab.com>
+---
+ src/widgets/graphicsview/qgraphicsanchorlayout_p.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/widgets/graphicsview/qgraphicsanchorlayout_p.cpp b/src/widgets/graphicsview/qgraphicsanchorlayout_p.cpp
+index f0a525c1b6cf..53db11d2d744 100644
+--- a/src/widgets/graphicsview/qgraphicsanchorlayout_p.cpp
++++ b/src/widgets/graphicsview/qgraphicsanchorlayout_p.cpp
+@@ -2239,7 +2239,7 @@ bool QGraphicsAnchorLayoutPrivate::calculateTrunk(Orientation orientation, const
+         Q_ASSERT(path.positives.count() == 1);
+         Q_ASSERT(path.negatives.count() == 0);
+ 
+-        AnchorData *ad = path.positives.toList()[0];
++        AnchorData *ad = *path.positives.cbegin();
+         ad->sizeAtMinimum = ad->minSize;
+         ad->sizeAtPreferred = ad->prefSize;
+         ad->sizeAtMaximum = ad->maxSize;

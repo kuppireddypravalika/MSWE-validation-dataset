@@ -1,0 +1,22 @@
+From 8b0cbb2e5ea312e287e96fda039b268866437cf5 Mon Sep 17 00:00:00 2001
+From: Emerick Rogul <erogul@brave.com>
+Date: Wed, 24 Oct 2018 09:20:38 -0400
+Subject: [PATCH] Reduce startup delay for referrals check
+
+---
+ browser/brave_browser_process_impl.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/browser/brave_browser_process_impl.cc b/browser/brave_browser_process_impl.cc
+index 45b0a88dc..380a44165 100644
+--- a/browser/brave_browser_process_impl.cc
++++ b/browser/brave_browser_process_impl.cc
+@@ -45,7 +45,7 @@ BraveBrowserProcessImpl::BraveBrowserProcessImpl(scoped_refptr<PersistentPrefSto
+             referrals_service->Start();
+           },
+           base::Unretained(brave_referrals_service_.get())),
+-      base::TimeDelta::FromSeconds(30));
++      base::TimeDelta::FromSeconds(3));
+ 
+   brave_stats_updater_ = brave::BraveStatsUpdaterFactory(local_state());
+   base::SequencedTaskRunnerHandle::Get()->PostDelayedTask(

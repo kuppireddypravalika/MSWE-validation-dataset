@@ -1,0 +1,24 @@
+From 8a1e949bff482f74599f60b8ab518442036b1834 Mon Sep 17 00:00:00 2001
+From: Heiko Bauke <heiko.bauke@mail.de>
+Date: Wed, 22 Sep 2021 19:48:00 +0200
+Subject: [PATCH] fix out of range access, minor performance improvement
+
+---
+ src/tags_int.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/tags_int.cpp b/src/tags_int.cpp
+index 2b21de0401..6466ca19ff 100644
+--- a/src/tags_int.cpp
++++ b/src/tags_int.cpp
+@@ -3265,8 +3265,8 @@ namespace Exiv2 {
+         }
+ 
+         std::string stringValue = value.toString();
+-        if (stringValue.at(19) == 'Z') {
+-            stringValue = stringValue.substr(0, 19);
++        if (stringValue.size() == 20 && stringValue.at(19) == 'Z') {
++            stringValue.pop_back();
+         }
+         std::replace(stringValue.begin(), stringValue.end(), 'T', ' ');
+         std::replace(stringValue.begin(), stringValue.end(), '-', ':');

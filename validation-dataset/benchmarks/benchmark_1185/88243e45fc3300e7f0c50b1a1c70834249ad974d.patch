@@ -1,0 +1,27 @@
+From 88243e45fc3300e7f0c50b1a1c70834249ad974d Mon Sep 17 00:00:00 2001
+From: Joshua Haberman <jhaberman@gmail.com>
+Date: Tue, 2 Mar 2021 13:37:47 -0800
+Subject: [PATCH] [Ruby] Fixed quadratic memory usage when appending to arrays.
+
+The code mistakenly called realloc() instead of resize() on every
+array append, causing quadratic memory usage.
+---
+ ruby/ext/google/protobuf_c/ruby-upb.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/ruby/ext/google/protobuf_c/ruby-upb.c b/ruby/ext/google/protobuf_c/ruby-upb.c
+index a7aeda2df2532..61762fcd9904e 100755
+--- a/ruby/ext/google/protobuf_c/ruby-upb.c
++++ b/ruby/ext/google/protobuf_c/ruby-upb.c
+@@ -6663,10 +6663,9 @@ void upb_array_set(upb_array *arr, size_t i, upb_msgval val) {
+ }
+ 
+ bool upb_array_append(upb_array *arr, upb_msgval val, upb_arena *arena) {
+-  if (!_upb_array_realloc(arr, arr->len + 1, arena)) {
++  if (!upb_array_resize(arr, arr->len + 1, arena)) {
+     return false;
+   }
+-  arr->len++;
+   upb_array_set(arr, arr->len - 1, val);
+   return true;
+ }

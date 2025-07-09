@@ -1,0 +1,45 @@
+From 03dfa830bb7821373d25abe82ec0bcbc9ec5dad3 Mon Sep 17 00:00:00 2001
+From: Mandeep Singh Grang <mgrang@codeaurora.org>
+Date: Thu, 29 Mar 2018 19:05:26 +0000
+Subject: [PATCH] [Mips] Change std::sort to llvm::sort in response to r327219
+
+Summary:
+r327219 added wrappers to std::sort which randomly shuffle the container before sorting.
+This will help in uncovering non-determinism caused due to undefined sorting
+order of objects having the same key.
+
+To make use of that infrastructure we need to invoke llvm::sort instead of std::sort.
+
+Note: This patch is one of a series of patches to replace *all* std::sort to llvm::sort.
+Refer the comments section in D44363 for a list of all the required patches.
+
+Reviewers: sdardis, RKSimon, dsanders, atanasyan
+
+Reviewed By: atanasyan
+
+Subscribers: atanasyan, arichardson, llvm-commits
+
+Differential Revision: https://reviews.llvm.org/D44869
+---
+ llvm/lib/Target/Mips/MCTargetDesc/MipsELFObjectWriter.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/llvm/lib/Target/Mips/MCTargetDesc/MipsELFObjectWriter.cpp b/llvm/lib/Target/Mips/MCTargetDesc/MipsELFObjectWriter.cpp
+index 3c67743947cb..94a196e0c00c 100644
+--- a/llvm/lib/Target/Mips/MCTargetDesc/MipsELFObjectWriter.cpp
++++ b/llvm/lib/Target/Mips/MCTargetDesc/MipsELFObjectWriter.cpp
+@@ -436,10 +436,10 @@ void MipsELFObjectWriter::sortRelocs(const MCAssembler &Asm,
+     return;
+ 
+   // Sort relocations by the address they are applied to.
+-  std::sort(Relocs.begin(), Relocs.end(),
+-            [](const ELFRelocationEntry &A, const ELFRelocationEntry &B) {
+-              return A.Offset < B.Offset;
+-            });
++  llvm::sort(Relocs.begin(), Relocs.end(),
++             [](const ELFRelocationEntry &A, const ELFRelocationEntry &B) {
++               return A.Offset < B.Offset;
++             });
+ 
+   std::list<MipsRelocationEntry> Sorted;
+   std::list<ELFRelocationEntry> Remainder;

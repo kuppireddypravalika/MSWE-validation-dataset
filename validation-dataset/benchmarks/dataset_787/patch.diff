@@ -1,0 +1,28 @@
+From 943bcb4e3910d208879313394141c98772c81176 Mon Sep 17 00:00:00 2001
+From: Martin Suda <sudam@cs.man.ac.uk>
+Date: Wed, 25 Nov 2020 14:40:02 +0100
+Subject: [PATCH] don't use pointers to iterators if not necessary (expensive
+ and leak prone)
+
+---
+ Indexing/TermIndex.cpp | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/Indexing/TermIndex.cpp b/Indexing/TermIndex.cpp
+index 50413704f6..010784f368 100644
+--- a/Indexing/TermIndex.cpp
++++ b/Indexing/TermIndex.cpp
+@@ -334,10 +334,9 @@ void RenamingFormulaIndex::handleClause(Clause* c, bool adding)
+ 
+   for (unsigned i=0; i<c->length(); i++) {
+     Literal* lit=(*c)[i];
+-    IteratorCore<TermList>* it = new NonVariableNonTypeIterator(lit);
+-
+-    while (it->hasNext()) {
+-      TermList trm = it->next();
++    NonVariableNonTypeIterator it(lit);
++    while (it.hasNext()) {
++      TermList trm = it.next();
+       Term* t = trm.term();
+       if(SortHelper::getResultSort(t) == Term::boolSort() && 
+          AH::getProxy(AH::getHead(t)) != Signature::NOT_PROXY){

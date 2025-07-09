@@ -1,0 +1,28 @@
+From 089ffd5d9b41da5d511a74e40454fab04220c349 Mon Sep 17 00:00:00 2001
+From: Fedr <fchelnokov@adalisk.com>
+Date: Fri, 26 Aug 2022 15:36:09 +0300
+Subject: [PATCH] Avoid slowdown for compilers without
+ std::make_unique_for_overwrite (#411)
+
+* Avoid slowdown for compilers without std::make_unique_for_overwrite
+
+* fix
+---
+ source/MRMesh/MRBuffer.h | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/source/MRMesh/MRBuffer.h b/source/MRMesh/MRBuffer.h
+index d74a3d32910a..b267905e6d25 100644
+--- a/source/MRMesh/MRBuffer.h
++++ b/source/MRMesh/MRBuffer.h
+@@ -39,9 +39,7 @@ class Buffer
+ #if __cpp_lib_smart_ptr_for_overwrite >= 202002L
+             data_ = std::make_unique_for_overwrite<T[]>( size_ = newSize );
+ #else
+-            // The array elements are value-initialized, so it is much slower - for older compilers
+-#pragma message("No std::make_unique_for_overwrite is available")
+-            data_ = std::make_unique<T[]>( size_ = newSize );
++            data_.reset( new T[size_ = newSize] );
+ #endif
+         }
+     }

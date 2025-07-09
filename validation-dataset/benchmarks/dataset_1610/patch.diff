@@ -1,0 +1,23 @@
+From ab3579f218412657f57f490aff11f1c60a8afc16 Mon Sep 17 00:00:00 2001
+From: Henric Jungheim <software@henric.org>
+Date: Fri, 20 May 2022 10:29:45 -0700
+Subject: [PATCH] Use std::floor() instead of std::ceil() when setting the
+ Window position.
+
+---
+ include/GUI/Window.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/GUI/Window.h b/include/GUI/Window.h
+index 92e5c649c..ea91a209f 100644
+--- a/include/GUI/Window.h
++++ b/include/GUI/Window.h
+@@ -105,7 +105,7 @@ class Window : public WidgetWithBackground {
+         \param  rect    position of this window
+     */
+     virtual void setCurrentPosition(const SDL_FRect& rect) {
+-        setCurrentPosition(std::ceil(rect.x), std::ceil(rect.y), std::ceil(rect.w), std::ceil(rect.h));
++        setCurrentPosition(std::floor(rect.x), std::floor(rect.y), std::ceil(rect.w), std::ceil(rect.h));
+     }
+ 
+     /**

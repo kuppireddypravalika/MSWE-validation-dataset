@@ -1,0 +1,22 @@
+From 87c81e93177025aab7c9ef9c0276340b24fb3b0b Mon Sep 17 00:00:00 2001
+From: Rafael Granza <rafaelgranzademello@gmail.com>
+Date: Mon, 7 Jun 2021 21:08:29 -0300
+Subject: [PATCH] Change from floor(log2()) to ilogb()
+
+---
+ Estruturas de Dados/Sparse Table/sparse_table.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Estruturas de Dados/Sparse Table/sparse_table.cpp b/Estruturas de Dados/Sparse Table/sparse_table.cpp
+index f4e3cb81..59fa6395 100644
+--- a/Estruturas de Dados/Sparse Table/sparse_table.cpp	
++++ b/Estruturas de Dados/Sparse Table/sparse_table.cpp	
+@@ -28,7 +28,7 @@ struct SparseTable {
+     // O(1) Query for overlab friendly operations
+     // ex: max(), min(), gcd(), f(x, y) = x
+     int query(int l, int r) {
+-        int i = floor(log2(r-l+1));
++        int i = ilogb(r-l+1);
+         return min(st[i][l], st[i][r - (1 << i) + 1]);
+     }
+ };

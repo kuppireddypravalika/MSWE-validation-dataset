@@ -1,0 +1,28 @@
+From a7da097836c2f2351bcec089db1ca092ced30e5a Mon Sep 17 00:00:00 2001
+From: Sven Woop <sven.woop@intel.com>
+Date: Thu, 29 Jan 2015 01:29:40 -0500
+Subject: [PATCH] parallel_create_tree works with TBB
+
+---
+ kernels/algorithms/parallel_create_tree.h | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/kernels/algorithms/parallel_create_tree.h b/kernels/algorithms/parallel_create_tree.h
+index 76ee4f09f..a9ba3282e 100644
+--- a/kernels/algorithms/parallel_create_tree.h
++++ b/kernels/algorithms/parallel_create_tree.h
+@@ -27,9 +27,13 @@ namespace embree
+     
+     Allocator alloc = createAlloc();
+     
++#if USE_TBB
++    const size_t threadCount = tbb::task_scheduler_init::default_num_threads();
++#else
+     LockStepTaskScheduler* scheduler = LockStepTaskScheduler::instance();
+     const size_t threadCount = scheduler->getNumThreads();
+-    
++#endif
++
+     vector_t<Continuation > heap;
+     heap.push_back(br);
+     

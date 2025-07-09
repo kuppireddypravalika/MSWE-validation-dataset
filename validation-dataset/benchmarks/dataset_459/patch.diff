@@ -1,0 +1,36 @@
+From c3dee036a72ef5d6dda415d902eb809eb7952862 Mon Sep 17 00:00:00 2001
+From: zaxcav <daveanti@gmail.com>
+Date: Sun, 21 Aug 2016 11:50:37 +0200
+Subject: [PATCH] Use memset() to initialise _peepPathFindHistory.
+
+---
+ src/peep/peep.c | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
+
+diff --git a/src/peep/peep.c b/src/peep/peep.c
+index 1cfd685782d8..961d94ded1f9 100644
+--- a/src/peep/peep.c
++++ b/src/peep/peep.c
+@@ -8533,18 +8533,15 @@ int peep_pathfind_choose_direction(sint16 x, sint16 y, uint8 z, rct_peep *peep)
+ 			_peepPathFindQueueRideIndex = false;
+ 			_peepPathFindNumJunctions = maxNumJunctions;
+ 
+-			/* Initialise _peepPathFindHistory.
+-			 * The pathfinding will only use elements
++			// Initialise _peepPathFindHistory.
++			memset(_peepPathFindHistory, 0xFF, sizeof(_peepPathFindHistory));
++
++			/* The pathfinding will only use elements
+ 			 * 1..maxNumJunctions, so the starting point is
+ 			 * placed in element 0 */
+ 			_peepPathFindHistory[0].x = (uint8)(x >> 5);
+ 			_peepPathFindHistory[0].y = (uint8)(y >> 5);
+ 			_peepPathFindHistory[0].z = (uint8)z;
+-			for (int junctionIndex = 1; junctionIndex < 16; junctionIndex++) {
+-				_peepPathFindHistory[junctionIndex].x = 0xFF;
+-				_peepPathFindHistory[junctionIndex].y = 0xFF;
+-				_peepPathFindHistory[junctionIndex].z = 0xFF;
+-			}
+ 
+ 			uint16 score = peep_pathfind_heuristic_search(x, y, height, 0, 0xFFFF, test_edge);
+ 			#if defined(DEBUG_LEVEL_1) && DEBUG_LEVEL_1

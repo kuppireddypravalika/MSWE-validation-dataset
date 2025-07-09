@@ -1,0 +1,64 @@
+From d23a22ee461bd8ea6e9b7f54ed36026717c8598f Mon Sep 17 00:00:00 2001
+From: Ghabry <gabriel+github@mastergk.de>
+Date: Tue, 13 Jul 2021 17:01:12 +0200
+Subject: [PATCH] Do not update title when it did not change.
+
+Could be inefficient for some window managers.
+
+Fix #2179
+---
+ src/graphics.cpp | 22 +++++++++++++++++++---
+ 1 file changed, 19 insertions(+), 3 deletions(-)
+
+diff --git a/src/graphics.cpp b/src/graphics.cpp
+index 57a562d6d0..065c0f1927 100644
+--- a/src/graphics.cpp
++++ b/src/graphics.cpp
+@@ -44,6 +44,8 @@ namespace Graphics {
+ 
+ 	std::unique_ptr<MessageOverlay> message_overlay;
+ 	std::unique_ptr<FpsOverlay> fps_overlay;
++
++	std::string window_title_key;
+ }
+ 
+ unsigned SecondToFrame(float const second) {
+@@ -77,10 +79,21 @@ void Graphics::Update() {
+ }
+ 
+ void Graphics::UpdateTitle() {
+-	if (DisplayUi->IsFullscreen()) return;
++	if (DisplayUi->IsFullscreen()) {
++		return;
++	}
++
+ #ifdef EMSCRIPTEN
+ 	return;
+-#endif
++#else
++	std::string fps;
++	if (DisplayUi->ShowFpsOnTitle()) {
++		fps += fps_overlay->GetFpsString();
++	}
++
++	if (window_title_key == (Player::game_title + fps)) {
++		return;
++	}
+ 
+ 	std::stringstream title;
+ 	if (!Player::game_title.empty()) {
+@@ -89,10 +102,13 @@ void Graphics::UpdateTitle() {
+ 	title << GAME_TITLE;
+ 
+ 	if (DisplayUi->ShowFpsOnTitle()) {
+-		title << " - " << fps_overlay->GetFpsString();
++		title << " - " << fps;
+ 	}
+ 
+ 	DisplayUi->SetTitle(title.str());
++
++	window_title_key = (Player::game_title + fps);
++#endif
+ }
+ 
+ void Graphics::Draw(Bitmap& dst) {

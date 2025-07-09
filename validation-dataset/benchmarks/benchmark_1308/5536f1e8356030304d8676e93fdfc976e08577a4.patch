@@ -1,0 +1,33 @@
+From 5536f1e8356030304d8676e93fdfc976e08577a4 Mon Sep 17 00:00:00 2001
+From: lioncash <mai.iam2048@gmail.com>
+Date: Wed, 2 Nov 2022 23:50:26 +0000
+Subject: [PATCH] Arm64/ConversionOps: Eliminate use of temporary in
+ Vector_FToF
+
+We can just use the destination register in this case.
+---
+ .../Source/Interface/Core/JIT/Arm64/ConversionOps.cpp     | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/External/FEXCore/Source/Interface/Core/JIT/Arm64/ConversionOps.cpp b/External/FEXCore/Source/Interface/Core/JIT/Arm64/ConversionOps.cpp
+index 4dd77a0c87..0c934f3044 100644
+--- a/External/FEXCore/Source/Interface/Core/JIT/Arm64/ConversionOps.cpp
++++ b/External/FEXCore/Source/Interface/Core/JIT/Arm64/ConversionOps.cpp
+@@ -361,13 +361,13 @@ DEF_OP(Vector_FToF) {
+ 
+     switch (Conv) {
+       case 0x0402: { // Float <- Half
+-        zip1(VTMP1.Z().VnH(), Vector.Z().VnH(), Vector.Z().VnH());
+-        fcvtlt(Dst.Z().VnS(), Mask, VTMP1.Z().VnH());
++        zip1(Dst.Z().VnH(), Vector.Z().VnH(), Vector.Z().VnH());
++        fcvtlt(Dst.Z().VnS(), Mask, Dst.Z().VnH());
+         break;
+       }
+       case 0x0804: { // Double <- Float
+-        zip1(VTMP1.Z().VnS(), Vector.Z().VnS(), Vector.Z().VnS());
+-        fcvtlt(Dst.Z().VnD(), Mask, VTMP1.Z().VnS());
++        zip1(Dst.Z().VnS(), Vector.Z().VnS(), Vector.Z().VnS());
++        fcvtlt(Dst.Z().VnD(), Mask, Dst.Z().VnS());
+         break;
+       }
+       case 0x0204: { // Half <- Float

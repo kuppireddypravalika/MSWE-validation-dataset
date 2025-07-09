@@ -1,0 +1,50 @@
+From fef681d9e0bd73e70f22e9fd03cae5c492e09966 Mon Sep 17 00:00:00 2001
+From: Petr Hosek <phosek@chromium.org>
+Date: Wed, 16 Aug 2017 21:58:09 +0000
+Subject: [PATCH] [libcxxabi] When built with ASan, __cxa_throw calls
+ __asan_handle_no_return
+
+The ASan runtime on many systems intercepts cxa_throw just so it
+can call asan_handle_no_return first. Some newer systems such as
+Fuchsia don't use interceptors on standard library functions at all,
+but instead use sanitizer-instrumented versions of the standard
+libraries. When libc++abi is built with ASan, cxa_throw can just
+call asan_handle_no_return itself so no interceptor is required.
+
+Patch by Roland McGrath
+
+Differential Revision: https://reviews.llvm.org/D36599
+
+git-svn-id: https://llvm.org/svn/llvm-project/libcxxabi/trunk@311045 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ src/cxa_exception.cpp | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/src/cxa_exception.cpp b/src/cxa_exception.cpp
+index 0794444..204ea2d 100644
+--- a/src/cxa_exception.cpp
++++ b/src/cxa_exception.cpp
+@@ -19,6 +19,10 @@
+ #include "cxa_handlers.hpp"
+ #include "fallback_malloc.h"
+ 
++#if __has_feature(address_sanitizer)
++#include <sanitizer/asan_interface.h>
++#endif
++
+ // +---------------------------+-----------------------------+---------------+
+ // | __cxa_exception           | _Unwind_Exception CLNGC++\0 | thrown object |
+ // +---------------------------+-----------------------------+---------------+
+@@ -217,6 +221,12 @@ __cxa_throw(void *thrown_object, std::type_info *tinfo, void (*dest)(void *)) {
+     globals->uncaughtExceptions += 1;   // Not atomically, since globals are thread-local
+ 
+     exception_header->unwindHeader.exception_cleanup = exception_cleanup_func;
++
++#if __has_feature(address_sanitizer)
++    // Inform the ASan runtime that now might be a good time to clean stuff up.
++    __asan_handle_no_return();
++#endif
++
+ #ifdef __USING_SJLJ_EXCEPTIONS__
+     _Unwind_SjLj_RaiseException(&exception_header->unwindHeader);
+ #else

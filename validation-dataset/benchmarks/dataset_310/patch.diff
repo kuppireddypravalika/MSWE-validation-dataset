@@ -1,0 +1,29 @@
+From ff29c3af02ceb7675eb617053cbfe4d2bb8dbd9f Mon Sep 17 00:00:00 2001
+From: Michael Niedermayer <michaelni@gmx.at>
+Date: Mon, 2 Jun 2014 17:09:53 +0200
+Subject: [PATCH] avformat/utils: Call ff_rfps_add_frame() only for video
+
+This avoids some unneeded computations
+
+Signed-off-by: Michael Niedermayer <michaelni@gmx.at>
+(cherry picked from commit 6f6edfe1c0ede584ea4edf5bb0fc9b961f299631)
+
+Signed-off-by: Michael Niedermayer <michaelni@gmx.at>
+---
+ mythtv/external/FFmpeg/libavformat/utils.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/mythtv/external/FFmpeg/libavformat/utils.c b/mythtv/external/FFmpeg/libavformat/utils.c
+index 09b676bcaa2..badd1807d8c 100644
+--- a/mythtv/external/FFmpeg/libavformat/utils.c
++++ b/mythtv/external/FFmpeg/libavformat/utils.c
+@@ -3324,7 +3324,8 @@ int avformat_find_stream_info(AVFormatContext *ic, AVDictionary **options)
+             }
+         }
+ #if FF_API_R_FRAME_RATE
+-        ff_rfps_add_frame(ic, st, pkt->dts);
++        if (st->codec->codec_type == AVMEDIA_TYPE_VIDEO)
++            ff_rfps_add_frame(ic, st, pkt->dts);
+ #endif
+         if (st->parser && st->parser->parser->split && !st->codec->extradata) {
+             int i = st->parser->parser->split(st->codec, pkt->data, pkt->size);

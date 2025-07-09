@@ -1,0 +1,29 @@
+From c63c9b308d6b47f211fdc81be506e0965adcf472 Mon Sep 17 00:00:00 2001
+From: Hendrik Leppkes <h.leppkes@gmail.com>
+Date: Sat, 21 Jan 2012 00:44:19 +0100
+Subject: [PATCH] avcodec: Enable DNxHD frame threading
+
+---
+ decoder/LAVVideo/decoders/avcodec.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/decoder/LAVVideo/decoders/avcodec.cpp b/decoder/LAVVideo/decoders/avcodec.cpp
+index fe85e2c97..d7673ec34 100644
+--- a/decoder/LAVVideo/decoders/avcodec.cpp
++++ b/decoder/LAVVideo/decoders/avcodec.cpp
+@@ -59,6 +59,7 @@ static struct {
+   { CODEC_ID_UTVIDEO,    FF_THREAD_FRAME                 },
+   { CODEC_ID_RV30,       FF_THREAD_FRAME                 },
+   { CODEC_ID_RV40,       FF_THREAD_FRAME                 },
++  { CODEC_ID_DNXHD,      FF_THREAD_FRAME                 },
+ };
+ 
+ static int getThreadFlags(CodecID codecId)
+@@ -419,6 +420,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
+                            || codec == CODEC_ID_MPEG1VIDEO
+                            || codec == CODEC_ID_DIRAC
+                            || codec == CODEC_ID_UTVIDEO
++                           || codec == CODEC_ID_DNXHD
+                            || bVC1IsPTS;
+ 
+   // Stop time is unreliable, drop it and calculate it

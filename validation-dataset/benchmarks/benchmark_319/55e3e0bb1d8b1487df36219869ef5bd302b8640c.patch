@@ -1,0 +1,45 @@
+From 55e3e0bb1d8b1487df36219869ef5bd302b8640c Mon Sep 17 00:00:00 2001
+From: Mark Hahnenberg <mhahnenberg@apple.com>
+Date: Wed, 19 Jun 2013 11:43:53 +0200
+Subject: [PATCH] JSObject::getOwnNonIndexPropertyNames calculates
+ numCacheableSlots incorrectly
+
+https://bugs.webkit.org/show_bug.cgi?id=114235
+
+Reviewed by Geoffrey Garen.
+
+Due to the way that numCacheableSlots is currently calculated, checking an object's prototype for enumerable
+properties causes us not to cache any properties at all. We should only cache properties on the object itself
+since we currently don't take advantage of any sort of name caching for properties in the prototype chain.
+This fix undoes a ~2% SunSpider regression caused by http://trac.webkit.org/changeset/147570.
+
+* runtime/JSObject.cpp:
+(JSC::JSObject::getOwnNonIndexPropertyNames):
+
+Change-Id: I5853ab567cd0a8cd20aeac1372ec64fc4f25df1a
+git-svn-id: http://svn.webkit.org/repository/webkit/trunk@148036 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+Reviewed-by: Jocelyn Turcotte <jocelyn.turcotte@digia.com>
+---
+ Source/JavaScriptCore/runtime/JSObject.cpp | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/Source/JavaScriptCore/runtime/JSObject.cpp b/Source/JavaScriptCore/runtime/JSObject.cpp
+index 72cbb022ae0..290a3ab1681 100644
+--- a/Source/JavaScriptCore/runtime/JSObject.cpp
++++ b/Source/JavaScriptCore/runtime/JSObject.cpp
+@@ -1513,10 +1513,12 @@ void JSObject::getOwnPropertyNames(JSObject* object, ExecState* exec, PropertyNa
+ void JSObject::getOwnNonIndexPropertyNames(JSObject* object, ExecState* exec, PropertyNameArray& propertyNames, EnumerationMode mode)
+ {
+     getClassPropertyNames(exec, object->classInfo(), propertyNames, mode, object->staticFunctionsReified());
+-    size_t preStructurePropertyNamesCount = propertyNames.size();
++
++    bool canCachePropertiesFromStructure = !propertyNames.size();
+     object->structure()->getPropertyNamesFromStructure(exec->globalData(), propertyNames, mode);
+-    size_t numCacheableSlots = preStructurePropertyNamesCount ? 0 : propertyNames.size();
+-    propertyNames.setNumCacheableSlots(numCacheableSlots);
++
++    if (canCachePropertiesFromStructure)
++        propertyNames.setNumCacheableSlots(propertyNames.size());
+ }
+ 
+ double JSObject::toNumber(ExecState* exec) const

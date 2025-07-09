@@ -1,0 +1,46 @@
+From caacf504bfc2ffd8a728163752811ddc6ae9ec22 Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Sat, 4 Jul 2020 23:52:22 -0600
+Subject: [PATCH] Use packed parameter for position
+
+---
+ OPHD/States/MapViewState.cpp | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
+
+diff --git a/OPHD/States/MapViewState.cpp b/OPHD/States/MapViewState.cpp
+index fe13c3088..30a4663c7 100644
+--- a/OPHD/States/MapViewState.cpp
++++ b/OPHD/States/MapViewState.cpp
+@@ -816,8 +816,7 @@ void MapViewState::placeTubeEnd()
+ 	const auto tubeDirection = tubeEndOffset / tubeLength;
+ 	const auto tubeEnd = mTubeStart + tubeEndOffset;
+ 
+-	int x = mTubeStart.x();
+-	int y = mTubeStart.y();
++	auto position = mTubeStart;
+ 	bool endReach = false;
+ 
+ 	do {
+@@ -826,18 +825,18 @@ void MapViewState::placeTubeEnd()
+ 			endReach = true;
+ 		}else if (tile->thing() || tile->mine() || !tile->bulldozed() || !tile->excavated()){
+ 			endReach = true;
+-		}else if (!validTubeConnection(mTileMap, {x, y}, cd)){
++		}else if (!validTubeConnection(mTileMap, position, cd)){
+ 			endReach = true;
+ 		}else{
+-			insertTube(cd, mTileMap->currentDepth(), mTileMap->getTile({x, y}));
++			insertTube(cd, mTileMap->currentDepth(), mTileMap->getTile(position));
+ 
+ 			// FIXME: Naive approach -- will be slow with larger colonies.
+ 			Utility<StructureManager>::get().disconnectAll();
+ 			checkConnectedness();
+ 		}
+ 
+-		if (NAS2D::Point{x, y} == tubeEnd) endReach = true;
+-		x += tubeDirection.x;y += tubeDirection.y;
++		if (position == tubeEnd) endReach = true;
++		position += tubeDirection;
+ 	} while (!endReach);
+ }
+ 

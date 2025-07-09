@@ -1,0 +1,24 @@
+From 5a8bf5faed7cf8d3831f00371d04975865083e89 Mon Sep 17 00:00:00 2001
+From: Aurelius84 <zhangliujie@baidu.com>
+Date: Fri, 7 Apr 2023 18:57:02 +0800
+Subject: [PATCH] [Perf]Polish uniform_random logic in NetBuilder while min=0.
+ and max=1. (#1322)
+
+---
+ cinn/frontend/net_builder.cc | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/cinn/frontend/net_builder.cc b/cinn/frontend/net_builder.cc
+index 0ba6a13941..7e14269f85 100644
+--- a/cinn/frontend/net_builder.cc
++++ b/cinn/frontend/net_builder.cc
+@@ -698,6 +698,9 @@ Variable NetBuilder::UniformRandom(
+       CustomInstr(
+           "uniform_random", {}, {{"shape", shape}, {"min", min}, {"max", max}, {"seed", seed}, {"dtype", dtype}})
+           .front();
++  if (min == 0.0f && max == 1.0f) {
++    return uniform_out;
++  }
+   auto uniform_range   = FillConstant(shape, max - min, UniqName("uniform_range"), dtype);
+   auto uniform_mul_out = Multiply(uniform_out, uniform_range);
+   auto uniform_min     = FillConstant(shape, min, UniqName("uniform_min"), dtype);

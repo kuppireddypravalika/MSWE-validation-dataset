@@ -1,0 +1,22 @@
+From 60bf04c5095ac39d20d0ee49a2b16c60e0477f9d Mon Sep 17 00:00:00 2001
+From: Pavel Kryukov <kryukov@frtk.ru>
+Date: Fri, 9 Feb 2018 20:44:55 +0300
+Subject: [PATCH] Use better casting for MIPS NOR instruction
+
+---
+ simulator/mips/mips_instr.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/simulator/mips/mips_instr.h b/simulator/mips/mips_instr.h
+index 103d2147d..0d5f62004 100644
+--- a/simulator/mips/mips_instr.h
++++ b/simulator/mips/mips_instr.h
+@@ -269,7 +269,7 @@ class MIPSInstr
+         void execute_and()   { v_dst = v_src1 & v_src2; }
+         void execute_or()    { v_dst = v_src1 | v_src2; }
+         void execute_xor()   { v_dst = v_src1 ^ v_src2; }
+-        void execute_nor()   { v_dst = static_cast<uint64>( ~( v_src1 | v_src2)); }
++        void execute_nor()   { v_dst = ~static_cast<uint64>(v_src1 | v_src2); }
+ 
+         void execute_andi()  { v_dst = v_src1 & zero_extend(v_imm); }
+         void execute_ori()   { v_dst = v_src1 | zero_extend(v_imm); }

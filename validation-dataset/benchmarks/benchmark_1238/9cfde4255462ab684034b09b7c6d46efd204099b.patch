@@ -1,0 +1,32 @@
+From 9cfde4255462ab684034b09b7c6d46efd204099b Mon Sep 17 00:00:00 2001
+From: Andreas Drewke <andreas@drewke.net>
+Date: Sat, 27 Feb 2021 03:22:45 +0100
+Subject: [PATCH] tools/shared/controller/TerrainEditorScreenController: some
+ improvement if loading foliage brush prototypes
+
+---
+ .../controller/TerrainEditorScreenController.cpp      | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/src/tdme/tools/shared/controller/TerrainEditorScreenController.cpp b/src/tdme/tools/shared/controller/TerrainEditorScreenController.cpp
+index acb5cc21b..ca760bb25 100644
+--- a/src/tdme/tools/shared/controller/TerrainEditorScreenController.cpp
++++ b/src/tdme/tools/shared/controller/TerrainEditorScreenController.cpp
+@@ -733,9 +733,14 @@ void TerrainEditorScreenController::onApplyFoliageBrush() {
+ 
+ 		// prototypes
+ 		for (auto i = 0; i < currentFoliageBrushPrototypes.size(); i++) {
+-			auto prototypeFileName = foliageBrushPrototypeFile[i]->getController()->getValue().getString();
+-			if (prototypeFileName.empty() == false) currentFoliageBrushPrototypes[i] = PrototypeReader::read(Tools::getPathName(prototypeFileName), Tools::getFileName(prototypeFileName));
+-			currentFoliageBrushIds[i] = prototypeFileName.empty() == true?-1:prototype->getTerrain()->getFoliagePrototypeIndex(currentFoliageBrushPrototypes[i]);
++			auto foliagePrototypeFileName = foliageBrushPrototypeFile[i]->getController()->getValue().getString();
++			if (foliagePrototypeFileName.empty() == false) {
++				currentFoliageBrushPrototypes[i] = PrototypeReader::read(
++					PrototypeReader::getResourcePathName(Tools::getPathName(foliagePrototypeFileName), foliagePrototypeFileName),
++					Tools::getFileName(foliagePrototypeFileName)
++				);
++			}
++			currentFoliageBrushIds[i] = foliagePrototypeFileName.empty() == true?-1:prototype->getTerrain()->getFoliagePrototypeIndex(currentFoliageBrushPrototypes[i]);
+ 			currentFoliageBrushCount[i] = Float::parseFloat(foliageBrushPrototypeFileCount[i]->getController()->getValue().getString());
+ 		}
+ 	} catch (Exception& exception) {

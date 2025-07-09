@@ -1,0 +1,27 @@
+From 4796386fbf75a7c160c4e11c57aeb48029037f73 Mon Sep 17 00:00:00 2001
+From: Nikola Plamenov Tchipev <tchipev@in.tum.de>
+Date: Sun, 10 Sep 2017 18:23:38 +0000
+Subject: [PATCH] use fast reciprocal instead of division in VCP1LCJ_WR
+
+git-svn-id: https://scm.projects.hlrs.de/svn/ls1/MarDyn/trunk@5410 a63bd714-7e14-4b5e-94e7-302c8c8ff188
+---
+ src/particleContainer/adapter/VCP1CLJWR.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/particleContainer/adapter/VCP1CLJWR.cpp b/src/particleContainer/adapter/VCP1CLJWR.cpp
+index 21783a9031..f74d1b3fb3 100644
+--- a/src/particleContainer/adapter/VCP1CLJWR.cpp
++++ b/src/particleContainer/adapter/VCP1CLJWR.cpp
+@@ -197,8 +197,12 @@ vcp_inline void VCP1CLJ_WR::_loopBodyLJ(
+ 	const RealCalcVec& eps_24, const RealCalcVec& sig2,
+ 	const RealCalcVec& shift6)
+ {
++#if 0
+ 	const RealCalcVec r2_inv_unmasked = one / c_r2;
+ 	const RealCalcVec r2_inv = RealCalcVec::apply_mask(r2_inv_unmasked, forceMask);
++#else
++	const RealCalcVec r2_inv = RealCalcVec::fastReciprocal_mask(c_r2, forceMask);
++#endif
+ 
+ 
+ 	const RealCalcVec lj2 = sig2 * r2_inv;//1FP (scale)

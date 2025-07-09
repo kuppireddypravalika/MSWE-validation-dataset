@@ -1,0 +1,49 @@
+From 3142cf50614ebda371bb3ab0b3f4a3f45e98883c Mon Sep 17 00:00:00 2001
+From: Tobias Doerffel <tobias.doerffel@gmail.com>
+Date: Thu, 24 Nov 2016 16:16:18 +0100
+Subject: [PATCH] LdapDirectory: query attributes case-insensitively
+
+When accessing the attribute value map of LdapObject we must not use the
+requested attribute as it might differ from the actual attribute name
+in terms of case sensitivity. Therefore match requested attribute against
+the attribute in the search result. This is only done once for
+performance reasons.
+---
+ lib/src/Ldap/LdapDirectory.cpp | 22 +++++++++++++++++++++-
+ 1 file changed, 21 insertions(+), 1 deletion(-)
+
+diff --git a/lib/src/Ldap/LdapDirectory.cpp b/lib/src/Ldap/LdapDirectory.cpp
+index 013b935ab..77caa6651 100644
+--- a/lib/src/Ldap/LdapDirectory.cpp
++++ b/lib/src/Ldap/LdapDirectory.cpp
+@@ -61,9 +61,29 @@ class LdapDirectory::LdapDirectoryPrivate
+ 
+ 		if( id != -1 )
+ 		{
++			bool isFirstResult = true;
++			QString realAttributeName = attribute.toLower();
++
+ 			while( operation.waitForResult( id, LdapQueryTimeout ) == KLDAP::LdapOperation::RES_SEARCH_ENTRY )
+ 			{
+-				for( auto value : operation.object().values( attribute ) )
++				if( isFirstResult )
++				{
++					isFirstResult = false;
++
++					// match attribute name from result with requested attribute name in order
++					// to keep result aggregation below case-insensitive
++					for( auto a : operation.object().attributes().keys() )
++					{
++						if( a.toLower() == realAttributeName )
++						{
++							realAttributeName = a;
++							break;
++						}
++					}
++				}
++
++				// convert result list from type QList<QByteArray> to QStringList
++				for( auto value : operation.object().values( realAttributeName ) )
+ 				{
+ 					entries += value;
+ 				}

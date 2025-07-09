@@ -1,0 +1,22 @@
+From ac4b1889dabca5aaf6e90f90f7cee2e4361f9769 Mon Sep 17 00:00:00 2001
+From: Pine Mizune <pinemz@gmail.com>
+Date: Sat, 26 May 2018 20:15:32 +0900
+Subject: [PATCH] fix(EgLine): 0.0001 -> 0.001
+
+---
+ src/EgLine.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/EgLine.cpp b/src/EgLine.cpp
+index ba8f9cc..3d816c4 100644
+--- a/src/EgLine.cpp
++++ b/src/EgLine.cpp
+@@ -69,7 +69,7 @@ EgLine::MeasureSpec EgLine::measure(SkScalar textSize) {
+     if (prevBounds.width() > fWidth) {
+         paint.setTextSize(prevTextSize);
+ 
+-        for (SkScalar i = fWidth / prevBounds.width(); i > 0; i -= SkDoubleToScalar(0.0001)) {
++        for (SkScalar i = fWidth / prevBounds.width(); i > 0; i -= SkDoubleToScalar(0.001)) {
+             paint.setTextScaleX(i);
+             paint.measureText(fText.c_str(), fText.length(), &bounds);
+             if (bounds.width() < fWidth) {

@@ -1,0 +1,31 @@
+From 9bd2acb3b253c77dd1f7680a2e6505039e9c49a5 Mon Sep 17 00:00:00 2001
+From: Ted Kremenek <kremenek@apple.com>
+Date: Thu, 3 Sep 2009 04:21:34 +0000
+Subject: [PATCH] Set the 'cached digest' flag after computing the digest for
+ an ImutAVLTree.  This was accidentally left out, and essentially caused
+ digest caching to be ignored in ImmutableMap and ImmutableSet (this bug was
+ detected from shark traces that showed ComputeDigest was in the hot path in
+ the clang static analyzer).
+
+This reduces the running time of the clang static analyzer on an
+example benchmark by ~32% for both RegionStore (field-sensitivty) and
+BasicStore (without field-sensitivity).
+
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@80877 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ include/llvm/ADT/ImmutableSet.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/include/llvm/ADT/ImmutableSet.h b/include/llvm/ADT/ImmutableSet.h
+index 7c070d7a7f2..70fc1a69145 100644
+--- a/include/llvm/ADT/ImmutableSet.h
++++ b/include/llvm/ADT/ImmutableSet.h
+@@ -331,6 +331,7 @@ class ImutAVLTree : public FoldingSetNode {
+ 
+     uint32_t X = ComputeDigest(getLeft(), getRight(), getValue());
+     Digest = X;
++    MarkedCachedDigest();
+     return X;
+   }
+ };

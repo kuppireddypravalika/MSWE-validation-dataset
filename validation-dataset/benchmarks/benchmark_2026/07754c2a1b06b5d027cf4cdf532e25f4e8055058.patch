@@ -1,0 +1,36 @@
+From 07754c2a1b06b5d027cf4cdf532e25f4e8055058 Mon Sep 17 00:00:00 2001
+From: Eric Christopher <echristo@apple.com>
+Date: Thu, 18 Mar 2010 20:27:26 +0000
+Subject: [PATCH] Make fast-isel understand llvm.stackprotector.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@98862 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Target/X86/X86FastISel.cpp | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/lib/Target/X86/X86FastISel.cpp b/lib/Target/X86/X86FastISel.cpp
+index 96b652d39e0..4a39bd51672 100644
+--- a/lib/Target/X86/X86FastISel.cpp
++++ b/lib/Target/X86/X86FastISel.cpp
+@@ -1166,6 +1166,21 @@ bool X86FastISel::X86VisitIntrinsicCall(IntrinsicInst &I) {
+   // FIXME: Handle more intrinsics.
+   switch (I.getIntrinsicID()) {
+   default: return false;
++  case Intrinsic::stackprotector: {
++    // Emit code inline code to store the stack guard onto the stack.
++    EVT PtrTy = TLI.getPointerTy();
++
++    Value *Op1 = I.getOperand(1); // The guard's value.
++    AllocaInst *Slot = cast<AllocaInst>(I.getOperand(2));
++
++    // Grab the frame index.
++    X86AddressMode AM;
++    if (!X86SelectAddress(Slot, AM)) return false;
++    
++    X86FastEmitStore(PtrTy, Op1, AM);
++    UpdateValueMap(&I, getRegForValue(Op1));
++    return true;
++  }
+   case Intrinsic::objectsize: {
+     ConstantInt *CI = dyn_cast<ConstantInt>(I.getOperand(2));
+     const Type *Ty = I.getCalledFunction()->getReturnType();

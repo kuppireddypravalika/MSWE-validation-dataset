@@ -1,0 +1,34 @@
+From e6851faf0ca28a7338597e207e4cf197a70aa564 Mon Sep 17 00:00:00 2001
+From: Elliot Woods <elliot.woods@gmail.com>
+Date: Sat, 5 Sep 2020 17:05:10 +0900
+Subject: [PATCH] Tracking - shave a few ms
+
+---
+ OP_Tracking/Process_Tracking.cpp | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/OP_Tracking/Process_Tracking.cpp b/OP_Tracking/Process_Tracking.cpp
+index 7a34186..d6289bf 100644
+--- a/OP_Tracking/Process_Tracking.cpp
++++ b/OP_Tracking/Process_Tracking.cpp
+@@ -349,8 +349,19 @@ namespace TD_MoCap {
+ 						auto maxDistance2 = maxDistance * maxDistance;
+ 
+ 						std::multimap<float, size_t> findsByDistance2;
++						auto min_Y_search = backupPoint.y - maxDistance;
++						auto max_Y_search = backupPoint.y + maxDistance;
++
+ 						for (size_t i = 0; i < previousFrameCentroids.size(); i++) {
+-							const auto delta = (previousFrameCentroids[i] - backupPoint);
++							const auto& previousCentroid = previousFrameCentroids[i];
++							if (previousCentroid.y < min_Y_search) {
++								continue; // skip early
++							}
++							if (previousCentroid.y > max_Y_search) {
++								continue; // skip early
++							}
++
++							const auto delta = previousCentroid - backupPoint;
+ 							auto distance2 = delta.dot(delta);
+ 							if (distance2 <= maxDistance2) {
+ 								findsByDistance2.emplace(distance2, i);

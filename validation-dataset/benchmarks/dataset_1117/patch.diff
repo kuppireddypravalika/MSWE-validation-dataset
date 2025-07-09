@@ -1,0 +1,38 @@
+From 9b6808a38b9bb5df10ab6190c768f35bfc26eae0 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Wed, 3 Dec 2014 10:11:30 +0000
+Subject: [PATCH] VRT: fix performance problem when serializing into XML a big
+ number of sources
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@28046 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/frmts/vrt/vrtsourcedrasterband.cpp | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/gdal/frmts/vrt/vrtsourcedrasterband.cpp b/gdal/frmts/vrt/vrtsourcedrasterband.cpp
+index f0be4f23d817..5db8776cf051 100644
+--- a/gdal/frmts/vrt/vrtsourcedrasterband.cpp
++++ b/gdal/frmts/vrt/vrtsourcedrasterband.cpp
+@@ -742,6 +742,7 @@ CPLXMLNode *VRTSourcedRasterBand::SerializeToXML( const char *pszVRTPath )
+     CPLXMLNode *psTree;
+ 
+     psTree = VRTRasterBand::SerializeToXML( pszVRTPath );
++    CPLXMLNode* psLastChild = NULL;
+ 
+ /* -------------------------------------------------------------------- */
+ /*      Process Sources.                                                */
+@@ -753,7 +754,13 @@ CPLXMLNode *VRTSourcedRasterBand::SerializeToXML( const char *pszVRTPath )
+         psXMLSrc = papoSources[iSource]->SerializeToXML( pszVRTPath );
+         
+         if( psXMLSrc != NULL )
+-            CPLAddXMLChild( psTree, psXMLSrc );
++        {
++            if( psLastChild == NULL )
++                psTree->psChild = psXMLSrc;
++            else
++                psLastChild->psNext = psXMLSrc;
++            psLastChild = psXMLSrc;
++        }
+     }
+ 
+     return psTree;

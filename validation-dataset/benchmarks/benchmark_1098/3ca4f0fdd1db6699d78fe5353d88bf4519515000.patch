@@ -1,0 +1,43 @@
+From 3ca4f0fdd1db6699d78fe5353d88bf4519515000 Mon Sep 17 00:00:00 2001
+From: Philip Reames <listmail@philipreames.com>
+Date: Fri, 30 Dec 2016 18:00:55 +0000
+Subject: [PATCH] [CVP] Adjust iteration order to reduce the amount of work
+ required
+
+CVP doesn't care about the order of blocks visited, but by using a pre-order traversal over the graph we can a) not visit unreachable blocks and b) optimize as we go so that analysis of later blocks produce slightly more precise results.
+
+I noticed this via inspection and don't have a concrete example which points to the issue.
+---
+ .../Transforms/Scalar/CorrelatedValuePropagation.cpp  | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/llvm/lib/Transforms/Scalar/CorrelatedValuePropagation.cpp b/llvm/lib/Transforms/Scalar/CorrelatedValuePropagation.cpp
+index de62d9de7a8a..141e99b92cdc 100644
+--- a/llvm/lib/Transforms/Scalar/CorrelatedValuePropagation.cpp
++++ b/llvm/lib/Transforms/Scalar/CorrelatedValuePropagation.cpp
+@@ -481,9 +481,14 @@ static Constant *getConstantAt(Value *V, Instruction *At, LazyValueInfo *LVI) {
+ static bool runImpl(Function &F, LazyValueInfo *LVI) {
+   bool FnChanged = false;
+ 
+-  for (BasicBlock &BB : F) {
++  // Visiting in a pre-order depth-first traversal causes us to simplify early
++  // blocks before querying later blocks (which require us to analyze early
++  // blocks).  Eagerly simplifying shallow blocks means there is strictly less
++  // work to do for deep blocks.  This also means we don't visit unreachable
++  // blocks. 
++  for (BasicBlock *BB : depth_first(&F.getEntryBlock())) {
+     bool BBChanged = false;
+-    for (BasicBlock::iterator BI = BB.begin(), BE = BB.end(); BI != BE;) {
++    for (BasicBlock::iterator BI = BB->begin(), BE = BB->end(); BI != BE;) {
+       Instruction *II = &*BI++;
+       switch (II->getOpcode()) {
+       case Instruction::Select:
+@@ -519,7 +524,7 @@ static bool runImpl(Function &F, LazyValueInfo *LVI) {
+       }
+     }
+ 
+-    Instruction *Term = BB.getTerminator();
++    Instruction *Term = BB->getTerminator();
+     switch (Term->getOpcode()) {
+     case Instruction::Switch:
+       BBChanged |= processSwitch(cast<SwitchInst>(Term), LVI);

@@ -1,0 +1,36 @@
+From cd6aa0774f0b786b2a8d294e42aa1563d3535b7e Mon Sep 17 00:00:00 2001
+From: Nekotekina <nekotekina@gmail.com>
+Date: Sun, 24 Apr 2022 13:26:28 +0300
+Subject: [PATCH] Reduce stack usage in atomic_wait_engine::notify_all
+
+---
+ rpcs3/util/atomic.cpp | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/rpcs3/util/atomic.cpp b/rpcs3/util/atomic.cpp
+index bd9936cec377b..385e010abe2f5 100644
+--- a/rpcs3/util/atomic.cpp
++++ b/rpcs3/util/atomic.cpp
+@@ -1335,13 +1335,20 @@ SAFE_BUFFERS(void) atomic_wait_engine::notify_all(const void* data, u32 size, u1
+ 	u32 count = 0;
+ 
+ 	// Array itself.
+-	u32 cond_ids[max_threads * max_distance + 128];
++	u32 cond_ids[128];
+ 
+ 	root_info::slot_search(iptr, mask, [&](u32 cond_id)
+ 	{
++		if (count >= 128)
++		{
++			// Unusual big amount of sema: fallback to notify_one alg
++			alert_sema(cond_id, size, mask);
++			return false;
++		}
++
+ 		u32 res = alert_sema<true>(cond_id, size, mask);
+ 
+-		if (res && ~res <= u16{umax})
++		if (~res <= u16{umax})
+ 		{
+ 			// Add to the end of the "stack"
+ 			*(std::end(cond_ids) - ++count) = ~res;

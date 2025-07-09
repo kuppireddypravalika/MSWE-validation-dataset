@@ -1,0 +1,43 @@
+From 48c11c52acd770a345f83bde87703716b6988220 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@duempel.org>
+Date: Fri, 17 Oct 2008 23:52:40 +0200
+Subject: [PATCH] client: removed CLIENT_MAX_BUFFER_LENGTH
+
+Use a literal in the struct declaration, and sizeof(client->buffer)
+everywhere else.  Also shrink the buffer from 40 kB to 4 kB.  The
+buffer must only be large enough to hold one line of input, and 4 kB
+is still more than enough.
+---
+ src/client.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/src/client.c b/src/client.c
+index 0585b0405f..9c9ec067b8 100644
+--- a/src/client.c
++++ b/src/client.c
+@@ -40,7 +40,6 @@
+ 
+ #define GREETING				"OK MPD " PROTOCOL_VERSION "\n"
+ 
+-#define CLIENT_MAX_BUFFER_LENGTH			(40960)
+ #define CLIENT_LIST_MODE_BEGIN			"command_list_begin"
+ #define CLIENT_LIST_OK_MODE_BEGIN			"command_list_ok_begin"
+ #define CLIENT_LIST_MODE_END				"command_list_end"
+@@ -69,7 +68,7 @@ static struct strnode *list_cache_tail;
+ struct client {
+ 	struct list_head siblings;
+ 
+-	char buffer[CLIENT_MAX_BUFFER_LENGTH];
++	char buffer[4096];
+ 	size_t bufferLength;
+ 	size_t bufferPos;
+ 
+@@ -509,7 +508,7 @@ static int client_read(struct client *client)
+ 
+ 	bytesRead = read(client->fd,
+ 			 client->buffer + client->bufferLength,
+-			 CLIENT_MAX_BUFFER_LENGTH - client->bufferLength);
++			 sizeof(client->buffer) - client->bufferLength);
+ 
+ 	if (bytesRead > 0)
+ 		return client_input_received(client, bytesRead);

@@ -1,0 +1,26 @@
+From 818bf2f14c0999113af2a94983e90a862d88938d Mon Sep 17 00:00:00 2001
+From: RealTimeChris <40668522+RealTimeChris@users.noreply.github.com>
+Date: Wed, 7 Dec 2022 16:59:02 -0500
+Subject: [PATCH] Updating the VoiceConnection class.
+
+To improve the Simd usage within the applyGainRamp function.
+---
+ Source/VoiceConnection.cpp | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/Source/VoiceConnection.cpp b/Source/VoiceConnection.cpp
+index dee6163c4..d23c2c698 100644
+--- a/Source/VoiceConnection.cpp
++++ b/Source/VoiceConnection.cpp
+@@ -203,10 +203,7 @@ namespace DiscordCoreAPI {
+ 			__m256d newSample = _mm256_blendv_pd(_mm256_max_pd(currentSampleRaw, comparisonSampleMin),
+ 				_mm256_min_pd(currentSampleRaw, comparisonSampleMax), compareGreaterThanZero);
+ 			double newSamples[4]{};
+-			newSamples[0] = *(reinterpret_cast<double*>(&newSample));
+-			newSamples[1] = *(reinterpret_cast<double*>(&newSample) + 1);
+-			newSamples[2] = *(reinterpret_cast<double*>(&newSample) + 2);
+-			newSamples[3] = *(reinterpret_cast<double*>(&newSample) + 3);
++			_mm256_store_pd(newSamples, newSample);
+ 			this->downSampledVector[x * 4] = static_cast<opus_int16>(newSamples[0]);
+ 			this->downSampledVector[(x * 4) + 1] = static_cast<opus_int16>(newSamples[1]);
+ 			this->downSampledVector[(x * 4) + 2] = static_cast<opus_int16>(newSamples[2]);

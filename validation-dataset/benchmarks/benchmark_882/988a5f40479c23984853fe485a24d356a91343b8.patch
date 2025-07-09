@@ -1,0 +1,24 @@
+From 988a5f40479c23984853fe485a24d356a91343b8 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Lu=C3=ADs=20Pereira?= <luis.artur.pereira@gmail.com>
+Date: Tue, 17 Jan 2017 17:39:53 +0000
+Subject: [PATCH] Use const iterators
+
+Avoid assignment of a non-const pointer to a const pointer and the
+consequent container detach.
+---
+ src/preferencesdialog.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/preferencesdialog.cpp b/src/preferencesdialog.cpp
+index 123345c9..c35183b0 100644
+--- a/src/preferencesdialog.cpp
++++ b/src/preferencesdialog.cpp
+@@ -111,7 +111,7 @@ void PreferencesDialog::initIconThemes(Settings& settings) {
+ 
+     iconThemes.remove("hicolor"); // remove hicolor, which is only a fallback
+     QHash<QString, QString>::const_iterator it;
+-    for(it = iconThemes.begin(); it != iconThemes.end(); ++it) {
++    for(it = iconThemes.constBegin(); it != iconThemes.constEnd(); ++it) {
+       ui.iconTheme->addItem(it.value(), it.key());
+     }
+     ui.iconTheme->model()->sort(0); // sort the list of icon theme names

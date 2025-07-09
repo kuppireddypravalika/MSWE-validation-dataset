@@ -1,0 +1,23 @@
+From 324040f33922acb82ef13dabe30e955f7ac458e2 Mon Sep 17 00:00:00 2001
+From: lucametehau <31002793+lucametehau@users.noreply.github.com>
+Date: Mon, 23 Jan 2023 13:32:11 +0200
+Subject: [PATCH] hm againe
+
+Bench: 2859625
+---
+ search.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/search.h b/search.h
+index 6f1e8d21..efc37c89 100644
+--- a/search.h
++++ b/search.h
+@@ -439,7 +439,7 @@ int Search::search(int alpha, int beta, int depth, bool cutNode, uint16_t exclud
+ 
+         /// null move pruning (when last move wasn't null, we still have non pawn material, we have a good position)
+         if (!nullSearch && !excluded && depth >= 2 && (quietUs || eval - 100 * depth > beta) && eval >= beta && eval >= staticEval && board.hasNonPawnMaterial(board.turn)) {
+-            int R = nmpR + depth / nmpDepthDiv + (eval - beta) / nmpEvalDiv + improving - (Stack[ply - 1].history / (1 << 15));
++            int R = nmpR + depth / nmpDepthDiv + (eval - beta) / nmpEvalDiv + improving;
+ 
+             Stack[ply].move = NULLMOVE;
+             Stack[ply].piece = 0;

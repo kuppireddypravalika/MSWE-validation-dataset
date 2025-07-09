@@ -1,0 +1,29 @@
+From 846ed217dfaacbb80e2d9f039a7062d6a8c19868 Mon Sep 17 00:00:00 2001
+From: James Yonan <james@openvpn.net>
+Date: Sun, 18 Feb 2018 22:23:14 -0700
+Subject: [PATCH] OpenSSL: set SSL_MODE_RELEASE_BUFFERS to conserve memory by
+ releasing unneeded buffers
+
+SSL_MODE_RELEASE_BUFFERS will free buffers that are fully drained
+and re-allocate them as needed.  Testing with proto.cpp suggests
+that this doesn't negatively affect performance.
+
+Signed-off-by: James Yonan <james@openvpn.net>
+---
+ openvpn/openssl/ssl/sslctx.hpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/openvpn/openssl/ssl/sslctx.hpp b/openvpn/openssl/ssl/sslctx.hpp
+index bcb9100f2..bf46043d3 100644
+--- a/openvpn/openssl/ssl/sslctx.hpp
++++ b/openvpn/openssl/ssl/sslctx.hpp
+@@ -522,6 +522,9 @@ namespace openvpn {
+ 	  if (!ssl)
+ 	    throw OpenSSLException("OpenSSLContext::SSL: SSL_new failed");
+ 
++	  // release unneeded buffers
++	  SSL_set_mode(ssl, SSL_MODE_RELEASE_BUFFERS);
++
+ 	  // verify hostname
+ 	  if (hostname)
+ 	    {

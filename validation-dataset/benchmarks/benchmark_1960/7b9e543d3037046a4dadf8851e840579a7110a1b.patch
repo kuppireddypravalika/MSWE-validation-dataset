@@ -1,0 +1,34 @@
+From 7b9e543d3037046a4dadf8851e840579a7110a1b Mon Sep 17 00:00:00 2001
+From: Luis Ibanez <luis.ibanez@kitware.com>
+Date: Tue, 28 Dec 2010 11:54:49 -0500
+Subject: [PATCH] ENH: Now uses vcl_memset instead of a custom loop.
+
+Change-Id: I75d0d647caf42ada2eb22cbe07862699af6c11fa
+---
+ Utilities/vxl/core/vnl/tests/test_numeric_traits.cxx | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/Utilities/vxl/core/vnl/tests/test_numeric_traits.cxx b/Utilities/vxl/core/vnl/tests/test_numeric_traits.cxx
+index a3d31434ebe..31d3f79034e 100644
+--- a/Utilities/vxl/core/vnl/tests/test_numeric_traits.cxx
++++ b/Utilities/vxl/core/vnl/tests/test_numeric_traits.cxx
+@@ -3,6 +3,7 @@
+ #include <testlib/testlib_test.h>
+ #include <vcl_complex.h>
+ #include <vcl_iostream.h>
++#include <vcl_cstring.h>
+ #include <vxl_config.h> // for VXL_BIG_ENDIAN
+ 
+ static
+@@ -208,10 +209,7 @@ void test_numeric_traits()
+   longdoublewithbackup ldwb;
+ 
+   // initialize the full set of bytes under the long double type
+-  for(unsigned int jj = 0; jj < sizeof(long double); jj++)
+-    {
+-    ldwb.lc[jj] = 0;
+-    }
++  vcl_memset( ldwb.lc, 0, sizeof(long double) );
+ 
+   ldwb.ld = ldm;
+ 

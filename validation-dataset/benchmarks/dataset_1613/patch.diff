@@ -1,0 +1,30 @@
+From 52f889f36f9944e8d9d9d651337678c9984daabe Mon Sep 17 00:00:00 2001
+From: henrix <henni19790@googlemail.com>
+Date: Tue, 14 Mar 2017 12:13:08 +0000
+Subject: [PATCH] optimized runtime by reducing fps for plotting (~93 -> ~47)
+
+---
+ code/demo-realtime-plot/mainwindow.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/code/demo-realtime-plot/mainwindow.cpp b/code/demo-realtime-plot/mainwindow.cpp
+index 3eb904e..a65ead4 100644
+--- a/code/demo-realtime-plot/mainwindow.cpp
++++ b/code/demo-realtime-plot/mainwindow.cpp
+@@ -85,7 +85,7 @@ void MainWindow::getAudioData(float *data){
+     for (int i=0; i < 256; i++)
+         _data[i] = std::log10(std::abs(cmplx[i]) / 256.0); //half of magnitude spectrum and normalize
+ 
+-    //if (_plotRefreshCounter % 2 == 0){
++    if (_plotRefreshCounter % 2 == 0){
+         double min = *std::min_element(_data.begin(), _data.end());
+         double max = *std::min_element(_data.begin(), _data.end());
+         if (min < -10.0 && max > 0.0)
+@@ -98,6 +98,6 @@ void MainWindow::getAudioData(float *data){
+             setRangeY(-10, 0);
+         drawFunction(_data);
+         _plotRefreshCounter = 0;
+-    //}
++    }
+     _plotRefreshCounter++;
+ }

@@ -1,0 +1,35 @@
+From 436baf34dca97afec436ef0c886047587273466f Mon Sep 17 00:00:00 2001
+From: Mark Dewing <markdewing@gmail.com>
+Date: Fri, 2 Aug 2019 16:22:47 -0500
+Subject: [PATCH] Use a scoped timer for the spo_timer
+
+If spin up and spin down are the same, there is an early return that would
+skip the stop timer call.  This leads to incorrect nesting and some negative times
+in the results.  Use a scoped timer wrapper to let the compiler handle all the return paths.
+---
+ src/QMCWaveFunctions/EinsplineSetBuilder_createSPOs.cpp | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/src/QMCWaveFunctions/EinsplineSetBuilder_createSPOs.cpp b/src/QMCWaveFunctions/EinsplineSetBuilder_createSPOs.cpp
+index 3e20d3980b..0690532964 100644
+--- a/src/QMCWaveFunctions/EinsplineSetBuilder_createSPOs.cpp
++++ b/src/QMCWaveFunctions/EinsplineSetBuilder_createSPOs.cpp
+@@ -127,9 +127,7 @@ SPOSet* EinsplineSetBuilder::createSPOSetFromXML(xmlNodePtr cur)
+   std::string useGPU = "no";
+ #endif
+   std::string GPUsharing = "no";
+-  NewTimer* spo_timer    = new NewTimer("einspline::CreateSPOSetFromXML", timer_level_medium);
+-  TimerManager.addTimer(spo_timer);
+-  spo_timer->start();
++  ScopedTimer spo_timer_scope(TimerManager.createTimer("einspline::CreateSPOSetFromXML", timer_level_medium));
+ 
+   {
+     OhmmsAttributeSet a;
+@@ -465,7 +463,6 @@ SPOSet* EinsplineSetBuilder::createSPOSetFromXML(xmlNodePtr cur)
+ #endif
+   OrbitalSet->finalizeConstruction();
+   SPOSetMap[aset] = OrbitalSet;
+-  spo_timer->stop();
+   return OrbitalSet;
+ }
+ 

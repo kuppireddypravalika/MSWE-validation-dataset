@@ -1,0 +1,25 @@
+From e21bd68603ac8d2abf2f8f1380618f455007965d Mon Sep 17 00:00:00 2001
+From: Ryan Pavlik <ryan@sensics.com>
+Date: Wed, 12 Aug 2015 09:46:15 -0500
+Subject: [PATCH] Extract point using higher-performance compile-time code.
+
+---
+ inc/osvr/Util/EigenExtras.h | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/inc/osvr/Util/EigenExtras.h b/inc/osvr/Util/EigenExtras.h
+index a6873b267..3f64d1a7f 100644
+--- a/inc/osvr/Util/EigenExtras.h
++++ b/inc/osvr/Util/EigenExtras.h
+@@ -83,8 +83,9 @@ namespace util {
+     /// @brief Pulls the 3-dimensional point or vector from a 4-d vec,
+     /// performing division by w if nonzero.
+     inline Eigen::Vector3d extractPoint(Eigen::Vector4d const &homogenous) {
+-        return homogenous[3] == 0 ? homogenous.head(3).eval()
+-                                  : (homogenous.head(3) / homogenous[3]).eval();
++        return homogenous[3] == 0
++                   ? homogenous.head<3>().eval()
++                   : (homogenous.head<3>() / homogenous[3]).eval();
+     }
+ 
+     typedef Eigen::Matrix<double, 4, 4, Eigen::RowMajor> RowMatrix44d;

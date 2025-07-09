@@ -1,0 +1,31 @@
+From d11479e53c11a468cf414e28aef465e38e3c3b8d Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Luis=20D=C3=ADaz=20M=C3=A1s?= <piponazo@gmail.com>
+Date: Thu, 17 Feb 2022 22:06:51 +0100
+Subject: [PATCH] Replace dynamic C array by std::vector
+
+---
+ src/basicio.cpp | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/src/basicio.cpp b/src/basicio.cpp
+index 57057783df..56a6798b7a 100644
+--- a/src/basicio.cpp
++++ b/src/basicio.cpp
+@@ -1246,7 +1246,7 @@ namespace Exiv2 {
+         size_t left       = 0;
+         size_t right      = 0;
+         size_t blockIndex = 0;
+-        auto buf = new byte [p_->blockSize_];
++        std::vector<byte> buf(p_->blockSize_);
+         size_t nBlocks    = (p_->size_ + p_->blockSize_ - 1) / p_->blockSize_;
+ 
+         // find $left
+@@ -1289,8 +1289,6 @@ namespace Exiv2 {
+             }
+         }
+ 
+-        delete []buf;
+-
+         // submit to the remote machine.
+         long dataSize = static_cast<long>(src.size() - left - right);
+         if (dataSize > 0) {

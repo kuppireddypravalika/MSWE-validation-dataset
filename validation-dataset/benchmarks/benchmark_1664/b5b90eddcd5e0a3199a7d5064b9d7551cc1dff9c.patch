@@ -1,0 +1,32 @@
+From b5b90eddcd5e0a3199a7d5064b9d7551cc1dff9c Mon Sep 17 00:00:00 2001
+From: Jakob Stoklund Olesen <stoklund@2pi.dk>
+Date: Thu, 11 Feb 2010 18:06:56 +0000
+Subject: [PATCH] Use array_pod_sort instead of std::sort for improved code
+ size.
+
+Use SmallVector instead of std::vector for better speed when indirectbr has
+few successors.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@95879 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/CodeGen/SelectionDAG/SelectionDAGBuilder.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/lib/CodeGen/SelectionDAG/SelectionDAGBuilder.cpp b/lib/CodeGen/SelectionDAG/SelectionDAGBuilder.cpp
+index 477c1c70198..6f60c7b624e 100644
+--- a/lib/CodeGen/SelectionDAG/SelectionDAGBuilder.cpp
++++ b/lib/CodeGen/SelectionDAG/SelectionDAGBuilder.cpp
+@@ -2063,11 +2063,11 @@ void SelectionDAGBuilder::visitSwitch(SwitchInst &SI) {
+ 
+ void SelectionDAGBuilder::visitIndirectBr(IndirectBrInst &I) {
+   // Update machine-CFG edges with unique successors.
+-  std::vector<BasicBlock*> succs;
++  SmallVector<BasicBlock*, 32> succs;
+   succs.reserve(I.getNumSuccessors());
+   for (unsigned i = 0, e = I.getNumSuccessors(); i != e; ++i)
+     succs.push_back(I.getSuccessor(i));
+-  std::sort(succs.begin(), succs.end());
++  array_pod_sort(succs.begin(), succs.end());
+   succs.erase(std::unique(succs.begin(), succs.end()), succs.end());
+   for (unsigned i = 0, e = succs.size(); i != e; ++i)
+     CurMBB->addSuccessor(FuncInfo.MBBMap[succs[i]]);

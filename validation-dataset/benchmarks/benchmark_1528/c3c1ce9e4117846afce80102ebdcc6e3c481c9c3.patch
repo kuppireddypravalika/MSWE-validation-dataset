@@ -1,0 +1,34 @@
+From c3c1ce9e4117846afce80102ebdcc6e3c481c9c3 Mon Sep 17 00:00:00 2001
+From: Mark Stoodley <mstoodle@ca.ibm.com>
+Date: Tue, 9 May 2017 18:10:11 -0400
+Subject: [PATCH] x codegen can support "Java float semantics"
+
+A remnant of X87 FP support is the notion of "Java float semantics".
+The X86 code generator claims not to support Java float semantics and
+this disables several optimizations because you could get different
+results with X87's 80 bit floating point registers. X87 is no longer
+supported, but this query is still here. Nonetheless, if we're using
+SSE for floating point, then we can properly support "Java float
+semantics" and enable these optimizations. All other code generators
+support "Java float semantics" by default.
+
+This commit lets the x codegen say it supports "Java float semantics"
+if it has already decided to use SSE for floats.
+
+Signed-off-by: Mark Stoodley <mstoodle@ca.ibm.com>
+---
+ compiler/x/codegen/OMRCodeGenerator.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/compiler/x/codegen/OMRCodeGenerator.cpp b/compiler/x/codegen/OMRCodeGenerator.cpp
+index c558fb60a8..fa1084031a 100644
+--- a/compiler/x/codegen/OMRCodeGenerator.cpp
++++ b/compiler/x/codegen/OMRCodeGenerator.cpp
+@@ -254,6 +254,7 @@ OMR::X86::CodeGenerator::initialize(TR::Compilation *comp)
+       self()->setUseSSEForSinglePrecision();
+       self()->setUseSSEForDoublePrecision();
+       self()->setSupportsAutoSIMD();
++      self()->setSupportsJavaFloatSemantics();
+       }
+ 
+    // Choose the best XMM double precision load instruction for the target architecture.

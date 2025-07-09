@@ -1,0 +1,34 @@
+From b5399229a859f0f8009890eb9837b1d5ee6635d3 Mon Sep 17 00:00:00 2001
+From: corvid <devnull@localhost>
+Date: Wed, 1 Apr 2015 23:40:37 +0000
+Subject: [PATCH] limit size when copying strings to find character references
+
+https://github.com/torvalds/linux/pull/17 has a five-megabyte title
+attribute, which is just a bit excessive. Since it has tons of &lt; and
+&gt;, dillo couldn't cope with it. Over five minutes to parse as much
+of it as it got before the connection broke. With this change, it's
+about fifty seconds (on this old computer) to get/show the full 24 megs,
+which is an improvement, at least.
+---
+ src/html.cc | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/src/html.cc b/src/html.cc
+index 53be82c33..1344c69cb 100644
+--- a/src/html.cc
++++ b/src/html.cc
+@@ -995,6 +995,14 @@ static const char *Html_parse_entity(DilloHtml *html, const char *token,
+    const char *ret = NULL;
+    char *tok;
+ 
++   if (toksize > 50) {
++      /* In pathological cases, attributes can be megabytes long and filled
++       * with character references. As of HTML5, the longest defined character
++       * reference is about 32 bytes long.
++       */
++      toksize = 50;
++   }
++
+    token++;
+    tok = dStrndup(token, (uint_t)toksize);
+ 

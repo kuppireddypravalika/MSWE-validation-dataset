@@ -1,0 +1,28 @@
+From 3feebb225871fc4682805c0942b4f04cb8037930 Mon Sep 17 00:00:00 2001
+From: Ye Luo <yeluo@anl.gov>
+Date: Sat, 2 Sep 2017 22:43:13 -0500
+Subject: [PATCH] Recycle memory in threaded region. Much faster.
+
+---
+ src/QMCWaveFunctions/SplineHybridAdoptorReaderP.h | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/src/QMCWaveFunctions/SplineHybridAdoptorReaderP.h b/src/QMCWaveFunctions/SplineHybridAdoptorReaderP.h
+index 8009707ba1..a2e3125baf 100644
+--- a/src/QMCWaveFunctions/SplineHybridAdoptorReaderP.h
++++ b/src/QMCWaveFunctions/SplineHybridAdoptorReaderP.h
+@@ -93,11 +93,10 @@ struct Gvectors
+ 
+   void calc_jlm_G(const int lmax, ST& r, const size_t ig, std::vector<ST>& j_lm_G)
+   {
+-    std::vector<double> jl_vals(lmax+1,0.0);
+-    bessel_steed_array_cpu(lmax, gmag[ig]*r, jl_vals.data());
+-    for(size_t l=0; l<=lmax; l++)
++    bessel_steed_array_cpu(lmax, gmag[ig]*r, j_lm_G.data());
++    for(size_t l=lmax; l>0; l--)
+       for(size_t lm=l*l; lm<(l+1)*(l+1); lm++)
+-        j_lm_G[lm]=jl_vals[l];
++        j_lm_G[lm]=j_lm_G[l];
+   }
+ 
+   template<typename PT>

@@ -1,0 +1,46 @@
+From a1ce999978adb716bec99ac259faf20d88306443 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@duempel.org>
+Date: Tue, 26 Aug 2008 08:27:18 +0200
+Subject: [PATCH] check for decoder error before state!=START
+
+When dc->error!=NOERROR, we do not need to check state!=START.
+Simplify the checks by moving the error check to the top.
+---
+ src/player_thread.c | 17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
+
+diff --git a/src/player_thread.c b/src/player_thread.c
+index 761e0fba00..6f0828f931 100644
+--- a/src/player_thread.c
++++ b/src/player_thread.c
+@@ -217,8 +217,14 @@ static void decodeParent(void)
+ 		}
+ 
+ 		if (decodeWaitedOn) {
+-			if(dc.state!=DECODE_STATE_START &&
+-			   dc.error==DECODE_ERROR_NOERROR) {
++			if (dc.error != DECODE_ERROR_NOERROR) {
++				/* the decoder failed */
++				assert(dc.next_song == NULL || dc.next_song->url != NULL);
++				pc.errored_song = dc.next_song;
++				pc.error = PLAYER_ERROR_FILE;
++				break;
++			}
++			else if (dc.state != DECODE_STATE_START) {
+ 				/* the decoder is ready and ok */
+ 				decodeWaitedOn = 0;
+ 				if(openAudioDevice(&(ob.audioFormat))<0) {
+@@ -242,13 +248,6 @@ static void decodeParent(void)
+ 				pc.channels = dc.audioFormat.channels;
+ 				sizeToTime = audioFormatSizeToTime(&ob.audioFormat);
+ 			}
+-			else if(dc.state!=DECODE_STATE_START) {
+-				/* the decoder failed */
+-				assert(dc.next_song == NULL || dc.next_song->url != NULL);
+-				pc.errored_song = dc.next_song;
+-				pc.error = PLAYER_ERROR_FILE;
+-				break;
+-			}
+ 			else {
+ 				/* the decoder is not yet ready; wait
+ 				   some more */

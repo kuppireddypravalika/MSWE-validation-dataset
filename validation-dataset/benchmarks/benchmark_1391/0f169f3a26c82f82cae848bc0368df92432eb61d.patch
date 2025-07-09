@@ -1,0 +1,56 @@
+From 0f169f3a26c82f82cae848bc0368df92432eb61d Mon Sep 17 00:00:00 2001
+From: Rui Ueyama <ruiu@google.com>
+Date: Tue, 16 Jan 2018 20:52:32 +0000
+Subject: [PATCH] Specify inline for isWhitespace in CommandLine.cpp
+
+Patch by Takuto Ikuta.
+
+In chromium's component build, there are many directive sections and
+commandline parsing takes much time.
+This patch is for speed up of lld in RelWithDebInfo build by forcing
+inline heavily called isWhitespace function.
+
+10 times link perf stats of blink_core.dll changed like below.
+
+master:
+TotalSeconds: 9.8764878
+TotalSeconds: 10.1455242
+TotalSeconds: 10.075279
+TotalSeconds: 10.3397347
+TotalSeconds: 9.8361665
+TotalSeconds: 9.9544441
+TotalSeconds: 9.8960686
+TotalSeconds: 9.8877865
+TotalSeconds: 10.0551879
+TotalSeconds: 10.0492254
+Avg: 10.01159047
+
+with this patch:
+TotalSeconds: 8.8696762
+TotalSeconds: 9.1021585
+TotalSeconds: 9.0233893
+TotalSeconds: 9.1886175
+TotalSeconds: 9.156954
+TotalSeconds: 9.0978564
+TotalSeconds: 9.1316824
+TotalSeconds: 8.8354606
+TotalSeconds: 9.2549431
+TotalSeconds: 9.4473085
+Avg: 9.11080465
+---
+ llvm/lib/Support/CommandLine.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/llvm/lib/Support/CommandLine.cpp b/llvm/lib/Support/CommandLine.cpp
+index d95b791972c8..451c3f460369 100644
+--- a/llvm/lib/Support/CommandLine.cpp
++++ b/llvm/lib/Support/CommandLine.cpp
+@@ -688,7 +688,7 @@ static bool EatsUnboundedNumberOfValues(const Option *O) {
+          O->getNumOccurrencesFlag() == cl::OneOrMore;
+ }
+ 
+-static bool isWhitespace(char C) {
++static inline bool isWhitespace(char C) {
+   return C == ' ' || C == '\t' || C == '\r' || C == '\n';
+ }
+ 

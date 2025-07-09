@@ -1,0 +1,22 @@
+From 6cfd498b7c296fcbd2b9c3cd37561142a7f32d17 Mon Sep 17 00:00:00 2001
+From: Andreas Gal <gal@mozilla.com>
+Date: Wed, 16 Jul 2008 23:47:57 -0700
+Subject: [PATCH] Increase code cache size.
+
+---
+ js/src/jstracer.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/js/src/jstracer.cpp b/js/src/jstracer.cpp
+index 9fb601ee8ea..c5bb269d6c7 100644
+--- a/js/src/jstracer.cpp
++++ b/js/src/jstracer.cpp
+@@ -1208,7 +1208,7 @@ js_InitJIT(JSContext* cx)
+ {
+     JSTraceMonitor* tm = &JS_TRACE_MONITOR(cx);
+     if (!tm->fragmento) {
+-        Fragmento* fragmento = new (&gc) Fragmento(core, 18);
++        Fragmento* fragmento = new (&gc) Fragmento(core, 24);
+ #ifdef DEBUG
+         fragmento->labels = new (&gc) LabelMap(core, NULL);
+ #endif

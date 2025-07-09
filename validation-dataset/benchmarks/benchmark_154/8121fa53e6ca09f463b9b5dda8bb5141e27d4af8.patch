@@ -1,0 +1,24 @@
+From 8121fa53e6ca09f463b9b5dda8bb5141e27d4af8 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@spatialys.com>
+Date: Mon, 1 Jan 2024 23:11:31 +0100
+Subject: [PATCH] TSX: avoid CodeQL cpp/integer-multiplication-cast-to-long
+
+---
+ frmts/tsx/tsxdataset.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/frmts/tsx/tsxdataset.cpp b/frmts/tsx/tsxdataset.cpp
+index 7499ce2f2de8..0c1509fc0839 100644
+--- a/frmts/tsx/tsxdataset.cpp
++++ b/frmts/tsx/tsxdataset.cpp
+@@ -195,8 +195,8 @@ CPLErr TSXRasterBand::IReadBlock(int nBlockXOff, int nBlockYOff, void *pImage)
+     {
+         nRequestYSize = nRasterYSize - nBlockYOff * nBlockYSize;
+         memset(pImage, 0,
+-               (GDALGetDataTypeSize(eDataType) / 8) * nBlockXSize *
+-                   nBlockYSize);
++               static_cast<size_t>(GDALGetDataTypeSizeBytes(eDataType)) *
++                   nBlockXSize * nBlockYSize);
+     }
+     else
+     {

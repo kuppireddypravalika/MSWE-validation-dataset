@@ -1,0 +1,35 @@
+From 88999e9ea037ee79557d0c012ad9fdfc72fb5ece Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Thu, 26 Sep 2013 14:10:45 +0200
+Subject: [PATCH] QPen: optimize population of dd->dashPattern
+
+Change-Id: I02b3bb9b503303b931f075f899126a506f9e25d0
+Reviewed-by: Olivier Goffart <ogoffart@woboq.com>
+---
+ src/gui/painting/qpen.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/gui/painting/qpen.cpp b/src/gui/painting/qpen.cpp
+index 4122322e3653..d27e0c409d6d 100644
+--- a/src/gui/painting/qpen.cpp
++++ b/src/gui/painting/qpen.cpp
+@@ -447,15 +447,19 @@ QVector<qreal> QPen::dashPattern() const
+ 
+         switch (d->style) {
+         case Qt::DashLine:
++            dd->dashPattern.reserve(2);
+             dd->dashPattern << dash << space;
+             break;
+         case Qt::DotLine:
++            dd->dashPattern.reserve(2);
+             dd->dashPattern << dot << space;
+             break;
+         case Qt::DashDotLine:
++            dd->dashPattern.reserve(4);
+             dd->dashPattern << dash << space << dot << space;
+             break;
+         case Qt::DashDotDotLine:
++            dd->dashPattern.reserve(6);
+             dd->dashPattern << dash << space << dot << space << dot << space;
+             break;
+         default:

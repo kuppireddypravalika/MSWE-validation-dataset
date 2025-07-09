@@ -1,0 +1,47 @@
+From e4779fa752e7426a25715c843b18c1fd95e77b9a Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@duempel.org>
+Date: Wed, 26 Mar 2008 10:38:44 +0000
+Subject: [PATCH] don't repeat select()
+
+The interfaces main loop repeats the select() (non-blocking) after an
+event was handled.  I do not see any reason for that, since all events
+should be handled after the first select().  This double select() does
+nothing than consume more CPU cycles.
+
+git-svn-id: https://svn.musicpd.org/mpd/trunk@7213 09075e82-0dd4-0310-85a5-a0d7c8717e4f
+---
+ src/interface.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/src/interface.c b/src/interface.c
+index f74d4d41ab..bfc50cd378 100644
+--- a/src/interface.c
++++ b/src/interface.c
+@@ -478,7 +478,6 @@ int doIOForInterfaces(void)
+ 	fd_set rfds;
+ 	fd_set wfds;
+ 	fd_set efds;
+-	struct timeval tv, *tvp = NULL;
+ 	int i;
+ 	int selret;
+ 	int fdmax;
+@@ -492,7 +491,7 @@ int doIOForInterfaces(void)
+ 
+ 		registered_IO_add_fds(&fdmax, &rfds, &wfds, &efds);
+ 
+-		selret = select(fdmax + 1, &rfds, &wfds, &efds, tvp);
++		selret = select(fdmax + 1, &rfds, &wfds, &efds, NULL);
+ 
+ 		if (selret < 0 && errno == EINTR)
+ 			break;
+@@ -525,9 +524,7 @@ int doIOForInterfaces(void)
+ 			}
+ 		}
+ 
+-		tv.tv_sec = 0;
+-		tv.tv_usec = 0;
+-		tvp = &tv;
++		break;
+ 	}
+ 
+ 	return 1;

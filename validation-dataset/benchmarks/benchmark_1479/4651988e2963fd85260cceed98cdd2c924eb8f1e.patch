@@ -1,0 +1,44 @@
+From 4651988e2963fd85260cceed98cdd2c924eb8f1e Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>
+Date: Sun, 16 Jun 2019 15:27:25 +0200
+Subject: [PATCH] [IdUtils] Fix aliasing warning
+
+Summary:
+memcpy with a small fixed size is optimized by all contemporary compilers
+to a few assembly instructions, but contrary to the pointer casting it
+lets the compiler do the right thing.
+
+Test Plan: ctest
+
+Reviewers: #baloo, ngraham, astippich, poboiko, thiago
+
+Reviewed By: #baloo, ngraham
+
+Subscribers: kde-frameworks-devel
+
+Tags: #frameworks, #baloo
+
+Differential Revision: https://phabricator.kde.org/D21855
+---
+ src/engine/idutils.h | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/engine/idutils.h b/src/engine/idutils.h
+index 9a7e6ad16..e0b07e481 100644
+--- a/src/engine/idutils.h
++++ b/src/engine/idutils.h
+@@ -34,11 +34,13 @@ namespace Baloo {
+ 
+ inline quint64 devIdAndInodeToId(quint32 devId, quint32 inode)
+ {
++    quint64 res;
+     quint32 arr[2];
+     arr[0] = devId;
+     arr[1] = inode;
+ 
+-    return *(reinterpret_cast<quint64*>(arr));
++    memcpy(&res, arr, sizeof(arr));
++    return res;
+ }
+ 
+ /**

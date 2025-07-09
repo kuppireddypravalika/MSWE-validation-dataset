@@ -1,0 +1,24 @@
+From 4a90efde5fc03742a8374b25d78af532fd7aa785 Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Mon, 8 Nov 2021 06:45:31 -0700
+Subject: [PATCH] Update onClickMap check to use isMouseOverTile()
+
+This is more precise than checking a bounding box, since the bounding
+box contains empty space due to the diamond shape of the map.
+---
+ OPHD/States/MapViewState.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/OPHD/States/MapViewState.cpp b/OPHD/States/MapViewState.cpp
+index b49621248..cf7f10ca5 100644
+--- a/OPHD/States/MapViewState.cpp
++++ b/OPHD/States/MapViewState.cpp
+@@ -497,7 +497,7 @@ void MapViewState::onMouseDown(NAS2D::EventHandler::MouseButton button, int x, i
+ 		mMiniMap->onMouseDown(button, x, y);
+ 
+ 		// Click was within the bounds of the TileMap.
+-		if (mTileMap->boundingBox().contains(MOUSE_COORDS))
++		if (mTileMap->isMouseOverTile())
+ 		{
+ 			auto& eventHandler = NAS2D::Utility<NAS2D::EventHandler>::get();
+ 			onClickMap(eventHandler.query_shift());

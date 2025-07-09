@@ -1,0 +1,27 @@
+From 5f48df3b477029407d047321cf02efad1e7188f4 Mon Sep 17 00:00:00 2001
+From: jpostma <johan_amtsop@hotmail.com>
+Date: Tue, 15 Apr 2014 16:47:03 +0200
+Subject: [PATCH] bfi instruction should only check for active swizzle
+ components, not the maximum
+
+---
+ src/toGLSLInstruction.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/toGLSLInstruction.c b/src/toGLSLInstruction.c
+index f631060..5ade7cf 100644
+--- a/src/toGLSLInstruction.c
++++ b/src/toGLSLInstruction.c
+@@ -2957,9 +2957,9 @@ void TranslateInstruction(HLSLCrossCompilerContext* psContext, Instruction* psIn
+         }
+         case OPCODE_BFI:
+         {
+-			uint32_t numelements_width = GetMaxComponentFromComponentMask(&psInst->asOperands[1]);
+-			uint32_t numelements_offset = GetMaxComponentFromComponentMask(&psInst->asOperands[2]);
+-			uint32_t numelements_dest = GetMaxComponentFromComponentMask(&psInst->asOperands[0]);
++			uint32_t numelements_width = GetNumSwizzleElements(&psInst->asOperands[1]);
++			uint32_t numelements_offset = GetNumSwizzleElements(&psInst->asOperands[2]);
++			uint32_t numelements_dest = GetNumSwizzleElements(&psInst->asOperands[0]);
+ 			uint32_t numoverall_elements = min(min(numelements_width,numelements_offset),numelements_dest);
+ 			uint32_t i,j;
+ #ifdef _DEBUG

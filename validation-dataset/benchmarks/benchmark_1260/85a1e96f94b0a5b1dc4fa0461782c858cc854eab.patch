@@ -1,0 +1,27 @@
+From 85a1e96f94b0a5b1dc4fa0461782c858cc854eab Mon Sep 17 00:00:00 2001
+From: GalBr <33638710+GalBr@users.noreply.github.com>
+Date: Sat, 22 Jan 2022 18:36:28 +0200
+Subject: [PATCH] Change glyphOffset type to uint32_t (#16481)
+
+This variable used to be uint32_t before a refactor, but was changed to
+auto, which means it's uint8_t. The offset calculation in this function
+can cause an overflow with uint8_t, which causes the wrong character to
+be printed on the sign.
+---
+ src/openrct2/paint/tile_element/Paint.LargeScenery.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/openrct2/paint/tile_element/Paint.LargeScenery.cpp b/src/openrct2/paint/tile_element/Paint.LargeScenery.cpp
+index 4ad6696088cf..87414496e166 100644
+--- a/src/openrct2/paint/tile_element/Paint.LargeScenery.cpp
++++ b/src/openrct2/paint/tile_element/Paint.LargeScenery.cpp
+@@ -124,7 +124,8 @@ static void PaintLargeScenery3DTextLine(
+     for (auto codepoint : CodepointView(line))
+     {
+         auto glyph = text.GetGlyph(codepoint, ' ');
+-        auto glyphOffset = glyph.image_offset;
++        // Upcasting from uint8_t to uint32_t to avoid an overflow.
++        uint32_t glyphOffset = glyph.image_offset;
+         auto glyphType = direction & 1;
+         if (text.flags & LARGE_SCENERY_TEXT_FLAG_VERTICAL)
+         {

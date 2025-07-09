@@ -1,0 +1,28 @@
+From 39b4955da3afca252dfc58c2a1395446207d89e4 Mon Sep 17 00:00:00 2001
+From: Konstantin Ritt <ritt.ks@gmail.com>
+Date: Tue, 12 Mar 2013 18:56:08 +0200
+Subject: [PATCH] QTextEngine::itemize(): Minor optimization
+
+Avoid using script_to_hbscript() in generateScriptItems()'s loop.
+This is absolutely unnecessary due to hbscript_to_script(script_to_hbscript(..))
+in QTextEngine::itemize().
+
+Change-Id: I44e710d010f8e57043a6c74dd80f3164e95e18e6
+Reviewed-by: Lars Knoll <lars.knoll@digia.com>
+---
+ src/gui/text/qtextengine.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/gui/text/qtextengine.cpp b/src/gui/text/qtextengine.cpp
+index 2814b5ae127..b312eae93e6 100644
+--- a/src/gui/text/qtextengine.cpp
++++ b/src/gui/text/qtextengine.cpp
+@@ -135,7 +135,7 @@ class Itemizer {
+             // along, and nothing else.
+             if (m_analysis[i].bidiLevel == m_analysis[start].bidiLevel
+                 && m_analysis[i].flags == m_analysis[start].flags
+-                && (script_to_hbscript(m_analysis[i].script) == script_to_hbscript(m_analysis[start].script) || m_string[i] == QLatin1Char('.'))
++                && (m_analysis[i].script == m_analysis[start].script || m_string[i] == QLatin1Char('.'))
+                 && m_analysis[i].flags < QScriptAnalysis::SpaceTabOrObject
+                 && i - start < MaxItemLength)
+                 continue;

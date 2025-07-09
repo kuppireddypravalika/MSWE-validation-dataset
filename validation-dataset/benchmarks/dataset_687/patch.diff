@@ -1,0 +1,23 @@
+From d08992d2d5a31e90b8a03f66c4f2583c50c70551 Mon Sep 17 00:00:00 2001
+From: "Evgeny Grin (Karlson2k)" <k2k@narod.ru>
+Date: Mon, 21 Feb 2022 09:37:33 +0300
+Subject: [PATCH] [WEBSERVER] Minor optimisation: use `std::make_unique`
+
+As suggested by @lrusak
+---
+ xbmc/network/WebServer.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/xbmc/network/WebServer.cpp b/xbmc/network/WebServer.cpp
+index d64ed781de851..5eebfac2b33b3 100644
+--- a/xbmc/network/WebServer.cpp
++++ b/xbmc/network/WebServer.cpp
+@@ -823,7 +823,7 @@ MHD_RESULT CWebServer::CreateFileDownloadResponse(
+   }
+ 
+   uint64_t totalLength = 0;
+-  std::unique_ptr<HttpFileDownloadContext> context(new HttpFileDownloadContext());
++  std::unique_ptr<HttpFileDownloadContext> context = std::make_unique<HttpFileDownloadContext>();
+   context->file = file;
+   context->contentType = mimeType;
+   context->boundaryWritten = false;

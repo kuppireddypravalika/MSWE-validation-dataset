@@ -1,0 +1,28 @@
+From fbd8fffcca2bba25a66dd7ef385436322669e21c Mon Sep 17 00:00:00 2001
+From: Magne Sjaastad <magne.sjaastad@ceetronsolutions.com>
+Date: Thu, 30 Apr 2020 07:27:56 +0200
+Subject: [PATCH] #5856 Well Disks: Convert to time_t once instead of N times
+
+---
+ ApplicationCode/ProjectDataModel/RimSimWellInViewTools.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/ApplicationCode/ProjectDataModel/RimSimWellInViewTools.cpp b/ApplicationCode/ProjectDataModel/RimSimWellInViewTools.cpp
+index f1653fb54cf..b7be62d3886 100644
+--- a/ApplicationCode/ProjectDataModel/RimSimWellInViewTools.cpp
++++ b/ApplicationCode/ProjectDataModel/RimSimWellInViewTools.cpp
+@@ -184,10 +184,12 @@ double RimSimWellInViewTools::extractValueForTimeStep( RifSummaryReaderInterface
+     // Find the data point which best matches the selected time step
+     std::vector<time_t> resampledTimeSteps = resampler.resampledTimeSteps();
+     std::vector<double> resampledValues    = resampler.resampledValues();
++
++    time_t currentTime_t = currentDate.toTime_t();
++
+     for ( unsigned int i = 0; i < resampledTimeSteps.size(); i++ )
+     {
+-        QDateTime t = QDateTime::fromTime_t( resampledTimeSteps[i] );
+-        if ( t > currentDate )
++        if ( resampledTimeSteps[i] > currentTime_t )
+         {
+             *isOk = true;
+             return resampledValues[i];

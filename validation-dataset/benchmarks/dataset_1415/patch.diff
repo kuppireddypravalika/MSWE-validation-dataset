@@ -1,0 +1,25 @@
+From b9aafa80873e69817032d7941bb0cecf05419238 Mon Sep 17 00:00:00 2001
+From: Benjamin Morgan <benjamin.morgan@bosch.com>
+Date: Wed, 1 Mar 2023 17:15:59 +0100
+Subject: [PATCH] fable: Check key existence with contains method, not at
+
+This is more performant and doesn't use exceptions, which
+also improves debugging.
+---
+ fable/src/fable/conf.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/fable/src/fable/conf.cpp b/fable/src/fable/conf.cpp
+index d0035e52e..a127dd93f 100644
+--- a/fable/src/fable/conf.cpp
++++ b/fable/src/fable/conf.cpp
+@@ -48,8 +48,7 @@ Conf::Conf(const std::string& file) : file_(file) {
+ 
+ bool Conf::has(const JsonPointer& key) const {
+   try {
+-    data_.at(key);
+-    return true;
++    return data_.contains(key);
+   } catch (nlohmann::detail::exception&) {
+     // Exception is probably one of json::out_of_range or json::parse_error.
+     return false;

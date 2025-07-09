@@ -1,0 +1,30 @@
+From 6eeffd4cc47cc5b07c3b074f840433bc476be922 Mon Sep 17 00:00:00 2001
+From: Dmitriy Morozov <dmitriy@mrzv.org>
+Date: Thu, 17 Mar 2016 08:49:41 -0700
+Subject: [PATCH] Add optimization to skip over circumspheres that are too deep
+ inside the block
+
+---
+ src/tess.cpp | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/src/tess.cpp b/src/tess.cpp
+index 0b1d86b..1987210 100644
+--- a/src/tess.cpp
++++ b/src/tess.cpp
+@@ -495,7 +495,14 @@ size_t incomplete_cells(struct dblock_t *dblock, const diy::Master::ProxyWithLin
+     int p = dblock->tets[t].verts[0];
+     float rad = distance(center, &dblock->particles[3 * p]);
+ 
+-    // TODO: we could optimize by checking if the circumsphere is too deep inside the block to be able to stick out
++    // check if the circumsphere is too deep inside the block to be able to stick out
++    for (j = 0; j < 3; ++j)
++    {
++      if (center[j] - l->bounds().min[j] <= rad) break;
++      if (l->bounds().max[j] - center[j] <= rad) break;
++    }
++    if (j == 3)	// the circumsphere is too deep inside the block
++      continue;
+ 
+     // find nearby blocks within radius of circumcenter
+     for (int i = last_neighbor; i < l->size(); ++i)

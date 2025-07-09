@@ -1,0 +1,29 @@
+From 1bbf2963511e67392b5e78c996b78ac11c31b7bc Mon Sep 17 00:00:00 2001
+From: Bartosz Taudul <wolf.pld@gmail.com>
+Date: Tue, 5 Mar 2019 02:39:23 +0100
+Subject: [PATCH] Use fast callstack frame decoding to cut callstack.
+
+---
+ client/TracyProfiler.cpp | 9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
+
+diff --git a/client/TracyProfiler.cpp b/client/TracyProfiler.cpp
+index d60ed98fd0..052d5a98b9 100644
+--- a/client/TracyProfiler.cpp
++++ b/client/TracyProfiler.cpp
+@@ -1884,13 +1884,8 @@ void Profiler::CutCallstack( void* callstack, const char* skipBefore )
+     uintptr_t i;
+     for( i=0; i<sz; i++ )
+     {
+-        auto frameData = DecodeCallstackPtr( uint64_t( data[i] ) );
+-        const bool found = strcmp( frameData.data[0].name, skipBefore ) == 0;
+-        for( uint8_t j=0; j<frameData.size; j++ )
+-        {
+-            tracy_free( (void*)frameData.data[j].name );
+-            tracy_free( (void*)frameData.data[j].file );
+-        }
++        auto name = DecodeCallstackPtrFast( uint64_t( data[i] ) );
++        const bool found = strcmp( name, skipBefore ) == 0;
+         if( found )
+         {
+             i++;

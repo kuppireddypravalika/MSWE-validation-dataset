@@ -1,0 +1,36 @@
+From bd0ef7f63bd30012edf6e46191977dcbf70ac132 Mon Sep 17 00:00:00 2001
+From: Magne Sjaastad <magne.sjaastad@ceetronsolutions.com>
+Date: Fri, 13 Oct 2023 14:59:54 +0200
+Subject: [PATCH] Performance: Move selectedUiItems outside the for loop
+
+When number of objects is quite large, this causes a huge performance penalty.
+---
+ Fwk/AppFwk/cafUserInterface/cafPdmUiTreeViewEditor.cpp | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/Fwk/AppFwk/cafUserInterface/cafPdmUiTreeViewEditor.cpp b/Fwk/AppFwk/cafUserInterface/cafPdmUiTreeViewEditor.cpp
+index e70abfad7f5..d5f7fbfd22e 100644
+--- a/Fwk/AppFwk/cafUserInterface/cafPdmUiTreeViewEditor.cpp
++++ b/Fwk/AppFwk/cafUserInterface/cafPdmUiTreeViewEditor.cpp
+@@ -591,6 +591,11 @@ bool PdmUiTreeViewEditor::updateSelectionManager()
+ void PdmUiTreeViewEditor::updateItemDelegateForSubTree( const QModelIndex& subRootIndex /* = QModelIndex() */ )
+ {
+     auto allIndices = m_treeViewModel->allIndicesRecursive( subRootIndex );
++    if ( allIndices.empty() ) return;
++
++    std::vector<PdmUiItem*> selection;
++    selectedUiItems( selection );
++
+     for ( QModelIndex& index : allIndices )
+     {
+         QModelIndex filterIndex = m_filterModel->mapFromSource( index );
+@@ -609,9 +614,6 @@ void PdmUiTreeViewEditor::updateItemDelegateForSubTree( const QModelIndex& subRo
+                 PdmFieldReorderCapability* reorderability =
+                     PdmFieldReorderCapability::reorderCapabilityOfParentContainer( pdmObject );
+ 
+-                std::vector<PdmUiItem*> selection;
+-                selectedUiItems( selection );
+-
+                 if ( reorderability && filterIndex.row() >= 0 && selection.size() == 1u && selection.front() == uiItem )
+                 {
+                     size_t indexInParentField = reorderability->indexOf( pdmObject );

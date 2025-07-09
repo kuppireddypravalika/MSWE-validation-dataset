@@ -1,0 +1,34 @@
+From 0ed8db78007be243ebb95c3aeafad64fa136630b Mon Sep 17 00:00:00 2001
+From: Anton Kudryavtsev <anton.kudryavtsev@vk.team>
+Date: Fri, 15 Sep 2023 12:39:34 +0300
+Subject: [PATCH] QString::toHtmlEscaped: avoid unconditional copy
+
+Let's find replaceable chars and then do copy
+
+Change-Id: I2d365626218b0daf2023144dee7e901e8e99adc6
+Reviewed-by: Thiago Macieira <thiago.macieira@intel.com>
+Reviewed-by: Edward Welbourne <edward.welbourne@qt.io>
+---
+ src/corelib/text/qstring.cpp | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/corelib/text/qstring.cpp b/src/corelib/text/qstring.cpp
+index 68d0cb3e6fdf..81891e3cdbde 100644
+--- a/src/corelib/text/qstring.cpp
++++ b/src/corelib/text/qstring.cpp
+@@ -9926,10 +9926,14 @@ qsizetype QtPrivate::count(QStringView haystack, const QRegularExpression &re)
+ */
+ QString QString::toHtmlEscaped() const
+ {
++    const auto pos = std::u16string_view(*this).find_first_of(u"<>&\"");
++    if (pos == std::u16string_view::npos)
++        return *this;
+     QString rich;
+     const qsizetype len = size();
+     rich.reserve(qsizetype(len * 1.1));
+-    for (QChar ch : *this) {
++    rich += qToStringViewIgnoringNull(*this).first(pos);
++    for (auto ch : qToStringViewIgnoringNull(*this).sliced(pos)) {
+         if (ch == u'<')
+             rich += "&lt;"_L1;
+         else if (ch == u'>')

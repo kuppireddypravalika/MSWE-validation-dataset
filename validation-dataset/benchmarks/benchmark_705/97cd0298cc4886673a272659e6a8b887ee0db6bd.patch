@@ -1,0 +1,27 @@
+From 97cd0298cc4886673a272659e6a8b887ee0db6bd Mon Sep 17 00:00:00 2001
+From: Evan Cheng <evan.cheng@apple.com>
+Date: Thu, 17 Jul 2008 01:31:49 +0000
+Subject: [PATCH] Inliner tweak. Function calls should cost more than one
+ instruction!
+
+llvm-svn: 53712
+---
+ llvm/lib/Transforms/Utils/InlineCost.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/llvm/lib/Transforms/Utils/InlineCost.cpp b/llvm/lib/Transforms/Utils/InlineCost.cpp
+index 10cb77bbcba..5c97fd2f706 100644
+--- a/llvm/lib/Transforms/Utils/InlineCost.cpp
++++ b/llvm/lib/Transforms/Utils/InlineCost.cpp
+@@ -119,6 +119,11 @@ void InlineCostAnalyzer::FunctionInfo::analyzeFunction(Function *F) {
+             NeverInline = true;
+             return;
+           }
++        
++        // Calls often compile into many machine instructions.  Bump up their
++        // cost to reflect this.
++        if (!isa<IntrinsicInst>(II))
++          NumInsts += 5;
+       }
+       
+       if (isa<ExtractElementInst>(II) || isa<VectorType>(II->getType()))

@@ -1,0 +1,33 @@
+From c3ba83cdf257931406405666bdc3fc2866e3c2a7 Mon Sep 17 00:00:00 2001
+From: Steven Williams <stevencwilliams@gmail.com>
+Date: Tue, 10 Nov 2015 06:03:18 -0500
+Subject: [PATCH] Perform simple seeding completely randomly
+
+---
+ src/library/genome/groups/GroupsGenomeSchema.cc | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/src/library/genome/groups/GroupsGenomeSchema.cc b/src/library/genome/groups/GroupsGenomeSchema.cc
+index 0ea6b7a..2831191 100644
+--- a/src/library/genome/groups/GroupsGenomeSchema.cc
++++ b/src/library/genome/groups/GroupsGenomeSchema.cc
+@@ -224,6 +224,7 @@ void GroupsGenomeSchema::seed( Genome *g_ )
+ 	if( GenomeSchema::config.simpleSeed )
+ 	{
+ 		g_->randomize();
++		return;
+ 	}
+ 
+ 	// ---
+@@ -250,11 +251,6 @@ void GroupsGenomeSchema::seed( Genome *g_ )
+ 	SEED( Blue, 0.5 );
+ 	SEED( InternalNeuronGroupCount, 0 );
+ 
+-	if( GenomeSchema::config.simpleSeed )
+-	{
+-		return;
+-	}
+-
+ 	SEED( ExcitatoryNeuronCount, 0 );
+ 	SEED( InhibitoryNeuronCount, 0 );
+ 

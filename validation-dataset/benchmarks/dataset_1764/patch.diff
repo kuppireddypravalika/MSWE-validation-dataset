@@ -1,0 +1,40 @@
+From 96822ac6aff6f3124fa1a0d0259cb3c571e1f42a Mon Sep 17 00:00:00 2001
+From: Andrew Mustun <andrew@qcad.org>
+Date: Wed, 2 Dec 2015 12:35:49 +0100
+Subject: [PATCH] performance improvement for snapping to polylines in block
+ references
+
+---
+ src/entity/RPolylineData.cpp | 16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
+
+diff --git a/src/entity/RPolylineData.cpp b/src/entity/RPolylineData.cpp
+index 0473980804..7418b2b113 100644
+--- a/src/entity/RPolylineData.cpp
++++ b/src/entity/RPolylineData.cpp
+@@ -204,12 +204,22 @@ QList<RVector> RPolylineData::getIntersectionPoints(
+ }
+ 
+ QList<QSharedPointer<RShape> > RPolylineData::getShapes(const RBox& queryBox, bool ignoreComplex) const {
+-    Q_UNUSED(queryBox)
+-
+     if (!ignoreComplex) {
+         return QList<QSharedPointer<RShape> >() << QSharedPointer<RShape>(new RPolyline(*this));
+     }
+     else {
+-        return getExploded();
++        QList<QSharedPointer<RShape> > candidates = getExploded();
++        if (!queryBox.isValid()) {
++            return candidates;
++        }
++
++        QList<QSharedPointer<RShape> > ret;
++        // filter candidates based on query box:
++        for (int i=0; i<candidates.length(); i++) {
++            if (candidates[i]->getBoundingBox().intersects(queryBox)) {
++                ret.append(candidates[i]);
++            }
++        }
++        return ret;
+     }
+ }

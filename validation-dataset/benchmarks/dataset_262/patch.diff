@@ -1,0 +1,23 @@
+From 2cdcaacb0e4173e6c6e369a9043d2c51b58413a9 Mon Sep 17 00:00:00 2001
+From: Alexandros Frantzis <alexandros.frantzis@canonical.com>
+Date: Wed, 21 Nov 2012 16:07:20 +0200
+Subject: [PATCH] tests: Avoid spinning the InputReader thread
+
+---
+ tests/mir-test-doubles/fake_event_hub.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/tests/mir-test-doubles/fake_event_hub.cpp b/tests/mir-test-doubles/fake_event_hub.cpp
+index 2b552d1dc9a..9c2bd255bfd 100644
+--- a/tests/mir-test-doubles/fake_event_hub.cpp
++++ b/tests/mir-test-doubles/fake_event_hub.cpp
+@@ -147,6 +147,9 @@ size_t mia::FakeEventHub::getEvents(int timeoutMillis, RawEvent* buffer, size_t
+         }
+     }
+ 
++    /* Yield to prevent spinning, which causes long test times under valgrind */
++    std::this_thread::yield();
++
+     return num_events_obtained;
+ }
+ 

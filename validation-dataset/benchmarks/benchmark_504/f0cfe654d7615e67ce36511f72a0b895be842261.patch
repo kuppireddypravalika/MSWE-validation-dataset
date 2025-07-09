@@ -1,0 +1,33 @@
+From f0cfe654d7615e67ce36511f72a0b895be842261 Mon Sep 17 00:00:00 2001
+From: Chris Lattner <sabre@nondot.org>
+Date: Thu, 18 Jul 2002 02:31:03 +0000
+Subject: [PATCH] * Rewrite loop to be slightly more efficient (arguably) * Fix
+ a MAJOR thinko that was causing bad links to happen on Spec
+
+llvm-svn: 2953
+---
+ llvm/lib/Transforms/Utils/Linker.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/llvm/lib/Transforms/Utils/Linker.cpp b/llvm/lib/Transforms/Utils/Linker.cpp
+index 094c46fef84..c23de0a1786 100644
+--- a/llvm/lib/Transforms/Utils/Linker.cpp
++++ b/llvm/lib/Transforms/Utils/Linker.cpp
+@@ -105,7 +105,7 @@ static Value *RemapOperand(const Value *In, map<const Value*, Value*> &LocalMap,
+     if (const ConstantArray *CPA = dyn_cast<ConstantArray>(CPV)) {
+       const std::vector<Use> &Ops = CPA->getValues();
+       std::vector<Constant*> Operands(Ops.size());
+-      for (unsigned i = 0; i < Ops.size(); ++i)
++      for (unsigned i = 0, e = Ops.size(); i != e; ++i)
+         Operands[i] = 
+           cast<Constant>(RemapOperand(Ops[i], LocalMap, GlobalMap));
+       Result = ConstantArray::get(cast<ArrayType>(CPA->getType()), Operands);
+@@ -154,7 +154,7 @@ static Value *RemapOperand(const Value *In, map<const Value*, Value*> &LocalMap,
+     }
+ 
+     // Cache the mapping in our local map structure...
+-    LocalMap.insert(std::make_pair(In, const_cast<Constant*>(CPV)));
++    LocalMap.insert(std::make_pair(In, Result));
+     return Result;
+   }
+ 

@@ -1,0 +1,29 @@
+From dc591c4a036521474aeb6c52ae4b344cc2e1d90f Mon Sep 17 00:00:00 2001
+From: David Stone <david@doublewise.net>
+Date: Sat, 14 Nov 2020 18:53:54 -0700
+Subject: [PATCH] Optimize `static_vector` move constructor
+
+---
+ include/containers/static_vector/static_vector.hpp | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/include/containers/static_vector/static_vector.hpp b/include/containers/static_vector/static_vector.hpp
+index fb1f34eb..42172549 100755
+--- a/include/containers/static_vector/static_vector.hpp
++++ b/include/containers/static_vector/static_vector.hpp
+@@ -40,8 +40,14 @@ struct static_vector_data {
+ 	static_vector_data & operator=(static_vector_data const &) & requires std::is_trivially_copy_assignable_v<T> = default;
+ 
+ 	constexpr static_vector_data(static_vector_data && other) noexcept(std::is_nothrow_move_constructible_v<T>) {
+-		std::uninitialized_move(other.begin(), other.end(), begin());
++		// Ensure that a move is not more expensive than a copy
++		if constexpr (std::is_trivially_copyable_v<T>) {
++			containers::uninitialized_copy(other, begin());
+ 		this->m_size = other.m_size;
++		} else {
++			containers::uninitialized_move_destroy(other, begin());
++			this->m_size = std::exchange(other.m_size, 0_bi);
++	}
+ 	}
+ 	constexpr static_vector_data(static_vector_data const & other) {
+ 		containers::uninitialized_copy(other, begin());

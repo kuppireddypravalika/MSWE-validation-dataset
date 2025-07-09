@@ -1,0 +1,24 @@
+From 6039bceee8d39a822c45de7cbcf78076c7555a5a Mon Sep 17 00:00:00 2001
+From: Giso Grimm <g.grimm@uni-oldenburg.de>
+Date: Mon, 16 May 2022 10:58:57 +0200
+Subject: [PATCH] do not optimize filters outside specified frequency range
+
+---
+ libtascar/src/filterclass.cc | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/libtascar/src/filterclass.cc b/libtascar/src/filterclass.cc
+index b2d9e38e..d8aab176 100644
+--- a/libtascar/src/filterclass.cc
++++ b/libtascar/src/filterclass.cc
+@@ -598,8 +598,8 @@ std::vector<float> TASCAR::multiband_pareq_t::optim_response(
+     fmin = std::min(f, fmin);
+     fmax = std::max(f, fmax);
+   }
+-  fmin *= 0.5f;
+-  fmax *= 2.0f;
++  // fmin *= 0.5f;
++  // fmax *= 2.0f;
+   optim_fs = fs;
+   optim_maxq = maxq;
+   optim_f = vF;

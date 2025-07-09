@@ -1,0 +1,33 @@
+From adcb09530395f067b1f95eaf22ba709b68c75abf Mon Sep 17 00:00:00 2001
+From: Andrew Adams <abadams@calculon.(none)>
+Date: Wed, 19 Dec 2012 17:24:32 -0500
+Subject: [PATCH] Wasn't recursing into args of extern calls while flattening
+
+Former-commit-id: 6ddb1dbb860b0aafc002f78736704603c08c3d2e
+---
+ cpp/src/Lower.cpp | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/cpp/src/Lower.cpp b/cpp/src/Lower.cpp
+index ea2f8231ab..419ecc9bbc 100644
+--- a/cpp/src/Lower.cpp
++++ b/cpp/src/Lower.cpp
+@@ -465,7 +465,17 @@ class FlattenDimensions : public IRMutator {
+ 
+     void visit(const Call *call) {            
+         if (call->call_type == Call::Extern) {
+-            expr = call;
++            vector<Expr> args(call->args.size());
++            bool changed = false;
++            for (size_t i = 0; i < args.size(); i++) {
++                args[i] = mutate(call->args[i]);
++                if (!args[i].same_as(call->args[i])) changed = true;
++            }
++            if (!changed) {
++                expr = call;
++            } else {
++                expr = new Call(call->type, call->name, args);
++            }
+         } else {
+             Expr idx = mutate(flatten_args(call->name, call->args));
+             expr = new Load(call->type, call->name, idx, call->image, call->param);

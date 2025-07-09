@@ -1,0 +1,42 @@
+From 3f083197fdcb3c917825ecb0f9c670d53b2aba84 Mon Sep 17 00:00:00 2001
+From: Rosen Penev <rosenp@gmail.com>
+Date: Sun, 26 Nov 2023 11:50:44 -0800
+Subject: [PATCH] remove some regex to avoid slowdown
+
+Signed-off-by: Rosen Penev <rosenp@gmail.com>
+---
+ src/datasets.cpp | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
+
+diff --git a/src/datasets.cpp b/src/datasets.cpp
+index c974c89ce9..00fc47e5b9 100644
+--- a/src/datasets.cpp
++++ b/src/datasets.cpp
+@@ -13,7 +13,6 @@
+ 
+ #include <array>
+ #include <iomanip>
+-#include <regex>
+ #include <sstream>
+ 
+ // *****************************************************************************
+@@ -552,15 +551,14 @@ IptcKey* IptcKey::clone_() const {
+ 
+ void IptcKey::decomposeKey() {
+   // Check that the key has the expected format with RE
+-  static const std::regex re(R"((\w+)(\.\w+){2})");
+-  if (std::smatch sm; !std::regex_match(key_, sm, re)) {
++  auto posDot1 = key_.find('.');
++  auto posDot2 = key_.find('.', posDot1 + 1);
++
++  if (posDot1 == std::string::npos || posDot2 == std::string::npos) {
+     throw Error(ErrorCode::kerInvalidKey, key_);
+   }
+ 
+   // Get the family name, record name and dataSet name parts of the key
+-  auto posDot1 = key_.find('.');
+-  auto posDot2 = key_.find('.', posDot1 + 1);
+-
+   const std::string familyName = key_.substr(0, posDot1);
+   if (familyName != familyName_)
+     throw Error(ErrorCode::kerInvalidKey, key_);

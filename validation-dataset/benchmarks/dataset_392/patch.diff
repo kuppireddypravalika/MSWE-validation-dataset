@@ -1,0 +1,24 @@
+From 7737a713c5fc3fd19ddb9532986edcf4f5aa4dcd Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Jacob=20St=C3=B8ren?= <jacob.storen@ceetronSolutions.com>
+Date: Tue, 15 Dec 2015 13:50:59 +0100
+Subject: [PATCH] Removed invalid cells from bbox search tree. Improving
+ performance on startup and avoid possible stack exhaust error.
+
+---
+ ApplicationCode/ReservoirDataModel/RigMainGrid.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/ApplicationCode/ReservoirDataModel/RigMainGrid.cpp b/ApplicationCode/ReservoirDataModel/RigMainGrid.cpp
+index 705da96221c..0c1038860bd 100644
+--- a/ApplicationCode/ReservoirDataModel/RigMainGrid.cpp
++++ b/ApplicationCode/ReservoirDataModel/RigMainGrid.cpp
+@@ -474,6 +474,9 @@ void RigMainGrid::buildCellSearchTree()
+         for (size_t cIdx = 0; cIdx < cellCount; ++cIdx)
+         {
+             const caf::SizeTArray8& cellIndices = m_cells[cIdx].cornerIndices();
++            
++            if (m_cells[cIdx].isInvalid()) continue;
++
+             cvf::BoundingBox& cellBB = cellBoundingBoxes[cIdx];
+             cellBB.add(m_nodes[cellIndices[0]]);
+             cellBB.add(m_nodes[cellIndices[1]]);

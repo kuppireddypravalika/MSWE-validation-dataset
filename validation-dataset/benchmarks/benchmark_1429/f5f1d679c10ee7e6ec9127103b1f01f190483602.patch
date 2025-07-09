@@ -1,0 +1,25 @@
+From f5f1d679c10ee7e6ec9127103b1f01f190483602 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Luk=C3=A1=C5=A1=20Karas?= <lukas.karas@centrum.cz>
+Date: Wed, 10 Jul 2019 06:27:13 +0200
+Subject: [PATCH] remove performance limit, test intersection for all
+ coastlines
+
+---
+ .../src/osmscout/import/WaterIndexProcessor.cpp               | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/libosmscout-import/src/osmscout/import/WaterIndexProcessor.cpp b/libosmscout-import/src/osmscout/import/WaterIndexProcessor.cpp
+index 8bd2f411e..46dfa6807 100644
+--- a/libosmscout-import/src/osmscout/import/WaterIndexProcessor.cpp
++++ b/libosmscout-import/src/osmscout/import/WaterIndexProcessor.cpp
+@@ -1260,8 +1260,8 @@ namespace osmscout {
+ 
+     progress.Info("Filter intersecting islands");
+ 
+-    for (size_t i=0; i<std::min(transformedCoastlines.size(), static_cast<size_t>(100)); i++) {
+-      progress.SetProgress(i,std::min(transformedCoastlines.size(), static_cast<size_t>(100)));
++    for (size_t i=0; i<transformedCoastlines.size(); i++) {
++      progress.SetProgress(i,transformedCoastlines.size());
+ 
+       for (size_t j=i+1; j<transformedCoastlines.size(); j++) {
+         assert(i!=j);

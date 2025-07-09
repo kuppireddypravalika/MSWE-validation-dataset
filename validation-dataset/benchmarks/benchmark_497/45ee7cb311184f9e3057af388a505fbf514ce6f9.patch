@@ -1,0 +1,23 @@
+From 45ee7cb311184f9e3057af388a505fbf514ce6f9 Mon Sep 17 00:00:00 2001
+From: Lin Huang <lin.huang@block.one>
+Date: Tue, 29 Sep 2020 17:39:30 -0500
+Subject: [PATCH] Change OptimizeLevelStyleCompaction from 256ull << 20 to
+ 512ull << 20
+
+---
+ libraries/chain/combined_database.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libraries/chain/combined_database.cpp b/libraries/chain/combined_database.cpp
+index c4a6367e0c1..40dec8c5b62 100644
+--- a/libraries/chain/combined_database.cpp
++++ b/libraries/chain/combined_database.cpp
+@@ -104,7 +104,7 @@ namespace eosio { namespace chain {
+             // Good value for `total_threads` is the number of cores
+             options.IncreaseParallelism(cfg.rocksdb_threads);
+ 
+-            options.OptimizeLevelStyleCompaction(256ull << 20); // optimizes level style compaction
++            options.OptimizeLevelStyleCompaction(512ull << 20); // optimizes level style compaction
+ 
+             // Number of open files that can be used by the DB.  
+             // Setting it to -1 means files opened are always kept open.

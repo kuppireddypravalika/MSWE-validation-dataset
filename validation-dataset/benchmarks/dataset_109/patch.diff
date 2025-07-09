@@ -1,0 +1,24 @@
+From 7e40d76e5f20f32babfaf756c88768615d7ecdff Mon Sep 17 00:00:00 2001
+From: Malcolm Roberts <malcolm.roberts@amd.com>
+Date: Mon, 21 Oct 2024 13:31:41 -0600
+Subject: [PATCH] Reduce smoketest test time.
+
+---
+ clients/tests/gtest_main.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/clients/tests/gtest_main.cpp b/clients/tests/gtest_main.cpp
+index a685b4484..72bc1482f 100644
+--- a/clients/tests/gtest_main.cpp
++++ b/clients/tests/gtest_main.cpp
+@@ -423,8 +423,8 @@ int main(int argc, char* argv[])
+         ->each([&](const std::string&) {
+             // The objective is to have an test that takes about 5 minutes, so just set the
+             // probability per test to a small value to achieve this result.
+-            test_prob      = 0.002;
+-            emulation_prob = 0.1;
++            test_prob      = 0.001;
++            emulation_prob = 0.01;
+             n_random_tests = 10;
+         });
+ 

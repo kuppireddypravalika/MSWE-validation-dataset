@@ -1,0 +1,36 @@
+From 122cce2c9a793b430c7ba63c9064b88a8b01a740 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Lars=20Gottesb=C3=BCren?= <lars.gottesbueren@kit.edu>
+Date: Mon, 9 Dec 2019 13:06:57 +0100
+Subject: [PATCH] ConnectivitySets: reduce atomic load by one for nonzero
+ blocks
+
+---
+ mt-kahypar/datastructures/connectivity_set.h | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
+
+diff --git a/mt-kahypar/datastructures/connectivity_set.h b/mt-kahypar/datastructures/connectivity_set.h
+index 407592be2..ef745f0e4 100644
+--- a/mt-kahypar/datastructures/connectivity_set.h
++++ b/mt-kahypar/datastructures/connectivity_set.h
+@@ -147,17 +147,13 @@ class ConnectivitySets {
+ 
+     void findNextBit() {
+       ++currentPartition;
+-      while (currentBlock()->load(std::memory_order_relaxed) >> (currentPartition % bits_per_block) == 0 && currentPartition < k) {
++      UnsafeBlock b = currentBlock()->load(std::memory_order_release);
++      while (b >> (currentPartition % bits_per_block) == 0 && currentPartition < k) {
+         currentPartition += (bits_per_block - (currentPartition % bits_per_block));   // skip rest of block
++        b = currentBlock()->load(std::memory_order_release);
+       }
+       if (currentPartition < k) {
+-        UnsafeBlock b = currentBlock()->load(std::memory_order_relaxed) >> (currentPartition % bits_per_block);
+-        if (b != 0) {
+-          currentPartition += utils::lowest_set_bit_64(b);
+-        } else {
+-          // this should only happen if another thread has removed the incident parts set in the currentBlock() since exiting the while loop
+-          currentPartition += (bits_per_block - (currentPartition % bits_per_block));   // skip rest of block
+-        }
++        currentPartition += utils::lowest_set_bit_64(b >> (currentPartition % bits_per_block));
+       } else {
+         currentPartition = k;
+       }

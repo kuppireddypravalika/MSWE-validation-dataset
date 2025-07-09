@@ -1,0 +1,23 @@
+From 97200036fac1e69d91e9d4097729b00624a4c621 Mon Sep 17 00:00:00 2001
+From: Evan Jones <ej@evanjones.ca>
+Date: Sun, 21 Dec 2008 01:40:12 +0000
+Subject: [PATCH] Make posix_memalign emulation function static, to avoid
+ emiting it.
+
+---
+ btree.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/btree.h b/btree.h
+index 2d27273..412f7fb 100644
+--- a/btree.h
++++ b/btree.h
+@@ -36,7 +36,7 @@ using std::endl;
+ // Nothing to do
+ #else
+ // TODO: This is not aligned! It doesn't matter for this implementation, but it could
+-inline int posix_memalign(void** result, int, size_t bytes) {
++static inline int posix_memalign(void** result, int, size_t bytes) {
+     *result = malloc(bytes);
+     return *result == NULL;
+ }

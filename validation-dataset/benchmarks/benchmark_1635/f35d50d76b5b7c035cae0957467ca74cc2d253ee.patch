@@ -1,0 +1,38 @@
+From f35d50d76b5b7c035cae0957467ca74cc2d253ee Mon Sep 17 00:00:00 2001
+From: Sean Dougherty <sean.dougherty.cs@gmail.com>
+Date: Fri, 13 Feb 2015 11:29:45 -0500
+Subject: [PATCH] replace omp atomic with c++11 atomic
+
+---
+ src/library/utils/Queue.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/library/utils/Queue.h b/src/library/utils/Queue.h
+index 889da0f..2eaf093 100644
+--- a/src/library/utils/Queue.h
++++ b/src/library/utils/Queue.h
+@@ -1,6 +1,7 @@
+ #pragma once
+ 
+ #include <assert.h>
++#include <atomic>
+ 
+ #include "Mutex.h"
+ 
+@@ -145,7 +146,6 @@ class BusyFetchQueue : public IQueue<T>
+ 
+ 		q[tail] = val;
+ 
+-#pragma omp atomic
+ 		tail++;
+ 	}
+ 
+@@ -193,7 +193,7 @@ class BusyFetchQueue : public IQueue<T>
+ 	bool deleteMutex;
+ 
+ 	size_t head;
+-	size_t tail;
++    std::atomic_size_t tail;
+ };
+ 
+ // With this implementation the poster must enter a mutex region and

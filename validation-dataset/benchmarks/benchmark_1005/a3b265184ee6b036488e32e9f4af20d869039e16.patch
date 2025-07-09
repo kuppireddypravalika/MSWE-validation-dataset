@@ -1,0 +1,24 @@
+From a3b265184ee6b036488e32e9f4af20d869039e16 Mon Sep 17 00:00:00 2001
+From: Russ Taylor <russ@reliasolve.com>
+Date: Mon, 31 Aug 2015 08:44:28 -0400
+Subject: [PATCH] Tells OpenCV only to use on thread.  This keeps the processor
+ load down to around 1 core without reducing performance below 100 Hz.
+
+---
+ plugins/videobasedtracker/com_osvr_VideoBasedHMDTracker.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/plugins/videobasedtracker/com_osvr_VideoBasedHMDTracker.cpp b/plugins/videobasedtracker/com_osvr_VideoBasedHMDTracker.cpp
+index c03b0c034..88ccc8e81 100644
+--- a/plugins/videobasedtracker/com_osvr_VideoBasedHMDTracker.cpp
++++ b/plugins/videobasedtracker/com_osvr_VideoBasedHMDTracker.cpp
+@@ -90,6 +90,9 @@ class VideoBasedHMDTracker : boost::noncopyable {
+ #endif
+ #endif
+     {
++        // Set the number of threads for OpenCV to use.
++        cv::setNumThreads(1);
++
+         // Initialize things from parameters and from defaults.  Do it here
+         // rather than
+         // in an initialization list so that we're independent of member order

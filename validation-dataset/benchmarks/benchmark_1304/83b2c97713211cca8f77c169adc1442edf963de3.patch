@@ -1,0 +1,31 @@
+From 83b2c97713211cca8f77c169adc1442edf963de3 Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Tue, 26 Jan 2016 19:45:58 +0100
+Subject: [PATCH] Android: don't iterate over .keys()
+
+... iterate over the container itself instead. Avoids
+temporary QList creation as well as the lookup cost
+when actually calling value(key).
+
+Change-Id: I63a11e6f8f19919145ea142309ddbacd99c3bfc3
+Reviewed-by: Olivier Goffart (Woboq GmbH) <ogoffart@woboq.com>
+---
+ src/widgets/styles/qandroidstyle.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/widgets/styles/qandroidstyle.cpp b/src/widgets/styles/qandroidstyle.cpp
+index fcab5eb5e64..743166549b9 100644
+--- a/src/widgets/styles/qandroidstyle.cpp
++++ b/src/widgets/styles/qandroidstyle.cpp
+@@ -1234,8 +1234,9 @@ const QAndroidStyle::AndroidDrawable * QAndroidStyle::AndroidStateDrawable::best
+ int QAndroidStyle::AndroidStateDrawable::extractState(const QVariantMap &value)
+ {
+     QStyle::State state = QStyle::State_Enabled | QStyle::State_Active;;
+-    foreach (const QString &key, value.keys()) {
+-        bool val = value.value(key).toString() == QLatin1String("true");
++    for (auto it = value.cbegin(), end = value.cend(); it != end; ++it) {
++        const QString &key = it.key();
++        bool val = it.value().toString() == QLatin1String("true");
+         if (key == QLatin1String("enabled")) {
+             state.setFlag(QStyle::State_Enabled, val);
+             continue;

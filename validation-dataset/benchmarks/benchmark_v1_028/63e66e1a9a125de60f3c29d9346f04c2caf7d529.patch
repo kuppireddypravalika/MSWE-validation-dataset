@@ -1,0 +1,31 @@
+From 63e66e1a9a125de60f3c29d9346f04c2caf7d529 Mon Sep 17 00:00:00 2001
+From: Michael Spang <spang@google.com>
+Date: Mon, 5 Oct 2020 15:31:11 -0400
+Subject: [PATCH] clang-tidy: Apply fixes "performance-for-range-copy" (#3040)
+
+---
+ src/setup_payload/SetupPayload.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/setup_payload/SetupPayload.cpp b/src/setup_payload/SetupPayload.cpp
+index f60ecd011e..e48cd78698 100644
+--- a/src/setup_payload/SetupPayload.cpp
++++ b/src/setup_payload/SetupPayload.cpp
+@@ -295,7 +295,7 @@ bool SetupPayload::operator==(SetupPayload & input)
+     inputOptionalVendorData = input.getAllOptionalVendorData();
+     VerifyOrExit(optionalVendorData.size() == inputOptionalVendorData.size(), isIdentical = false);
+ 
+-    for (OptionalQRCodeInfo inputInfo : inputOptionalVendorData)
++    for (const OptionalQRCodeInfo & inputInfo : inputOptionalVendorData)
+     {
+         OptionalQRCodeInfo info;
+         CHIP_ERROR err = getOptionalVendorData(inputInfo.tag, info);
+@@ -308,7 +308,7 @@ bool SetupPayload::operator==(SetupPayload & input)
+     inputOptionalExtensionData = input.getAllOptionalExtensionData();
+     VerifyOrExit(optionalExtensionData.size() == inputOptionalExtensionData.size(), isIdentical = false);
+ 
+-    for (OptionalQRCodeInfoExtension inputInfo : inputOptionalExtensionData)
++    for (const OptionalQRCodeInfoExtension & inputInfo : inputOptionalExtensionData)
+     {
+         OptionalQRCodeInfoExtension info;
+         CHIP_ERROR err = getOptionalExtensionData(inputInfo.tag, info);

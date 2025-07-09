@@ -1,0 +1,24 @@
+From bf740c18a68e61a1a88ac1c78862e6e50d5186a3 Mon Sep 17 00:00:00 2001
+From: Jorge Arellano Cid <jcid@dillo.org>
+Date: Sat, 16 Jul 2016 19:41:35 -0400
+Subject: [PATCH] Optimize Textblock::updateReference.
+
+This helps to avoid unnecessary resize calls.
+---
+ dw/textblock.cc | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/dw/textblock.cc b/dw/textblock.cc
+index 53a1de24e..58b3347b2 100644
+--- a/dw/textblock.cc
++++ b/dw/textblock.cc
+@@ -3040,7 +3040,8 @@ void Textblock::queueDrawRange (int index1, int index2)
+ 
+ void Textblock::updateReference (int ref)
+ {
+-   queueResize (ref, false);
++   if (words->size () > 0)
++      queueResize (ref, false);
+ }
+ 
+ void Textblock::widgetRefSizeChanged (int externalIndex)

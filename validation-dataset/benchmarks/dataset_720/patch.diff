@@ -1,0 +1,35 @@
+From 01bffb429af0905d4d4a13aa66577f91c4460027 Mon Sep 17 00:00:00 2001
+From: Petar Ivanov <29689712+dartdart26@users.noreply.github.com>
+Date: Thu, 19 Mar 2020 09:27:54 +0000
+Subject: [PATCH] Speed up the merkleTreeAdapter_test
+
+Since the merkleTreeAdapter_test uses disk IO and will be enhanced in
+future commits with multiple different sets of input data, decrease the
+number of keys and blocks used. That change will make it run
+considerably faster and should not lower its value as a test.
+---
+ storage/test/merkleTreeAdapter_test.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/storage/test/merkleTreeAdapter_test.cpp b/storage/test/merkleTreeAdapter_test.cpp
+index e56457a9a4..7f0f0f690e 100644
+--- a/storage/test/merkleTreeAdapter_test.cpp
++++ b/storage/test/merkleTreeAdapter_test.cpp
+@@ -145,7 +145,7 @@ const auto defaultObjectId = ObjectId{42};
+ const auto defaultPageId = uint32_t{42};
+ const auto defaultChkpt = uint64_t{42};
+ const auto defaultDigest = getBlockDigest(defaultData + defaultData);
+-const auto maxNumKeys = 100u;
++const auto maxNumKeys = 16u;
+ const auto rocksDbPathPrefix = std::string{"/tmp/merkleTreeAdapter_test_rocksdb.db"};
+ const auto zeroDigest = getZeroDigest();
+ 
+@@ -887,7 +887,7 @@ TEST_P(db_adapter, add_and_get_block) {
+ TEST_P(db_adapter, add_multiple_deterministic_blocks) {
+   auto adapter = DBAdapter{GetParam()->db()};
+ 
+-  const auto numBlocks = 250;
++  const auto numBlocks = 16;
+   auto count = std::uint16_t{0};
+   for (auto i = 1u; i <= numBlocks; ++i) {
+     ASSERT_TRUE(adapter.addLastReachableBlock(getDeterministicBlockUpdates(count + 1)).isOK());

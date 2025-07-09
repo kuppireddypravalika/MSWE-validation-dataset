@@ -1,0 +1,28 @@
+From f6097b9453c8a1a4fa4d001ee5bad3fd3a292d9d Mon Sep 17 00:00:00 2001
+From: Josh Blum <josh@joshknows.com>
+Date: Sat, 4 Jul 2015 01:37:45 -0700
+Subject: [PATCH] pothos-blocks: collector sink payload copy to free upstream
+ resources
+
+---
+ pothos-blocks/testers/CollectorSink.cpp | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/pothos-blocks/testers/CollectorSink.cpp b/pothos-blocks/testers/CollectorSink.cpp
+index 4db879d71..3348e6b76 100644
+--- a/pothos-blocks/testers/CollectorSink.cpp
++++ b/pothos-blocks/testers/CollectorSink.cpp
+@@ -81,7 +81,12 @@ class CollectorSink : Pothos::Block
+             auto msg = inputPort->popMessage();
+             if (msg.type() == typeid(Pothos::Packet))
+             {
+-                _packets.push_back(msg.extract<Pothos::Packet>());
++                auto pkt = msg.extract<Pothos::Packet>();
++                const auto oldBuff = pkt.payload;
++                //copy the payload so we don't hold upstream resources
++                pkt.payload = Pothos::BufferChunk(oldBuff.dtype, oldBuff.elements());
++                std::memcpy(pkt.payload.as<void *>(), oldBuff.as<const void *>(), oldBuff.length);
++                _packets.push_back(pkt);
+             }
+             else _messages.push_back(msg);
+         }

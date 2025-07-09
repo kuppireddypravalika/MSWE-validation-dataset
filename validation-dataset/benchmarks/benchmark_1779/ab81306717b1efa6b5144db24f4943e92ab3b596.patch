@@ -1,0 +1,32 @@
+From ab81306717b1efa6b5144db24f4943e92ab3b596 Mon Sep 17 00:00:00 2001
+From: Teo Mrnjavac <teo@getamarok.com>
+Date: Mon, 21 Dec 2009 16:56:16 +0100
+Subject: [PATCH] IMPORTANT: Please test this. Removed a hack in
+ Playlist::SortProxy that I just realized I might not need any more. If it
+ works, it would give a 2x speed boost to playlist sorting.
+
+---
+ src/playlist/proxymodels/SortProxy.cpp | 10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
+
+diff --git a/src/playlist/proxymodels/SortProxy.cpp b/src/playlist/proxymodels/SortProxy.cpp
+index 0699864102..64dbf20bcb 100644
+--- a/src/playlist/proxymodels/SortProxy.cpp
++++ b/src/playlist/proxymodels/SortProxy.cpp
+@@ -89,15 +89,7 @@ SortProxy::updateSortMap( SortScheme scheme )
+ {
+     resetSorting();
+     m_scheme = scheme;
+-    sort( 0 );  //0 is a dummy column
+-    //HACK: sort() inverts the sortOrder on each call, this keeps the order ascending.
+-    //      This should be fixed properly. Right now, this whole operation takes rougly
+-    //      2 * O( n log n ) and it could be O( n log n ) if we eliminate the second sort().
+-    //      This is needed because QSFPM is used improperly on a dummy column, and every
+-    //      time the column is "clicked" the sort order is inverted. This is done by
+-    //      QSortFilterProxyModelPrivate::sort_source_rows(), hidden behind the d-pointer
+-    //      in QSFPM.
+-    sort( 0 );
++    sort( 0, Qt::AscendingOrder );  //0 is a dummy column
+     //NOTE: sort() also emits QSFPM::layoutChanged()
+ }
+ 

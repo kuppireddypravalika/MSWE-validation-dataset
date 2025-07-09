@@ -1,0 +1,25 @@
+From 4471136e4db67f5b6cf064cb3b0a7668f15bfe6c Mon Sep 17 00:00:00 2001
+From: Chris Lattner <sabre@nondot.org>
+Date: Tue, 20 Apr 2010 00:47:08 +0000
+Subject: [PATCH] make the inliner do less work for leaf functions.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@101846 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Transforms/IPO/Inliner.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/lib/Transforms/IPO/Inliner.cpp b/lib/Transforms/IPO/Inliner.cpp
+index 07918543d40..6c732d21f28 100644
+--- a/lib/Transforms/IPO/Inliner.cpp
++++ b/lib/Transforms/IPO/Inliner.cpp
+@@ -333,6 +333,10 @@ bool Inliner::runOnSCC(CallGraphSCC &SCC) {
+ 
+   DEBUG(dbgs() << ": " << CallSites.size() << " call sites.\n");
+ 
++  // If there are no calls in this function, exit early.
++  if (CallSites.empty())
++    return false;
++  
+   // Now that we have all of the call sites, move the ones to functions in the
+   // current SCC to the end of the list.
+   unsigned FirstCallInSCC = CallSites.size();

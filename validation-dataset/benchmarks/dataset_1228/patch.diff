@@ -1,0 +1,26 @@
+From 4d75eaef4750ce22f5384aa1e337bc2b13bf2bf6 Mon Sep 17 00:00:00 2001
+From: Moligaloo <moligaloo@gmail.com>
+Date: Tue, 12 Jul 2011 00:17:23 +0800
+Subject: [PATCH] Improve the role assign algorithm
+
+---
+ src/room.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/src/room.cpp b/src/room.cpp
+index 56350a1127..0e8bfe9741 100644
+--- a/src/room.cpp
++++ b/src/room.cpp
+@@ -1346,10 +1346,9 @@ void Room::assignRoles(){
+     Sanguosha->getRoles(mode, roles);
+ 
+     for(i=0; i<n; i++){
+-        int r1 = qrand() % n;
+-        int r2 = qrand() % n;
++        int r = qrand() % n;
+ 
+-        qSwap(roles[r1], roles[r2]);
++        qSwap(roles[i], roles[r]);
+     }
+ 
+     for(i=0; i<n; i++){

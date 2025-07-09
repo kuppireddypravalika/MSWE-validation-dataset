@@ -1,0 +1,26 @@
+From 8e339f6192825ce091e7ae68afac99b579771668 Mon Sep 17 00:00:00 2001
+From: Milian Wolff <milian.wolff@kdab.com>
+Date: Sun, 4 Dec 2022 11:24:41 +0100
+Subject: [PATCH] Pass `-m 16M` by default to perf record
+
+This is what I use in my `perf-profile` script on the CLI too,
+as that can help to reduce the chances of lost events.
+
+Relates-to: https://github.com/KDAB/hotspot/issues/258
+---
+ src/recordpage.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/recordpage.cpp b/src/recordpage.cpp
+index 1dc56ecb..a2c58e22 100644
+--- a/src/recordpage.cpp
++++ b/src/recordpage.cpp
+@@ -386,7 +386,7 @@ RecordPage::RecordPage(QWidget* parent)
+     ui->elevatePrivilegesCheckBox->setChecked(config().readEntry(QStringLiteral("elevatePrivileges"), false));
+     ui->offCpuCheckBox->setChecked(config().readEntry(QStringLiteral("offCpuProfiling"), false));
+     ui->sampleCpuCheckBox->setChecked(config().readEntry(QStringLiteral("sampleCpu"), true));
+-    ui->mmapPagesSpinBox->setValue(config().readEntry(QStringLiteral("mmapPages"), 0));
++    ui->mmapPagesSpinBox->setValue(config().readEntry(QStringLiteral("mmapPages"), 16));
+     ui->mmapPagesUnitComboBox->setCurrentIndex(config().readEntry(QStringLiteral("mmapPagesUnit"), 2));
+     ui->useAioCheckBox->setChecked(config().readEntry(QStringLiteral("useAio"), PerfRecord::canUseAio()));
+ 

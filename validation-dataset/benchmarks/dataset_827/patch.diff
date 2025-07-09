@@ -1,0 +1,24 @@
+From adb7b849bf72259f98acc252ffd711ab0ffc1a55 Mon Sep 17 00:00:00 2001
+From: Alexandre Courbot <gnurou@gmail.com>
+Date: Thu, 18 Mar 2010 08:20:27 +0900
+Subject: [PATCH] Results list memory usage improved
+
+---
+ src/core/ResultsList.cc | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/core/ResultsList.cc b/src/core/ResultsList.cc
+index e1fc9dad..19584d30 100644
+--- a/src/core/ResultsList.cc
++++ b/src/core/ResultsList.cc
+@@ -124,7 +124,9 @@ void ResultsList::clear()
+ 
+ 	timer.stop();
+ 	beginRemoveRows(QModelIndex(), 0, entries.size() - 1);
+-	entries.clear();
++	// This is preferred to clear() because lists memory
++	// usage never shrinks
++	entries = QList<EntryPointer>();
+ 	endRemoveRows();
+ 	displayedUntil = 0;
+ }

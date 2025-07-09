@@ -1,0 +1,25 @@
+From 97a036c6ee4a46272632262ecb1736772016da48 Mon Sep 17 00:00:00 2001
+From: tack <none@none>
+Date: Thu, 10 Feb 2005 08:00:29 +0000
+Subject: [PATCH] Sort all chunks to the very left of the partition. Hope this
+ speeds up sorting a bit.
+
+---
+ generic/Minimizer.cc | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/generic/Minimizer.cc b/generic/Minimizer.cc
+index 5e2eb5dd4..8e962e7ec 100644
+--- a/generic/Minimizer.cc
++++ b/generic/Minimizer.cc
+@@ -271,6 +271,10 @@ class PNode : private DynamicArray {
+ //
+ int PNode::compareLabels(BlockLabel vl, BlockLabel wl) {
+   if (vl==wl) return 0;
++  if (vl==CHUNK_LABEL)
++    return -1;
++  if (wl==CHUNK_LABEL)
++    return 1;
+   if (vl<wl) return -1;
+     return 1;
+ }

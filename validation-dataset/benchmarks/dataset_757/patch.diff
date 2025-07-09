@@ -1,0 +1,31 @@
+From a33897a454dfcbc98f1055682d1c2e5dfcd4f827 Mon Sep 17 00:00:00 2001
+From: Vsevolod Stakhov <vsevolod@highsecure.ru>
+Date: Tue, 14 Feb 2017 17:06:51 +0000
+Subject: [PATCH] Use constant time nonce increase procedure
+
+---
+ src/nonce.cc | 11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
+
+diff --git a/src/nonce.cc b/src/nonce.cc
+index 9863cc5..8a849bd 100644
+--- a/src/nonce.cc
++++ b/src/nonce.cc
+@@ -47,16 +47,7 @@ class HPEncNonce::impl {
+ 
+ 	void inc()
+ 	{
+-		for (auto &c: nonce) {
+-			if (c != 0xff) {
+-				c ++;
+-				break;
+-			}
+-			else {
+-				// Go to the next digit
+-				c = 0;
+-			}
+-		}
++		sodium_increment(nonce.data(), nonce.size());
+ 	}
+ };
+ 

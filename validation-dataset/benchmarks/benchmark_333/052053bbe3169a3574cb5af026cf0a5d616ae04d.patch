@@ -1,0 +1,32 @@
+From 052053bbe3169a3574cb5af026cf0a5d616ae04d Mon Sep 17 00:00:00 2001
+From: Evan Cheng <evan.cheng@apple.com>
+Date: Mon, 10 Aug 2009 05:49:43 +0000
+Subject: [PATCH] Use tMOVgpr2gpr instead of t2MOVr.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@78556 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Target/ARM/ARMBaseRegisterInfo.cpp | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/lib/Target/ARM/ARMBaseRegisterInfo.cpp b/lib/Target/ARM/ARMBaseRegisterInfo.cpp
+index a72e9dd3bd6..368a1770d1f 100644
+--- a/lib/Target/ARM/ARMBaseRegisterInfo.cpp
++++ b/lib/Target/ARM/ARMBaseRegisterInfo.cpp
+@@ -1297,10 +1297,13 @@ emitEpilogue(MachineFunction &MF, MachineBasicBlock &MBB) const {
+                                     ARMCC::AL, 0, TII);
+         } else {
+           // Thumb2 or ARM.
+-          unsigned MOVrOpc = isARM ? ARM::MOVr : ARM::t2MOVr;
+-          BuildMI(MBB, MBBI, dl, TII.get(MOVrOpc), ARM::SP)
+-            .addReg(FramePtr)
+-            .addImm((unsigned)ARMCC::AL).addReg(0).addReg(0);
++          if (isARM) 
++            BuildMI(MBB, MBBI, dl, TII.get(ARM::MOVr), ARM::SP)
++              .addReg(FramePtr)
++              .addImm((unsigned)ARMCC::AL).addReg(0).addReg(0);
++          else
++            BuildMI(MBB, MBBI, dl, TII.get(ARM::tMOVgpr2gpr), ARM::SP)
++              .addReg(FramePtr);
+         }
+       }
+     } else if (NumBytes)

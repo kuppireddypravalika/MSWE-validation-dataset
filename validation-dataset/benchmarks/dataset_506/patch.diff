@@ -1,0 +1,27 @@
+From 40649b4e9a51f83c37074271e7d5216295906cba Mon Sep 17 00:00:00 2001
+From: Dmitry Tsarevich <dimhotepus@gmail.com>
+Date: Wed, 30 Sep 2020 22:58:08 +0300
+Subject: [PATCH] [perf] Use already computed proections
+
+Especially handy in DEBUG mode.
+---
+ Externals/ode/ode/src/collision_std.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/Externals/ode/ode/src/collision_std.cpp b/Externals/ode/ode/src/collision_std.cpp
+index 4350c89f3f6..43941826d36 100644
+--- a/Externals/ode/ode/src/collision_std.cpp
++++ b/Externals/ode/ode/src/collision_std.cpp
+@@ -708,9 +708,9 @@ inline bool pointInBox(const dReal* point,const dReal* p,const dReal* R,const dR
+ 	dy=dFabs(dDOT14(dif,R+1));
+ 	dz=dFabs(dDOT14(dif,R+2));
+ 	return
+-		(!(dFabs(dDOT14(dif,R+0))>side[0]/2.f))&&
+-		(!(dFabs(dDOT14(dif,R+1))>side[1]/2.f))&&
+-		(!(dFabs(dDOT14(dif,R+2))>side[2]/2.f));
++		(!(dx>side[0]/2.f))&&
++		(!(dy>side[1]/2.f))&&
++		(!(dz>side[2]/2.f));
+ 
+ }
+ 

@@ -1,0 +1,55 @@
+From 041527f5c0f05ac5886049958947d8727575d871 Mon Sep 17 00:00:00 2001
+From: Nickolai Zeldovich <nickolai@csail.mit.edu>
+Date: Wed, 17 Oct 2012 16:07:27 -0400
+Subject: [PATCH] use anonymous mmap instead of sbrk
+
+---
+ lib/umalloc.cc | 24 +++++++++++++++++++++---
+ 1 file changed, 21 insertions(+), 3 deletions(-)
+
+diff --git a/lib/umalloc.cc b/lib/umalloc.cc
+index 4bd6c1a96..98def73d6 100644
+--- a/lib/umalloc.cc
++++ b/lib/umalloc.cc
+@@ -1,11 +1,28 @@
++#ifdef XV6
+ #include "types.h"
+ #include "user.h"
++#else
++#include <assert.h>
++#include <unistd.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sys/types.h>
++#include <stdint.h>
++typedef uint32_t u32;
++typedef uint64_t u64;
++#endif
++
++#include <sys/mman.h>
+ 
+ struct header {
+-  header* next;
++  struct header* next;
+   u32 size;       // in units of sizeof(header), including the header itself
+ };
+ 
++#ifndef __cplusplus
++typedef struct header header;
++#endif
++
+ static __thread header* freelist[64];
+ 
+ static int
+@@ -76,8 +93,9 @@ morecore(u32 nu)
+   if (nu < min_alloc_units)
+     nu = min_alloc_units;
+ 
+-  char* p = sbrk(nu * sizeof(header));
+-  if (p == (char*)-1)
++  char* p = (char*) mmap(0, nu * sizeof(header), PROT_READ|PROT_WRITE,
++                         MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
++  if (p == MAP_FAILED)
+     return -1;
+ 
+   header* hp = (header*) p;

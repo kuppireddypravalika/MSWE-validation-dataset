@@ -1,0 +1,22 @@
+From fd684e9ea88411de05e5f4e468f6180a56d5c1c0 Mon Sep 17 00:00:00 2001
+From: Alireza Farshin <farshin@kth.se>
+Date: Tue, 16 Feb 2021 16:39:15 +0100
+Subject: [PATCH] Applying -O3 optimizations after custom LLVM passes
+
+---
+ userlevel/packetmill.cc | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/userlevel/packetmill.cc b/userlevel/packetmill.cc
+index 8a9dc10920..761aa5e812 100644
+--- a/userlevel/packetmill.cc
++++ b/userlevel/packetmill.cc
+@@ -65,6 +65,8 @@ int main(int argc, char **argv) {
+   exec("make embedclick MINDRIVER=embed STATIC=1");
+   #if HAVE_LLVM
+     if (optimizeIR("embedclick")) {
++      click_chatter("Applying -O3 optimizations");
++      exec("opt -S -O3 embedclick.ll -o embedclick.ll");
+       exec("make embedclick-opt");
+       argv[0] = "./embedclick-opt";
+     } else {

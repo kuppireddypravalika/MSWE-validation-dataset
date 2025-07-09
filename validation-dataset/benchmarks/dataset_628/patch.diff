@@ -1,0 +1,33 @@
+From b7bc65a32068f295680d89c2d6fa70e469d7bb6b Mon Sep 17 00:00:00 2001
+From: Juli Mallett <juli@clockworksquid.com>
+Date: Fri, 3 Dec 2010 14:39:11 +0000
+Subject: [PATCH] Do a faster checksum.
+
+---
+ common/test/buffer-cut1/buffer-cut1.cc | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/common/test/buffer-cut1/buffer-cut1.cc b/common/test/buffer-cut1/buffer-cut1.cc
+index 3ba736c..e7a2936 100644
+--- a/common/test/buffer-cut1/buffer-cut1.cc
++++ b/common/test/buffer-cut1/buffer-cut1.cc
+@@ -52,10 +52,16 @@ main(void)
+ 			Test _(g, "Correct fill byte checksum.");
+ 
+ 			uint64_t sum = 0;
+-			while (!big.empty()) {
+-				sum += big.peek();
+-				big.skip(1);
++			Buffer::SegmentIterator iter = big.segments();
++			while (!iter.end()) {
++				const BufferSegment *seg = *iter;
++				const uint8_t *p;
++				const uint8_t *q = seg->end();
++				for (p = seg->data(); p < q; p++)
++					sum += *p;
++				iter.next();
+ 			}
++			big.clear();
+ 
+ 			sum /= FILL_NUMBER * sizeof fill * FILL_BYTE;
+ 			if (sum == 1)

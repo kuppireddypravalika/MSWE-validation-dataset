@@ -1,0 +1,30 @@
+From 236ebb5c94002c69f15c80b457455be3fe779ab6 Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Sun, 20 Jan 2019 21:27:47 -0500
+Subject: [PATCH] [librpbase] RpFile_win32.cpp: Cast all DWORDs to int64_t
+ before multiplying.
+
+MSVC 2017's code analysis tool says that not doing this could result in
+a 32-bit multiply, which might truncate the value.
+
+C26451: Arithmetic overflow: Using operator '*' on a 4 byte value and
+then casting the result to a 8 byte value. Cast the value to the wider
+type before calling operator '*' to avoid overflow (io.2).
+---
+ src/librpbase/file/win32/RpFile_win32.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/librpbase/file/win32/RpFile_win32.cpp b/src/librpbase/file/win32/RpFile_win32.cpp
+index f357429d05..b89f3a320e 100644
+--- a/src/librpbase/file/win32/RpFile_win32.cpp
++++ b/src/librpbase/file/win32/RpFile_win32.cpp
+@@ -308,7 +308,8 @@ int RpFilePrivate::reOpenFile(void)
+ 			// Save the device size and sector size.
+ 			// NOTE: GetDiskFreeSpaceEx() eliminates the need for multiplications,
+ 			// but it doesn't provide dwBytesPerSector.
+-			device_size = static_cast<int64_t>(dwBytesPerSector * dwSectorsPerCluster) *
++			device_size = static_cast<int64_t>(dwBytesPerSector) *
++				      static_cast<int64_t>(dwSectorsPerCluster) *
+ 				      static_cast<int64_t>(dwTotalNumberOfClusters);
+ 			sector_size = dwBytesPerSector;
+ 		} else {

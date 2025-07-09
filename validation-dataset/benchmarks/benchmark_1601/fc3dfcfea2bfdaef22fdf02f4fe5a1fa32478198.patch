@@ -1,0 +1,45 @@
+From fc3dfcfea2bfdaef22fdf02f4fe5a1fa32478198 Mon Sep 17 00:00:00 2001
+From: Hieu Hoang <hieuhoang@gmail.com>
+Date: Mon, 20 Feb 2017 10:59:41 +0000
+Subject: [PATCH] start using god's threadpool
+
+---
+ src/python/amunmt.cpp | 19 +++----------------
+ 1 file changed, 3 insertions(+), 16 deletions(-)
+
+diff --git a/src/python/amunmt.cpp b/src/python/amunmt.cpp
+index 19c88726..c632359f 100755
+--- a/src/python/amunmt.cpp
++++ b/src/python/amunmt.cpp
+@@ -34,28 +34,15 @@ void init(const std::string& options) {
+ }
+ 
+ 
+-boost::python::list translate(boost::python::list& in) {
+-  size_t cpuThreads = god_.Get<size_t>("cpu-threads");
+-  LOG(info) << "Setting CPU thread count to " << cpuThreads;
+-
+-  size_t totalThreads = cpuThreads;
+-#ifdef CUDA
+-  size_t gpuThreads = god_.Get<size_t>("gpu-threads");
+-  auto devices = god_.Get<std::vector<size_t>>("devices");
+-  LOG(info) << "Setting GPU thread count to " << gpuThreads;
+-  totalThreads += gpuThreads * devices.size();
+-#endif
+-
+-  LOG(info) << "Total number of threads: " << totalThreads;
+-  amunmt_UTIL_THROW_IF2(totalThreads == 0, "Total number of threads is 0");
+-
++boost::python::list translate(boost::python::list& in)
++{
+   std::vector<std::future< std::shared_ptr<Histories> >> results;
+ 
+   boost::python::list output;
+   for(int i = 0; i < boost::python::len(in); ++i) {
+     std::string s = boost::python::extract<std::string>(boost::python::object(in[i]));
+     results.emplace_back(
+-        pool->enqueue(
++        god_.GetThreadPool().enqueue(
+             [=]{ return TranslationTask(s, i); }
+         )
+     );

@@ -1,0 +1,28 @@
+From 7c461ddfcf4a1531f66fec84dd94ab77f5d0a68e Mon Sep 17 00:00:00 2001
+From: Thomas Goyne <plorkyeran@aegisub.org>
+Date: Wed, 13 Jun 2012 04:16:50 +0000
+Subject: [PATCH] Use size_t rather than int64_t as the array index in
+ AudioProvider::GetAudioWithVolume
+
+In 32-bit builds the int64_t index resulted in two (inlined) calls to
+allmul per audio sample, which took 25-50% of the total CPU time
+involved in playing audio from the RAM cache.
+
+Originally committed to SVN as r6900.
+---
+ aegisub/src/audio_provider.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/aegisub/src/audio_provider.cpp b/aegisub/src/audio_provider.cpp
+index 96e08e585..e69291c77 100644
+--- a/aegisub/src/audio_provider.cpp
++++ b/aegisub/src/audio_provider.cpp
+@@ -76,7 +76,7 @@ void AudioProvider::GetAudioWithVolume(void *buf, int64_t start, int64_t count,
+ 		int value;
+ 
+ 		// Modify
+-		for (int64_t i=0;i<count;i++) {
++		for (size_t i = 0; i < (size_t)count; ++i) {
+ 			value = (int)(buffer[i]*volume+0.5);
+ 			if (value < -0x8000) value = -0x8000;
+ 			if (value > 0x7FFF) value = 0x7FFF;

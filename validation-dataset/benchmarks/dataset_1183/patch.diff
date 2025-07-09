@@ -1,0 +1,23 @@
+From e54c02573b3cb3ac40c9398f00521d6cc1ed00e1 Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Sun, 19 Apr 2020 22:21:58 -0600
+Subject: [PATCH] Use packed parameter position call in
+ UIContainer::positionChanged
+
+---
+ OPHD/UI/Core/UIContainer.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/OPHD/UI/Core/UIContainer.cpp b/OPHD/UI/Core/UIContainer.cpp
+index f97ebc675..cf0709f57 100644
+--- a/OPHD/UI/Core/UIContainer.cpp
++++ b/OPHD/UI/Core/UIContainer.cpp
+@@ -111,7 +111,7 @@ void UIContainer::positionChanged(float dX, float dY)
+ 
+ 	for (auto control : mControls)
+ 	{
+-		control->position(control->positionX() + dX, control->positionY() + dY);
++		control->position(control->position() + NAS2D::Vector{dX, dY});
+ 	}
+ }
+ 

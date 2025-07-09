@@ -1,0 +1,29 @@
+From d7ba8efc1734e027756f5e8179afcad5a3d0b4ef Mon Sep 17 00:00:00 2001
+From: Andrew Adams <andrew.b.adams@gmail.com>
+Date: Wed, 28 Aug 2013 09:35:46 -0700
+Subject: [PATCH] Avoid 64-bit division on 32-bit targets.
+
+Former-commit-id: 9d1432ba2194c39c1012fe594094137c560f0993
+---
+ src/runtime/posix_clock.cpp | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/src/runtime/posix_clock.cpp b/src/runtime/posix_clock.cpp
+index f1d6b4afc3..eaf6e8fca7 100644
+--- a/src/runtime/posix_clock.cpp
++++ b/src/runtime/posix_clock.cpp
+@@ -51,8 +51,12 @@ WEAK int64_t halide_current_time_usec() {
+     return delta;
+ }
+ 
+-WEAK int halide_current_time() {
+-  return int(halide_current_time_usec() / 1000);
++WEAK int32_t halide_current_time() {
++    timeval now = {0,0};
++    gettimeofday(&now, NULL);
++    int32_t delta = (now.tv_sec - halide_reference_clock.tv_sec)*1000;
++    delta += (now.tv_usec - halide_reference_clock.tv_usec)/1000;
++    return delta;
+ }
+ 
+ }

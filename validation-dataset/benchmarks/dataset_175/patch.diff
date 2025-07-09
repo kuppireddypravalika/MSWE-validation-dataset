@@ -1,0 +1,42 @@
+From dcf66c2b88aa6e2be37a89a1ef6f1a2c517e787d Mon Sep 17 00:00:00 2001
+From: nizar <nsallem@willowgarage.com>
+Date: Tue, 26 Mar 2013 07:07:17 -0700
+Subject: [PATCH] Fix: issue 965 speed up clusters extraction
+
+Use patch provided Marvin Gordon to speed up clusters extraction in the loop.
+Replce the copy part by a proper constructor improved further the performances.
+---
+ .../pcl/segmentation/impl/region_growing.hpp      | 15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
+
+diff --git a/segmentation/include/pcl/segmentation/impl/region_growing.hpp b/segmentation/include/pcl/segmentation/impl/region_growing.hpp
+index b8193e42e1b..6e9f1b6e99e 100644
+--- a/segmentation/include/pcl/segmentation/impl/region_growing.hpp
++++ b/segmentation/include/pcl/segmentation/impl/region_growing.hpp
+@@ -285,19 +285,18 @@ pcl::RegionGrowing<PointT, NormalT>::extract (std::vector <pcl::PointIndices>& c
+   applySmoothRegionGrowingAlgorithm ();
+   assembleRegions ();
+ 
+-  std::vector<pcl::PointIndices>::iterator cluster_iter = clusters_.begin ();
+-  while (cluster_iter != clusters_.end ())
++  clusters.resize(clusters_.size());
++  std::vector<pcl::PointIndices>::iterator cluster_iter_input = clusters.begin();
++  for(std::vector<pcl::PointIndices>::const_iterator cluster_iter = clusters_.begin(); cluster_iter != clusters_.end(); cluster_iter++)
+   {
+-    if (cluster_iter->indices.size () < min_pts_per_cluster_ || cluster_iter->indices.size () > max_pts_per_cluster_)
++    if (cluster_iter->indices.size () >= min_pts_per_cluster_ && cluster_iter->indices.size () <= max_pts_per_cluster_)
+     {
+-      cluster_iter = clusters_.erase (cluster_iter);
++    *cluster_iter_input = *cluster_iter;
++    cluster_iter_input++;
+     }
+-	else
+-      cluster_iter++;
+   }
+ 
+-  clusters.reserve (clusters_.size ());
+-  std::copy (clusters_.begin (), clusters_.end (), std::back_inserter (clusters));
++  clusters_ = std::vector<pcl::PointIndices> (clusters.begin(), cluster_iter_input);
+ 
+   deinitCompute ();
+ }

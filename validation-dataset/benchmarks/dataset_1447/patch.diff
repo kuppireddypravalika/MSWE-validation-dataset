@@ -1,0 +1,29 @@
+From 4769f10633e86187f185d38cc6d55cbd351cc3b5 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Fla=CC=81vio=20Cruz?= <flaviocruz@gmail.com>
+Date: Thu, 26 Feb 2015 04:09:42 +0000
+Subject: [PATCH] Faster addition of persistent axioms.
+
+---
+ vm/helpers.cpp | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/vm/helpers.cpp b/vm/helpers.cpp
+index e817378c..7b10ed9e 100644
+--- a/vm/helpers.cpp
++++ b/vm/helpers.cpp
+@@ -252,9 +252,12 @@ add_new_axioms(state& state, db::node *node, pcounter pc, const pcounter end)
+ 
+       if(pred->is_action_pred())
+          execute_run_action0(tpl, pred, state);
+-      else if(pred->is_reused_pred() || pred->is_persistent_pred())
+-         execute_add_persistent0(node, tpl, pred, state);
+-      else
++      else if(pred->is_reused_pred() || pred->is_persistent_pred()) {
++         if(pred->is_persistent_pred() && !pred->has_code)
++            node->pers_store.add_tuple(tpl, pred, state.depth);
++         else
++            execute_add_persistent0(node, tpl, pred, state);
++      } else
+          execute_add_linear0(node, tpl, pred, state);
+    }
+ }

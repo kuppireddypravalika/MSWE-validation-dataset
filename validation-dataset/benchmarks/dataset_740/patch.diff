@@ -1,0 +1,40 @@
+From 6789e69e4b0aca73bba9377f4595a816336ce9be Mon Sep 17 00:00:00 2001
+From: Vadim Zeitlin <vadim@wxwidgets.org>
+Date: Thu, 26 Sep 2019 01:30:04 +0200
+Subject: [PATCH] Only call tzset() once and not from each wxGetTimeZone() call
+
+Doing this resulted in noticeable performance problems under MSW,
+especially when using non-default locale.
+
+Closes #17094.
+---
+ src/common/time.cpp | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/src/common/time.cpp b/src/common/time.cpp
+index b60bf2e6c4af..7dfe4ac0807f 100644
+--- a/src/common/time.cpp
++++ b/src/common/time.cpp
+@@ -161,9 +161,10 @@ int wxGetTimeZone()
+     ftime(&tb);
+     return tb.timezone*60;
+ #elif defined(__VISUALC__)
+-    // We must initialize the time zone information before using it (this will
+-    // be done only once internally).
+-    _tzset();
++    // We must initialize the time zone information before using it. It's not a
++    // problem if we do it twice due to a race condition, as it's idempotent
++    // anyhow, so don't bother with any locks here.
++    static bool s_tzSet = (_tzset(), true);
+ 
+     // Starting with VC++ 8 timezone variable is deprecated and is not even
+     // available in some standard library version so use the new function for
+@@ -177,7 +178,7 @@ int wxGetTimeZone()
+     #endif
+ #else // Use some kind of time zone variable.
+     // In any case we must initialize the time zone before using it.
+-    tzset();
++    static bool s_tzSet = (tzset(), true);
+ 
+     #if defined(WX_TIMEZONE) // If WX_TIMEZONE was defined by configure, use it.
+         return WX_TIMEZONE;

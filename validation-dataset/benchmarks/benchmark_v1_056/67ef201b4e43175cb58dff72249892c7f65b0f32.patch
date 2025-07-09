@@ -1,0 +1,24 @@
+From 67ef201b4e43175cb58dff72249892c7f65b0f32 Mon Sep 17 00:00:00 2001
+From: Sven Woop <sven.woop@intel.com>
+Date: Mon, 28 Jan 2019 08:48:13 +0100
+Subject: [PATCH] performance fix for user geometry collision detection
+
+---
+ tutorials/collide/collide.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/tutorials/collide/collide.cpp b/tutorials/collide/collide.cpp
+index c9db65e67..01c258d80 100644
+--- a/tutorials/collide/collide.cpp
++++ b/tutorials/collide/collide.cpp
+@@ -45,8 +45,8 @@ namespace embree
+   bool intersect_triangle_triangle (TutorialScene* scene0, unsigned geomID0, unsigned primID0, TutorialScene* scene1, unsigned geomID1, unsigned primID1)
+   {
+     //CSTAT(bvh_collide_prim_intersections1++);
+-    Ref<SceneGraph::TriangleMeshNode> mesh0 = scene0->geometries[geomID0].dynamicCast<SceneGraph::TriangleMeshNode>();
+-    Ref<SceneGraph::TriangleMeshNode> mesh1 = scene1->geometries[geomID1].dynamicCast<SceneGraph::TriangleMeshNode>();
++    const SceneGraph::TriangleMeshNode* mesh0 = (SceneGraph::TriangleMeshNode*) scene0->geometries[geomID0].ptr;
++    const SceneGraph::TriangleMeshNode* mesh1 = (SceneGraph::TriangleMeshNode*) scene1->geometries[geomID1].ptr;
+     const SceneGraph::TriangleMeshNode::Triangle& tri0 = mesh0->triangles[primID0];
+     const SceneGraph::TriangleMeshNode::Triangle& tri1 = mesh1->triangles[primID1];
+     

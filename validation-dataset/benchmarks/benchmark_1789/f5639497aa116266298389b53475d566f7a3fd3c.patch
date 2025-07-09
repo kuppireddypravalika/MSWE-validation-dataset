@@ -1,0 +1,24 @@
+From f5639497aa116266298389b53475d566f7a3fd3c Mon Sep 17 00:00:00 2001
+From: Albert Astals Cid <tsdgeos@terra.es>
+Date: Sat, 11 Apr 2009 15:49:54 +0000
+Subject: [PATCH] small performance improvement, return ArchiveEntry by const &
+ here as it's not modified anywhere and that way we avoid doing object copies
+
+svn path=/trunk/KDE/kdeutils/ark/; revision=952353
+---
+ part/archivemodel.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/part/archivemodel.cpp b/part/archivemodel.cpp
+index e3e5519b4..ea7bd80f7 100644
+--- a/part/archivemodel.cpp
++++ b/part/archivemodel.cpp
+@@ -75,7 +75,7 @@ class ArchiveNode
+ 				return (a->entry()[currentSortColumn].toString() > b->entry()[currentSortColumn].toString());
+ 		}
+ 
+-		ArchiveEntry entry() const { return m_entry; }
++		const ArchiveEntry &entry() const { return m_entry; }
+ 		void setEntry( const ArchiveEntry & entry )
+ 		{
+ 			m_entry = entry;

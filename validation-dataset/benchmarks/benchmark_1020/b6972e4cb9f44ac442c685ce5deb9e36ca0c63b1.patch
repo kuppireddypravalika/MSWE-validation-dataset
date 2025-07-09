@@ -1,0 +1,22 @@
+From b6972e4cb9f44ac442c685ce5deb9e36ca0c63b1 Mon Sep 17 00:00:00 2001
+From: Nicolas Fella <nicolas.fella@gmx.de>
+Date: Mon, 26 Feb 2018 20:41:25 +0100
+Subject: [PATCH] Replace qSort with std::sort
+
+---
+ core/device.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/core/device.cpp b/core/device.cpp
+index 601bcb3c7..dea6d7e9d 100644
+--- a/core/device.cpp
++++ b/core/device.cpp
+@@ -233,7 +233,7 @@ void Device::addLink(const NetworkPackage& identityPackage, DeviceLink* link)
+     connect(link, &DeviceLink::receivedPackage,
+             this, &Device::privateReceivedPackage);
+ 
+-    qSort(m_deviceLinks.begin(), m_deviceLinks.end(), lessThan);
++    std::sort(m_deviceLinks.begin(), m_deviceLinks.end(), lessThan);
+ 
+     const bool capabilitiesSupported = identityPackage.has(QStringLiteral("incomingCapabilities")) || identityPackage.has(QStringLiteral("outgoingCapabilities"));
+     if (capabilitiesSupported) {

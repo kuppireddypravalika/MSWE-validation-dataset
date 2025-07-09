@@ -1,0 +1,22 @@
+From 50e289a3e370d70d6d060f8131f0377c826ac8d6 Mon Sep 17 00:00:00 2001
+From: Xun Li <xunli@asu.edu>
+Date: Wed, 14 Sep 2016 17:05:29 -0500
+Subject: [PATCH] fix performance issue 1.8.13.3
+
+---
+ DataViewer/TableBase.cpp | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/DataViewer/TableBase.cpp b/DataViewer/TableBase.cpp
+index 1bb2a972d..cea63729c 100644
+--- a/DataViewer/TableBase.cpp
++++ b/DataViewer/TableBase.cpp
+@@ -510,8 +510,6 @@ void TableBase::update(HLStateInt* o)
+ {
+     if (GetView()) {
+         GetView()->Refresh();
+-        GetView()->AutoSize();
+-        GetView()->ForceRefresh();
+     }
+     UpdateStatusBar();
+ }

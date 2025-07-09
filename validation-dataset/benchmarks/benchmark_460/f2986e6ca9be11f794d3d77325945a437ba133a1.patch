@@ -1,0 +1,46 @@
+From f2986e6ca9be11f794d3d77325945a437ba133a1 Mon Sep 17 00:00:00 2001
+From: Owen Anderson <resistor@mac.com>
+Date: Wed, 17 Jun 2009 21:16:20 +0000
+Subject: [PATCH] We need to use double-checked locking for lazy initialization
+ in this case when running multithreaded.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@73636 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/VMCore/Pass.cpp | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
+
+diff --git a/lib/VMCore/Pass.cpp b/lib/VMCore/Pass.cpp
+index 6db5d7e24c5..bacabc96d76 100644
+--- a/lib/VMCore/Pass.cpp
++++ b/lib/VMCore/Pass.cpp
+@@ -19,6 +19,8 @@
+ #include "llvm/ModuleProvider.h"
+ #include "llvm/ADT/STLExtras.h"
+ #include "llvm/Support/ManagedStatic.h"
++#include "llvm/Support/Threading.h"
++#include "llvm/System/Atomic.h"
+ #include <algorithm>
+ #include <map>
+ #include <set>
+@@ -192,8 +194,20 @@ static std::vector<PassRegistrationListener*> *Listeners = 0;
+ // ressurection after llvm_shutdown is run.
+ static PassRegistrar *getPassRegistrar() {
+   static PassRegistrar *PassRegistrarObj = 0;
++  
++  // Use double-checked locking to safely initialize the registrar when
++  // we're running in multithreaded mode.
+   if (!PassRegistrarObj)
+-    PassRegistrarObj = new PassRegistrar();
++    if (llvm_is_multithreaded()) {
++      llvm_acquire_global_lock();
++      if (!PassRegistrarObj) {
++        PassRegistrar* tmp = new PassRegistrar();
++        sys::MemoryFence();
++        PassRegistrarObj = tmp;
++      }
++      llvm_release_global_lock();
++    } else
++      PassRegistrarObj = new PassRegistrar();
+   return PassRegistrarObj;
+ }
+ 

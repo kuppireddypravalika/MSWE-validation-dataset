@@ -1,0 +1,39 @@
+From e96f40f1051ce5ff8d3ac42028ce8cf138884f34 Mon Sep 17 00:00:00 2001
+From: Morwenn <morwenn29@hotmail.fr>
+Date: Tue, 25 Aug 2020 16:27:27 +0200
+Subject: [PATCH] Don't use std::distance in probes::par
+
+---
+ include/cpp-sort/probes/par.h | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/include/cpp-sort/probes/par.h b/include/cpp-sort/probes/par.h
+index 3654f1ae..77bbfae5 100644
+--- a/include/cpp-sort/probes/par.h
++++ b/include/cpp-sort/probes/par.h
+@@ -1,7 +1,7 @@
+ /*
+  * The MIT License (MIT)
+  *
+- * Copyright (c) 2016 Morwenn
++ * Copyright (c) 2016-2020 Morwenn
+  *
+  * Permission is hereby granted, free of charge, to any person obtaining a copy
+  * of this software and associated documentation files (the "Software"), to deal
+@@ -28,7 +28,6 @@
+ // Headers
+ ////////////////////////////////////////////////////////////
+ #include <functional>
+-#include <iterator>
+ #include <type_traits>
+ #include <cpp-sort/sorter_facade.h>
+ #include <cpp-sort/sorter_traits.h>
+@@ -56,7 +55,7 @@ namespace probe
+                             Compare compare={}, Projection projection={}) const
+                 -> cppsort::detail::difference_type_t<RandomAccessIterator>
+             {
+-                auto size = std::distance(first, last);
++                auto size = last - first;
+ 
+                 auto res = 0;
+                 while (size > 0) {

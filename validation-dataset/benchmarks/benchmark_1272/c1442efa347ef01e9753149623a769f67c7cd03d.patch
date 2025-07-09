@@ -1,0 +1,25 @@
+From c1442efa347ef01e9753149623a769f67c7cd03d Mon Sep 17 00:00:00 2001
+From: Remi Gacogne <remi.gacogne@powerdns.com>
+Date: Fri, 26 Nov 2021 14:48:16 +0100
+Subject: [PATCH] dnsdist: Use `time()` instead of `gettimeofday()`, as
+ suggested by Otto
+
+---
+ pdns/dnsdistdist/dnsdist-healthchecks.cc | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/pdns/dnsdistdist/dnsdist-healthchecks.cc b/pdns/dnsdistdist/dnsdist-healthchecks.cc
+index c689877d6677..50b9341ccc3a 100644
+--- a/pdns/dnsdistdist/dnsdist-healthchecks.cc
++++ b/pdns/dnsdistdist/dnsdist-healthchecks.cc
+@@ -292,9 +292,7 @@ static void healthCheckTCPCallback(int fd, FDMultiplexer::funcparam_t& param)
+         try {
+           auto sessions = data->d_tcpHandler->getTLSSessions();
+           if (!sessions.empty()) {
+-            struct timeval now;
+-            gettimeofday(&now, nullptr);
+-            g_sessionCache.putSessions(data->d_ds->getID(), now.tv_sec, std::move(sessions));
++            g_sessionCache.putSessions(data->d_ds->getID(), time(nullptr), std::move(sessions));
+           }
+         }
+         catch (const std::exception& e) {

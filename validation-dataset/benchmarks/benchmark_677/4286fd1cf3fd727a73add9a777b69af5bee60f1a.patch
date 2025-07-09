@@ -1,0 +1,33 @@
+From 4286fd1cf3fd727a73add9a777b69af5bee60f1a Mon Sep 17 00:00:00 2001
+From: Boris Dalstein <dalboris@gmail.com>
+Date: Fri, 7 Apr 2023 17:56:03 +0200
+Subject: [PATCH] [skip ci] Add comment in StringId: possible performance
+ optimization with C++20 (#748) (#1195)
+
+---
+ libs/vgc/core/stringid.cpp | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/libs/vgc/core/stringid.cpp b/libs/vgc/core/stringid.cpp
+index 0ada9f966..ef40d3a8a 100644
+--- a/libs/vgc/core/stringid.cpp
++++ b/libs/vgc/core/stringid.cpp
+@@ -55,8 +55,17 @@ void core::StringId::init_(std::string_view s) {
+ 
+     std::lock_guard<std::mutex> lock(*mutex);
+ 
+-    // Insert in pool. Note: insertions in an unordered_set invalidates
++    // Insert in pool.
++    //
++    // Note 1: insertions in an unordered_set invalidates
+     // iterators but does not invalidate pointers to elements.
++    //
++    // Note 2: if `s` already exists in the pool, the function below
++    // creates a temporary std::string in order to hash it and find it in the
++    // set. With C++20, we will be able to call pool->find<std::string_view>(s),
++    // which can do a lookup directly from the string_view without contructing
++    // an std::string.
++    //
+     auto ret = pool->emplace(s);
+ 
+     // Store pointer to std:string.

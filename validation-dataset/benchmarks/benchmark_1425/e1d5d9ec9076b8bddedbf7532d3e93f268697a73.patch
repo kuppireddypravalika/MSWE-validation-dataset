@@ -1,0 +1,35 @@
+From e1d5d9ec9076b8bddedbf7532d3e93f268697a73 Mon Sep 17 00:00:00 2001
+From: Devin Papineau <devinmp@ca.ibm.com>
+Date: Wed, 22 Feb 2017 18:49:02 -0500
+Subject: [PATCH] Use 32-bit shr in x86 arrayset evaluator on 32-bit
+
+Passing `cg` to `SHRRegImm1` inadvertently selects the overload
+`SHRRegImm1(bool is64Bit)`, and `cg` implicitly converts to `true`
+because it is non-null. As a result, when `arraySetDefault` generates a
+`shr`, it unconditionally generates the 64-bit variant. The 64-bit `shr`
+is encoded using a `REX.W` prefix, which in 32-bit code is interpreted
+as an additional instruction `dec eax` preceding the desired 32-bit
+`shr` instruction. Since `rep stos` gets the value to store from (the
+low part of) `eax`, the stored values are off by 1 in this case.
+
+Calling the nullary overload of `SHRRegImm1` determines bitness instead
+using `TR::Compiler->target.is64Bit()`.
+
+Signed-off-by: Devin Papineau <devinmp@ca.ibm.com>
+---
+ compiler/x/codegen/OMRTreeEvaluator.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/compiler/x/codegen/OMRTreeEvaluator.cpp b/compiler/x/codegen/OMRTreeEvaluator.cpp
+index 382862837f..bed3f63372 100644
+--- a/compiler/x/codegen/OMRTreeEvaluator.cpp
++++ b/compiler/x/codegen/OMRTreeEvaluator.cpp
+@@ -3731,7 +3731,7 @@ static void arraySetDefault(TR::Node* node, uint8_t elementSize, TR::Register* a
+          break;
+       }
+ 
+-   if (shiftAmount) generateRegImmInstruction(SHRRegImm1(cg), node, sizeReg, shiftAmount, cg);
++   if (shiftAmount) generateRegImmInstruction(SHRRegImm1(), node, sizeReg, shiftAmount, cg);
+    generateInstruction(repOpcode, node, stosDependencies, cg);
+    cg->stopUsingRegister(EAX);
+    }

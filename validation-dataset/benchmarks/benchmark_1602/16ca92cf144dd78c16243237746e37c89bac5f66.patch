@@ -1,0 +1,34 @@
+From 16ca92cf144dd78c16243237746e37c89bac5f66 Mon Sep 17 00:00:00 2001
+From: Kimish Patel <kimishpatel@fb.com>
+Date: Wed, 25 Sep 2019 13:45:43 -0700
+Subject: [PATCH] Switch to nearbyint instead of using round, which costs
+ performance. (#125)
+
+Summary:
+
+Test Plan:
+
+Reviewers:
+
+Subscribers:
+
+Tasks:
+
+Tags:
+---
+ torch_tvm/custom_tvm_ops/cpp/topi/quantize.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/torch_tvm/custom_tvm_ops/cpp/topi/quantize.cc b/torch_tvm/custom_tvm_ops/cpp/topi/quantize.cc
+index 621a343..28c17cb 100644
+--- a/torch_tvm/custom_tvm_ops/cpp/topi/quantize.cc
++++ b/torch_tvm/custom_tvm_ops/cpp/topi/quantize.cc
+@@ -26,7 +26,7 @@ Array<Tensor> data_int8_quantize(
+   auto clamp_output = tvm::compute(
+       data->shape,
+       [&](Var i, Var j) {
+-         return tvm::cast(target_type, tvm::round(
++         return tvm::cast(target_type, tvm::nearbyint(
+             tvm::min(
+                tvm::max(tvm::cast(Float(32), zero_point(0)) + data(i, j)*inverse_scale, q_min),
+                q_max

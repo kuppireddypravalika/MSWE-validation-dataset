@@ -1,0 +1,58 @@
+From 51861234bcd1332d1ef063806c1be7a2aef4772c Mon Sep 17 00:00:00 2001
+From: Ryan Houdek <Sonicadvance1@gmail.com>
+Date: Wed, 28 Jun 2023 14:31:56 -0700
+Subject: [PATCH] Linux: Optimize CalculateHostKernelVersion
+
+istringstream is a very slow way to parse this, let's make it a bit
+quicker.
+
+Some implementation numbers:
+1. Original implementation - 1833556 calculations per second
+2. std::strtoul implementation - 4666818 calculations per second
+   - 2.54x the istringstream implementation
+3. str::from_chars implementation - 5120718 calculations per second
+   - 1.09x the std::strtoul implementation
+   - 2.79x th istringstream implementation
+---
+ .../FEXLoader/LinuxSyscalls/Syscalls.cpp      | 21 ++++++++++---------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
+
+diff --git a/Source/Tools/FEXLoader/LinuxSyscalls/Syscalls.cpp b/Source/Tools/FEXLoader/LinuxSyscalls/Syscalls.cpp
+index 3e99190e46..4f70e750fc 100644
+--- a/Source/Tools/FEXLoader/LinuxSyscalls/Syscalls.cpp
++++ b/Source/Tools/FEXLoader/LinuxSyscalls/Syscalls.cpp
+@@ -41,6 +41,7 @@ desc: Glue logic, brk allocations
+ 
+ #include <algorithm>
+ #include <alloca.h>
++#include <charconv>
+ #include <functional>
+ #include <memory>
+ #include <regex>
+@@ -741,16 +742,16 @@ uint32_t SyscallHandler::CalculateHostKernelVersion() {
+     return 0;
+   }
+ 
+-  int32_t Major{};
+-  int32_t Minor{};
+-  int32_t Patch{};
+-  char Tmp{};
+-  fextl::istringstream ss{buf.release};
+-  ss >> Major;
+-  ss.read(&Tmp, 1);
+-  ss >> Minor;
+-  ss.read(&Tmp, 1);
+-  ss >> Patch;
++  uint32_t Major{};
++  uint32_t Minor{};
++  uint32_t Patch{};
++
++  // Parse kernel version in the form of `<Major>.<Minor>.<Patch>[Optional Data]`
++  const auto End = buf.release + sizeof(buf.release);
++  auto Results = std::from_chars(buf.release, End, Major, 10);
++  Results = std::from_chars(Results.ptr + 1, End, Minor, 10);
++  Results = std::from_chars(Results.ptr + 1, End, Patch, 10);
++
+   return (Major << 24) | (Minor << 16) | Patch;
+ }
+ 

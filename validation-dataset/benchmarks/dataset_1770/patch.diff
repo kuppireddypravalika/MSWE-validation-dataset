@@ -1,0 +1,30 @@
+From 83c636f85f0941dfa769d5f59d2bb2d135dab494 Mon Sep 17 00:00:00 2001
+From: Andrew Mustun <andrew@qcad.org>
+Date: Thu, 25 Nov 2021 11:34:37 +0100
+Subject: [PATCH] faster algorithm for full ellipse circumference
+
+---
+ src/core/math/REllipse.cpp | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/src/core/math/REllipse.cpp b/src/core/math/REllipse.cpp
+index 4797bcaad9..c2f23917e4 100644
+--- a/src/core/math/REllipse.cpp
++++ b/src/core/math/REllipse.cpp
+@@ -618,6 +618,16 @@ double REllipse::getLength() const {
+     if (isFullEllipse()) {
+         a1 = 0.0;
+         a2 = 2*M_PI;
++
++        double a = getMajorRadius();
++        double b = getMinorRadius();
++        if (RMath::fuzzyCompare((a+b), 0.0)) {
++            return 0.0;
++        }
++        double h = pow((a-b)/(a+b), 2);
++
++        return M_PI * (a+b) * ( (135168 - 85760 * h - 5568 * h * h + 3867 * h * h * h) /
++                                    (135168 - 119552 * h + 22208 * h * h - 345 * h * h * h) );
+     }
+     else {
+         a1 = RMath::getNormalizedAngle(startParam);

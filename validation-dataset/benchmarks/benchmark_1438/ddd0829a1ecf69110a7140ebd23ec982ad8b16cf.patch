@@ -1,0 +1,32 @@
+From ddd0829a1ecf69110a7140ebd23ec982ad8b16cf Mon Sep 17 00:00:00 2001
+From: Matt Corallo <git@bluematt.me>
+Date: Fri, 4 Sep 2015 02:39:22 -0700
+Subject: [PATCH] Prefetch next transaction before we hash the current one
+
+---
+ c++/relayprocess.cpp | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/c++/relayprocess.cpp b/c++/relayprocess.cpp
+index 5f9ea8f..43ca67b 100644
+--- a/c++/relayprocess.cpp
++++ b/c++/relayprocess.cpp
+@@ -148,10 +148,17 @@ std::tuple<std::shared_ptr<std::vector<unsigned char> >, const char*> RelayNodeC
+ 
+ 			move_forward(readit, 4, block.end());
+ 
++			int index = send_tx_cache.remove(txstart, readit);
++
++			__builtin_prefetch(&(*readit), 0);
++			__builtin_prefetch(&(*readit) + 64, 0);
++			__builtin_prefetch(&(*readit) + 128, 0);
++			__builtin_prefetch(&(*readit) + 196, 0);
++			__builtin_prefetch(&(*readit) + 256, 0);
++
+ 			if (check_merkle)
+ 				double_sha256(&(*txstart), merkleTree.getTxHashLoc(i), readit - txstart);
+ 
+-			int index = send_tx_cache.remove(txstart, readit);
+ 			if (index < 0) {
+ 				compressed_block->push_back(0xff);
+ 				compressed_block->push_back(0xff);

@@ -1,0 +1,22 @@
+From 9f4ee3a690082c8f8652027060b72cd2bf73c7fc Mon Sep 17 00:00:00 2001
+From: Romain Janvier <romain.janvier@hotmail.fr>
+Date: Tue, 16 Apr 2024 20:54:44 +0200
+Subject: [PATCH] Transpose should be enough (and faster!)
+
+---
+ include/pca.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/pca.hpp b/include/pca.hpp
+index 08e6add..e88a958 100644
+--- a/include/pca.hpp
++++ b/include/pca.hpp
+@@ -73,7 +73,7 @@ static inline PCAResult<real_t> pca_from_pointcloud(const PointCloud<real_t>& cl
+ {
+     // Compute the (3, 3) covariance matrix
+     const PointCloud<real_t>          centered_cloud = cloud.rowwise() - cloud.colwise().mean();
+-    const Eigen::Matrix<real_t, 3, 3> cov = (centered_cloud.adjoint() * centered_cloud) / real_t(cloud.rows());
++    const Eigen::Matrix<real_t, 3, 3> cov = (centered_cloud.transpose() * centered_cloud) / real_t(cloud.rows());
+ 
+     // Compute the eigenvalues and eigenvectors of the covariance
+     Eigen::SelfAdjointEigenSolver<Eigen::Matrix<real_t, 3, 3>> es(cov);

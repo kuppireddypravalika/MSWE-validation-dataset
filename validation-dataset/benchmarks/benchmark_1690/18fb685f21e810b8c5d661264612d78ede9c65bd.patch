@@ -1,0 +1,23 @@
+From 18fb685f21e810b8c5d661264612d78ede9c65bd Mon Sep 17 00:00:00 2001
+From: Varun Talwar <tallytalwar@gmail.com>
+Date: Tue, 18 Nov 2014 10:55:38 -0500
+Subject: [PATCH] Division/Multiplication (Ohh... CPU Clock cycles)
+
+Small change of "/ 2." to "* 0.5"
+---
+ core/src/util/geometryHandler.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/core/src/util/geometryHandler.cpp b/core/src/util/geometryHandler.cpp
+index e7ae37acd1..ed401d64b1 100644
+--- a/core/src/util/geometryHandler.cpp
++++ b/core/src/util/geometryHandler.cpp
+@@ -135,7 +135,7 @@ void GeometryHandler::buildPolyLine(const Line& _line, float _halfWidth, std::ve
+             
+             rightNorm = normPrevCurr + normCurrNext;
+             rightNorm = glm::normalize(rightNorm);
+-            float scale = sqrtf(2. / (1. + glm::dot(normPrevCurr,normCurrNext) )) * _halfWidth / 2.;
++            float scale = sqrtf(2. / (1. + glm::dot(normPrevCurr,normCurrNext) )) * _halfWidth * 0.5;
+             rightNorm *= scale;
+             
+             _pointsOut.push_back(currCoord+rightNorm);

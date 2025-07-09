@@ -1,0 +1,43 @@
+From 11ea2ffc3ca3fd682b48a1331e335ddbc6ed7dbf Mon Sep 17 00:00:00 2001
+From: Benny Halevy <bhalevy@scylladb.com>
+Date: Mon, 7 Mar 2022 00:26:11 +0200
+Subject: [PATCH] compaction_manager: rewrite_sstables: do not acquire table
+ write lock
+
+Since regular compaction may run in parallel no lock
+is required per-table.
+
+We still acquire a read lock in this patch, for backporting
+purposes, in case the branch doesn't contain
+6737c880458c216c9ab933b0348b9f78fe79c648.
+But it can be removed entirely in master in a follow-up patch.
+
+This should solve some of the slowness in cleanup compaction (and
+likely in upgrade sstables seen in #10060, and
+possibly #10166.
+
+Fixes #10175
+
+Signed-off-by: Benny Halevy <bhalevy@scylladb.com>
+
+Closes #10177
+---
+ compaction/compaction_manager.cc | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/compaction/compaction_manager.cc b/compaction/compaction_manager.cc
+index 372ec77f0dea..44c95ba00369 100644
+--- a/compaction/compaction_manager.cc
++++ b/compaction/compaction_manager.cc
+@@ -812,8 +812,9 @@ future<> compaction_manager::rewrite_sstables(replica::table* t, sstables::compa
+             };
+ 
+             auto maintenance_permit = co_await seastar::get_units(_maintenance_ops_sem, 1);
+-            // Take write lock for table to serialize cleanup/upgrade sstables/scrub with major compaction/reshape/reshard.
+-            auto write_lock_holder = co_await _compaction_state[&t].lock.hold_write_lock();
++            // FIXME: acquiring the read lock is not needed after acquiring the _maintenance_ops_sem
++            // only major compaction needs to acquire the write lock to synchronize with regular compaction.
++            auto lock_holder = co_await _compaction_state[&t].lock.hold_read_lock();
+ 
+             _stats.pending_tasks--;
+             _stats.active_tasks++;

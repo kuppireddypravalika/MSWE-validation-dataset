@@ -1,0 +1,25 @@
+From 6c79a0a07b187d90dc704424ae3cb34db79dccff Mon Sep 17 00:00:00 2001
+From: Alexander Grund <Flamefire@users.noreply.github.com>
+Date: Sun, 7 Jul 2024 23:29:12 +0200
+Subject: [PATCH] Optimize for few people in burned warehouse
+
+Skip loop iteration if there are no people of a job.
+This also avoids asyncs when adding/removing jobs and improves speed by
+not calling RANDOM_RAND in that case.
+---
+ libs/s25main/buildings/BurnedWarehouse.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/libs/s25main/buildings/BurnedWarehouse.cpp b/libs/s25main/buildings/BurnedWarehouse.cpp
+index 9be89ff3ba..b6f0db9ff6 100644
+--- a/libs/s25main/buildings/BurnedWarehouse.cpp
++++ b/libs/s25main/buildings/BurnedWarehouse.cpp
+@@ -79,6 +79,8 @@ void BurnedWarehouse::HandleEvent(const unsigned /*id*/)
+             count = people[job];
+         else
+             count = people[job] / (GO_OUT_PHASES - go_out_phase);
++        if(count == 0)
++            continue;
+ 
+         // Remove from inventory
+         people[job] -= count;

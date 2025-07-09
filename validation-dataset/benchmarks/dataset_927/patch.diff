@@ -1,0 +1,28 @@
+From c210753160eb8fa28e4c973404150c65c257bab0 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Luk=C3=A1=C5=A1=20Karas?= <lukas.karas@centrum.cz>
+Date: Tue, 21 Jun 2016 08:59:22 +0200
+Subject: [PATCH] use ApproximateTileProjection in PerformanceTest
+
+---
+ Demos/src/PerformanceTest.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/Demos/src/PerformanceTest.cpp b/Demos/src/PerformanceTest.cpp
+index 1f0e3bf7a..77bdd1b67 100644
+--- a/Demos/src/PerformanceTest.cpp
++++ b/Demos/src/PerformanceTest.cpp
+@@ -288,10 +288,10 @@ int main(int argc, char* argv[])
+   }
+ #endif
+ 
+-  osmscout::TileProjection      projection;
+-  osmscout::MapParameter        drawParameter;
+-  osmscout::AreaSearchParameter searchParameter;
+-  std::list<LevelStats>         statistics;
++  osmscout::ApproximateTileProjection   projection;
++  osmscout::MapParameter                drawParameter;
++  osmscout::AreaSearchParameter         searchParameter;
++  std::list<LevelStats>                 statistics;
+ 
+   searchParameter.SetUseMultithreading(true);
+ 

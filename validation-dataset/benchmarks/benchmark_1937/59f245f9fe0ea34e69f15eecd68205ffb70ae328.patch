@@ -1,0 +1,23 @@
+From 59f245f9fe0ea34e69f15eecd68205ffb70ae328 Mon Sep 17 00:00:00 2001
+From: Jeremy Bernstein <jeremy.d.bernstein@googlemail.com>
+Date: Tue, 7 Aug 2018 10:12:34 +0200
+Subject: [PATCH] OSX: change fork() to vfork() to minimize interruption when
+ forking. Can we save more time between fork() and execvp()?
+
+---
+ shell.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/shell.cpp b/shell.cpp
+index e70aa44..17723c3 100755
+--- a/shell.cpp
++++ b/shell.cpp
+@@ -736,7 +736,7 @@ int shell_pipe_open(t_shell *x, t_fildes *masterfd_r, t_fildes *masterfd_w, char
+ 		}
+ 	}
+ 
+-	*ppid = fork();
++	*ppid = vfork();
+ 	if (*ppid < 0) {
+ 		close(masterfd);
+ 		close(slavefd);

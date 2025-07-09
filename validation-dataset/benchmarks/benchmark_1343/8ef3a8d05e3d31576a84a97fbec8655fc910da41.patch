@@ -1,0 +1,24 @@
+From 8ef3a8d05e3d31576a84a97fbec8655fc910da41 Mon Sep 17 00:00:00 2001
+From: sadyrovr <sadyrovr@78c7ea69-d796-4a43-9a09-de51944f1b03>
+Date: Thu, 23 Sep 2021 18:35:13 +0000
+Subject: [PATCH] Replaced CTempString to avoid creating temporary strings.
+ JIRA CXX-12115
+
+git-svn-id: https://anonsvn.ncbi.nlm.nih.gov/repos/v1/trunk/c++@94953 78c7ea69-d796-4a43-9a09-de51944f1b03
+---
+ src/connect/services/netstorageobjectloc.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/connect/services/netstorageobjectloc.cpp b/src/connect/services/netstorageobjectloc.cpp
+index 146b78107d8..22fd51d2be3 100644
+--- a/src/connect/services/netstorageobjectloc.cpp
++++ b/src/connect/services/netstorageobjectloc.cpp
+@@ -453,7 +453,7 @@ void CNetStorageObjectLoc::ToJSON(CJsonNode& root) const
+ 
+ CNetStorageObjectLoc::EFileTrackSite CNetStorageObjectLoc::ParseFileTrackSite(const string& ft_site_name)
+ {
+-    static map<CTempString, EFileTrackSite, PNocase> p =
++    static map<string, EFileTrackSite, PNocase> p =
+     {
+         { "production",  eFileTrack_ProdSite },
+         { "prod",        eFileTrack_ProdSite },

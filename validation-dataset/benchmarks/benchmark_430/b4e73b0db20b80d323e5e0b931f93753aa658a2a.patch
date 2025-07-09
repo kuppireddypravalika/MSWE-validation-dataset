@@ -1,0 +1,34 @@
+From b4e73b0db20b80d323e5e0b931f93753aa658a2a Mon Sep 17 00:00:00 2001
+From: Andrew Craik <ajcraik@ca.ibm.com>
+Date: Thu, 3 Nov 2016 09:56:39 -0400
+Subject: [PATCH] Allow default inliner policy to be overridden
+
+Currently the OptimizerManager supports setting a policy for each and
+every optimization that is created. The inliner has a policy object
+which encapsulates many of the heursitic decisions that need to be made
+during inlining, but it obtains this policy from the optimizer - a
+global default. This change continues the behaviour of acquiring a
+global default policy from the optimizer, but only if the policy has not
+been overridden when the inliner was created. This allows the inliner
+behaviour to be specialized and changed based on need without needing to
+change global default policies.
+
+Task 120255
+Signed-off-by: Andrew Craik <ajcraik@ca.ibm.com>
+---
+ compiler/optimizer/Inliner.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/compiler/optimizer/Inliner.cpp b/compiler/optimizer/Inliner.cpp
+index 67d4a60c64..b93f0c2ce3 100644
+--- a/compiler/optimizer/Inliner.cpp
++++ b/compiler/optimizer/Inliner.cpp
+@@ -240,7 +240,7 @@ TR_InlinerBase::TR_InlinerBase(TR::Optimizer * optimizer, TR::Optimization *opti
+      _aggressivelyInlineInLoops(false),
+      _GlobalLabels(_trMemory)
+    {
+-   _policy = optimizer->getInlinerPolicy();
++   _policy = optimization->manager()->getOptPolicy() ? static_cast<OMR_InlinerPolicy*>(optimization->manager()->getOptPolicy()) : optimizer->getInlinerPolicy();
+    _util = optimizer->getInlinerUtil();
+    _policy->setInliner(this);
+    _util->setInliner(this);

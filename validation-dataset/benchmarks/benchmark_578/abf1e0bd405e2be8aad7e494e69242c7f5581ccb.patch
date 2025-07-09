@@ -1,0 +1,48 @@
+From abf1e0bd405e2be8aad7e494e69242c7f5581ccb Mon Sep 17 00:00:00 2001
+From: David Benjamin <davidben@webrtc.org>
+Date: Fri, 22 Mar 2024 18:20:09 -0400
+Subject: [PATCH] Replace a memcpy with std::copy_n
+
+memcpy has a bug where it doesn't work with empty slices whose pointer
+is null. C++ functions in <algorithm> have this bug fixed and, in a good
+STL, will specialize down to memcpy or memmove anyway.
+
+This fixes a bunch of UBSan failures in Chromium, such as
+https://luci-milo.appspot.com/ui/inv/build-8752767322372882913/test-results?q=RTCEncodedVideoFrameTest.ConstructorCopiesMetadata&sortby=&groupby=
+
+See https://davidben.net/2024/01/15/empty-slices.html
+
+Bug: chromium:40248746
+Change-Id: Ibfb9c4d7b44df53766a16e40fabd0a374140d89c
+Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/344260
+Auto-Submit: David Benjamin <davidben@webrtc.org>
+Commit-Queue: Harald Alvestrand <hta@webrtc.org>
+Reviewed-by: Harald Alvestrand <hta@webrtc.org>
+Cr-Commit-Position: refs/heads/main@{#41989}
+---
+ api/video/encoded_image.cc | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/api/video/encoded_image.cc b/api/video/encoded_image.cc
+index 09224c3c49..aad94b12a6 100644
+--- a/api/video/encoded_image.cc
++++ b/api/video/encoded_image.cc
+@@ -11,7 +11,8 @@
+ #include "api/video/encoded_image.h"
+ 
+ #include <stdlib.h>
+-#include <string.h>
++
++#include <algorithm>
+ 
+ namespace webrtc {
+ 
+@@ -21,7 +22,7 @@ EncodedImageBuffer::EncodedImageBuffer(size_t size) : size_(size) {
+ 
+ EncodedImageBuffer::EncodedImageBuffer(const uint8_t* data, size_t size)
+     : EncodedImageBuffer(size) {
+-  memcpy(buffer_, data, size);
++  std::copy_n(data, size, buffer_);
+ }
+ 
+ EncodedImageBuffer::~EncodedImageBuffer() {

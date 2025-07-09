@@ -1,0 +1,40 @@
+From 25a0c24b2659342c1fcbafd1e753158e4f33682a Mon Sep 17 00:00:00 2001
+From: edwards <edwards>
+Date: Thu, 14 Aug 2008 03:17:51 +0000
+Subject: [PATCH] Turned back on the optimizations for sparsity of the
+ contractions.
+
+---
+ lib/meas/inline/hadron/inline_meson_matelem_colorvec_w.cc | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/lib/meas/inline/hadron/inline_meson_matelem_colorvec_w.cc b/lib/meas/inline/hadron/inline_meson_matelem_colorvec_w.cc
+index 894f7864f..3fddfd2d3 100644
+--- a/lib/meas/inline/hadron/inline_meson_matelem_colorvec_w.cc
++++ b/lib/meas/inline/hadron/inline_meson_matelem_colorvec_w.cc
+@@ -1,4 +1,4 @@
+-// $Id: inline_meson_matelem_colorvec_w.cc,v 1.11 2008-08-12 03:42:24 edwards Exp $
++// $Id: inline_meson_matelem_colorvec_w.cc,v 1.12 2008-08-14 03:17:51 edwards Exp $
+ /*! \file
+  * \brief Inline measurement of meson operators via colorvector matrix elements
+  */
+@@ -554,7 +554,6 @@ namespace Chroma
+ 
+ 	      SerialDBData<ValMesonElementalOperator_t> val;
+ 
+-#if 0
+ 	      // Build in some optimizations. 
+ 	      // We know that if the colorvectors are orthogonal, then at zero mom
+ 	      // the inner product is either 1 or 0. Set a flag and don't store
+@@ -572,10 +571,9 @@ namespace Chroma
+ 	      }
+ 	      else
+ 	      {
+-#endif
+ 		val.data().type_of_data = COLORVEC_MATELEM_TYPE_GENERIC;
+ 		val.data().op           = op_sum[mom_num];
+-//	      }
++	      }
+ 
+ 	      // Insert into the DB
+ 	      qdp_db.insert(key, val);

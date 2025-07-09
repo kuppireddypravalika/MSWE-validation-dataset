@@ -1,0 +1,48 @@
+From ebcb3b413cfe197d219db4f0f43d253e8e4a3beb Mon Sep 17 00:00:00 2001
+From: Stenzek <stenzek@gmail.com>
+Date: Thu, 29 Dec 2022 02:14:37 +1000
+Subject: [PATCH] x86/iR5900: Use register cache for mfsa
+
+It also was incorrect for the XMM path before... loading 64 bits instead
+of 32.
+---
+ pcsx2/x86/iR5900Misc.cpp | 18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
+
+diff --git a/pcsx2/x86/iR5900Misc.cpp b/pcsx2/x86/iR5900Misc.cpp
+index ed2024d47f0bc..59c42e1241350 100644
+--- a/pcsx2/x86/iR5900Misc.cpp
++++ b/pcsx2/x86/iR5900Misc.cpp
+@@ -91,20 +91,26 @@ void recSYNC()
+ 
+ void recMFSA()
+ {
+-	int mmreg;
+ 	if (!_Rd_)
+ 		return;
+ 
+-	// TODO(Stenzek): Make these less rubbish
+-	mmreg = _checkXMMreg(XMMTYPE_GPRREG, _Rd_, MODE_WRITE);
+-	if (mmreg >= 0)
++	// zero-extended
++	if (const int mmreg = _checkXMMreg(XMMTYPE_GPRREG, _Rd_, MODE_WRITE); mmreg >= 0)
+ 	{
+-		xMOVL.PS(xRegisterSSE(mmreg), ptr[&cpuRegs.sa]);
++		// have to zero out bits 63:32
++		const int temp = _allocTempXMMreg(XMMT_INT);
++		xMOVSSZX(xRegisterSSE(temp), ptr32[&cpuRegs.sa]);
++		xBLEND.PD(xRegisterSSE(temp), xRegisterSSE(temp), 1);
++		_freeXMMreg(temp);
++	}
++	else if (const int gprreg = _allocIfUsedGPRtoX86(_Rd_, MODE_WRITE); gprreg >= 0)
++	{
++		xMOV(xRegister32(gprreg), ptr32[&cpuRegs.sa]);
+ 	}
+ 	else
+ 	{
+-		xMOV(rax, ptr32[&cpuRegs.sa]);
+ 		_deleteEEreg(_Rd_, 0);
++		xMOV(eax, ptr32[&cpuRegs.sa]);
+ 		xMOV(ptr64[&cpuRegs.GPR.r[_Rd_].UD[0]], rax);
+ 	}
+ }

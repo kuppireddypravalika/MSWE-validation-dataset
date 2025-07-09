@@ -1,0 +1,27 @@
+From b58490c558fa16197c22354c892293bd6e527ce8 Mon Sep 17 00:00:00 2001
+From: Johannes Hofmann <Johannes.Hofmann@gmx.de>
+Date: Sat, 1 Dec 2012 23:12:29 +0100
+Subject: [PATCH] ask for ipv4 addresses only in getaddrinfo() if ipv6 is
+ disabled
+
+This speeds up dns requests quite a bit in my setup.
+---
+ src/dns.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/dns.c b/src/dns.c
+index 3989701d1..c24838e3d 100644
+--- a/src/dns.c
++++ b/src/dns.c
+@@ -284,7 +284,11 @@ static void *Dns_server(void *data)
+    char addr_string[40];
+ 
+    memset(&hints, 0, sizeof(hints));
++#ifdef ENABLE_IPV6
+    hints.ai_family = AF_UNSPEC;
++#else
++   hints.ai_family = AF_INET;
++#endif
+    hints.ai_socktype = SOCK_STREAM;
+ 
+    hosts = dList_new(2);

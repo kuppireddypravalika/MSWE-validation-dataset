@@ -1,0 +1,33 @@
+From fdee5c0f25b5b1698ab75fa62215286ce5b31f9f Mon Sep 17 00:00:00 2001
+From: David Trabish <davidtr1037@gmail.com>
+Date: Fri, 25 Aug 2017 14:18:43 +0300
+Subject: [PATCH] adding switch for optimized splitted searcher
+
+---
+ lib/Core/UserSearcher.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/lib/Core/UserSearcher.cpp b/lib/Core/UserSearcher.cpp
+index 43f35f24..d8f5cfdf 100644
+--- a/lib/Core/UserSearcher.cpp
++++ b/lib/Core/UserSearcher.cpp
+@@ -63,6 +63,8 @@ namespace {
+ 
+   cl::opt<bool> UseSplittedSearcher("split-search", cl::desc("..."));
+ 
++  cl::opt<bool> UseOptimizedSplittedSearcher("opt-split-search", cl::desc("..."));
++
+   cl::opt<unsigned int>
+   SplitRatio("split-ratio",
+             cl::desc("ratio for choosing recovery states (default = 20)"),
+@@ -142,6 +144,10 @@ Searcher *klee::constructUserSearcher(Executor &executor) {
+     searcher = new SplittedSearcher(searcher, SplitRatio);
+   }
+ 
++  if (UseOptimizedSplittedSearcher) {
++    searcher = new OptimizedSplittedSearcher(searcher, new DFSSearcher(), new DFSSearcher(), SplitRatio);
++  }
++
+   llvm::raw_ostream &os = executor.getHandler().getInfoStream();
+ 
+   os << "BEGIN searcher description\n";

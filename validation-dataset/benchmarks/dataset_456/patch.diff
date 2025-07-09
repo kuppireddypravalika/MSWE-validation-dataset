@@ -1,0 +1,24 @@
+From c63f24e58e7ec55c8462fc0396b87c8e6e67378e Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@musicpd.org>
+Date: Fri, 19 Oct 2018 20:04:28 +0200
+Subject: [PATCH] decoder/audiofile: larger stack buffer to reduce overhead
+
+---
+ src/decoder/plugins/AudiofileDecoderPlugin.cxx | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/src/decoder/plugins/AudiofileDecoderPlugin.cxx b/src/decoder/plugins/AudiofileDecoderPlugin.cxx
+index 3f2ee77c06..5c20e3dfde 100644
+--- a/src/decoder/plugins/AudiofileDecoderPlugin.cxx
++++ b/src/decoder/plugins/AudiofileDecoderPlugin.cxx
+@@ -219,9 +219,7 @@ audiofile_stream_decode(DecoderClient &client, InputStream &is)
+ 
+ 	DecoderCommand cmd;
+ 	do {
+-		/* pick 1020 since its divisible for 8,16,24, and
+-		   32-bit audio */
+-		char chunk[1020];
++		uint8_t chunk[8192];
+ 		const int nframes =
+ 			afReadFrames(fh, AF_DEFAULT_TRACK, chunk,
+ 				     sizeof(chunk) / frame_size);

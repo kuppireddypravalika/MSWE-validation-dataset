@@ -1,0 +1,40 @@
+From 9115eb302457038788e9bbe1280b2fe31227b747 Mon Sep 17 00:00:00 2001
+From: Chris Lattner <sabre@nondot.org>
+Date: Sun, 12 Dec 2004 22:44:30 +0000
+Subject: [PATCH] More minor microoptimizations
+
+llvm-svn: 18841
+---
+ llvm/lib/Transforms/Scalar/ADCE.cpp | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
+
+diff --git a/llvm/lib/Transforms/Scalar/ADCE.cpp b/llvm/lib/Transforms/Scalar/ADCE.cpp
+index fde1308aba2..43471341f4c 100644
+--- a/llvm/lib/Transforms/Scalar/ADCE.cpp
++++ b/llvm/lib/Transforms/Scalar/ADCE.cpp
+@@ -264,8 +264,6 @@ bool ADCE::doADCE() {
+       for (pred_iterator PI = pred_begin(I), E = pred_end(I); PI != E; ++PI)
+         markInstructionLive((*PI)->getTerminator());
+ 
+-
+-
+   DEBUG(std::cerr << "Processing work list\n");
+ 
+   // AliveBlocks - Set of basic blocks that we know have instructions that are
+@@ -291,12 +289,12 @@ bool ADCE::doADCE() {
+     // makes the predecessors alive.
+     //
+     if (PHINode *PN = dyn_cast<PHINode>(I))
+-      for (pred_iterator PI = pred_begin(BB), PE = pred_end(BB); PI != PE; ++PI)
+-        if (AliveBlocks.insert(*PI).second) // Block is now ALIVE!
+-          markBlockAlive(*PI);
++      for (unsigned i = 0, e = PN->getNumIncomingValues(); i != e; ++i)
++        if (AliveBlocks.insert(PN->getIncomingBlock(i)).second)
++          markBlockAlive(PN->getIncomingBlock(i));     // Block is newly ALIVE!
+ 
+     // Loop over all of the operands of the live instruction, making sure that
+-    // they are known to be alive as well...
++    // they are known to be alive as well.
+     //
+     for (unsigned op = 0, End = I->getNumOperands(); op != End; ++op)
+       if (Instruction *Operand = dyn_cast<Instruction>(I->getOperand(op)))

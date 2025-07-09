@@ -1,0 +1,23 @@
+From dc9a6a68d5305ae9f28fe4d65f3e116473081d30 Mon Sep 17 00:00:00 2001
+From: Inori <bingkan@outlook.com>
+Date: Thu, 3 Oct 2019 01:51:59 +0800
+Subject: [PATCH] Don't need to load
+
+---
+ GPCS4/Graphic/Pssl/GCNCompilerExport.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/GPCS4/Graphic/Pssl/GCNCompilerExport.cpp b/GPCS4/Graphic/Pssl/GCNCompilerExport.cpp
+index 4bf087bcb..91cb9b8d3 100644
+--- a/GPCS4/Graphic/Pssl/GCNCompilerExport.cpp
++++ b/GPCS4/Graphic/Pssl/GCNCompilerExport.cpp
+@@ -38,8 +38,7 @@ void GCNCompiler::emitExpVS(GCNInstruction& ins)
+ 		if (writeMask[i])
+ 		{
+ 			uint32_t regIdx = inst->GetVSRC(i);
+-			auto vgprPtr = emitVgprLoad(regIdx);
+-			indices.push_back(vgprPtr.id);
++			indices.push_back(m_vgprs[regIdx].id);
+ 		}
+ 	}
+ 

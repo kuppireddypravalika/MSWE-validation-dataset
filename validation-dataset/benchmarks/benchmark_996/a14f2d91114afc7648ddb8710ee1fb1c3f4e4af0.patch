@@ -1,0 +1,39 @@
+From a14f2d91114afc7648ddb8710ee1fb1c3f4e4af0 Mon Sep 17 00:00:00 2001
+From: Simon Pilgrim <llvm-dev@redking.me.uk>
+Date: Wed, 2 Nov 2016 15:41:15 +0000
+Subject: [PATCH] Use !operator to test if APInt is zero/non-zero. NFCI.
+
+Avoids APInt construction and slower comparisons.
+---
+ llvm/lib/CodeGen/SelectionDAG/SelectionDAG.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/llvm/lib/CodeGen/SelectionDAG/SelectionDAG.cpp b/llvm/lib/CodeGen/SelectionDAG/SelectionDAG.cpp
+index 67a881f62048..98cd81908150 100644
+--- a/llvm/lib/CodeGen/SelectionDAG/SelectionDAG.cpp
++++ b/llvm/lib/CodeGen/SelectionDAG/SelectionDAG.cpp
+@@ -2036,7 +2036,7 @@ void SelectionDAG::computeKnownBits(SDValue Op, APInt &KnownZero,
+   APInt KnownZero2, KnownOne2;
+   unsigned NumElts = DemandedElts.getBitWidth();
+ 
+-  if (DemandedElts == APInt(NumElts, 0))
++  if (!DemandedElts)
+     return;  // No demanded elts, better to assume we don't know anything.
+ 
+   switch (Op.getOpcode()) {
+@@ -2099,13 +2099,13 @@ void SelectionDAG::computeKnownBits(SDValue Op, APInt &KnownZero,
+         DemandedRHS.setBit((unsigned)M % NumElts);
+     }
+     // Known bits are the values that are shared by every demanded element.
+-    if (DemandedLHS != APInt(NumElts, 0)) {
++    if (!!DemandedLHS) {
+       SDValue LHS = Op.getOperand(0);
+       computeKnownBits(LHS, KnownZero2, KnownOne2, DemandedLHS, Depth + 1);
+       KnownOne &= KnownOne2;
+       KnownZero &= KnownZero2;
+     }
+-    if (DemandedRHS != APInt(NumElts, 0)) {
++    if (!!DemandedRHS) {
+       SDValue RHS = Op.getOperand(1);
+       computeKnownBits(RHS, KnownZero2, KnownOne2, DemandedRHS, Depth + 1);
+       KnownOne &= KnownOne2;

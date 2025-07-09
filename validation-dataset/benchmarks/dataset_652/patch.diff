@@ -1,0 +1,49 @@
+From 44dd40b9a9838de413982271a277f5e4ea9fd238 Mon Sep 17 00:00:00 2001
+From: Gonzalo Exequiel Pedone <hipersayan.x@gmail.com>
+Date: Mon, 2 Mar 2015 13:06:19 -0300
+Subject: [PATCH] Denoise, allocate large memory blocks in heap instead of
+ stack.
+
+---
+ Qb/Plugins/Denoise/src/denoiseelement.cpp | 20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
+
+diff --git a/Qb/Plugins/Denoise/src/denoiseelement.cpp b/Qb/Plugins/Denoise/src/denoiseelement.cpp
+index 2cd4c9e3d..8106b68dd 100644
+--- a/Qb/Plugins/Denoise/src/denoiseelement.cpp
++++ b/Qb/Plugins/Denoise/src/denoiseelement.cpp
+@@ -158,13 +158,13 @@ QbPacket DenoiseElement::iStream(const QbPacket &packet)
+     // Calculate integral image and cuadratic integral image.
+     int videoArea = width * height;
+ 
+-    quint8 planeR[videoArea];
+-    quint8 planeG[videoArea];
+-    quint8 planeB[videoArea];
++    quint8 *planeR = new quint8[videoArea];
++    quint8 *planeG = new quint8[videoArea];
++    quint8 *planeB = new quint8[videoArea];
+ 
+-    quint32 integralR[videoArea];
+-    quint32 integralG[videoArea];
+-    quint32 integralB[videoArea];
++    quint32 *integralR = new quint32[videoArea];
++    quint32 *integralG = new quint32[videoArea];
++    quint32 *integralB = new quint32[videoArea];
+ 
+     quint64 *integral2R = new quint64[videoArea];
+     quint64 *integral2G = new quint64[videoArea];
+@@ -385,6 +385,14 @@ QbPacket DenoiseElement::iStream(const QbPacket &packet)
+         }
+     }
+ 
++    delete [] planeR;
++    delete [] planeG;
++    delete [] planeB;
++
++    delete [] integralR;
++    delete [] integralG;
++    delete [] integralB;
++
+     delete [] integral2R;
+     delete [] integral2G;
+     delete [] integral2B;

@@ -1,0 +1,32 @@
+From 4c7fc8a70a9f14d4faaa8d489429cfefd5cdff1f Mon Sep 17 00:00:00 2001
+From: Eladash <elad3356p@gmail.com>
+Date: Tue, 16 Mar 2021 13:03:58 +0200
+Subject: [PATCH] Improve fs::container_stream::write (#9976)
+
+Add overflow condition.
+---
+ Utilities/File.h | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/Utilities/File.h b/Utilities/File.h
+index 2fe7e2b526a64..6206e2abdc1f3 100644
+--- a/Utilities/File.h
++++ b/Utilities/File.h
+@@ -696,13 +696,16 @@ namespace fs
+ 		{
+ 			const u64 old_size = obj.size();
+ 
+-			if (old_size + size < old_size)
++			if (old_size + size < old_size || pos + size < pos)
+ 			{
+ 				xovfl();
+ 			}
+ 
+ 			if (pos > old_size)
+ 			{
++			 	// Reserve memory
++				obj.reserve(pos + size);
++
+ 				// Fill gap if necessary (default-initialized)
+ 				obj.resize(pos);
+ 			}

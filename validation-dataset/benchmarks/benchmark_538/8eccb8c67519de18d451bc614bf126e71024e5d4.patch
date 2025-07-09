@@ -1,0 +1,24 @@
+From 8eccb8c67519de18d451bc614bf126e71024e5d4 Mon Sep 17 00:00:00 2001
+From: kmurray <k.murray@utoronto.ca>
+Date: Tue, 9 Apr 2019 16:50:24 -0400
+Subject: [PATCH] vpr: Change --place_delay_model default to 'delta'
+
+This achieves similar quality as 'delta_override', but is faster to run
+since it doesn't need to perform direct-connect override look-ups.
+---
+ vpr/src/base/read_options.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/vpr/src/base/read_options.cpp b/vpr/src/base/read_options.cpp
+index d65b28c3494..fb83a1d4d69 100644
+--- a/vpr/src/base/read_options.cpp
++++ b/vpr/src/base/read_options.cpp
+@@ -1068,7 +1068,7 @@ static argparse::ArgumentParser create_arg_parser(std::string prog_name, t_optio
+                   "Valid options:\n"
+                   " * 'delta' uses differences in position only\n"
+                   " * 'delta_override' uses differences in position with overrides for direct connects\n")
+-            .default_value("delta_override")
++            .default_value("delta")
+             .show_in(argparse::ShowIn::HELP_ONLY);
+ 
+     place_timing_grp.add_argument<e_reducer,ParseReducer>(args.place_delay_model_reducer, "--place_delay_model_reducer")

@@ -1,0 +1,35 @@
+From 2c15da390f31f35bbd30db45cd07d7540415a4db Mon Sep 17 00:00:00 2001
+From: Richard Goedeken <Richard@fascinationsoftware.com>
+Date: Mon, 26 Oct 2009 00:52:19 -0400
+Subject: [PATCH] don't byte-swap the ROM header information during startup
+
+---
+ src/Video.cpp | 15 ++-------------
+ 1 file changed, 2 insertions(+), 13 deletions(-)
+
+diff --git a/src/Video.cpp b/src/Video.cpp
+index eb699e93a..e6733c161 100644
+--- a/src/Video.cpp
++++ b/src/Video.cpp
+@@ -253,19 +253,8 @@ static void StartVideo(void)
+ 
+     g_CritialSection.Lock();
+ 
+-    /*memcpy(&g_curRomInfo.romheader, g_GraphicsInfo.HEADER, sizeof(ROMHeader));  FIXME fixme RG */
+-    unsigned char *puc = (unsigned char *) &g_curRomInfo.romheader;
+-    unsigned int i;
+-    unsigned char temp;
+-    for (i = 0; i < sizeof(ROMHeader); i += 4)
+-    {
+-        temp     = puc[i];
+-        puc[i]   = puc[i+3];
+-        puc[i+3] = temp;
+-        temp     = puc[i+1];
+-        puc[i+1] = puc[i+2];
+-        puc[i+2] = temp;
+-    }
++    memcpy(&g_curRomInfo.romheader, g_GraphicsInfo.HEADER, sizeof(ROMHeader));
++
+     ROM_GetRomNameFromHeader(g_curRomInfo.szGameName, &g_curRomInfo.romheader);
+     Ini_GetRomOptions(&g_curRomInfo);
+     char *p = (char *) g_curRomInfo.szGameName + (strlen((char *) g_curRomInfo.szGameName) -1);     // -1 to skip null

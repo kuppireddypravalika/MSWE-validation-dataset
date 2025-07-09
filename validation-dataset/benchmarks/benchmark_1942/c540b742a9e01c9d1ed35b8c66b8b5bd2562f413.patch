@@ -1,0 +1,44 @@
+From c540b742a9e01c9d1ed35b8c66b8b5bd2562f413 Mon Sep 17 00:00:00 2001
+From: psiorx <psiorx@gmail.com>
+Date: Wed, 25 Mar 2015 00:21:49 -0400
+Subject: [PATCH] optimized matrix inverse product using a cholesky
+ decomposition
+
+---
+ systems/plants/setupLCPmex.cpp | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/systems/plants/setupLCPmex.cpp b/systems/plants/setupLCPmex.cpp
+index afd152e203e7..3c53b0756d0b 100644
+--- a/systems/plants/setupLCPmex.cpp
++++ b/systems/plants/setupLCPmex.cpp
+@@ -138,12 +138,16 @@ void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[] ) {
+ 
+   model->positionConstraints(phiP, JP);
+   model->jointLimitConstraints(q, phiL, JL);
+-  MatrixXd Hinv = H.inverse();
++  
+   const size_t nP = phiP.size();
+   
+   plhs[2] = mxCreateDoubleMatrix(nq, 1, mxREAL);
+   Map<VectorXd> wqdn(mxGetPr(plhs[2]), nq);
+-  wqdn = v + h * Hinv * (B * u - C);
++
++  LLT<MatrixXd> H_cholesky(H); // compute the Cholesky decomposition of H
++  wqdn = H_cholesky.solve(B * u - C);
++  wqdn *= h;
++  wqdn += v;
+ 
+   //use forward euler step in joint space as
+   //initial guess for active constraints
+@@ -187,8 +191,8 @@ void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[] ) {
+     MatrixXd J(lcp_size, nq);
+     J << JL_possible, JP, n_possible, D_possible, MatrixXd::Zero(nC, nq);
+ 
+-    Mqdn = Hinv*J.transpose();
+-    
++    Mqdn = H_cholesky.solve(J.transpose());
++   
+     //solve LCP problem 
+     //TODO: call fastQP first
+     //TODO: call path from C++ (currently only 32-bit C libraries available)

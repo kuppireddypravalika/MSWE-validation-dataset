@@ -1,0 +1,29 @@
+From 8bd61a9330114d350d4b2a5cc805cf8b75d5a20a Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Beat=20K=C3=BCng?= <beat-kueng@gmx.net>
+Date: Mon, 7 May 2018 13:19:38 +0200
+Subject: [PATCH] uORBDevices: avoid memset, use braced initializer instead
+
+---
+ src/modules/uORB/uORBDevices.cpp | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/src/modules/uORB/uORBDevices.cpp b/src/modules/uORB/uORBDevices.cpp
+index 3222ebaae357..808c3110fb7c 100644
+--- a/src/modules/uORB/uORBDevices.cpp
++++ b/src/modules/uORB/uORBDevices.cpp
+@@ -142,14 +142,12 @@ uORB::DeviceNode::open(device::file_t *filp)
+ 	if (FILE_FLAGS(filp) == PX4_F_RDONLY) {
+ 
+ 		/* allocate subscriber data */
+-		SubscriberData *sd = new SubscriberData;
++		SubscriberData *sd = new SubscriberData{};
+ 
+ 		if (nullptr == sd) {
+ 			return -ENOMEM;
+ 		}
+ 
+-		memset(sd, 0, sizeof(*sd));
+-
+ 		/* default to no pending update */
+ 		sd->generation = _generation;
+ 

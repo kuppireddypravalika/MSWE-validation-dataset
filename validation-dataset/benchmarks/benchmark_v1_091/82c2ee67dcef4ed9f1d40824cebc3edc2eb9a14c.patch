@@ -1,0 +1,23 @@
+From 82c2ee67dcef4ed9f1d40824cebc3edc2eb9a14c Mon Sep 17 00:00:00 2001
+From: Bill Wendling <isanbard@gmail.com>
+Date: Wed, 13 Feb 2013 09:26:26 +0000
+Subject: [PATCH] Use array_pod_sort.
+
+llvm-svn: 175048
+---
+ llvm/lib/IR/Attributes.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/llvm/lib/IR/Attributes.cpp b/llvm/lib/IR/Attributes.cpp
+index 7d0bec2b118..3de304e7608 100644
+--- a/llvm/lib/IR/Attributes.cpp
++++ b/llvm/lib/IR/Attributes.cpp
+@@ -412,7 +412,7 @@ AttributeSetNode *AttributeSetNode::get(LLVMContext &C,
+   FoldingSetNodeID ID;
+ 
+   SmallVector<Attribute, 8> SortedAttrs(Attrs.begin(), Attrs.end());
+-  std::sort(SortedAttrs.begin(), SortedAttrs.end());
++  array_pod_sort(SortedAttrs.begin(), SortedAttrs.end());
+ 
+   for (SmallVectorImpl<Attribute>::iterator I = SortedAttrs.begin(),
+          E = SortedAttrs.end(); I != E; ++I)

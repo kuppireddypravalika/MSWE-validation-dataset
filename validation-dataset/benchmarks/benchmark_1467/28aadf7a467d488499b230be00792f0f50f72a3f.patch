@@ -1,0 +1,27 @@
+From 28aadf7a467d488499b230be00792f0f50f72a3f Mon Sep 17 00:00:00 2001
+From: Piotr Sobczak <piotr.sobczak@amd.com>
+Date: Thu, 11 May 2023 16:46:41 +0200
+Subject: [PATCH] Mark AccelerationStructure load invariant
+
+Mark AccelerationStructure load invariant to allow more middle-end
+optimizations.
+---
+ llpc/translator/lib/SPIRV/SPIRVReader.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/llpc/translator/lib/SPIRV/SPIRVReader.cpp b/llpc/translator/lib/SPIRV/SPIRVReader.cpp
+index 55c2fc4b24..73ec1b3de3 100644
+--- a/llpc/translator/lib/SPIRV/SPIRVReader.cpp
++++ b/llpc/translator/lib/SPIRV/SPIRVReader.cpp
+@@ -3617,8 +3617,9 @@ template <> Value *SPIRVToLLVM::transValueWithOpcode<OpConvertUToAccelerationStr
+ 
+   // Cast to the return type pointer
+   loadValue = m_builder->CreateBitCast(loadValue, accelStructPtrTy);
+-  loadValue = m_builder->CreateLoad(accelStructTy, loadValue);
+-  return mapValue(spvValue, loadValue);
++  auto load = m_builder->CreateLoad(accelStructTy, loadValue);
++  load->setMetadata(LLVMContext::MD_invariant_load, MDNode::get(*m_context, {}));
++  return mapValue(spvValue, load);
+ }
+ 
+ // =====================================================================================================================

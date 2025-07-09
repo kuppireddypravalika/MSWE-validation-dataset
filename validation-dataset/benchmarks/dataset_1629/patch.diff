@@ -1,0 +1,34 @@
+From b40bb99a60dcccb1dcbb72ac3d3349607d5b3358 Mon Sep 17 00:00:00 2001
+From: Dennis Oberst <dennis.oberst@qt.io>
+Date: Mon, 31 Jul 2023 13:49:31 +0200
+Subject: [PATCH] Use new QBA::assign in QStorageInfoPrivate::retrievePosixInfo
+
+QByteArray::assign() re-uses existing unshared capacity(), if any, and
+is therefore potentially more efficient than '= QByteArray(~)' (and
+never slower).
+
+Task-number: QTBUG-106201
+Pick-to: 6.6
+Change-Id: Ic51fc57eb0f84d3624ad3447c93a74241ab3612b
+Reviewed-by: Thiago Macieira <thiago.macieira@intel.com>
+Reviewed-by: Marc Mutz <marc.mutz@qt.io>
+---
+ src/corelib/io/qstorageinfo_mac.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/corelib/io/qstorageinfo_mac.cpp b/src/corelib/io/qstorageinfo_mac.cpp
+index 9ec5ae3f2f22..c6c0f501dabf 100644
+--- a/src/corelib/io/qstorageinfo_mac.cpp
++++ b/src/corelib/io/qstorageinfo_mac.cpp
+@@ -43,9 +43,9 @@ void QStorageInfoPrivate::retrievePosixInfo()
+     QT_STATFSBUF statfs_buf;
+     int result = QT_STATFS(QFile::encodeName(rootPath).constData(), &statfs_buf);
+     if (result == 0) {
+-        device = QByteArray(statfs_buf.f_mntfromname);
++        device.assign(statfs_buf.f_mntfromname);
+         readOnly = (statfs_buf.f_flags & MNT_RDONLY) != 0;
+-        fileSystemType = QByteArray(statfs_buf.f_fstypename);
++        fileSystemType.assign(statfs_buf.f_fstypename);
+         blockSize = statfs_buf.f_bsize;
+     }
+ }

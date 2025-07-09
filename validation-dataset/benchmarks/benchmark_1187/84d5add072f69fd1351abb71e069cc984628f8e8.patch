@@ -1,0 +1,37 @@
+From 84d5add072f69fd1351abb71e069cc984628f8e8 Mon Sep 17 00:00:00 2001
+From: Dan Ibanez <dan.a.ibanez@gmail.com>
+Date: Thu, 23 Jun 2016 18:07:49 -0400
+Subject: [PATCH] permute() uses map_into()
+
+I think the compiler was combining
+the two lambdas (since they are identical...)
+may as well do this ourselves, there is no
+performance loss and debugging will be
+clearer.
+---
+ map.cpp | 11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
+
+diff --git a/map.cpp b/map.cpp
+index e44bd8551..d8b381eec 100644
+--- a/map.cpp
++++ b/map.cpp
+@@ -51,16 +51,9 @@ Read<T> expand(Read<T> a_data, LOs a2b, Int width) {
+ 
+ template <typename T>
+ Read<T> permute(Read<T> a_data, LOs a2b, Int width) {
+-  auto na = a2b.size();
+-  auto nb = na;
++  auto nb = a2b.size();
+   Write<T> b_data(nb * width);
+-  auto f = LAMBDA(LO a) {
+-    auto b = a2b[a];
+-    for (Int j = 0; j < width; ++j) {
+-      b_data[b * width + j] = a_data[a * width + j];
+-    }
+-  };
+-  parallel_for(na, f);
++  map_into(a_data, a2b, b_data, width);
+   return b_data;
+ }
+ 

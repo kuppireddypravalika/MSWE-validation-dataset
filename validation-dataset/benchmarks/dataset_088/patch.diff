@@ -1,0 +1,39 @@
+From 474e20ff38c4c2bb62bd18526ce5cd50e635cdb1 Mon Sep 17 00:00:00 2001
+From: Pieter Wuille <pieter.wuille@gmail.com>
+Date: Fri, 13 Jul 2018 20:12:16 -0700
+Subject: [PATCH] Merge #11658: During IBD, when doing pruning, prune 10% extra
+ to avoid pruning again soon after
+
+ac51a26bdc During IBD, when doing pruning, prune 10% extra to avoid pruning again soon after (Luke Dashjr)
+
+Pull request description:
+
+  Pruning forces a chainstate flush, which can defeat the dbcache and harm performance significantly.
+
+  Alternative to #11359
+
+Tree-SHA512: 631e4e8f94f5699e98a2eff07204aa2b3b2325b2d92e8236b8c8d6a6730737a346e0ad86024e705f5a665b25e873ab0970ce7396740328a437c060f99e9ba4d9
+---
+ src/validation.cpp | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/src/validation.cpp b/src/validation.cpp
+index 227ca4f229..c29dd45893 100644
+--- a/src/validation.cpp
++++ b/src/validation.cpp
+@@ -3974,6 +3974,15 @@ static void FindFilesToPrune(std::set<int>& setFilesToPrune, uint64_t nPruneAfte
+     int count=0;
+ 
+     if (nCurrentUsage + nBuffer >= nPruneTarget) {
++        // On a prune event, the chainstate DB is flushed.
++        // To avoid excessive prune events negating the benefit of high dbcache
++        // values, we should not prune too rapidly.
++        // So when pruning in IBD, increase the buffer a bit to avoid a re-prune too soon.
++        if (IsInitialBlockDownload()) {
++            // Since this is only relevant during IBD, we use a fixed 10%
++            nBuffer += nPruneTarget / 10;
++        }
++
+         for (int fileNumber = 0; fileNumber < nLastBlockFile; fileNumber++) {
+             nBytesToPrune = vinfoBlockFile[fileNumber].nSize + vinfoBlockFile[fileNumber].nUndoSize;
+ 

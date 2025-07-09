@@ -1,0 +1,21 @@
+From d1db6a655bc71e661c2fde27861459749944f132 Mon Sep 17 00:00:00 2001
+From: Ghabry <gabriel+github@mastergk.de>
+Date: Sun, 1 May 2016 23:00:40 +0200
+Subject: [PATCH] Improve MP3 heuristic by reducing the resync limit
+
+---
+ src/decoder_mpg123.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/decoder_mpg123.cpp b/src/decoder_mpg123.cpp
+index 4612beaff7..d19deefaae 100644
+--- a/src/decoder_mpg123.cpp
++++ b/src/decoder_mpg123.cpp
+@@ -51,6 +51,7 @@ Mpg123Decoder::Mpg123Decoder() :
+ 
+ 	handle.reset(mpg123_new(nullptr, &err));
+ 	mpg123_replace_reader_handle(handle.get(), custom_read, custom_seek, custom_close);
++	mpg123_param(handle.get(), MPG123_RESYNC_LIMIT, 64, 0.0);
+ 
+ 	if (!handle) {
+ 		Output::Warning("Couldn't create mpg123 handle.\n%s", mpg123_plain_strerror(err));

@@ -1,0 +1,26 @@
+From 82bf6024df5623148133654c845721550d148d24 Mon Sep 17 00:00:00 2001
+From: Vassil Vassilev <v.g.vassilev@gmail.com>
+Date: Sun, 14 Oct 2018 19:40:37 +0100
+Subject: [PATCH] Reduce the amount of code which clad needs to scan.
+
+Currently, clad scans all declarations coming from Differentiator.h.
+
+This patch teaches clad to ignore the declarations in Differentiator.h
+because we know there is no clad::differentiate there.
+---
+ tools/ClangPlugin.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tools/ClangPlugin.cpp b/tools/ClangPlugin.cpp
+index 1c0ef2d0c..49610bfac 100644
+--- a/tools/ClangPlugin.cpp
++++ b/tools/ClangPlugin.cpp
+@@ -168,7 +168,7 @@ namespace clad {
+       // This assert tries to catch such situations heuristically.
+       assert(&C.Idents == &m_CI.getPreprocessor().getIdentifierTable()
+              && "Miscompiled?");
+-      DeclarationName Name = &C.Idents.get("custom_derivatives");
++      DeclarationName Name = &C.Idents.get("clad");
+       Sema &SemaR = m_CI.getSema();
+       LookupResult R(SemaR, Name, SourceLocation(), Sema::LookupNamespaceName,
+                      Sema::ForRedeclaration);

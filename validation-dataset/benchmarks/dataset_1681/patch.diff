@@ -1,0 +1,35 @@
+From 06fa6ef1b9e159bd9b83b59ce23b7e09b918aa1f Mon Sep 17 00:00:00 2001
+From: Ulf Hermann <ulf.hermann@qt.io>
+Date: Fri, 1 Nov 2019 16:04:18 +0100
+Subject: [PATCH] RuntimeHelpers: Short-circuit stringToNumber on huge strings
+
+We don't need to iterate such a monster, or even convert it to latin1.
+It won't be a valid number anyway.
+
+Fixes: QTBUG-78955
+Change-Id: Iaa35d924511885f804abe2d5c74235adcad55b27
+Reviewed-by: Simon Hausmann <simon.hausmann@qt.io>
+---
+ src/qml/jsruntime/qv4runtime.cpp | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/src/qml/jsruntime/qv4runtime.cpp b/src/qml/jsruntime/qv4runtime.cpp
+index aaa198c62a5..01b5ff66118 100644
+--- a/src/qml/jsruntime/qv4runtime.cpp
++++ b/src/qml/jsruntime/qv4runtime.cpp
+@@ -408,6 +408,15 @@ QV4::ReturnedValue Runtime::In::call(ExecutionEngine *engine, const Value &left,
+ 
+ double RuntimeHelpers::stringToNumber(const QString &string)
+ {
++    // The actual maximum valid length is certainly shorter, but due to the sheer number of
++    // different number formatting variants, we rather err on the side of caution here.
++    // For example, you can have up to 772 valid decimal digits left of the dot, as stated in the
++    // libdoubleconversion sources. The same maximum value would be represented by roughly 3.5 times
++    // as many binary digits.
++    const int excessiveLength = 16 * 1024;
++    if (string.length() > excessiveLength)
++        return qQNaN();
++
+     const QStringRef s = QStringRef(&string).trimmed();
+     if (s.startsWith(QLatin1Char('0'))) {
+         int base = -1;

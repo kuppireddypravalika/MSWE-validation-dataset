@@ -1,0 +1,34 @@
+From f4bea399a9a6f6353f8764244739da778e266b60 Mon Sep 17 00:00:00 2001
+From: Tobias Grosser <grosser@fim.uni-passau.de>
+Date: Wed, 14 Dec 2011 08:58:43 +0000
+Subject: [PATCH] Scheduler: Try to maximize the band depth
+
+Previously the scheduler was splitting bands at the level at which it detected
+that the splitting of the band is necessary. This may introduce an additional
+level of bands, that can be avoided by backtracking and splitting on a higher
+level. Additional splits reduce the number of loops that can be tiled, such that
+avoiding splits and maximizing the band depth seems preferable.
+
+As a first data point we looked at 2mm and 3mm from the polybench test suite.
+For both maximizing the tilable bands results in a significant (5-10x)
+performance improvement.
+
+This patch enables the isl scheduler option to maximize the band depth.
+
+llvm-svn: 146557
+---
+ polly/lib/ScheduleOptimizer.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/polly/lib/ScheduleOptimizer.cpp b/polly/lib/ScheduleOptimizer.cpp
+index c8c7ebc6953..d857142f2e5 100644
+--- a/polly/lib/ScheduleOptimizer.cpp
++++ b/polly/lib/ScheduleOptimizer.cpp
+@@ -436,6 +436,7 @@ bool IslScheduleOptimizer::runOnScop(Scop &S) {
+   isl_schedule *schedule;
+ 
+   isl_options_set_schedule_max_constant_term(S.getIslCtx(), CONSTANT_BOUND);
++  isl_options_set_schedule_maximize_band_depth(S.getIslCtx(), 1);
+   schedule  = isl_union_set_compute_schedule(domain, validity, proximity);
+ 
+   DEBUG(dbgs() << "Computed schedule: ");

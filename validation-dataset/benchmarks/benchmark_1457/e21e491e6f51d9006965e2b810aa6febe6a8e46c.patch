@@ -1,0 +1,22 @@
+From e21e491e6f51d9006965e2b810aa6febe6a8e46c Mon Sep 17 00:00:00 2001
+From: Rui Ueyama <ruiu@google.com>
+Date: Mon, 25 Sep 2017 17:40:21 +0000
+Subject: [PATCH] Use UINT64_MAX instead of implicitly-type-converted -1.
+
+---
+ lld/ELF/LinkerScript.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lld/ELF/LinkerScript.cpp b/lld/ELF/LinkerScript.cpp
+index 0baa2129bedc..e72a20d9fa3e 100644
+--- a/lld/ELF/LinkerScript.cpp
++++ b/lld/ELF/LinkerScript.cpp
+@@ -428,7 +428,7 @@ void LinkerScript::processCommands(OutputSectionFactory &Factory) {
+ 
+ void LinkerScript::fabricateDefaultCommands() {
+   // Define start address
+-  uint64_t StartAddr = -1;
++  uint64_t StartAddr = UINT64_MAX;
+ 
+   // The Sections with -T<section> have been sorted in order of ascending
+   // address. We must lower StartAddr if the lowest -T<section address> as

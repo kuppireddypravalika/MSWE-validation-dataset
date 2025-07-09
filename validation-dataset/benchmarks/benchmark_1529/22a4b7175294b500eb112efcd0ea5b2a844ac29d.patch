@@ -1,0 +1,41 @@
+From 22a4b7175294b500eb112efcd0ea5b2a844ac29d Mon Sep 17 00:00:00 2001
+From: Rosen Penev <rosenp@gmail.com>
+Date: Wed, 12 Jul 2023 17:52:48 -0700
+Subject: [PATCH] optimize other toAscii function with early exit
+
+GCC is able to see that the branch is useless as it can be done at
+compile time. Produces shorter assembly with both -O2 and -O3.
+
+Assign the pointer to the std::string directly and use proper iterators
+with std::transform. Also produces shorter assembly.
+
+Signed-off-by: Rosen Penev <rosenp@gmail.com>
+---
+ src/bmffimage.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/bmffimage.cpp b/src/bmffimage.cpp
+index 185672b9b8..8f8b0e4b06 100644
+--- a/src/bmffimage.cpp
++++ b/src/bmffimage.cpp
+@@ -84,16 +84,16 @@ BmffImage::BmffImage(BasicIo::UniquePtr io, bool /* create */) :
+ 
+ std::string BmffImage::toAscii(uint32_t n) {
+   const auto p = reinterpret_cast<const char*>(&n);
+-  std::string result(4, '.');
+-  std::transform(p, p + 4, result.begin(), [](char c) {
++  std::string result(p, p + 4);
++  if (!isBigEndianPlatform())
++    std::reverse(result.begin(), result.end());
++  std::transform(result.begin(), result.end(), result.begin(), [](char c) {
+     if (32 <= c && c < 127)
+       return c;  // only allow 7-bit printable ascii
+     if (c == 0)
+       return '_';  // show 0 as _
+     return '.';    // others .
+   });
+-  if (!isBigEndianPlatform())
+-    std::reverse(result.begin(), result.end());
+   return result;
+ }
+ 

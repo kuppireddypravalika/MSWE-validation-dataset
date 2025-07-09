@@ -1,0 +1,35 @@
+From a95d43fa3712c6ad0e70172ec6622d109e2f602d Mon Sep 17 00:00:00 2001
+From: Ryan Houdek <Sonicadvance1@gmail.com>
+Date: Tue, 19 May 2020 21:34:04 -0700
+Subject: [PATCH] Changes getcwd to use the syscall directly.
+
+The glibc implementation and syscall implementation differ quite
+significantly.
+Just use the kernel interface one for now.
+---
+ External/FEXCore/Source/Interface/HLE/Syscalls/FS.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/External/FEXCore/Source/Interface/HLE/Syscalls/FS.cpp b/External/FEXCore/Source/Interface/HLE/Syscalls/FS.cpp
+index ea4eb40296..b8b458c910 100644
+--- a/External/FEXCore/Source/Interface/HLE/Syscalls/FS.cpp
++++ b/External/FEXCore/Source/Interface/HLE/Syscalls/FS.cpp
+@@ -3,6 +3,7 @@
+ 
+ #include <stddef.h>
+ #include <stdint.h>
++#include <sys/syscall.h>
+ #include <sys/types.h>
+ #include <sys/vfs.h>
+ #include <unistd.h>
+@@ -13,8 +14,8 @@ struct InternalThreadState;
+ 
+ namespace FEXCore::HLE {
+   uint64_t Getcwd(FEXCore::Core::InternalThreadState *Thread, char *buf, size_t size) {
+-    uint64_t Result = reinterpret_cast<uint64_t>(::getcwd(buf, size));
+-    SYSCALL_ERRNO_NULL();
++    uint64_t Result = syscall(SYS_getcwd, buf, size);
++    SYSCALL_ERRNO();
+   }
+ 
+   uint64_t Chdir(FEXCore::Core::InternalThreadState *Thread, const char *path) {

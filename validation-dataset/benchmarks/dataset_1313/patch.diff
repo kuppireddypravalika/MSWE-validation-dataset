@@ -1,0 +1,27 @@
+From 24f61bd36bcbf5694130d3f0281611c39ffd3454 Mon Sep 17 00:00:00 2001
+From: Dominik Schreiber <mail@dominikschreiber.de>
+Date: Mon, 10 Aug 2020 07:39:00 +0200
+Subject: [PATCH] Use set instead of vector to collect args to instantiate
+
+---
+ src/data/instantiator.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/data/instantiator.cpp b/src/data/instantiator.cpp
+index b5b35e3..81e74b2 100644
+--- a/src/data/instantiator.cpp
++++ b/src/data/instantiator.cpp
+@@ -86,10 +86,11 @@ USigSet Instantiator::instantiate(const HtnOp& op, const StateEvaluator& state)
+     __op = &op;
+ 
+     // First try to naively ground the operation up to some limit
+-    std::vector<int> argsByPriority;
++    FlatHashSet<int> argsToInstantiate;
+     for (const int& arg : op.getArguments()) {
+-        if (_htn->isVariable(arg)) argsByPriority.push_back(arg);
++        if (_htn->isVariable(arg)) argsToInstantiate.insert(arg);
+     }
++    std::vector<int> argsByPriority(argsToInstantiate.begin(), argsToInstantiate.end());
+     std::sort(argsByPriority.begin(), argsByPriority.end(), CompArgs());
+     
+     // a) Try to naively ground _one single_ instantiation

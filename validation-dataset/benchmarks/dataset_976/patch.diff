@@ -1,0 +1,24 @@
+From 69437eaf11919cd1ff5781de058031c733f73426 Mon Sep 17 00:00:00 2001
+From: Lioncash <mathew1800@gmail.com>
+Date: Wed, 17 Nov 2021 06:01:32 -0500
+Subject: [PATCH] FEXLoader: Take sections by const reference in loop
+
+Given LoadedSection instances are 72 bytes, this avoids a minor bit of
+copy churn
+---
+ Source/Tests/FEXLoader.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Source/Tests/FEXLoader.cpp b/Source/Tests/FEXLoader.cpp
+index d372f424d9..95430879b0 100644
+--- a/Source/Tests/FEXLoader.cpp
++++ b/Source/Tests/FEXLoader.cpp
+@@ -578,7 +578,7 @@ int main(int argc, char **argv, char **const envp) {
+     return AOTWrite;
+   });
+ 
+-  for(auto Section: *Loader.Sections) {
++  for(const auto &Section: *Loader.Sections) {
+     FEXCore::Context::AddNamedRegion(CTX, Section.Base, Section.Size, Section.Offs, Section.Filename);
+   }
+ 

@@ -1,0 +1,29 @@
+From 34886d16d9ba956fde8bd853493abc9cba6fb42e Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Thu, 26 Nov 2020 11:45:11 +0100
+Subject: [PATCH] [clingutils] KeepNParams: break on first template default
+ args.
+
+This is a hot function, getMinRequiredArguments() is far from cheap,
+and instead of taking the last redecl with default args we now take the
+first. There should only be one anyway.
+---
+ core/clingutils/src/TClingUtils.cxx | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/core/clingutils/src/TClingUtils.cxx b/core/clingutils/src/TClingUtils.cxx
+index c02f02a20fed4..0fd75d83b05be 100644
+--- a/core/clingutils/src/TClingUtils.cxx
++++ b/core/clingutils/src/TClingUtils.cxx
+@@ -3871,8 +3871,10 @@ static void KeepNParams(clang::QualType& normalizedType,
+    const clang::ClassTemplateDecl* ctdWithDefaultArgs = ctd;
+    for (const RedeclarableTemplateDecl* rd: ctdWithDefaultArgs->redecls()) {
+       clang::TemplateParameterList* tpl = rd->getTemplateParameters();
+-      if (tpl->getMinRequiredArguments () < tpl->size())
++      if (tpl->getMinRequiredArguments () < tpl->size()) {
+          ctdWithDefaultArgs = llvm::dyn_cast<clang::ClassTemplateDecl>(rd);
++         break;
++      }
+    }
+ 
+    if (!ctdWithDefaultArgs) {

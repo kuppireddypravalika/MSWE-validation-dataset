@@ -1,0 +1,33 @@
+From 158ba9af66a734ad435e6df3f3f09df51ca296b9 Mon Sep 17 00:00:00 2001
+From: Philip Chimento <philip.chimento@gmail.com>
+Date: Wed, 10 Oct 2018 22:37:39 -0700
+Subject: [PATCH] jsapi-util: Debug values without a toString()
+
+When using gjs_value_debug_string() (which is what is used in the console
+interpreter to print the result of an expression) we try to be a bit more
+intelligent when a value doesn't have a toString(), and use
+JS_ValueToSource() instead.
+
+This was the case for Symbols; previously the output for `Symbol('foo')`
+in the console interpreter was "[unknown non-object]" plus an exception
+stack trace.
+---
+ gjs/jsapi-util.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/gjs/jsapi-util.cpp b/gjs/jsapi-util.cpp
+index 31a118414..59ab67f46 100644
+--- a/gjs/jsapi-util.cpp
++++ b/gjs/jsapi-util.cpp
+@@ -449,6 +449,11 @@ gjs_value_debug_string(JSContext      *context,
+ 
+     JS::RootedString str(context, JS::ToString(context, value));
+ 
++    if (!str) {
++        JS_ClearPendingException(context);
++        str = JS_ValueToSource(context, value);
++    }
++
+     if (!str) {
+         if (value.isObject()) {
+             /* Specifically the Call object (see jsfun.c in spidermonkey)

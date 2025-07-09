@@ -1,0 +1,28 @@
+From ebea41c4f726111ce9abc86ba01c8c44398ba44d Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Fri, 23 Feb 2018 13:19:27 +0000
+Subject: [PATCH] openfilegdb: avoid potential very long loop. Fixes
+ https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=6513. Credit to OSS
+ Fuzz
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@41551 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/ogr/ogrsf_frmts/openfilegdb/ogropenfilegdblayer.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/gdal/ogr/ogrsf_frmts/openfilegdb/ogropenfilegdblayer.cpp b/gdal/ogr/ogrsf_frmts/openfilegdb/ogropenfilegdblayer.cpp
+index f7ac28d31cf1..9cec163f7a07 100644
+--- a/gdal/ogr/ogrsf_frmts/openfilegdb/ogropenfilegdblayer.cpp
++++ b/gdal/ogr/ogrsf_frmts/openfilegdb/ogropenfilegdblayer.cpp
+@@ -448,8 +448,10 @@ void OGROpenFileGDBLayer::TryToDetectMultiPatchKind()
+     delete poGeom;
+ 
+     int nLastIdx = m_poLyrTable->GetTotalRecordCount()-1;
++    const GUInt32 nErrorCount = CPLGetErrorCounter();
+     while( nLastIdx > nFirstIdx && 
+-           m_poLyrTable->GetOffsetInTableForRow(nLastIdx) == 0 )
++           m_poLyrTable->GetOffsetInTableForRow(nLastIdx) == 0 &&
++           nErrorCount == CPLGetErrorCounter() )
+     {
+         nLastIdx --;
+     }

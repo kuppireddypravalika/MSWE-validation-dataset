@@ -1,0 +1,33 @@
+From 0602e657fac200b0fc7d3ae19361ef9ef1247d92 Mon Sep 17 00:00:00 2001
+From: Thiago Macieira <thiago.macieira@intel.com>
+Date: Fri, 20 Jul 2018 14:54:03 -0700
+Subject: [PATCH] tst_qmldiskcache: speed up test
+
+On some systems, we *do* have sub-second file time resolution, so we
+don't have to wait one second.
+
+Change-Id: Id2be776c7ae0467c9d9ffffd1543325ce53f10fd
+Reviewed-by: Simon Hausmann <simon.hausmann@qt.io>
+---
+ tests/auto/qml/qmldiskcache/tst_qmldiskcache.cpp | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/tests/auto/qml/qmldiskcache/tst_qmldiskcache.cpp b/tests/auto/qml/qmldiskcache/tst_qmldiskcache.cpp
+index f5905758f37..01f047c3237 100644
+--- a/tests/auto/qml/qmldiskcache/tst_qmldiskcache.cpp
++++ b/tests/auto/qml/qmldiskcache/tst_qmldiskcache.cpp
+@@ -89,7 +89,13 @@ static void waitForFileSystem()
+     // the newly written file has a modification date newer than an existing cache file, we must
+     // wait.
+     // Similar effects of lacking precision have been observed on some Linux systems.
+-    QThread::sleep(1);
++    static const bool fsHasSubSecondResolution = []() {
++        QDateTime mtime = QFileInfo(QStandardPaths::writableLocation(QStandardPaths::CacheLocation)).lastModified();
++        // 1:1000 chance of a false negative
++        return mtime.toMSecsSinceEpoch() % 1000;
++    }();
++    if (!fsHasSubSecondResolution)
++        QThread::sleep(1);
+ }
+ 
+ struct TestCompiler

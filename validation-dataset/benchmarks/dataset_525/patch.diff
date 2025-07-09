@@ -1,0 +1,37 @@
+From 95a73ff2b5d764a91e4f6202059ff8fb268df49d Mon Sep 17 00:00:00 2001
+From: mike31 <michael.rozantsev@gmail.com>
+Date: Thu, 14 Feb 2019 16:46:09 +0200
+Subject: [PATCH] Increased stack size for Mac
+
+---
+ src/rpc/rpcserver.cpp | 15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/src/rpc/rpcserver.cpp b/src/rpc/rpcserver.cpp
+index e62c176a..b52d8b6c 100644
+--- a/src/rpc/rpcserver.cpp
++++ b/src/rpc/rpcserver.cpp
+@@ -839,9 +839,22 @@ void StartRPCThreads(string& strError)
+     }
+ 
+     rpc_worker_group = new boost::thread_group();
++    
++
++#ifdef OS_MACOSX
++    boost::thread::attributes attrs;
++    attrs.set_stack_size(8*1024*1024);
++    
+     for (int i = 0; i < GetArg("-rpcthreads", 4); i++)
+-        rpc_worker_group->create_thread(boost::bind(&asio::io_service::run, rpc_io_service));
++    {
++        boost::thread *lpThread=new thread(attrs,boost::bind(&asio::io_service::run, rpc_io_service));
++        rpc_worker_group->add_thread(lpThread);
++    }    
++#else
+     
++    for (int i = 0; i < GetArg("-rpcthreads", 4); i++)
++        rpc_worker_group->create_thread(boost::bind(&asio::io_service::run, rpc_io_service));
++#endif
+     fRPCRunning = true;
+     
+     if(strError.size())

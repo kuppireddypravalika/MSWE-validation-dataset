@@ -1,0 +1,32 @@
+From 372b9eb119f6c0b5f7d2ff822360cc121d434085 Mon Sep 17 00:00:00 2001
+From: "Ruslan N. Kosarev" <ruslan.kosarev@gmail.com>
+Date: Fri, 29 Apr 2016 16:22:14 +0300
+Subject: [PATCH] Changed itkDanielssonDistanceMapImageFilter on
+ itkSignedMaurerDistanceMapImageFilter, because the last is the faster.
+
+---
+ modules/ITK/cli/statismo-fit-surface.cxx | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/modules/ITK/cli/statismo-fit-surface.cxx b/modules/ITK/cli/statismo-fit-surface.cxx
+index f4143951..880fa260 100644
+--- a/modules/ITK/cli/statismo-fit-surface.cxx
++++ b/modules/ITK/cli/statismo-fit-surface.cxx
+@@ -35,7 +35,7 @@
+ 
+ #include <itkBoundingBox.h>
+ #include <itkCompositeTransform.h>
+-#include <itkDanielssonDistanceMapImageFilter.h>
++#include <itkSignedMaurerDistanceMapImageFilter.h>
+ #include <itkLBFGSOptimizer.h>
+ #include <itkLinearInterpolateImageFunction.h>
+ #include <itkMesh.h>
+@@ -185,7 +185,7 @@ DistanceImageType::Pointer computeDistanceImageForMesh(DataType::Pointer pMesh,
+ 
+     // compute a distance map to the points in the pointset
+     BinaryImageType::Pointer pBinaryImage = pointsToImageFilter->GetOutput();
+-    typedef itk::DanielssonDistanceMapImageFilter<BinaryImageType, DistanceImageType> DistanceFilterType;
++    typedef itk::SignedMaurerDistanceMapImageFilter<BinaryImageType, DistanceImageType> DistanceFilterType;
+     DistanceFilterType::Pointer distanceFilter = DistanceFilterType::New();
+     distanceFilter->SetInput(pBinaryImage);
+     distanceFilter->Update();

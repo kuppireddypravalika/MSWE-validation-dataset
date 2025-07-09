@@ -1,0 +1,35 @@
+From 16826c3503c8b5e6f87c6e87e5320ce8e47db814 Mon Sep 17 00:00:00 2001
+From: Chris Lattner <sabre@nondot.org>
+Date: Tue, 6 Jun 2006 21:45:47 +0000
+Subject: [PATCH] Now that PR633 is implemented, the CBE can know to emit
+ _setjmp/_longjmp when available.  This speeds up hexxagon from 18.61s to
+ 16.61s with the CBE on PPC Mac OS (for reference, LLC is 15.48s and GCC is
+ 23.35s).
+
+llvm-svn: 28697
+---
+ llvm/lib/Target/CBackend/Writer.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/llvm/lib/Target/CBackend/Writer.cpp b/llvm/lib/Target/CBackend/Writer.cpp
+index 36336b38d58..692232b78e0 100644
+--- a/llvm/lib/Target/CBackend/Writer.cpp
++++ b/llvm/lib/Target/CBackend/Writer.cpp
+@@ -1779,11 +1779,17 @@ void CWriter::visitCallInst(CallInst &I) {
+         Out << ')';
+         return;
+       case Intrinsic::setjmp:
++#if defined(HAVE__SETJMP) && defined(HAVE__LONGJMP)
++        Out << "_";  // Use _setjmp on systems that support it!
++#endif
+         Out << "setjmp(*(jmp_buf*)";
+         writeOperand(I.getOperand(1));
+         Out << ')';
+         return;
+       case Intrinsic::longjmp:
++#if defined(HAVE__SETJMP) && defined(HAVE__LONGJMP)
++        Out << "_";  // Use _longjmp on systems that support it!
++#endif
+         Out << "longjmp(*(jmp_buf*)";
+         writeOperand(I.getOperand(1));
+         Out << ", ";

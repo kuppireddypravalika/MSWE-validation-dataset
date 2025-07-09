@@ -1,0 +1,29 @@
+From 9b424adbad0ce4858e2f8900cfd68a71b59f2c59 Mon Sep 17 00:00:00 2001
+From: Jon Spock <jonspock@protonmail.com>
+Date: Sat, 15 Jun 2019 18:16:50 -0700
+Subject: [PATCH] Calculate Reward based on validating height rather than
+ current block height. This help case of 1000 Coin UTXO for example that
+ becomes valid just before 1 year. For 1st year it would normally take 4
+ months for a payout, but previously if we passed the 1st year before that
+ time, the % would drop and the payout would be substantially delayed and paid
+ out at a lower rate. Now since we capture the validating height for
+ calculation, the % will be retained along with payout rate
+
+---
+ src/devault/rewards.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/devault/rewards.cpp b/src/devault/rewards.cpp
+index 7c707e838..1865a8223 100644
+--- a/src/devault/rewards.cpp
++++ b/src/devault/rewards.cpp
+@@ -236,7 +236,8 @@ bool CColdRewards::FindReward(const Consensus::Params &consensusParams, int Heig
+         HeightDiff = Height - nHeight;
+         if (HeightDiff > nMinBlocks) { 
+           balance = the_reward.GetValue();
+-          Amount reward = CalculateReward(consensusParams, Height, HeightDiff, balance);
++          // change 1.0.2 : use nHeight as basis for % reward instead of current Height
++          Amount reward = CalculateReward(consensusParams, nHeight, HeightDiff, balance);
+           //LogPrint(BCLog::COLD, "CR: %s : Candidate : %s, Reward %d\n", __func__, coinreward.ToString(), reward);
+           // Check reward amount to make sure it's > min
+           if (reward >= nMinReward) {

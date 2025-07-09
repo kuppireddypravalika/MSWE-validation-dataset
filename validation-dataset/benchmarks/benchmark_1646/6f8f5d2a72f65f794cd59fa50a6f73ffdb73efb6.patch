@@ -1,0 +1,29 @@
+From 6f8f5d2a72f65f794cd59fa50a6f73ffdb73efb6 Mon Sep 17 00:00:00 2001
+From: Erik Lindahl <erik@kth.se>
+Date: Tue, 14 Mar 2017 17:58:04 +0000
+Subject: [PATCH] Fix gcc compiles of AVX-512 SIMD
+
+A previous change to improve shuffling for AVX-512 was
+likely only tested on icc, while gcc requires an explicit
+pointer cast. Tested on AVX-512 hardware.
+
+Change-Id: I9f4a35f52a54487ff4f403b135391187b1682f8f
+---
+ .../simd/impl_x86_avx_512/impl_x86_avx_512_util_float.h       | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/gromacs/simd/impl_x86_avx_512/impl_x86_avx_512_util_float.h b/src/gromacs/simd/impl_x86_avx_512/impl_x86_avx_512_util_float.h
+index cacc497748..3e01146c03 100644
+--- a/src/gromacs/simd/impl_x86_avx_512/impl_x86_avx_512_util_float.h
++++ b/src/gromacs/simd/impl_x86_avx_512/impl_x86_avx_512_util_float.h
+@@ -440,8 +440,8 @@ gatherLoadTransposeHsimd(const float *        base0,
+         idx = _mm256_slli_epi32(idx, 1);
+     }
+ 
+-    tmp1 = _mm512_castpd_ps(_mm512_i32gather_pd(idx, base0, sizeof(double)));
+-    tmp2 = _mm512_castpd_ps(_mm512_i32gather_pd(idx, base1, sizeof(double)));
++    tmp1 = _mm512_castpd_ps(_mm512_i32gather_pd(idx, reinterpret_cast<const double *>(base0), sizeof(double)));
++    tmp2 = _mm512_castpd_ps(_mm512_i32gather_pd(idx, reinterpret_cast<const double *>(base1), sizeof(double)));
+ 
+     v0->simdInternal_ = _mm512_mask_moveldup_ps(tmp1, 0xAAAA, tmp2);
+     v1->simdInternal_ = _mm512_mask_movehdup_ps(tmp2, 0x5555, tmp1);

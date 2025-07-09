@@ -1,0 +1,26 @@
+From fe6105e64cc742b38e984d0051a475a0e5c73c98 Mon Sep 17 00:00:00 2001
+From: Alexander Lohnau <alexander.lohnau@gmx.de>
+Date: Fri, 9 Apr 2021 16:52:20 +0200
+Subject: [PATCH] GIT_SILENT USe static QFileInfo::exists method
+
+It is documented to be faster, see https://github.com/KDE/clazy/blob/master/docs/checks/README-qfileinfo-exists.md
+---
+ wallpapers/image/plasma-apply-wallpaperimage.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/wallpapers/image/plasma-apply-wallpaperimage.cpp b/wallpapers/image/plasma-apply-wallpaperimage.cpp
+index 7b0fa525b78..c5c16e3be15 100644
+--- a/wallpapers/image/plasma-apply-wallpaperimage.cpp
++++ b/wallpapers/image/plasma-apply-wallpaperimage.cpp
+@@ -65,9 +65,8 @@ int main(int argc, char **argv)
+                     // that makes the operation much heavier than it needs to be
+                     isWallpaper = true;
+                 } else {
+-                    if (QFileInfo(QStringLiteral("%1/metadata.desktop").arg(wallpaperFile)).exists()
+-                    || QFileInfo(QStringLiteral("%1/metadata.json").arg(wallpaperFile)).exists()
+-                    ) {
++                    if (QFileInfo::exists(QStringLiteral("%1/metadata.desktop").arg(wallpaperFile))
++                        || QFileInfo::exists(QStringLiteral("%1/metadata.json").arg(wallpaperFile))) {
+                         isWallpaper = true;
+                         isKPackage = true;
+                         // Similarly to above, we could read all the information out of the kpackage, but

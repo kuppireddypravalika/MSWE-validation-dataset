@@ -1,0 +1,45 @@
+From 605ef351d2f344aebb48631db74e330f45158c61 Mon Sep 17 00:00:00 2001
+From: corvid <corvid@lavabit.com>
+Date: Sun, 5 Jun 2011 02:16:06 +0000
+Subject: [PATCH] Don't allocate gif->linebuf so soon.
+
+Occasionally, linebuf leaks have appeared in Jeremy's valgrind logs.
+
+linebuf is used in Gif_literal() and Gif_sequence(). They are called
+by Gif_process_code(), which is called by Gif_decode(). In
+Gif_process_bytes(), you have to be in state 3 to call it.
+
+linebuf is allocated inside Gif_do_img_desc(), which is called by
+GIF_Block(). In Gif_process_bytes(), you have to be in state 2 to
+call it.
+
+After the allocation, there are a couple of cases where the code
+can return while still in state 2, which would mean coming back to
+Gif_do_img_desc() later and leaking the linebuf by allocating another.
+
+Jeremy has kindly run on this patch for ten days or so without incident.
+---
+ src/gif.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/gif.c b/src/gif.c
+index b5486c46a..4b5c817c9 100644
+--- a/src/gif.c
++++ b/src/gif.c
+@@ -810,8 +810,6 @@ static size_t Gif_do_img_desc(DilloGif *gif, void *Buf,
+       return 0;
+    }
+ 
+-   gif->linebuf = dMalloc(gif->Width);
+-
+    a_Dicache_set_parms(gif->url, gif->version, gif->Image,
+                        gif->Width, gif->Height, DILLO_IMG_TYPE_INDEXED);
+ 
+@@ -842,6 +840,7 @@ static size_t Gif_do_img_desc(DilloGif *gif, void *Buf,
+    gif->y = 0;
+    Gif_lwz_init(gif);
+    gif->spill_line_index = 0;
++   gif->linebuf = dMalloc(gif->Width);
+    gif->state = 3;              /*Process the lzw data next */
+    if (gif->Image && gif->ColorMap_ofs) {
+       a_Dicache_set_cmap(gif->url, gif->version, gif->Image,

@@ -1,0 +1,28 @@
+From f54d2672f224ba24224c8edd12fb0318797b3425 Mon Sep 17 00:00:00 2001
+From: Richard Hulme <peper03@mythtv.org>
+Date: Thu, 30 Oct 2014 22:04:57 +0100
+Subject: [PATCH] Limit audio buffer to 700ms.  This prevents the frontend
+ locking up when trying to stop playing an audio-only stream (e.g. DVB radio).
+  Without this patch the buffer tends to fill to around the 1500ms, which is
+ below the current 2000ms limit, and AvFormatDecoder never leaves GetFrame.
+
+Normally AvFormatDecoder::GetFrame is exited when a video frame is decoded.  In this case the audio buffer is usually no more than about 500ms full.
+
+Also, buffering less audio data means less lag is noticeable when altering the volume if software mixing is used.
+---
+ mythtv/libs/libmythtv/audioplayer.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/mythtv/libs/libmythtv/audioplayer.cpp b/mythtv/libs/libmythtv/audioplayer.cpp
+index 337d4d430a6..fee4816a4f0 100644
+--- a/mythtv/libs/libmythtv/audioplayer.cpp
++++ b/mythtv/libs/libmythtv/audioplayer.cpp
+@@ -519,7 +519,7 @@ bool AudioPlayer::IsBufferAlmostFull(void)
+         othresh =  ((ototal>>1) + (ototal>>2));
+         if (ofill > othresh)
+             return true;
+-        return GetAudioBufferedTime() > 2000;
++        return GetAudioBufferedTime() > 700;
+     }
+     return false;
+ }

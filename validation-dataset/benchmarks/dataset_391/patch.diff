@@ -1,0 +1,22 @@
+From 8c12c8bcf7eaecbaae39c8c99c2cfb404e6e9520 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Jacob=20St=C3=B8ren?= <jacob.storen@ceetronSolutions.com>
+Date: Wed, 13 May 2015 20:22:37 +0200
+Subject: [PATCH] Performance: Temp estimate of vx count
+
+to fit generation of all faces for all elments
+---
+ .../GeoMech/GeoMechVisualization/RivFemPartGeometryGenerator.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/ApplicationCode/GeoMech/GeoMechVisualization/RivFemPartGeometryGenerator.cpp b/ApplicationCode/GeoMech/GeoMechVisualization/RivFemPartGeometryGenerator.cpp
+index 2432ff29bc1..61d2aa9fd2e 100644
+--- a/ApplicationCode/GeoMech/GeoMechVisualization/RivFemPartGeometryGenerator.cpp
++++ b/ApplicationCode/GeoMech/GeoMechVisualization/RivFemPartGeometryGenerator.cpp
+@@ -156,6 +156,7 @@ void RivFemPartGeometryGenerator::computeArrays()
+     m_quadVerticesToNodeIdx.clear();
+     m_quadVerticesToGlobalElmNodeIdx.clear();
+ 
++    size_t estimatedQuadVxCount = m_part->elementCount()*6*4;
+ 
+     vertices.reserve(estimatedQuadVxCount);
+     m_quadVerticesToNodeIdx.reserve(estimatedQuadVxCount);

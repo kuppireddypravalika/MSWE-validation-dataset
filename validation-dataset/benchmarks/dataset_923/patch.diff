@@ -1,0 +1,25 @@
+From e0ed3b9dbe7e8eaf073cda6e80f898ea19174012 Mon Sep 17 00:00:00 2001
+From: tteuling <tteuling@users.sourceforge.net>
+Date: Fri, 4 Oct 2013 16:16:52 +0200
+Subject: [PATCH] Changed filer access flags for routing index and data file
+ again, to fix performance lag.
+
+---
+ libosmscout/src/osmscout/Router.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/libosmscout/src/osmscout/Router.cpp b/libosmscout/src/osmscout/Router.cpp
+index 3117d1e0e..2494b15f0 100644
+--- a/libosmscout/src/osmscout/Router.cpp
++++ b/libosmscout/src/osmscout/Router.cpp
+@@ -125,8 +125,8 @@ namespace osmscout {
+     }
+ 
+     if (!routeNodeDataFile.Open(path,
+-                                FileScanner::LowMemRandom,true,
+-                                FileScanner::LowMemRandom,true)) {
++                                FileScanner::FastRandom,true,
++                                FileScanner::FastRandom,true)) {
+       std::cerr << "Cannot open 'route.dat'!" << std::endl;
+       delete typeConfig;
+       typeConfig=NULL;

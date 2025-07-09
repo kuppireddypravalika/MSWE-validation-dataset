@@ -1,0 +1,27 @@
+From a11d6db56217fbc83480f88913ea2caf6bd97b17 Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Tue, 25 Aug 2020 23:26:33 -0600
+Subject: [PATCH] Use range-for loop in Population::size()
+
+---
+ OPHD/Population/Population.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/OPHD/Population/Population.cpp b/OPHD/Population/Population.cpp
+index 98e371cc2..bacad891a 100644
+--- a/OPHD/Population/Population.cpp
++++ b/OPHD/Population/Population.cpp
+@@ -77,11 +77,10 @@ void Population::addPopulation(PersonRole role, int count)
+ int Population::size()
+ {
+ 	int count = 0;
+-	for (std::size_t i = 0; i < mPopulation.size(); ++i)
++	for (auto& populationRole : mPopulation)
+ 	{
+-		count += mPopulation[i];
++		count += populationRole;
+ 	}
+-
+ 	return count;
+ }
+ 

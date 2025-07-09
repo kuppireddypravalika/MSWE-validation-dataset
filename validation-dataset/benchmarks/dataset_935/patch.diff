@@ -1,0 +1,29 @@
+From a2ba4691103bae1775a1fa3f42e61929d0d025be Mon Sep 17 00:00:00 2001
+From: Xun Li <xunli@uchicago.edu>
+Date: Tue, 7 Nov 2017 17:54:08 -0700
+Subject: [PATCH] use power iteration in MDS when obs>150
+
+---
+ DialogTools/MDSDlg.cpp | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/DialogTools/MDSDlg.cpp b/DialogTools/MDSDlg.cpp
+index 86d0a2a30..4f8a871f6 100644
+--- a/DialogTools/MDSDlg.cpp
++++ b/DialogTools/MDSDlg.cpp
+@@ -84,9 +84,13 @@ void MDSDlg::CreateControls()
+     lbl_poweriteration = new wxStaticText(panel, wxID_ANY, _("# Max Iteration:"));
+     txt_poweriteration = new wxTextCtrl(panel, wxID_ANY, "100",wxDefaultPosition, wxSize(70,-1));
+     txt_poweriteration->SetValidator( wxTextValidator(wxFILTER_NUMERIC) );
+-    lbl_poweriteration->Disable();
+-    txt_poweriteration->Disable();
+     chk_poweriteration->Bind(wxEVT_CHECKBOX, &MDSDlg::OnCheckPowerIteration, this);
++    if (project->GetNumRecords() < 150) {
++        lbl_poweriteration->Disable();
++        txt_poweriteration->Disable();
++    } else {
++        chk_poweriteration->SetValue(true);
++    }
+     hbox15->Add(chk_poweriteration);
+     hbox15->Add(lbl_poweriteration);
+     hbox15->Add(txt_poweriteration);

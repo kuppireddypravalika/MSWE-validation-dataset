@@ -1,0 +1,27 @@
+From 1a4c26b581fada2f2977bbeb70d26b810148cf54 Mon Sep 17 00:00:00 2001
+From: Hans Johnson <hans-johnson@uiowa.edu>
+Date: Tue, 18 Feb 2020 14:52:16 -0600
+Subject: [PATCH] PERF: emplace_back method results in potentially more
+ efficient code
+
+The check flags insertions to an STL-style container done by calling the
+push_back method with an explicitly-constructed temporary of the container
+element type. In this case, the corresponding emplace_back method results in
+less verbose and potentially more efficient code.
+---
+ core/vpdl/vpdt/vpdt_update_mog.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/core/vpdl/vpdt/vpdt_update_mog.h b/core/vpdl/vpdt/vpdt_update_mog.h
+index 0a6dbb15a82..3c7992bda5c 100644
+--- a/core/vpdl/vpdt/vpdt_update_mog.h
++++ b/core/vpdl/vpdt/vpdt_update_mog.h
+@@ -217,7 +217,7 @@ class vpdt_mog_lee_updater : public vpdt_mog_updater<mog_type>
+       const gaussian_type& g = mix.distribution(i);
+       double sqr_dist = g.sqr_mahal_dist(sample);
+       if (sqr_dist < gt2_)
+-        matchez.push_back(std::pair<unsigned int,double>(i,sqr_dist));
++        matchez.emplace_back(i, sqr_dist);
+     }
+     // if only one match, it has prob 1
+     if (matchez.size() == 1) {

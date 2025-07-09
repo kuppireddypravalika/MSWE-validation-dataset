@@ -1,0 +1,40 @@
+From 30165e439277d5ada3e244a1ecc873c8d3a1d594 Mon Sep 17 00:00:00 2001
+From: Thomas Goyne <plorkyeran@aegisub.org>
+Date: Tue, 16 Oct 2012 14:29:31 -0700
+Subject: [PATCH] Truncate syllables which extend past the end of the line
+ rather than normalizing all of the syllable lengths
+
+---
+ aegisub/src/ass_karaoke.cpp | 18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
+
+diff --git a/aegisub/src/ass_karaoke.cpp b/aegisub/src/ass_karaoke.cpp
+index 8ffb89e00..6039aefd0 100644
+--- a/aegisub/src/ass_karaoke.cpp
++++ b/aegisub/src/ass_karaoke.cpp
+@@ -143,17 +143,15 @@ void AssKaraoke::SetLine(AssDialogue *line, bool auto_split, bool normalize) {
+ 		if (last_end < end_time)
+ 			syls.back().duration += end_time - last_end;
+ 		else if (last_end > end_time) {
+-			// Shrink each syllable proportionately
+-			int start_time = active_line->Start;
+-			double scale_factor = double(end_time - start_time) / (last_end - start_time);
+-
++			// Truncate any syllables that extend past the end of the line
+ 			for (size_t i = 0; i < size(); ++i) {
+-				syls[i].start_time = start_time + scale_factor * (syls[i].start_time - start_time);
+-			}
+-
+-			for (int i = size(); i > 0; --i) {
+-				syls[i - 1].duration = end_time - syls[i - 1].start_time;
+-				end_time = syls[i - 1].start_time;
++				if (syls[i].start_time > end_time) {
++					syls[i].start_time = end_time;
++					syls[i].duration = 0;
++				}
++				else {
++					syls[i].duration = std::min(syls[i].duration, end_time - syls[i].start_time);
++				}
+ 			}
+ 		}
+ 	}

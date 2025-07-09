@@ -1,0 +1,22 @@
+From 89e20b963c90b0febc96ce8ea9955ad1391849c5 Mon Sep 17 00:00:00 2001
+From: Giso Grimm <g.grimm@uni-oldenburg.de>
+Date: Tue, 28 May 2019 09:58:50 +0200
+Subject: [PATCH] don't show inactive traces for performance reasons
+
+---
+ libtascar/src/gui_elements.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libtascar/src/gui_elements.cc b/libtascar/src/gui_elements.cc
+index 0cc0d337..ecb2de18 100644
+--- a/libtascar/src/gui_elements.cc
++++ b/libtascar/src/gui_elements.cc
+@@ -841,7 +841,7 @@ void scene_draw_t::draw_cube(TASCAR::pos_t pos, TASCAR::zyx_euler_t orient, TASC
+ 
+ void scene_draw_t::draw_track(TASCAR::Scene::object_t* obj,Cairo::RefPtr<Cairo::Context> cr, double msize)
+ {
+-  if( obj ){
++  if( obj && obj->isactive(time)){
+     bool solo(obj->get_solo());
+     pos_t p0;
+     cr->save();

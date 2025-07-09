@@ -1,0 +1,27 @@
+From e9019582cced41d658930873dad5b8d1aa116dbe Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Beat=20K=C3=BCng?= <beat-kueng@gmx.net>
+Date: Fri, 15 Apr 2016 12:53:16 +0200
+Subject: [PATCH] uORB::DeviceMaster::ioctl: avoid operator[], since we already
+ have the iterator
+
+In the existing implementation, the map had to be searched twice.
+---
+ src/modules/uORB/uORBDevices_posix.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/modules/uORB/uORBDevices_posix.cpp b/src/modules/uORB/uORBDevices_posix.cpp
+index f67e2d4159c4..8c0516c68156 100644
+--- a/src/modules/uORB/uORBDevices_posix.cpp
++++ b/src/modules/uORB/uORBDevices_posix.cpp
+@@ -688,8 +688,9 @@ uORB::DeviceNode *uORB::DeviceMaster::GetDeviceNode(const char *nodepath)
+ 	uORB::DeviceNode *rc = nullptr;
+ 	std::string np(nodepath);
+ 
+-	if (_node_map.find(np) != _node_map.end()) {
+-		rc = _node_map[np];
++	auto iter = _node_map.find(np);
++	if (iter != _node_map.end()) {
++		rc = iter->second;
+ 	}
+ 
+ 	return rc;

@@ -1,0 +1,37 @@
+From 6aca4e1aa98bfa2f863c722972fee614b283059b Mon Sep 17 00:00:00 2001
+From: djsrv <dservilla@gmail.com>
+Date: Sun, 19 Feb 2023 23:11:26 -0700
+Subject: [PATCH] Small optimization of arg list creation
+
+---
+ src/director/handler.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/director/handler.cpp b/src/director/handler.cpp
+index 6af5e0b..62a787c 100644
+--- a/src/director/handler.cpp
++++ b/src/director/handler.cpp
+@@ -716,9 +716,10 @@ uint32_t Handler::translateBytecode(Bytecode &bytecode, uint32_t index) {
+ 		{
+ 			auto argCount = bytecode.obj;
+ 			std::vector<std::shared_ptr<Node>> args;
++			args.resize(argCount);
+ 			while (argCount) {
+-				args.insert(args.begin(), pop());
+ 				argCount--;
++				args[argCount] = pop();
+ 			}
+ 			auto argList = std::make_shared<Datum>(kDatumArgListNoRet, args);
+ 			translation = std::make_shared<LiteralNode>(std::move(argList));
+@@ -728,9 +729,10 @@ uint32_t Handler::translateBytecode(Bytecode &bytecode, uint32_t index) {
+ 		{
+ 			auto argCount = bytecode.obj;
+ 			std::vector<std::shared_ptr<Node>> args;
++			args.resize(argCount);
+ 			while (argCount) {
+-				args.insert(args.begin(), pop());
+ 				argCount--;
++				args[argCount] = pop();
+ 			}
+ 			auto argList = std::make_shared<Datum>(kDatumArgList, args);
+ 			translation = std::make_shared<LiteralNode>(std::move(argList));

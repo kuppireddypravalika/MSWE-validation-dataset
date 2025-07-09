@@ -1,0 +1,42 @@
+From 98a679d5ff076a30b259024d730f8ba36f0a5e12 Mon Sep 17 00:00:00 2001
+From: Matthew Fioravante <fmatthew5876@gmail.com>
+Date: Thu, 19 Dec 2019 20:50:09 -0500
+Subject: [PATCH] Cache: Don't check if file was async loaded on release build.
+
+This check causes a measurable slowdown in I/O heavy games.
+Use an assert() instead.
+---
+ src/cache.cpp | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/src/cache.cpp b/src/cache.cpp
+index d9f29dd32b..86505bd356 100644
+--- a/src/cache.cpp
++++ b/src/cache.cpp
+@@ -23,6 +23,7 @@
+ #include <map>
+ #include <tuple>
+ #include <chrono>
++#include <cassert>
+ 
+ #include "async_handler.h"
+ #include "cache.h"
+@@ -274,13 +275,13 @@ namespace {
+ 			return LoadDummyBitmap<T>(s.directory, f);
+ 		}
+ 
++#ifndef NDEBUG
+ 		// Test if the file was requested asynchronously before.
+ 		// If not the file can't be expected to exist -> bug.
+-		FileRequestAsync* request = AsyncHandler::RequestFile(s.directory, f);
+-		if (!request->IsReady()) {
+-			Output::Debug("BUG: File Not Requested: %s/%s", s.directory, f.c_str());
+-			return BitmapRef();
+-		}
++		// This test is expensive and turned off in release builds.
++		auto* req = AsyncHandler::RequestFile(s.directory, f);
++		assert(req != nullptr && req->IsReady());
++#endif
+ 
+ 		BitmapRef ret = LoadBitmap(s.directory, f, transparent, Bitmap::Flag_ReadOnly | (
+ 										 T == Material::Chipset? Bitmap::Flag_Chipset:

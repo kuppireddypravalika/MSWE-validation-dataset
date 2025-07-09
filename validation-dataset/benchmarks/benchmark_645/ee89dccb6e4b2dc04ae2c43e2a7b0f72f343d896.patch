@@ -1,0 +1,26 @@
+From ee89dccb6e4b2dc04ae2c43e2a7b0f72f343d896 Mon Sep 17 00:00:00 2001
+From: "J.W. Jagersma" <jwjagersma@gmail.com>
+Date: Fri, 21 Oct 2022 23:39:38 +0200
+Subject: [PATCH] mmx_fmul_pu16: do psrlw before pmulhrw when input overflows
+
+---
+ include/jw/mmx.h | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/include/jw/mmx.h b/include/jw/mmx.h
+index 2f92a2ef..a9b80b9d 100644
+--- a/include/jw/mmx.h
++++ b/include/jw/mmx.h
+@@ -242,9 +242,10 @@ namespace jw
+         if constexpr (all_one()) return src;
+         if constexpr (all_int()) return _mm_mullo_pi16(src, factor(0));
+ 
+-        if constexpr (flags.match(simd::amd3dnow) and frac_bits(false) >= 16 and rounding and not input_overflow)
++        if constexpr (flags.match(simd::amd3dnow) and frac_bits(false) >= 16 + input_overflow and rounding)
+         {
+-            src = _m_pmulhrw(src, factor(16));
++            if constexpr (input_overflow) src = _mm_srli_pi16(src, 1);
++            src = _m_pmulhrw(src, factor(16 + input_overflow));
+         }
+         else if constexpr (flags.match(simd::mmx2) and frac_bits(true) >= 16 + rounding)
+         {

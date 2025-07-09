@@ -1,0 +1,32 @@
+From 3964acc2f44ee02cdd4e2a54a5232537bdf3ee73 Mon Sep 17 00:00:00 2001
+From: Dan Gohman <gohman@apple.com>
+Date: Sat, 20 Jun 2009 00:32:22 +0000
+Subject: [PATCH] Use ScalarEvolution's new GetMinSignBits and
+ GetMinLeadingZeros in the loop backedge-taken count computation of the
+ maximum possible trip count.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@73805 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Analysis/ScalarEvolution.cpp | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/lib/Analysis/ScalarEvolution.cpp b/lib/Analysis/ScalarEvolution.cpp
+index 2dab2f367de..465807ecacb 100644
+--- a/lib/Analysis/ScalarEvolution.cpp
++++ b/lib/Analysis/ScalarEvolution.cpp
+@@ -3836,9 +3836,12 @@ HowManyLessThans(const SCEV *LHS, const SCEV *RHS,
+                      : getUMaxExpr(RHS, Start);
+ 
+     // Determine the maximum constant end value.
+-    SCEVHandle MaxEnd = isa<SCEVConstant>(End) ? End :
+-      getConstant(isSigned ? APInt::getSignedMaxValue(BitWidth) :
+-                             APInt::getMaxValue(BitWidth));
++    SCEVHandle MaxEnd =
++      isa<SCEVConstant>(End) ? End :
++      getConstant(isSigned ? APInt::getSignedMaxValue(BitWidth)
++                               .ashr(GetMinSignBits(End) - 1) :
++                             APInt::getMaxValue(BitWidth)
++                               .lshr(GetMinLeadingZeros(End)));
+ 
+     // Finally, we subtract these two values and divide, rounding up, to get
+     // the number of times the backedge is executed.

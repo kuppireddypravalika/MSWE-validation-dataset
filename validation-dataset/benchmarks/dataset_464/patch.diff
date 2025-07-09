@@ -1,0 +1,24 @@
+From c956ccc4d473a4e59d65bef1ba0bb6c12f262907 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Micha=C5=82=20Janiszewski?= <janisozaur@gmail.com>
+Date: Wed, 2 Aug 2017 23:54:49 +0200
+Subject: [PATCH] Reset the string builder rather than overwrite it
+
+---
+ src/openrct2/localisation/LanguagePack.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/openrct2/localisation/LanguagePack.cpp b/src/openrct2/localisation/LanguagePack.cpp
+index c0537eec0e73..15420b65f82a 100644
+--- a/src/openrct2/localisation/LanguagePack.cpp
++++ b/src/openrct2/localisation/LanguagePack.cpp
+@@ -170,8 +170,8 @@ class LanguagePack final : public ILanguagePack
+ 
+         // Clean up the parsing work data
+         Memory::Free(_currentGroup);
+-        // Destruct the string builder to free memory
+-        _stringDataSB = StringBuilder();
++        // Reset the string builder to free memory
++        _stringDataSB.Reset();
+         _currentGroup = nullptr;
+         _currentObjectOverride = nullptr;
+         _currentScenarioOverride = nullptr;

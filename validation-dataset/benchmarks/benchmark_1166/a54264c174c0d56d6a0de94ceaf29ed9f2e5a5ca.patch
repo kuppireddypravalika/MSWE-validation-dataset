@@ -1,0 +1,24 @@
+From a54264c174c0d56d6a0de94ceaf29ed9f2e5a5ca Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Lu=C3=ADs=20Pereira?= <luis.artur.pereira@gmail.com>
+Date: Tue, 17 Jan 2017 16:52:29 +0000
+Subject: [PATCH] Use const iterators
+
+Avoid assignment of a non-const pointer to a const pointer and the
+consequent container detach.
+---
+ lxqt-config-input/selectkeyboardlayoutdialog.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lxqt-config-input/selectkeyboardlayoutdialog.cpp b/lxqt-config-input/selectkeyboardlayoutdialog.cpp
+index 3bd5ef1a0..edcd6a564 100644
+--- a/lxqt-config-input/selectkeyboardlayoutdialog.cpp
++++ b/lxqt-config-input/selectkeyboardlayoutdialog.cpp
+@@ -28,7 +28,7 @@ SelectKeyboardLayoutDialog::SelectKeyboardLayoutDialog(QMap< QString, KeyboardLa
+   connect(ui.layouts, SIGNAL(currentItemChanged(QListWidgetItem*,QListWidgetItem*)), SLOT(onLayoutChanged()));
+ 
+   QMap<QString, KeyboardLayoutInfo >::const_iterator it;
+-  for(it = knownLayouts_.begin(); it != knownLayouts_.end(); ++it) {
++  for(it = knownLayouts_.constBegin(); it != knownLayouts_.constEnd(); ++it) {
+     const QString& name = it.key();
+     const KeyboardLayoutInfo& info = *it;
+     QListWidgetItem * item = new QListWidgetItem(info.description);

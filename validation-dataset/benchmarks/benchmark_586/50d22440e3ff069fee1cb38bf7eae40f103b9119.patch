@@ -1,0 +1,29 @@
+From 50d22440e3ff069fee1cb38bf7eae40f103b9119 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Philipp=20Br=C3=BCschweiler?= <blei42@gmail.com>
+Date: Mon, 14 May 2012 11:17:40 +0200
+Subject: [PATCH] Use -fomit-frame-pointer for -O1 and higher when compiling to
+ DCPU16
+
+---
+ lib/Driver/Tools.cpp | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/lib/Driver/Tools.cpp b/lib/Driver/Tools.cpp
+index 769bd81e43..28b00edc62 100644
+--- a/lib/Driver/Tools.cpp
++++ b/lib/Driver/Tools.cpp
+@@ -1311,9 +1311,11 @@ static bool shouldUseFramePointer(const ArgList &Args,
+     return A->getOption().matches(options::OPT_fno_omit_frame_pointer);
+ 
+   // Don't use a frame pointer on linux x86 and x86_64 if optimizing.
+-  if ((Triple.getArch() == llvm::Triple::x86_64 ||
+-       Triple.getArch() == llvm::Triple::x86) &&
+-      Triple.getOS() == llvm::Triple::Linux) {
++  // Same for DCPU16.
++  if (((Triple.getArch() == llvm::Triple::x86_64 ||
++        Triple.getArch() == llvm::Triple::x86) &&
++       Triple.getOS() == llvm::Triple::Linux) ||
++      (Triple.getArch() == llvm::Triple::dcpu16)) {
+     if (Arg *A = Args.getLastArg(options::OPT_O_Group))
+       if (!A->getOption().matches(options::OPT_O0))
+         return false;

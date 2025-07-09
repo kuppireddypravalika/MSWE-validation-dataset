@@ -1,0 +1,29 @@
+From 558c220db30e2b469b5a049a47e9ac6cb0714223 Mon Sep 17 00:00:00 2001
+From: rueter37 <61623769+rueter37@users.noreply.github.com>
+Date: Sat, 18 Sep 2021 21:07:45 +0200
+Subject: [PATCH] Small battle system: Fix memory corruption
+
+The reason for the memory corruption was that a too big area of the
+status window was tried to clear on gauge refresh if the status window
+was set to small. This is fixed now.
+---
+ src/window_battlestatus.cpp | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/window_battlestatus.cpp b/src/window_battlestatus.cpp
+index b87e95943b..b6021eda90 100644
+--- a/src/window_battlestatus.cpp
++++ b/src/window_battlestatus.cpp
+@@ -112,7 +112,11 @@ void Window_BattleStatus::Refresh() {
+ void Window_BattleStatus::RefreshGauge() {
+ 	if (Player::IsRPG2k3()) {
+ 		if (lcf::Data::battlecommands.battle_type == lcf::rpg::BattleCommands::BattleType_alternative) {
+-			contents->ClearRect(Rect(192, 0, 45, 64));
++			if (lcf::Data::battlecommands.window_size == lcf::rpg::BattleCommands::WindowSize_small) {
++				contents->ClearRect(Rect(192, 0, 45, 58));
++			} else {
++				contents->ClearRect(Rect(192, 0, 45, 64));
++			}
+ 		}
+ 
+ 		for (int i = 0; i < item_max; ++i) {

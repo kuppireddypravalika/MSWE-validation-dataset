@@ -1,0 +1,23 @@
+From a8ca1158af93a7ca18fe02f747859f87472eb834 Mon Sep 17 00:00:00 2001
+From: Miguel Morales <miguel.mmorales@gmail.com>
+Date: Sat, 11 Sep 2010 15:38:20 +0000
+Subject: [PATCH] ci coeffs are optimized by default now
+
+git-svn-id: https://subversion.assembla.com/svn/qmcdev/trunk@4981 e5b18d87-469d-4833-9cc0-8cdfa06e9491
+---
+ src/QMCTools/QMCGaussianParserBase.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/QMCTools/QMCGaussianParserBase.cpp b/src/QMCTools/QMCGaussianParserBase.cpp
+index 85bbe78493..f415cb327e 100644
+--- a/src/QMCTools/QMCGaussianParserBase.cpp
++++ b/src/QMCTools/QMCGaussianParserBase.cpp
+@@ -470,7 +470,7 @@ xmlNodePtr
+ QMCGaussianParserBase::createMultiDeterminantSet()  {
+ 
+   xmlNodePtr multislaterdet = xmlNewNode(NULL,(const xmlChar*)"multideterminant");
+-  xmlNewProp(multislaterdet,(const xmlChar*)"optimize",(const xmlChar*)"no");
++  xmlNewProp(multislaterdet,(const xmlChar*)"optimize",(const xmlChar*)"yes");
+   xmlNewProp(multislaterdet,(const xmlChar*)"spo_up",(const xmlChar*)"spo-up");
+   xmlNewProp(multislaterdet,(const xmlChar*)"spo_dn",(const xmlChar*)"spo-dn");
+ 

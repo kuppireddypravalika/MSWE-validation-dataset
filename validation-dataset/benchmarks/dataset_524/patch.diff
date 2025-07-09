@@ -1,0 +1,24 @@
+From 21460d177c43674396108a61961e3512f8cc2bed Mon Sep 17 00:00:00 2001
+From: mike31 <michael.rozantsev@gmail.com>
+Date: Mon, 31 Jul 2017 13:25:37 +0300
+Subject: [PATCH] Reducing tx request timeout to half of target spacing
+
+---
+ src/net/net.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/net/net.cpp b/src/net/net.cpp
+index e8a757be..b2af3c2c 100644
+--- a/src/net/net.cpp
++++ b/src/net/net.cpp
+@@ -2266,7 +2266,9 @@ void CNode::AskFor(const CInv& inv)
+     nNow = std::max(nNow, nLastTime);
+     nLastTime = nNow;
+     // Each retry is 2 minutes after the last
+-    nRequestTime = std::max(nRequestTime + 2 * 60 * 1000000, nNow);
++//    nRequestTime = std::max(nRequestTime + 2 * 60 * 1000000, nNow);
++    nRequestTime = std::max(nRequestTime + Params().TargetSpacing() * 500000, nNow);
++    
+     if (it != mapAlreadyAskedFor.end())
+         mapAlreadyAskedFor.update(it, nRequestTime);
+     else

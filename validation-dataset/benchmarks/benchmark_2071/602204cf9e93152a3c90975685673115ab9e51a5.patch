@@ -1,0 +1,26 @@
+From 602204cf9e93152a3c90975685673115ab9e51a5 Mon Sep 17 00:00:00 2001
+From: Jeff Epler <jepler@unpythonic.net>
+Date: Fri, 6 Sep 2013 07:03:15 -0500
+Subject: [PATCH] vfs11_vfd: don't needlessly cast
+
+In the expression 'max_freq/100.0', max_freq is converted to (double-
+precision) floating-point before being divided by 100.0, so the cast
+(to single-precision float) is not needed and possibly harmful for
+max_freq > 2^24 (an unlikely value)
+---
+ src/hal/user_comps/vfs11_vfd/vfs11_vfd.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/hal/user_comps/vfs11_vfd/vfs11_vfd.c b/src/hal/user_comps/vfs11_vfd/vfs11_vfd.c
+index f8ed84ac8..d852bed7a 100644
+--- a/src/hal/user_comps/vfs11_vfd/vfs11_vfd.c
++++ b/src/hal/user_comps/vfs11_vfd/vfs11_vfd.c
+@@ -664,7 +664,7 @@ int read_initial(modbus_t *ctx, haldata_t *haldata, param_pointer p)
+ 	voltage, model, cpu1, cpu2, eeprom, max_freq;
+ 
+     GETREG(REG_UPPERLIMIT, &max_freq);
+-    *(haldata->upper_limit_hz) = (float)max_freq/100.0;
++    *(haldata->upper_limit_hz) = max_freq/100.0;
+     *(haldata->max_rpm) = *(haldata->upper_limit_hz) * 
+ 	haldata->motor_nameplate_RPM /
+ 	haldata->motor_nameplate_hz;

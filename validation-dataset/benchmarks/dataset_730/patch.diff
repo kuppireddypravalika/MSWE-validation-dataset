@@ -1,0 +1,30 @@
+From 2898e8136a410f99dfa17ab74be6a58c23219924 Mon Sep 17 00:00:00 2001
+From: Artur Wieczorek <artwik@wp.pl>
+Date: Sat, 20 Apr 2019 19:33:21 +0200
+Subject: [PATCH] Cast to wxFileProperty* only once
+
+Result of wxDynamicCast can be used directly, no need to cast once again in case of success.
+---
+ src/propgrid/props.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/src/propgrid/props.cpp b/src/propgrid/props.cpp
+index 760f6e72f011..1e08d7da5b12 100644
+--- a/src/propgrid/props.cpp
++++ b/src/propgrid/props.cpp
+@@ -1947,13 +1947,12 @@ bool wxDirProperty::DoSetAttribute( const wxString& name, wxVariant& value )
+ 
+ bool wxPGFileDialogAdapter::DoShowDialog( wxPropertyGrid* propGrid, wxPGProperty* property )
+ {
+-    wxFileProperty* fileProp = NULL;
+     wxString path;
+     int indFilter = -1;
+ 
+-    if ( wxDynamicCast(property, wxFileProperty) )
++    wxFileProperty* fileProp = wxDynamicCast(property, wxFileProperty);
++    if ( fileProp )
+     {
+-        fileProp = ((wxFileProperty*)property);
+         wxFileName filename = fileProp->GetValue().GetString();
+         path = filename.GetPath();
+         indFilter = fileProp->m_indFilter;

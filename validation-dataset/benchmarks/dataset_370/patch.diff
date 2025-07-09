@@ -1,0 +1,44 @@
+From e182d1935830c4261e24fde7a9eb7c4965736b63 Mon Sep 17 00:00:00 2001
+From: Duncan Frost <duncans_pumpkin@hotmail.co.uk>
+Date: Tue, 3 Feb 2015 19:51:07 +0000
+Subject: [PATCH] Changed object_read_and_load_entries to try load all objects
+ before failing.
+
+---
+ src/object_list.c | 13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
+
+diff --git a/src/object_list.c b/src/object_list.c
+index b2f4edf889c8..8af58aec2f2e 100644
+--- a/src/object_list.c
++++ b/src/object_list.c
+@@ -392,6 +392,7 @@ int object_read_and_load_entries(FILE *file)
+ 	entries = malloc(OBJECT_ENTRY_COUNT * sizeof(rct_object_entry));
+ 	sawyercoding_read_chunk(file, (uint8*)entries);
+ 
++	uint8 load_fail = 0;
+ 	// Load each object
+ 	for (i = 0; i < OBJECT_ENTRY_COUNT; i++) {
+ 		if (!check_object_entry(&entries[i]))
+@@ -409,14 +410,16 @@ int object_read_and_load_entries(FILE *file)
+ 		if (!object_load(entryGroupIndex, &entries[i], NULL)) {
+ 			log_error("failed to load entry: %.8s", entries[i].name);
+ 			memcpy((char*)0x13CE952, &entries[i], sizeof(rct_object_entry));
+-			free(entries);
+-			object_unload_all();
+-			RCT2_GLOBAL(0x14241BC, uint32) = 0;
+-			return 0;
++			load_fail = 1;
+ 		}
+ 	}
+ 
+-	free(entries);
++	free(entries);	
++	if (load_fail){
++		object_unload_all();
++		RCT2_GLOBAL(0x14241BC, uint32) = 0;
++		return 0;
++	}
+ 	return 1;
+ }
+ 

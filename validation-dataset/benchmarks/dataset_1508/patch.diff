@@ -1,0 +1,25 @@
+From bed3b6a3f0d9085c213d484062ed6674dab53f28 Mon Sep 17 00:00:00 2001
+From: Julien Pommier <pommier@pianoteq.com>
+Date: Mon, 9 Feb 2004 10:30:05 +0000
+Subject: [PATCH] minor optimization of is_in()
+
+---
+ src/dal_bit_vector.h | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/dal_bit_vector.h b/src/dal_bit_vector.h
+index a68a18b1b..8d87a34e8 100644
+--- a/src/dal_bit_vector.h
++++ b/src/dal_bit_vector.h
+@@ -309,7 +309,10 @@ namespace dal
+   
+     public : 
+ 
+-      bool is_in(size_type i) const { return (*this)[i]; }
++    bool is_in(size_type i) const { 
++      if (i < ifirst_true || i > ilast_true) return false;
++      else return (((*(const bit_container*)(this))[i / WD_BIT]) & 
++		   (bit_support(1) << (i & WD_MASK))) ? true : false; }
+       void add(size_type i) { (*this)[i] = true; }
+     /** set the interval [i...i+nb-1] to true */
+       void add(size_type i, size_type nb);

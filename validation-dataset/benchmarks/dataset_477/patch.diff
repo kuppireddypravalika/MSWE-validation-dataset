@@ -1,0 +1,22 @@
+From 4bcf68d84a03e833ce46faadfba40fe10bccd915 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Micha=C5=82=20Janiszewski?= <janisozaur@gmail.com>
+Date: Tue, 19 Jan 2021 22:10:15 +0100
+Subject: [PATCH] Use simple std::string assignment to plug memory leak
+
+---
+ src/openrct2/config/Config.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/openrct2/config/Config.cpp b/src/openrct2/config/Config.cpp
+index b1a241509f54..81fa4f7194dd 100644
+--- a/src/openrct2/config/Config.cpp
++++ b/src/openrct2/config/Config.cpp
+@@ -398,7 +398,7 @@ namespace Config
+             playerName = String::Trim(playerName);
+ 
+             auto model = &gConfigNetwork;
+-            model->player_name = String::Duplicate(playerName);
++            model->player_name = playerName;
+             model->default_port = reader->GetInt32("default_port", NETWORK_DEFAULT_PORT);
+             model->listen_address = reader->GetString("listen_address", "");
+             model->default_password = reader->GetString("default_password", "");

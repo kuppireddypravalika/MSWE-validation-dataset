@@ -1,0 +1,22 @@
+From 752068a4be554784b1ffb4f0f740725173605168 Mon Sep 17 00:00:00 2001
+From: Magne Nordaas <magne.nordaas@gmail.com>
+Date: Thu, 15 Jun 2017 15:53:18 +0200
+Subject: [PATCH] Use DOLFIN_EPS_LARGE when eliminating dofs
+
+---
+ dolfin/fem/MultiMeshAssembler.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/dolfin/fem/MultiMeshAssembler.cpp b/dolfin/fem/MultiMeshAssembler.cpp
+index 518d6c5c99e..868b56a213d 100644
+--- a/dolfin/fem/MultiMeshAssembler.cpp
++++ b/dolfin/fem/MultiMeshAssembler.cpp
+@@ -77,7 +77,7 @@ void MultiMeshAssembler::assemble(GenericTensor& A, const MultiMeshForm& a)
+ 
+   // Lock any remaining inactive dofs
+   if (A.rank() == 2)
+-    static_cast<GenericMatrix&>(A).ident_zeros();
++    static_cast<GenericMatrix&>(A).ident_zeros(DOLFIN_EPS_LARGE);
+ 
+   end();
+ }

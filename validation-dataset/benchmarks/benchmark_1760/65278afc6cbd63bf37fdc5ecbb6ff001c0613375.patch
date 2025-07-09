@@ -1,0 +1,24 @@
+From 65278afc6cbd63bf37fdc5ecbb6ff001c0613375 Mon Sep 17 00:00:00 2001
+From: Reid Kleckner <rnk@google.com>
+Date: Fri, 10 Nov 2017 19:12:01 +0000
+Subject: [PATCH] Use DenseMap instead of std::map in fixupExports
+
+Some DLLs have many exports, and this data structure shows up in the
+profile of linking content.dll.
+---
+ lld/COFF/DriverUtils.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lld/COFF/DriverUtils.cpp b/lld/COFF/DriverUtils.cpp
+index c03b97274570..64856999902c 100644
+--- a/lld/COFF/DriverUtils.cpp
++++ b/lld/COFF/DriverUtils.cpp
+@@ -594,7 +594,7 @@ void fixupExports() {
+   }
+ 
+   // Uniquefy by name.
+-  std::map<StringRef, Export *> Map;
++  DenseMap<StringRef, Export *> Map(Config->Exports.size());
+   std::vector<Export> V;
+   for (Export &E : Config->Exports) {
+     auto Pair = Map.insert(std::make_pair(E.ExportName, &E));

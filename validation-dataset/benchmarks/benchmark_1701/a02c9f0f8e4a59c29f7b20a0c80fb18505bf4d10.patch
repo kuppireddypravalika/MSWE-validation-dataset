@@ -1,0 +1,31 @@
+From a02c9f0f8e4a59c29f7b20a0c80fb18505bf4d10 Mon Sep 17 00:00:00 2001
+From: Ghostkeeper <rubend@tutanota.com>
+Date: Tue, 18 Aug 2020 09:52:05 +0200
+Subject: [PATCH] More const correctness
+
+Hopefully this allows for more compiler optimizations of this performance-sensitive code.
+---
+ src/gcodeExport.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/gcodeExport.cpp b/src/gcodeExport.cpp
+index 2eb4ac5a6e..8f85a27d85 100644
+--- a/src/gcodeExport.cpp
++++ b/src/gcodeExport.cpp
+@@ -757,14 +757,14 @@ void GCodeExport::writeExtrusion(const int x, const int y, const int z, const Ve
+         logWarning("Warning! Negative extrusion move!\n");
+     }
+ 
+-    double extrusion_per_mm = mm3ToE(extrusion_mm3_per_mm);
++    const double extrusion_per_mm = mm3ToE(extrusion_mm3_per_mm);
+ 
+     if (is_z_hopped > 0)
+     {
+         writeZhopEnd();
+     }
+ 
+-    Point3 diff = Point3(x,y,z) - currentPosition;
++    const Point3 diff = Point3(x,y,z) - currentPosition;
+     const double diff_length = diff.vSizeMM();
+ 
+     writeUnretractionAndPrime();

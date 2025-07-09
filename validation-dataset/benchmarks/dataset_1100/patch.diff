@@ -1,0 +1,23 @@
+From 8bd073be9502eaf2a2f71eece788a4be87b06d2c Mon Sep 17 00:00:00 2001
+From: Peter Caspers <peter.caspers@quaternion.com>
+Date: Sat, 10 Oct 2020 15:52:22 +0200
+Subject: [PATCH] [touch:1374]dont throw if scenario keys are missing, we use
+ that to speed up simulations
+
+---
+ OREAnalytics/orea/scenario/scenariosimmarket.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/OREAnalytics/orea/scenario/scenariosimmarket.cpp b/OREAnalytics/orea/scenario/scenariosimmarket.cpp
+index 244d4bd601..5ddf329906 100644
+--- a/OREAnalytics/orea/scenario/scenariosimmarket.cpp
++++ b/OREAnalytics/orea/scenario/scenariosimmarket.cpp
+@@ -2061,7 +2061,7 @@ void ScenarioSimMarket::applyScenario(const boost::shared_ptr<Scenario>& scenari
+                     if (!scenario->has(it.first))
+                         ALOG("Key " << it.first << " missing in scenario");
+                 }
+-                QL_FAIL("mismatch between scenario and sim data size, exit.");
++                // QL_FAIL("mismatch between scenario and sim data size, exit.");
+             }
+         }
+ 

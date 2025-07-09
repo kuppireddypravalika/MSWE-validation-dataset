@@ -1,0 +1,36 @@
+From 3ec7f533c344b04333b68c20c0bc1cae4fd0d399 Mon Sep 17 00:00:00 2001
+From: Guido Tack <guido.tack@monash.edu>
+Date: Fri, 15 Jan 2016 10:31:26 +1100
+Subject: [PATCH] Short cut compilation for x=true expressions
+
+---
+ lib/flatten.cpp | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/lib/flatten.cpp b/lib/flatten.cpp
+index fe4165327..5e81aa97f 100644
+--- a/lib/flatten.cpp
++++ b/lib/flatten.cpp
+@@ -21,9 +21,6 @@
+ 
+ #include <minizinc/flatten_internal.hh>
+ 
+-// temporary
+-#include <minizinc/prettyprinter.hh>
+-
+ namespace MiniZinc {
+ 
+   /// Output operator for contexts
+@@ -3849,6 +3846,12 @@ namespace MiniZinc {
+               ctx0.b = ctx1.b = C_MIX;
+               goto flatten_bool_op;
+             } else {
++              if (istrue(env, boe0)) {
++                return flat_exp(env, ctx, boe1, r, b);
++              }
++              if (istrue(env, boe1)) {
++                return flat_exp(env, ctx, boe0, r, b);
++              }
+               if (r && r==constants().var_true) {
+                 if (boe1->type().ispar() || boe1->isa<Id>())
+                   std::swap(boe0,boe1);

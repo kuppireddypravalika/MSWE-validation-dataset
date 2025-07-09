@@ -1,0 +1,30 @@
+From 02e0f5769a63238fe6990c8f5e99c343968d920c Mon Sep 17 00:00:00 2001
+From: Andrew Craik <ajcraik@ca.ibm.com>
+Date: Tue, 8 Aug 2017 09:03:41 -0400
+Subject: [PATCH] Short circuit single block loop check in GlobalDSE
+
+Global dead store elimination currently has a check for single block
+loops which involves gathering all the blocks in the region structure.
+This change adds a short circuit check that the region structure being
+checked has, itself, only one subnode (either region or block) since
+having more than one automatically excludes the region and the check is
+essentially free compared to the cost of gathering the nodes in the
+region.
+
+Signed-off-by: Andrew Craik <ajcraik@ca.ibm.com>
+---
+ compiler/optimizer/IsolatedStoreElimination.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/compiler/optimizer/IsolatedStoreElimination.cpp b/compiler/optimizer/IsolatedStoreElimination.cpp
+index 2b314d843a..2bc8d6cbaf 100644
+--- a/compiler/optimizer/IsolatedStoreElimination.cpp
++++ b/compiler/optimizer/IsolatedStoreElimination.cpp
+@@ -1010,6 +1010,7 @@ TR_IsolatedStoreElimination::findStructuresAndNodesUsedIn(TR_UseDefInfo *info, T
+       TR_RegionStructure *regionStructure = structure->asRegion();
+ 
+       if (regionStructure->isNaturalLoop() &&
++          regionStructure->numSubNodes() == 1 &&
+           (regionStructure->getParent() &&
+            regionStructure->getParent()->asRegion()->isCanonicalizedLoop()))
+          {

@@ -1,0 +1,45 @@
+From 0fe2a359220f98a7a5c627b13c81889b03394cb2 Mon Sep 17 00:00:00 2001
+From: "Marcus D. Hanwell" <marcus.hanwell@kitware.com>
+Date: Mon, 28 May 2018 12:05:44 -0400
+Subject: [PATCH] Remove the deep copy of the image for data sources
+
+The data source has always performed a deep copy of the image data read
+by the reader/from other sources. I don't think this is necessary, and
+in the cases of large image data can be quite costly. In my superficial
+testing I am not seeing any regressions, I think it is reasonable to
+expect data source to take strong ownership of the image data passed in.
+---
+ tomviz/DataSource.cxx | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
+
+diff --git a/tomviz/DataSource.cxx b/tomviz/DataSource.cxx
+index 034654c1c..762f249c5 100644
+--- a/tomviz/DataSource.cxx
++++ b/tomviz/DataSource.cxx
+@@ -935,22 +935,18 @@ void DataSource::init(vtkImageData* data, DataSourceType dataType,
+   controller->RegisterPipelineProxy(this->Internals->ProducerProxy);
+ 
+   if (data) {
+-    auto copy = data->NewInstance();
+-    copy->DeepCopy(data);
+-    auto image = vtkImageData::SafeDownCast(copy);
+     auto tp = vtkTrivialProducer::SafeDownCast(source->GetClientSideObject());
+-    tp->SetOutput(image);
+-    image->Delete();
++    tp->SetOutput(data);
+ 
+     // This is a little hackish, currently special cased for the MRC format.
+     // It would probably be best to move this to the file read/write classes.
+-    if (image && m_scaleOriginalSpacingBy != 1.0) {
++    if (data && m_scaleOriginalSpacingBy != 1.0) {
+       double spacing[3];
+-      image->GetSpacing(spacing);
++      data->GetSpacing(spacing);
+       for (int i = 0; i < 3; ++i) {
+         spacing[i] *= m_scaleOriginalSpacingBy;
+       }
+-      image->SetSpacing(spacing);
++      data->SetSpacing(spacing);
+     }
+   }
+ 

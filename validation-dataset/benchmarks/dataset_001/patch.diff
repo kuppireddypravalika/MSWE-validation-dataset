@@ -1,0 +1,22 @@
+From da1cfb71691474870507d7b787fb8b6052104280 Mon Sep 17 00:00:00 2001
+From: ulteq <ulteq@web.de>
+Date: Fri, 1 Feb 2019 19:16:03 +0100
+Subject: [PATCH] :sparkles: Much faster cache generation
+
+Skip the sequential importer and gain a 2.4x increase in cache generation speed.
+---
+ source/main/resources/CacheSystem.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/source/main/resources/CacheSystem.cpp b/source/main/resources/CacheSystem.cpp
+index a0aa970e78..a8a6cb523e 100644
+--- a/source/main/resources/CacheSystem.cpp
++++ b/source/main/resources/CacheSystem.cpp
+@@ -766,6 +766,7 @@ void CacheSystem::fillTruckDetailInfo(CacheEntry& entry, Ogre::DataStreamPtr str
+     RigDef::Parser parser;
+     parser.Prepare();
+     parser.ProcessOgreStream(stream.getPointer(), group);
++    parser.GetSequentialImporter()->Disable();
+     parser.Finalize();
+ 
+     /* Report messages */

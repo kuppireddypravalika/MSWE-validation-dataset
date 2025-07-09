@@ -1,0 +1,49 @@
+From ac0ac9d4d8fac451f5dc12c6bdcfaf41c134c632 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@duempel.org>
+Date: Sat, 12 Apr 2008 04:21:34 +0000
+Subject: [PATCH] flush after loop in sendDataToOutputBuffer()
+
+Since tailChunk() automatically flushes full buffers, we do not have
+to check this in every iteration of sendDataToOutputBuffer().
+
+git-svn-id: https://svn.musicpd.org/mpd/trunk@7343 09075e82-0dd4-0310-85a5-a0d7c8717e4f
+---
+ src/outputBuffer.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/src/outputBuffer.c b/src/outputBuffer.c
+index daf03d4b02..bc25bbf3fe 100644
+--- a/src/outputBuffer.c
++++ b/src/outputBuffer.c
+@@ -209,6 +209,7 @@ int sendDataToOutputBuffer(OutputBuffer * cb, InputStream * inStream,
+ 	size_t datalen;
+ 	static char *convBuffer;
+ 	static size_t convBufferLen;
++	OutputBufferChunk *chunk = NULL;
+ 
+ 	if (cmpAudioFormat(&(cb->audioFormat), &(dc->audioFormat)) == 0) {
+ 		data = dataIn;
+@@ -234,7 +235,6 @@ int sendDataToOutputBuffer(OutputBuffer * cb, InputStream * inStream,
+ 		normalizeData(data, datalen, &cb->audioFormat);
+ 
+ 	while (datalen) {
+-		OutputBufferChunk *chunk;
+ 		int chunk_index = tailChunk(cb, inStream,
+ 					    dc, seekable,
+ 					    data_time, bitRate);
+@@ -251,12 +251,11 @@ int sendDataToOutputBuffer(OutputBuffer * cb, InputStream * inStream,
+ 		chunk->chunkSize += dataToSend;
+ 		datalen -= dataToSend;
+ 		data += dataToSend;
+-
+-		if (chunk->chunkSize == sizeof(chunk->data)) {
+-			flushOutputBuffer(cb);
+-		}
+ 	}
+ 
++	if (chunk != NULL && chunk->chunkSize == sizeof(chunk->data))
++		flushOutputBuffer(cb);
++
+ 	return 0;
+ }
+ 

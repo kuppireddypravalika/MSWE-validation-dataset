@@ -1,0 +1,25 @@
+From 857a46e831ab48ea6413a1c0bbb9d2d63ba6f73f Mon Sep 17 00:00:00 2001
+From: tiagovla <30515389+tiagovla@users.noreply.github.com>
+Date: Fri, 28 Oct 2022 10:50:28 -0300
+Subject: [PATCH] perf: replace for loop with constructor (#2407)
+
+Co-authored-by: Jack S. Hale <mail@jackhale.co.uk>
+---
+ cpp/dolfinx/common/log.cpp | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/cpp/dolfinx/common/log.cpp b/cpp/dolfinx/common/log.cpp
+index a0a110a4ec4..58e2623a24d 100644
+--- a/cpp/dolfinx/common/log.cpp
++++ b/cpp/dolfinx/common/log.cpp
+@@ -22,9 +22,7 @@ void dolfinx::init_logging(int argc, char* argv[])
+   loguru::Options options = {"-dolfinx_loglevel", "main", signals};
+ 
+   // Make a copy of argv, as loguru may modify it
+-  std::vector<char*> argv_copy;
+-  for (int i = 0; i < argc; ++i)
+-    argv_copy.push_back(argv[i]);
++  std::vector<char*> argv_copy(argv, argv + argc);
+   argv_copy.push_back(nullptr);
+ 
+   loguru::init(argc, argv_copy.data(), options);

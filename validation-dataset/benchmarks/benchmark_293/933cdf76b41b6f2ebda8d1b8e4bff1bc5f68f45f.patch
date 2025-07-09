@@ -1,0 +1,44 @@
+From 933cdf76b41b6f2ebda8d1b8e4bff1bc5f68f45f Mon Sep 17 00:00:00 2001
+From: Lioncash <mathew1800@gmail.com>
+Date: Thu, 3 Jun 2021 20:58:47 -0400
+Subject: [PATCH] Config: Move strings where applicable
+
+Noticed when adding amending missing const qualifiers on interfaces. We
+can make use of std::move here to avoid potential allocation churn a
+little.
+
+While we're at it, we can implement EraseSet in terms of, well, Erase()
+and Set().
+---
+ External/FEXCore/include/FEXCore/Config/Config.h | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/External/FEXCore/include/FEXCore/Config/Config.h b/External/FEXCore/include/FEXCore/Config/Config.h
+index c1d4402773..f92f1ca3f7 100644
+--- a/External/FEXCore/include/FEXCore/Config/Config.h
++++ b/External/FEXCore/include/FEXCore/Config/Config.h
+@@ -94,12 +94,12 @@ namespace Type {
+     }
+ 
+     void Set(ConfigOption Option, std::string Data) {
+-      OptionMap[Option].emplace_back(Data);
++      OptionMap[Option].emplace_back(std::move(Data));
+     }
+ 
+     void EraseSet(ConfigOption Option, std::string Data) {
+-      OptionMap.erase(Option);
+-      OptionMap[Option].emplace_back(Data);
++      Erase(Option);
++      Set(Option, std::move(Data));
+     }
+ 
+     void Erase(ConfigOption Option) {
+@@ -173,7 +173,7 @@ namespace Type {
+ 
+     operator T() const { return ValueData; }
+     T operator()() const { return ValueData; }
+-    Value<T>(T Value) { ValueData = Value; }
++    Value<T>(T Value) { ValueData = std::move(Value); }
+     std::list<T> &All() { return AppendList; }
+ 
+   private:

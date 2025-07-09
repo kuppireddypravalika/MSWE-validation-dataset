@@ -1,0 +1,41 @@
+From 7dfb3da7ec35b3bb6c461caf8d58f794558c7172 Mon Sep 17 00:00:00 2001
+From: Erik Garrison <erik.garrison@gmail.com>
+Date: Sat, 27 Dec 2014 15:55:40 +0100
+Subject: [PATCH] improve id compaction performance
+
+Just record a list of swaps, then rebuild the indexes. There is no need to swap
+each node individually.
+---
+ vg.cpp | 15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/vg.cpp b/vg.cpp
+index 44a71ac82fe..8f74c226a84 100644
+--- a/vg.cpp
++++ b/vg.cpp
+@@ -404,13 +404,22 @@ int64_t VG::max_node_id(void) {
+ }
+ 
+ void VG::compact_ids(void) {
+-    int64_t step = max_node_id() + 1;
+-    increment_node_ids(step);
++    hash_map<int64_t, int64_t> new_id;
+     int64_t id = 1; // start at 1
+     for (int i = 0; i < graph.node_size(); ++i) {
+         Node* n = graph.mutable_node(i);
+-        swap_node_id(n, id++);
++        new_id[n->id()] = id++;
+     }
++    for (int i = 0; i < graph.node_size(); ++i) {
++        Node* n = graph.mutable_node(i);
++        n->set_id(new_id[n->id()]);
++    }
++    for (int i = 0; i < graph.edge_size(); ++i) {
++        Edge* e = graph.mutable_edge(i);
++        e->set_from(new_id[e->from()]);
++        e->set_to(new_id[e->to()]);
++    }
++    rebuild_indexes();
+ }
+ 
+ void VG::increment_node_ids(int64_t increment) {

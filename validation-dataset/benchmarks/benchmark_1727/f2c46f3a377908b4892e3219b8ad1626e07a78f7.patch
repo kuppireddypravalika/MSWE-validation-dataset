@@ -1,0 +1,27 @@
+From f2c46f3a377908b4892e3219b8ad1626e07a78f7 Mon Sep 17 00:00:00 2001
+From: Pilow <pierre.laupretre@gmail.com>
+Date: Mon, 27 Feb 2017 22:58:40 +0100
+Subject: [PATCH] [number] Don't intialize mpz_value multiple times and avoid
+ leak
+
+---
+ src/compiler/value/Number.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/compiler/value/Number.cpp b/src/compiler/value/Number.cpp
+index deef3d52..9ad19189 100644
+--- a/src/compiler/value/Number.cpp
++++ b/src/compiler/value/Number.cpp
+@@ -73,8 +73,10 @@ void Number::analyse(SemanticAnalyser*, const Type& req_type) {
+ 			// TODO floating-point large values
+ 		}
+ 	} else {
+-		mpz_init_set_str(mpz_value, clean_value.c_str(), base);
+-		mpz_value_initialized = true;
++		if (!mpz_value_initialized) {
++			mpz_init_set_str(mpz_value, clean_value.c_str(), base);
++			mpz_value_initialized = true;
++		}
+ 
+ 		if (!mp_number and !long_number and mpz_fits_sint_p(mpz_value)) {
+ 			type = Type::INTEGER;

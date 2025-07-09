@@ -1,0 +1,25 @@
+From 4e5b590041e67077a503ee6126dd21eb723d24c7 Mon Sep 17 00:00:00 2001
+From: AdityaGhantasala <shine.aditya@gmail.com>
+Date: Wed, 23 May 2018 14:34:11 +0200
+Subject: [PATCH] in trilinos builder and solver : changing to auto& to avoid
+ copying when getting elements and conditions
+
+---
+ .../builder_and_solvers/trilinos_block_builder_and_solver.h   | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/applications/trilinos_application/custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h b/applications/trilinos_application/custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h
+index d3db2072c607..8d3dd32de992 100644
+--- a/applications/trilinos_application/custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h
++++ b/applications/trilinos_application/custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h
+@@ -766,8 +766,8 @@ class TrilinosBlockBuilderAndSolver
+             if(temp_size <1000) temp_size = 1000;
+             int* temp = new int[temp_size]; //
+ 
+-            auto rElements = rModelPart.Elements();
+-            auto rConditions = rModelPart.Conditions();
++            auto& rElements = rModelPart.Elements();
++            auto& rConditions = rModelPart.Conditions();
+ 
+             //generate map - use the "temp" array here
+             for(unsigned int i=0; i!=number_of_local_dofs; i++)

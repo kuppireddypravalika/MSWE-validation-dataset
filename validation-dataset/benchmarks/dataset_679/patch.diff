@@ -1,0 +1,36 @@
+From 741bb8fdc33966df818649f485494a3617878941 Mon Sep 17 00:00:00 2001
+From: montellese <montellese@kodi.tv>
+Date: Tue, 19 May 2020 11:58:17 +0200
+Subject: [PATCH] [video] don't load identical actors twice when
+ CVideoDatabase::GetCast() is called multiple times
+
+---
+ xbmc/video/VideoDatabase.cpp | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
+
+diff --git a/xbmc/video/VideoDatabase.cpp b/xbmc/video/VideoDatabase.cpp
+index c852aa0aa4171..6d62d9b4aefaf 100644
+--- a/xbmc/video/VideoDatabase.cpp
++++ b/xbmc/video/VideoDatabase.cpp
+@@ -4303,10 +4303,17 @@ void CVideoDatabase::GetCast(int media_id, const std::string &media_type, std::v
+       SActorInfo info;
+       info.strName = m_pDS2->fv(0).get_asString();
+       info.strRole = m_pDS2->fv(1).get_asString();
+-      info.order = m_pDS2->fv(2).get_asInt();
+-      info.thumbUrl.ParseFromData(m_pDS2->fv(3).get_asString());
+-      info.thumb = m_pDS2->fv(4).get_asString();
+-      cast.emplace_back(std::move(info));
++
++      // ignore identical actors (since cast might already be prefilled)
++      if (std::none_of(cast.begin(), cast.end(), [info](const SActorInfo& actor) {
++            return actor.strName == info.strName && actor.strRole == info.strRole;
++          }))
++      {
++        info.order = m_pDS2->fv(2).get_asInt();
++        info.thumbUrl.ParseFromData(m_pDS2->fv(3).get_asString());
++        info.thumb = m_pDS2->fv(4).get_asString();
++        cast.emplace_back(std::move(info));
++      }
+ 
+       m_pDS2->next();
+     }

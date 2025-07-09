@@ -1,0 +1,23 @@
+From e4b6f7357bba39ec60dbd7cce63fa7e215a52f87 Mon Sep 17 00:00:00 2001
+From: Dmitry Tsarevich <dimhotepus@gmail.com>
+Date: Fri, 16 Oct 2020 20:21:07 +0300
+Subject: [PATCH] [flow] Use static_assert instead of array size hacks
+
+---
+ src/xrCore/fastdelegate.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/xrCore/fastdelegate.h b/src/xrCore/fastdelegate.h
+index dd558bfe1a1..9546b892fed 100644
+--- a/src/xrCore/fastdelegate.h
++++ b/src/xrCore/fastdelegate.h
+@@ -856,7 +856,8 @@ class ClosurePtr : public DelegateMemento
+         // Ensure that there's a compilation failure if function pointers
+         // and data pointers have different sizes.
+         // If you get this error, you need to #undef FASTDELEGATE_USESTATICFUNCTIONHACK.
+-        typedef int ERROR_CantUseEvilMethod[sizeof(UnvoidStaticFuncPtr) == sizeof(this) ? 1 : -1];
++        static_assert(sizeof(UnvoidStaticFuncPtr) == sizeof(this),
++            "Function ptr size != data ptr size. Please #undef FASTDELEGATE_USESTATICFUNCTIONHACK");
+         return horrible_cast<UnvoidStaticFuncPtr>(this);
+     }
+ #endif // !defined(FASTDELEGATE_USESTATICFUNCTIONHACK)

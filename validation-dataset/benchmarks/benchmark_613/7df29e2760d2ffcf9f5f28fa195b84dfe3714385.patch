@@ -1,0 +1,35 @@
+From 7df29e2760d2ffcf9f5f28fa195b84dfe3714385 Mon Sep 17 00:00:00 2001
+From: Irwin D'Souza <dsouzai@ca.ibm.com>
+Date: Tue, 14 Aug 2018 22:32:28 -0400
+Subject: [PATCH] Used resolved interpreter dispatch for AOT
+
+Previously, because almost everything was "unresolved" under AOT, all
+calls would use the unresolved dispatch. However, with the new
+validations, very few unresolved pointers are only unresolved because of
+AOT. Therefore, generating an unresolved dispatch is incorrect.
+
+The solution to this problem is to assume, during an AOT compile, that
+all methods are interpreted. Thus, if a method is resolved, the compiler
+will generate a resolved interpreter dispatch snippet, which can patch
+the caller if/when the method is compiled.
+
+Signed-off-by: Irwin D'Souza <dsouza@ca.ibm.com>
+---
+ compiler/il/symbol/OMRResolvedMethodSymbol.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/compiler/il/symbol/OMRResolvedMethodSymbol.cpp b/compiler/il/symbol/OMRResolvedMethodSymbol.cpp
+index 1b3f25f6f4..23899e01c4 100644
+--- a/compiler/il/symbol/OMRResolvedMethodSymbol.cpp
++++ b/compiler/il/symbol/OMRResolvedMethodSymbol.cpp
+@@ -160,7 +160,9 @@ OMR::ResolvedMethodSymbol::ResolvedMethodSymbol(TR_ResolvedMethod * method, TR::
+    // Set the interpreted flag for an interpreted method unless we're calling
+    // the method that's being jitted
+    //
+-   if ((_methodIndex > JITTED_METHOD_INDEX && !_resolvedMethod->isSameMethod(comp->getJittedMethodSymbol()->getResolvedMethod())) || comp->isDLT())
++   if ((_methodIndex > JITTED_METHOD_INDEX && !_resolvedMethod->isSameMethod(comp->getJittedMethodSymbol()->getResolvedMethod()))
++       || comp->isDLT()
++       || (comp->getOption(TR_UseSymbolValidationManager) && comp->compileRelocatableCode()))
+       {
+       if (_resolvedMethod->isInterpreted())
+          {

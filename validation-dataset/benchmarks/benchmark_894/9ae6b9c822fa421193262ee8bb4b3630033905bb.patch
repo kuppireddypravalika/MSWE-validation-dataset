@@ -1,0 +1,22 @@
+From 9ae6b9c822fa421193262ee8bb4b3630033905bb Mon Sep 17 00:00:00 2001
+From: Sebastian Weber <sdw.post@waebers.de>
+Date: Sat, 1 Dec 2018 18:43:58 +0100
+Subject: [PATCH] use Eigen zeroing again
+
+---
+ stan/math/rev/mat/meta/operands_and_partials.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/stan/math/rev/mat/meta/operands_and_partials.hpp b/stan/math/rev/mat/meta/operands_and_partials.hpp
+index 5ccb9e86b24..252686cab8c 100644
+--- a/stan/math/rev/mat/meta/operands_and_partials.hpp
++++ b/stan/math/rev/mat/meta/operands_and_partials.hpp
+@@ -21,7 +21,7 @@ class ops_partials_edge<double, std::vector<var> > {
+   partials_t partials_;                       // For univariate use-cases
+   broadcast_array<partials_t> partials_vec_;  // For multivariate
+   explicit ops_partials_edge(const Op& op)
+-      : partials_(partials_t(op.size(), 0)),
++      : partials_(partials_t::Zero(op.size())),
+         partials_vec_(partials_),
+         operands_(op) {}
+ 

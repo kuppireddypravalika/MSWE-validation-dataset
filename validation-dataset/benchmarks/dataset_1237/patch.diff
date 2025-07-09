@@ -1,0 +1,27 @@
+From 634b5727743edf79d9d73faf419b36494ab70fb0 Mon Sep 17 00:00:00 2001
+From: Gao feng <gaufung@foxmail.com>
+Date: Mon, 4 May 2015 19:18:52 +0800
+Subject: [PATCH] better way to copy array value to vector
+
+---
+ ch03/ex3_32.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/ch03/ex3_32.cpp b/ch03/ex3_32.cpp
+index 8bddddc8..8b4f2bf9 100644
+--- a/ch03/ex3_32.cpp
++++ b/ch03/ex3_32.cpp
+@@ -17,9 +17,13 @@ int main()
+         ia2[i] = ia[i];
+ 
+     // use vector
++    /*
+     vector<int> iv(10);
+     for (auto iter = iv.begin(); iter != iv.end(); ++iter)    
+         *iter = iter - iv.begin();
++    */
++    //use vector initialize 
++    vector<int> v(ia,ia+sizeof(ia) / sizeof(ia[0]));
+ 
+     vector<int> iv2(iv);
+ 

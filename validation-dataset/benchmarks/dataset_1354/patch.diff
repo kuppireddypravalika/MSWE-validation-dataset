@@ -1,0 +1,22 @@
+From 887946bff8e11953194e4792e07e34f0c3361422 Mon Sep 17 00:00:00 2001
+From: Johannes Hofmann <Johannes.Hofmann@gmx.de>
+Date: Mon, 1 Dec 2008 17:26:56 +0100
+Subject: [PATCH] fix monstrous memory leak in StyleEngine::startElement()
+
+---
+ src/styleengine.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/styleengine.cc b/src/styleengine.cc
+index 09a908663..75d1d4255 100644
+--- a/src/styleengine.cc
++++ b/src/styleengine.cc
+@@ -55,7 +55,7 @@ void StyleEngine::startElement (int element) {
+    if (stack->getRef (stack->size () - 1)->style == NULL)
+       style0 ();
+ 
+-   stack->increase ();
++   stack->setSize (stack->size () + 1);
+    Node *n =  stack->getRef (stack->size () - 1);
+    n->style = NULL;
+    n->depth = stack->size () - 1;

@@ -1,0 +1,42 @@
+From e3d1073f91526314e169b7f81d645f4d4150418a Mon Sep 17 00:00:00 2001
+From: Sergey Sharybin <sergey.vfx@gmail.com>
+Date: Wed, 18 Feb 2015 22:47:23 +0500
+Subject: [PATCH] Add an option to mesh.calc_tessface() to get rid of polygons
+ and loops
+
+The purpose of this change is to add extra possibility to render engines and
+export scripts to reduce peak memory footprint during their operation.
+
+This new argument should be used with care since it'll leave mesh in not really
+compatible with blender format, but it's ok to be used on temp meshes.
+
+Unfortunately, it's hard to get scene where it'll show huge benefit because
+in my tests with cycles peak memory is reached in MEM_printmemlist_stats().
+
+However, in the file with sintel dragon it gives around 1gig of memory benefit
+after removing the polys which would allow other heavy to compute stuff such as
+hair (or even pointiness calculation) to not be a peak memory usage.
+
+In any case, this change is nice to have IMO, and only means more parts of
+scene export code should be optimized memory-wise.
+
+Reviewers: campbellbarton
+
+Differential Revision: https://developer.blender.org/D1125
+---
+ src/blender/blender_util.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/blender/blender_util.h b/src/blender/blender_util.h
+index 64fc35289..9f7181cc5 100644
+--- a/src/blender/blender_util.h
++++ b/src/blender/blender_util.h
+@@ -47,7 +47,7 @@ static inline BL::Mesh object_to_mesh(BL::BlendData data, BL::Object object, BL:
+ 		if (me.use_auto_smooth()) {
+ 			me.calc_normals_split();
+ 		}
+-		me.calc_tessface();
++		me.calc_tessface(true);
+ 	}
+ 	return me;
+ }

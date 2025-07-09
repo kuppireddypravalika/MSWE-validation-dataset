@@ -1,0 +1,23 @@
+From 9d948418905c522b0f89b983a0902b2e5180c7fc Mon Sep 17 00:00:00 2001
+From: David Stone <davidfromonline@gmail.com>
+Date: Mon, 26 Apr 2021 16:34:55 -0600
+Subject: [PATCH] Avoid compile time integer overflow in `concatenate` with
+ `std::string` as the target.
+
+---
+ include/containers/algorithms/concatenate.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/containers/algorithms/concatenate.hpp b/include/containers/algorithms/concatenate.hpp
+index 6faeb675..aabab0b9 100644
+--- a/include/containers/algorithms/concatenate.hpp
++++ b/include/containers/algorithms/concatenate.hpp
+@@ -95,7 +95,7 @@ constexpr auto move_existing_data_to_final_position(Container & container, auto
+ 	} else {
+ 		static_assert(std::is_trivial_v<range_value_t<Container>> and resizable_container<Container>);
+ 		using difference_type = iter_difference_t<iterator_t<Container>>;
+-		auto const original_size = ::containers::size(container);
++		auto const original_size = bounded::integer(::containers::size(container));
+ 		auto const new_size = original_size + before_size;
+ 		::containers::resize(container, new_size);
+ 		::containers::copy_backward(containers::begin(container), containers::begin(container) + static_cast<difference_type>(original_size), containers::begin(container) + static_cast<difference_type>(new_size));

@@ -1,0 +1,35 @@
+From b08284fd6259f9d945cb8f5b1c283b146ea9ac94 Mon Sep 17 00:00:00 2001
+From: Juli Mallett <juli@clockworksquid.com>
+Date: Wed, 6 Jan 2016 12:21:53 -0800
+Subject: [PATCH] Disable (very slow) lock assertions of NDEBUG.
+
+---
+ common/thread/mutex_posix.cc | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/common/thread/mutex_posix.cc b/common/thread/mutex_posix.cc
+index 0dd32b3..70bd018 100644
+--- a/common/thread/mutex_posix.cc
++++ b/common/thread/mutex_posix.cc
+@@ -49,6 +49,13 @@ Mutex::~Mutex()
+ void
+ Mutex::assert_owned(bool owned, const LogHandle& log, const std::string& file, unsigned line, const std::string& function)
+ {
++#ifdef NDEBUG
++	(void)owned;
++	(void)log;
++	(void)file;
++	(void)line;
++	(void)function;
++#else
+ 	Thread::ID self = Thread::selfID();
+ 	ASSERT_NON_NULL("/mutex/posix", self);
+ 
+@@ -77,6 +84,7 @@ Mutex::assert_owned(bool owned, const LogHandle& log, const std::string& file, u
+ 	}
+ 	HALT(log) << "Lock at " << file << ":" << line << " is owned by another thread; in function " << function;
+ 	state_->unlock();
++#endif
+ }
+ 
+ void

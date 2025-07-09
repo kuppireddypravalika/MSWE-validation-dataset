@@ -1,0 +1,27 @@
+From 87a6aa9b39b88cef5d51c636af5db8608ab6fb6d Mon Sep 17 00:00:00 2001
+From: Jonathan Thomas <jonathan@openshot.org>
+Date: Mon, 31 Jan 2022 17:15:52 -0600
+Subject: [PATCH] Improved pausing code on video playback, to allow for
+ scrubbing during paused state.
+
+---
+ src/Qt/PlayerPrivate.cpp | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/Qt/PlayerPrivate.cpp b/src/Qt/PlayerPrivate.cpp
+index 123d0d40b..865868b0f 100644
+--- a/src/Qt/PlayerPrivate.cpp
++++ b/src/Qt/PlayerPrivate.cpp
+@@ -75,7 +75,11 @@ namespace openshot
+             frame = getFrame();
+ 
+             // Pausing Code (if frame has not changed)
+-            if ((speed == 0 && video_position == last_video_position) || (video_position > reader->info.video_length) || !videoCache->isReady())
++            // Also pause at end of timeline, and pause if 'playing' and
++            // the pre-roll is not yet ready
++            if ((speed == 0 && video_position == last_video_position) ||
++                (video_position > reader->info.video_length) ||
++                (speed == 1 && !videoCache->isReady()))
+             {
+                 // Sleep for a fraction of frame duration
+                 std::this_thread::sleep_for(frame_duration / 4);

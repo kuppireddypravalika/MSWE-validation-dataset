@@ -1,0 +1,29 @@
+From 5bc7ca00dd3dbe9aa34d48f7f4688f9dba0135ba Mon Sep 17 00:00:00 2001
+From: Andreas Schaefer <gentryx@gmx.de>
+Date: Mon, 26 May 2014 11:41:29 +0200
+Subject: [PATCH] minor speedup for CollectingWriter
+
+---
+ src/io/collectingwriter.h | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/src/io/collectingwriter.h b/src/io/collectingwriter.h
+index 98fd064af..ed66cb5ce 100644
+--- a/src/io/collectingwriter.h
++++ b/src/io/collectingwriter.h
+@@ -70,9 +70,13 @@ class CollectingWriter : public ParallelWriter<CELL_TYPE>
+ 
+         CoordBox<DIM> box = grid.boundingBox();
+         StorageGridType localGrid(box);
++
++        int width = box.dimensions.x();
++        box.dimensions.x() = 1;
++
+         for (typename CoordBox<DIM>::Iterator i = box.begin(); i != box.end(); ++i) {
+-            // fixme: slow. better: get whole lines
+-            localGrid[*i] = grid.get(*i);
++            Streak<DIM> s(*i, i->x() + width);
++            grid.get(s, &localGrid[*i]);
+         }
+ 
+         for (int sender = 0; sender < mpiLayer.size(); ++sender) {

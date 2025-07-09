@@ -1,0 +1,32 @@
+From 6bee24ae9a6659d7d2532d6c865a678fdc9fccc2 Mon Sep 17 00:00:00 2001
+From: Benjamin Kramer <benny.kra@googlemail.com>
+Date: Fri, 29 Jan 2010 14:40:33 +0000
+Subject: [PATCH] Use llvm::format instead of ftostr (which just calls
+ sprintf).
+
+llvm-svn: 94807
+---
+ llvm/lib/Support/raw_ostream.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/llvm/lib/Support/raw_ostream.cpp b/llvm/lib/Support/raw_ostream.cpp
+index 10d7ec07012..f020681e6fa 100644
+--- a/llvm/lib/Support/raw_ostream.cpp
++++ b/llvm/lib/Support/raw_ostream.cpp
+@@ -20,7 +20,6 @@
+ #include "llvm/Support/Compiler.h"
+ #include "llvm/Support/ErrorHandling.h"
+ #include "llvm/ADT/STLExtras.h"
+-#include "llvm/ADT/StringExtras.h"
+ #include <sys/stat.h>
+ #include <sys/types.h>
+ 
+@@ -209,7 +208,7 @@ raw_ostream &raw_ostream::operator<<(const void *P) {
+ }
+ 
+ raw_ostream &raw_ostream::operator<<(double N) {
+-  return this->operator<<(ftostr(N));
++  return this->operator<<(format("%e", N));
+ }
+ 
+ 

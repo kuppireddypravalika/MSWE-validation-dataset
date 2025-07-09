@@ -1,0 +1,35 @@
+From 7af2e207d9d91ebb2d72a460171c4cc3b0d577e9 Mon Sep 17 00:00:00 2001
+From: John Haddon <thehaddonyoof@gmail.com>
+Date: Mon, 12 Oct 2020 16:41:22 +0100
+Subject: [PATCH] USDScene : Improve `writeSet()` performance
+
+Writing a set of ~20000 locations, this reduces runtime to 1.5% of the original.
+---
+ contrib/IECoreUSD/src/IECoreUSD/USDScene.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/contrib/IECoreUSD/src/IECoreUSD/USDScene.cpp b/contrib/IECoreUSD/src/IECoreUSD/USDScene.cpp
+index 3cc6d484bf..85adc6427d 100644
+--- a/contrib/IECoreUSD/src/IECoreUSD/USDScene.cpp
++++ b/contrib/IECoreUSD/src/IECoreUSD/USDScene.cpp
+@@ -751,6 +751,7 @@ void USDScene::writeSet( const Name &name, const IECore::PathMatcher &set )
+ {
+ 	pxr::UsdCollectionAPI collection = pxr::UsdCollectionAPI::ApplyCollection( m_location->prim, pxr::TfToken( name.string() ), pxr::UsdTokens->explicitOnly );
+ 
++	pxr::SdfPathVector targets;
+ 	for( PathMatcher::Iterator it = set.begin(); it != set.end(); ++it )
+ 	{
+ 		const SceneInterface::Path &path = *it;
+@@ -767,9 +768,10 @@ void USDScene::writeSet( const Name &name, const IECore::PathMatcher &set )
+ 
+ 		pxr::SdfPath pxrPath;
+ 		convertPath( pxrPath, path, true );
+-
+-		collection.CreateIncludesRel().AddTarget( pxrPath );
++		targets.push_back( pxrPath );
+ 	}
++
++	collection.CreateIncludesRel().SetTargets( targets );
+ }
+ 
+ void USDScene::hashSet( const Name &name, IECore::MurmurHash &h ) const

@@ -1,0 +1,36 @@
+From e518877be0240eaac20ec50ce25cbb6a5f3db719 Mon Sep 17 00:00:00 2001
+From: Kurt Schwehr <schwehr@gmail.com>
+Date: Thu, 3 Sep 2015 00:55:39 +0000
+Subject: [PATCH] Remove return from the default case of switch of format[0] in
+ GetCeosField().
+
+CID 1074420
+
+By not returning in the default case, this takes advantage of the
+HFree at the end to cleanup mod_buf.
+
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@30054 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/frmts/ceos2/ceos.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/gdal/frmts/ceos2/ceos.c b/gdal/frmts/ceos2/ceos.c
+index 73d28142ff1a..9590128c0691 100644
+--- a/gdal/frmts/ceos2/ceos.c
++++ b/gdal/frmts/ceos2/ceos.c
+@@ -214,12 +214,11 @@ void GetCeosField(CeosRecord_t *record, int32 start_byte,
+ 	break;
+ 
+     default:
+-	/* Unknown format */
+-	return;
++	/* Unknown format.  Do nothing. */
++        break;
+     }
+ 
+     HFree(mod_buf);
+-
+ }
+ 
+ void SetCeosField(CeosRecord_t *record, int32 start_byte, char *format, void *value)

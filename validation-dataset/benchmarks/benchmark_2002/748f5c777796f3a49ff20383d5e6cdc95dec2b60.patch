@@ -1,0 +1,23 @@
+From 748f5c777796f3a49ff20383d5e6cdc95dec2b60 Mon Sep 17 00:00:00 2001
+From: Jush Lu <Jush.Lu@mediatek.com>
+Date: Wed, 18 Jan 2012 09:50:36 +0800
+Subject: [PATCH] Replace delete by free() for the memory space allocated by
+ malloc().
+
+---
+ lib/Target/PLT.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/Target/PLT.cpp b/lib/Target/PLT.cpp
+index 707d1f23..74fdb174 100644
+--- a/lib/Target/PLT.cpp
++++ b/lib/Target/PLT.cpp
+@@ -23,7 +23,7 @@ PLTEntry::PLTEntry(const unsigned int size, llvm::MCSectionData* pParent)
+ PLTEntry::~PLTEntry()
+ {
+   if (m_pContent) {
+-    delete m_pContent;
++    free(m_pContent);
+     m_pContent = 0;
+   }
+ }

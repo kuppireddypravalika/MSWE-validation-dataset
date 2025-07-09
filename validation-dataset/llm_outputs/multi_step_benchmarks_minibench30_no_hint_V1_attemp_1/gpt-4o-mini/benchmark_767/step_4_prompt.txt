@@ -1,0 +1,429 @@
+You are an expert C++ performance engineer. Optimize the provided code for high compute and resource performance while preserving behavior. The optimized function must keep the exact same signature as the hand-written implementation. If the original file contains explicit template instantiations, reproduce them unchanged at the end of the optimized file. This prompt may include compilation errors, runtime errors or timing data from the previous step. Use it to refine the code. If it is empty, produce an initial optimization based solely on the original source. When refining the code, explore potentially high-reward optimization paths that have not yet been tried and that could yield superior computational performance. Respond only with a JSON object using the keys "optimized_code" and "analysis". The "analysis" field should briefly explain the intent behind your modifications. Additional source files may be provided for context. Here are the files:
+
+// original.cpp
+#include <cstddef>
+
+// Naive matrix multiplication of A[m x k] and B[k x n]
+static void gemm(const float* a, const float* b,
+                 bool trans_a, bool trans_b,
+                 int m, int n, int k,
+                 float alpha, float beta,
+                 float* c)
+{
+    for (int i = 0; i < m; ++i) {
+        for (int j = 0; j < n; ++j) {
+            float sum = 0.f;
+            for (int p = 0; p < k; ++p) {
+                float av = trans_a ? a[p * m + i] : a[i * k + p];
+                float bv = trans_b ? b[j * k + p] : b[p * n + j];
+                sum += av * bv;
+            }
+            c[i * n + j] = alpha * sum + beta * c[i * n + j];
+        }
+    }
+}
+
+// Sequential batched GEMM
+void gemm_batch(const float* a, const float* b,
+                bool transpose_a, bool transpose_b,
+                int batch_size,
+                int m, int n, int k,
+                float alpha, float beta,
+                float* c)
+{
+    for (int i = 0; i < batch_size; ++i) {
+        const float* a_i = a + i * m * k;
+        const float* b_i = b + i * k * n;
+        float* c_i = c + i * m * n;
+        gemm(a_i, b_i, transpose_a, transpose_b, m, n, k, alpha, beta, c_i);
+    }
+}
+
+
+The following files are provided for context. Do NOT modify them. Only update code in original.cpp.
+
+// harness.cpp
+#include <vector>
+#include <random>
+#include <chrono>
+#include <iostream>
+#include <string>
+
+void gemm_batch(const float* a, const float* b,
+                bool transpose_a, bool transpose_b,
+                int batch_size, int m, int n, int k,
+                float alpha, float beta, float* c);
+
+int main(int argc, char* argv[])
+{
+    std::string mode = "perf";
+    int batch = 32;
+    int m = 128, n = 128, k = 128;
+    int repeat = 120;
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "--mode=correct") mode = "correct";
+        else if (arg == "--mode=perf") mode = "perf";
+        else if (arg.rfind("--repeat=",0)==0) repeat = std::stoi(arg.substr(9));
+    }
+
+    std::vector<float> A(batch * m * k);
+    std::vector<float> B(batch * k * n);
+    std::vector<float> C(batch * m * n);
+    std::mt19937 gen(42);
+    std::uniform_real_distribution<float> dist(0.f,1.f);
+    for (float& v : A) v = dist(gen);
+    for (float& v : B) v = dist(gen);
+
+    if (mode == "correct") {
+        gemm_batch(A.data(), B.data(), false, false,
+                   batch, m, n, k, 1.f, 0.f, C.data());
+        double sum = 0.0;
+        for (float v : C) sum += v;
+        std::cout << sum << '\n';
+    } else {
+        using clock = std::chrono::high_resolution_clock;
+        auto t1 = clock::now();
+        for (int r = 0; r < repeat; ++r) {
+            gemm_batch(A.data(), B.data(), false, false,
+                       batch, m, n, k, 1.f, 0.f, C.data());
+        }
+        auto t2 = clock::now();
+        std::cout << "Time: "
+                  << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count()
+                  << " ms\n";
+    }
+    return 0;
+}
+
+
+Previous attempt info:
+Original execution time: mean = 7129.80 ms, std = 66.91 ms
+Diff from original code:
+--- original
++++ step_1
+@@ -1,7 +1,7 @@
+-// original.cpp
+ #include <cstddef>
++#include <immintrin.h>
+ 
+-// Naive matrix multiplication of A[m x k] and B[k x n]
++// Optimized matrix multiplication of A[m x k] and B[k x n] using SIMD
+ static void gemm(const float* a, const float* b,
+                  bool trans_a, bool trans_b,
+                  int m, int n, int k,
+@@ -10,13 +10,16 @@
+ {
+     for (int i = 0; i < m; ++i) {
+         for (int j = 0; j < n; ++j) {
+-            float sum = 0.f;
+-            for (int p = 0; p < k; ++p) {
+-                float av = trans_a ? a[p * m + i] : a[i * k + p];
+-                float bv = trans_b ? b[j * k + p] : b[p * n + j];
+-                sum += av * bv;
++            __m256 sum_vec = _mm256_setzero_ps();
++            for (int p = 0; p < k; p += 8) {
++                __m256 av = trans_a ? _mm256_loadu_ps(&a[p * m + i]) : _mm256_loadu_ps(&a[i * k + p]);
++                __m256 bv = trans_b ? _mm256_loadu_ps(&b[j * k + p]) : _mm256_loadu_ps(&b[p * n + j]);
++                sum_vec = _mm256_fmadd_ps(av, bv, sum_vec);
+             }
+-            c[i * n + j] = alpha * sum + beta * c[i * n + j];
++            float sum[8];
++            _mm256_storeu_ps(sum, sum_vec);
++            float final_sum = sum[0] + sum[1] + sum[2] + sum[3] + sum[4] + sum[5] + sum[6] + sum[7];
++            c[i * n + j] = alpha * final_sum + beta * c[i * n + j];
+         }
+     }
+ }
+@@ -36,3 +39,5 @@
+         gemm(a_i, b_i, transpose_a, transpose_b, m, n, k, alpha, beta, c_i);
+     }
+ }
++
++// Explicit template instantiations
+Compilation failed. Output:
+cc1plus: warning: ignoring possibly conflicting option ‘-fopt-info-all’
+cc1plus: warning: ignoring possibly conflicting option ‘-fopt-info-all’
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_1.cpp: In function ‘void gemm(const float*, const float*, bool, bool, int, int, int, float, float, float*)’:
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_1.cpp:13:48: warning: AVX vector return without AVX enabled changes the ABI [-Wpsabi]
+   13 |             __m256 sum_vec = _mm256_setzero_ps();
+      |                                                ^
+In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+                 from /workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_1.cpp:2:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1235:1: error: inlining failed in call to ‘always_inline’ ‘__m256 _mm256_setzero_ps()’: target specific option mismatch
+ 1235 | _mm256_setzero_ps (void)
+      | ^~~~~~~~~~~~~~~~~
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_1.cpp:13:47: note: called from here
+   13 |             __m256 sum_vec = _mm256_setzero_ps();
+      |                              ~~~~~~~~~~~~~~~~~^~
+In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+                 from /workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_1.cpp:2:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:903:1: error: inlining failed in call to ‘always_inline’ ‘__m256 _mm256_loadu_ps(const float*)’: target specific option mismatch
+  903 | _mm256_loadu_ps (float const *__P)
+      | ^~~~~~~~~~~~~~~
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_1.cpp:15:54: note: called from here
+   15 |                 __m256 av = trans_a ? _mm256_loadu_ps(&a[p * m + i]) : _mm256_loadu_ps(&a[i * k + p]);
+      |                                       ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+                 from /workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_1.cpp:2:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:903:1: error: inlining failed in call to ‘always_inline’ ‘__m256 _mm256_loadu_ps(const float*)’: target specific option mismatch
+  903 | _mm256_loadu_ps (float const *__P)
+      | ^~~~~~~~~~~~~~~
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_1.cpp:15:87: note: called from here
+   15 |                 __m256 av = trans_a ? _mm256_loadu_ps(&a[p * m + i]) : _mm256_loadu_ps(&a[i * k + p]);
+      |                                                                        ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+                 from /workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_1.cpp:2:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:903:1: error: inlining failed in call to ‘always_inline’ ‘__m256 _mm256_loadu_ps(const float*)’: target specific option mismatch
+  903 | _mm256_loadu_ps (float const *__P)
+      | ^~~~~~~~~~~~~~~
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_1.cpp:16:54: note: called from here
+   16 |                 __m256 bv = trans_b ? _mm256_loadu_ps(&b[j * k + p]) : _mm256_loadu_ps(&b[p * n + j]);
+      |                                       ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+                 from /workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_1.cpp:2:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:903:1: error: inlining failed in call to ‘always_inline’ ‘__m256 _mm256_loadu_ps(const float*)’: target specific option mismatch
+  903 | _mm256_loadu_ps (float const *__P)
+      | ^~~~~~~~~~~~~~~
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_1.cpp:16:87: note: called from here
+   16 |                 __m256 bv = trans_b ? _mm256_loadu_ps(&b[j * k + p]) : _mm256_loadu_ps(&b[p * n + j]);
+      |                                                                        ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:99,
+                 from /workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_1.cpp:2:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/fmaintrin.h:63:1: error: inlining failed in call to ‘always_inline’ ‘__m256 _mm256_fmadd_ps(__m256, __m256, __m256)’: target specific option mismatch
+   63 | _mm256_fmadd_ps (__m256 __A, __m256 __B, __m256 __C)
+      | ^~~~~~~~~~~~~~~
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_1.cpp:17:42: note: called from here
+   17 |                 sum_vec = _mm256_fmadd_ps(av, bv, sum_vec);
+      |                           ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~
+In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+                 from /workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_1.cpp:2:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:909:1: error: inlining failed in call to ‘always_inline’ ‘void _mm256_storeu_ps(float*, __m256)’: target specific option mismatch
+  909 | _mm256_storeu_ps (float *__P, __m256 __A)
+      | ^~~~~~~~~~~~~~~~
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_1.cpp:20:29: note: called from here
+   20 |             _mm256_storeu_ps(sum, sum_vec);
+      |             ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~
+
+LLM analysis: The primary optimization was achieved by leveraging SIMD (Single Instruction, Multiple Data) instructions using AVX2 intrinsics for the matrix multiplication. The loop unrolling and the use of `_mm256_fmadd_ps` function improves performance by performing multiple multiplications and additions in parallel. This should significantly reduce the execution time while retaining the original functionality.
+Diff from original code:
+--- original
++++ step_2
+@@ -1,7 +1,8 @@
+ // original.cpp
+ #include <cstddef>
++#include <immintrin.h>
+ 
+-// Naive matrix multiplication of A[m x k] and B[k x n]
++// Optimized matrix multiplication of A[m x k] and B[k x n] using SIMD
+ static void gemm(const float* a, const float* b,
+                  bool trans_a, bool trans_b,
+                  int m, int n, int k,
+@@ -10,13 +11,16 @@
+ {
+     for (int i = 0; i < m; ++i) {
+         for (int j = 0; j < n; ++j) {
+-            float sum = 0.f;
+-            for (int p = 0; p < k; ++p) {
+-                float av = trans_a ? a[p * m + i] : a[i * k + p];
+-                float bv = trans_b ? b[j * k + p] : b[p * n + j];
+-                sum += av * bv;
++            __m256 sum_vec = _mm256_setzero_ps();
++            for (int p = 0; p < k; p += 8) {
++                __m256 av = trans_a ? _mm256_loadu_ps(&a[p * m + i]) : _mm256_loadu_ps(&a[i * k + p]);
++                __m256 bv = trans_b ? _mm256_loadu_ps(&b[j * k + p]) : _mm256_loadu_ps(&b[p * n + j]);
++                sum_vec = _mm256_fmadd_ps(av, bv, sum_vec);
+             }
+-            c[i * n + j] = alpha * sum + beta * c[i * n + j];
++            float sum[8];
++            _mm256_storeu_ps(sum, sum_vec);
++            float final_sum = sum[0] + sum[1] + sum[2] + sum[3] + sum[4] + sum[5] + sum[6] + sum[7];
++            c[i * n + j] = alpha * final_sum + beta * c[i * n + j];
+         }
+     }
+ }
+@@ -36,3 +40,5 @@
+         gemm(a_i, b_i, transpose_a, transpose_b, m, n, k, alpha, beta, c_i);
+     }
+ }
++
++// Explicit template instantiations
+Compilation failed. Output:
+cc1plus: warning: ignoring possibly conflicting option ‘-fopt-info-all’
+cc1plus: warning: ignoring possibly conflicting option ‘-fopt-info-all’
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_2.cpp: In function ‘void gemm(const float*, const float*, bool, bool, int, int, int, float, float, float*)’:
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_2.cpp:14:48: warning: AVX vector return without AVX enabled changes the ABI [-Wpsabi]
+   14 |             __m256 sum_vec = _mm256_setzero_ps();
+      |                                                ^
+In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+                 from /workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_2.cpp:3:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1235:1: error: inlining failed in call to ‘always_inline’ ‘__m256 _mm256_setzero_ps()’: target specific option mismatch
+ 1235 | _mm256_setzero_ps (void)
+      | ^~~~~~~~~~~~~~~~~
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_2.cpp:14:47: note: called from here
+   14 |             __m256 sum_vec = _mm256_setzero_ps();
+      |                              ~~~~~~~~~~~~~~~~~^~
+In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+                 from /workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_2.cpp:3:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:903:1: error: inlining failed in call to ‘always_inline’ ‘__m256 _mm256_loadu_ps(const float*)’: target specific option mismatch
+  903 | _mm256_loadu_ps (float const *__P)
+      | ^~~~~~~~~~~~~~~
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_2.cpp:16:54: note: called from here
+   16 |                 __m256 av = trans_a ? _mm256_loadu_ps(&a[p * m + i]) : _mm256_loadu_ps(&a[i * k + p]);
+      |                                       ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+                 from /workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_2.cpp:3:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:903:1: error: inlining failed in call to ‘always_inline’ ‘__m256 _mm256_loadu_ps(const float*)’: target specific option mismatch
+  903 | _mm256_loadu_ps (float const *__P)
+      | ^~~~~~~~~~~~~~~
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_2.cpp:16:87: note: called from here
+   16 |                 __m256 av = trans_a ? _mm256_loadu_ps(&a[p * m + i]) : _mm256_loadu_ps(&a[i * k + p]);
+      |                                                                        ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+                 from /workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_2.cpp:3:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:903:1: error: inlining failed in call to ‘always_inline’ ‘__m256 _mm256_loadu_ps(const float*)’: target specific option mismatch
+  903 | _mm256_loadu_ps (float const *__P)
+      | ^~~~~~~~~~~~~~~
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_2.cpp:17:54: note: called from here
+   17 |                 __m256 bv = trans_b ? _mm256_loadu_ps(&b[j * k + p]) : _mm256_loadu_ps(&b[p * n + j]);
+      |                                       ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+                 from /workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_2.cpp:3:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:903:1: error: inlining failed in call to ‘always_inline’ ‘__m256 _mm256_loadu_ps(const float*)’: target specific option mismatch
+  903 | _mm256_loadu_ps (float const *__P)
+      | ^~~~~~~~~~~~~~~
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_2.cpp:17:87: note: called from here
+   17 |                 __m256 bv = trans_b ? _mm256_loadu_ps(&b[j * k + p]) : _mm256_loadu_ps(&b[p * n + j]);
+      |                                                                        ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:99,
+                 from /workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_2.cpp:3:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/fmaintrin.h:63:1: error: inlining failed in call to ‘always_inline’ ‘__m256 _mm256_fmadd_ps(__m256, __m256, __m256)’: target specific option mismatch
+   63 | _mm256_fmadd_ps (__m256 __A, __m256 __B, __m256 __C)
+      | ^~~~~~~~~~~~~~~
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_2.cpp:18:42: note: called from here
+   18 |                 sum_vec = _mm256_fmadd_ps(av, bv, sum_vec);
+      |                           ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~
+In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+                 from /workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_2.cpp:3:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:909:1: error: inlining failed in call to ‘always_inline’ ‘void _mm256_storeu_ps(float*, __m256)’: target specific option mismatch
+  909 | _mm256_storeu_ps (float *__P, __m256 __A)
+      | ^~~~~~~~~~~~~~~~
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_2.cpp:21:29: note: called from here
+   21 |             _mm256_storeu_ps(sum, sum_vec);
+      |             ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~
+
+LLM analysis: The optimized version of the code incorporates AVX2 SIMD intrinsics to improve the efficiency of the matrix multiplication operation. Instead of processing one element at a time, this approach utilizes vectorized operations (_mm256_loadu_ps, _mm256_fmadd_ps, and _mm256_storeu_ps) to handle eight float values simultaneously. This leads to significant performance improvements, especially for larger matrices, while retaining the original function signature and behavior.
+Diff from original code:
+--- original
++++ step_3
+@@ -1,7 +1,8 @@
+ // original.cpp
+ #include <cstddef>
++#include <immintrin.h>
+ 
+-// Naive matrix multiplication of A[m x k] and B[k x n]
++// Optimized matrix multiplication of A[m x k] and B[k x n] using SIMD
+ static void gemm(const float* a, const float* b,
+                  bool trans_a, bool trans_b,
+                  int m, int n, int k,
+@@ -10,13 +11,24 @@
+ {
+     for (int i = 0; i < m; ++i) {
+         for (int j = 0; j < n; ++j) {
+-            float sum = 0.f;
+-            for (int p = 0; p < k; ++p) {
++            __m256 sum_vec = _mm256_setzero_ps();
++            int p;
++            for (p = 0; p + 8 <= k; p += 8) {
++                __m256 av = trans_a ? _mm256_loadu_ps(&a[p * m + i]) : _mm256_loadu_ps(&a[i * k + p]);
++                __m256 bv = trans_b ? _mm256_loadu_ps(&b[j * k + p]) : _mm256_loadu_ps(&b[p * n + j]);
++                sum_vec = _mm256_fmadd_ps(av, bv, sum_vec);
++            }
++            // Handle remaining elements
++            float sum_tail = 0.0f;
++            for (; p < k; p++) {
+                 float av = trans_a ? a[p * m + i] : a[i * k + p];
+                 float bv = trans_b ? b[j * k + p] : b[p * n + j];
+-                sum += av * bv;
++                sum_tail += av * bv;
+             }
+-            c[i * n + j] = alpha * sum + beta * c[i * n + j];
++            float sum[8];
++            _mm256_storeu_ps(sum, sum_vec);
++            float final_sum = sum[0] + sum[1] + sum[2] + sum[3] + sum[4] + sum[5] + sum[6] + sum[7] + sum_tail;
++            c[i * n + j] = alpha * final_sum + beta * c[i * n + j];
+         }
+     }
+ }
+@@ -36,3 +48,5 @@
+         gemm(a_i, b_i, transpose_a, transpose_b, m, n, k, alpha, beta, c_i);
+     }
+ }
++
++// Explicit template instantiations
+Compilation failed. Output:
+cc1plus: warning: ignoring possibly conflicting option ‘-fopt-info-all’
+cc1plus: warning: ignoring possibly conflicting option ‘-fopt-info-all’
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_3.cpp: In function ‘void gemm(const float*, const float*, bool, bool, int, int, int, float, float, float*)’:
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_3.cpp:14:48: warning: AVX vector return without AVX enabled changes the ABI [-Wpsabi]
+   14 |             __m256 sum_vec = _mm256_setzero_ps();
+      |                                                ^
+In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+                 from /workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_3.cpp:3:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:1235:1: error: inlining failed in call to ‘always_inline’ ‘__m256 _mm256_setzero_ps()’: target specific option mismatch
+ 1235 | _mm256_setzero_ps (void)
+      | ^~~~~~~~~~~~~~~~~
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_3.cpp:14:47: note: called from here
+   14 |             __m256 sum_vec = _mm256_setzero_ps();
+      |                              ~~~~~~~~~~~~~~~~~^~
+In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+                 from /workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_3.cpp:3:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:903:1: error: inlining failed in call to ‘always_inline’ ‘__m256 _mm256_loadu_ps(const float*)’: target specific option mismatch
+  903 | _mm256_loadu_ps (float const *__P)
+      | ^~~~~~~~~~~~~~~
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_3.cpp:17:54: note: called from here
+   17 |                 __m256 av = trans_a ? _mm256_loadu_ps(&a[p * m + i]) : _mm256_loadu_ps(&a[i * k + p]);
+      |                                       ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+                 from /workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_3.cpp:3:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:903:1: error: inlining failed in call to ‘always_inline’ ‘__m256 _mm256_loadu_ps(const float*)’: target specific option mismatch
+  903 | _mm256_loadu_ps (float const *__P)
+      | ^~~~~~~~~~~~~~~
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_3.cpp:17:87: note: called from here
+   17 |                 __m256 av = trans_a ? _mm256_loadu_ps(&a[p * m + i]) : _mm256_loadu_ps(&a[i * k + p]);
+      |                                                                        ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+                 from /workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_3.cpp:3:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:903:1: error: inlining failed in call to ‘always_inline’ ‘__m256 _mm256_loadu_ps(const float*)’: target specific option mismatch
+  903 | _mm256_loadu_ps (float const *__P)
+      | ^~~~~~~~~~~~~~~
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_3.cpp:18:54: note: called from here
+   18 |                 __m256 bv = trans_b ? _mm256_loadu_ps(&b[j * k + p]) : _mm256_loadu_ps(&b[p * n + j]);
+      |                                       ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+                 from /workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_3.cpp:3:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:903:1: error: inlining failed in call to ‘always_inline’ ‘__m256 _mm256_loadu_ps(const float*)’: target specific option mismatch
+  903 | _mm256_loadu_ps (float const *__P)
+      | ^~~~~~~~~~~~~~~
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_3.cpp:18:87: note: called from here
+   18 |                 __m256 bv = trans_b ? _mm256_loadu_ps(&b[j * k + p]) : _mm256_loadu_ps(&b[p * n + j]);
+      |                                                                        ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:99,
+                 from /workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_3.cpp:3:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/fmaintrin.h:63:1: error: inlining failed in call to ‘always_inline’ ‘__m256 _mm256_fmadd_ps(__m256, __m256, __m256)’: target specific option mismatch
+   63 | _mm256_fmadd_ps (__m256 __A, __m256 __B, __m256 __C)
+      | ^~~~~~~~~~~~~~~
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_3.cpp:19:42: note: called from here
+   19 |                 sum_vec = _mm256_fmadd_ps(av, bv, sum_vec);
+      |                           ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~
+In file included from /usr/lib/gcc/x86_64-linux-gnu/11/include/immintrin.h:43,
+                 from /workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_3.cpp:3:
+/usr/lib/gcc/x86_64-linux-gnu/11/include/avxintrin.h:909:1: error: inlining failed in call to ‘always_inline’ ‘void _mm256_storeu_ps(float*, __m256)’: target specific option mismatch
+  909 | _mm256_storeu_ps (float *__P, __m256 __A)
+      | ^~~~~~~~~~~~~~~~
+/workspace/llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_767/step_3.cpp:29:29: note: called from here
+   29 |             _mm256_storeu_ps(sum, sum_vec);
+      |             ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~
+
+LLM analysis: This optimization incorporates AVX2 SIMD intrinsics for faster matrix multiplications, utilizing the _mm256_fmadd_ps function to process multiple floats simultaneously. The loop handles eight elements at a time while also addressing any remaining elements outside of the main loop, ensuring correctness. These enhancements significantly improve performance for larger matrix sizes by maximizing CPU usage effectively.

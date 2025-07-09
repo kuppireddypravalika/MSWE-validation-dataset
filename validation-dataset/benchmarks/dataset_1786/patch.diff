@@ -1,0 +1,38 @@
+From befae0a24c149664fef3073598800b165ea9228d Mon Sep 17 00:00:00 2001
+From: Philipp Kurth <philipp.kurth@fau.de>
+Date: Sun, 9 Jan 2022 19:45:51 +0100
+Subject: [PATCH] Avoiding some per-frame memory allocations
+
+---
+ src/physics/physics.cpp | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/src/physics/physics.cpp b/src/physics/physics.cpp
+index dfb18e38..4b28e769 100644
+--- a/src/physics/physics.cpp
++++ b/src/physics/physics.cpp
+@@ -922,9 +922,13 @@ void physicsStep(game_scene& scene, memory_arena& arena, float dt)
+ 	vec3 globalForceField = getForceFieldStates(scene, ffGlobal);
+ 
+ 	
+-	static std::unordered_set<trigger_overlap> prevFrameTriggerOverlaps;
+-	std::unordered_set<trigger_overlap> thisFrameTriggerOverlaps;
++	static std::unordered_set<trigger_overlap> triggerOverlaps[2];
++	static uint32 triggerHistoryIndex = 0;
+ 
++	auto& prevFrameTriggerOverlaps = triggerOverlaps[triggerHistoryIndex];
++	auto& thisFrameTriggerOverlaps = triggerOverlaps[1 - triggerHistoryIndex];
++	triggerHistoryIndex = 1 - triggerHistoryIndex;
++	thisFrameTriggerOverlaps.clear();
+ 	
+ 	// Handle non-collision interactions (triggers, force fields etc).
+ 	for (uint32 i = 0; i < narrowPhaseResult.numNonCollisionInteractions; ++i)
+@@ -1072,8 +1076,6 @@ void physicsStep(game_scene& scene, memory_arena& arena, float dt)
+ 			}
+ 		}
+ 	}
+-
+-	prevFrameTriggerOverlaps = std::move(thisFrameTriggerOverlaps);
+ }
+ 
+ // This function returns the inertia tensors with respect to the center of gravity, so with a coordinate system centered at the COG.

@@ -1,0 +1,26 @@
+From 2b1918e7483649fcc3a47cc55ffd7dc54ad7a9fb Mon Sep 17 00:00:00 2001
+From: Roland Schulz <roland@utk.edu>
+Date: Thu, 5 Apr 2012 21:09:15 -0400
+Subject: [PATCH] Fix domain decomposition setup for >46k cores
+
+Fixing int overflow in line 701:
+  ldiv*ldiv*ldiv > nnodes_div*nnodes_div
+
+Change-Id: Ic97960caededeee255e874b81d9bbd2fc71d2ae6
+---
+ src/mdlib/domdec_setup.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/mdlib/domdec_setup.c b/src/mdlib/domdec_setup.c
+index ed095f52e3..b6d001cde8 100644
+--- a/src/mdlib/domdec_setup.c
++++ b/src/mdlib/domdec_setup.c
+@@ -661,7 +661,7 @@ real dd_choose_grid(FILE *fplog,
+                     real cellsize_limit,real cutoff_dd,
+                     gmx_bool bInterCGBondeds,gmx_bool bInterCGMultiBody)
+ {
+-    int  nnodes_div,ldiv;
++    gmx_large_int_t nnodes_div,ldiv;
+     real limit;
+     
+     if (MASTER(cr))

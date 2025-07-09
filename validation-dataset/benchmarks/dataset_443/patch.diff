@@ -1,0 +1,36 @@
+From c731a82b712b4cb3d68bcc6578aa224aaaa15570 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@duempel.org>
+Date: Tue, 19 Apr 2016 13:07:28 +0200
+Subject: [PATCH] decoder/opus: limit the number of packets in _scan_stream()
+
+---
+ src/decoder/plugins/OpusDecoderPlugin.cxx | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/decoder/plugins/OpusDecoderPlugin.cxx b/src/decoder/plugins/OpusDecoderPlugin.cxx
+index f5dbb8fd31..3a7418a4ed 100644
+--- a/src/decoder/plugins/OpusDecoderPlugin.cxx
++++ b/src/decoder/plugins/OpusDecoderPlugin.cxx
+@@ -444,10 +444,12 @@ mpd_opus_scan_stream(InputStream &is,
+ 	/* read at most 64 more pages */
+ 	unsigned remaining_pages = 64;
+ 
++	unsigned remaining_packets = 4;
++
+ 	bool result = false;
+ 
+ 	ogg_packet packet;
+-	while (true) {
++	while (remaining_packets > 0) {
+ 		int r = ogg_stream_packetout(&os, &packet);
+ 		if (r < 0) {
+ 			result = false;
+@@ -466,6 +468,8 @@ mpd_opus_scan_stream(InputStream &is,
+ 			continue;
+ 		}
+ 
++		--remaining_packets;
++
+ 		if (packet.b_o_s) {
+ 			if (!IsOpusHead(packet))
+ 				break;

@@ -1,0 +1,38 @@
+From 99de46014c3ced3f6e6e583abd228f4ecc90b833 Mon Sep 17 00:00:00 2001
+From: Rene Brun <Rene.Brun@cern.ch>
+Date: Sat, 10 Feb 2007 13:32:37 +0000
+Subject: [PATCH] In TObjArray::Randomize, do not use TRandom, but the system
+ rand() function.
+
+git-svn-id: http://root.cern.ch/svn/root/trunk@17852 27541ba8-7e3a-0410-8455-c3a389f83636
+---
+ cont/src/TObjArray.cxx | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/cont/src/TObjArray.cxx b/cont/src/TObjArray.cxx
+index 66ab735962968..b09741bc3045b 100644
+--- a/cont/src/TObjArray.cxx
++++ b/cont/src/TObjArray.cxx
+@@ -1,4 +1,4 @@
+-// @(#)root/cont:$Name:  $:$Id: TObjArray.cxx,v 1.30 2007/01/15 10:15:47 brun Exp $
++// @(#)root/cont:$Name:  $:$Id: TObjArray.cxx,v 1.31 2007/02/06 11:48:48 rdm Exp $
+ // Author: Fons Rademakers   11/09/95
+ 
+ /*************************************************************************
+@@ -28,7 +28,6 @@
+ #include "TObjArray.h"
+ #include "TError.h"
+ #include "TROOT.h"
+-#include "TRandom.h"
+ 
+ ClassImp(TObjArray)
+ 
+@@ -615,7 +614,7 @@ void TObjArray::Randomize(Int_t ntimes)
+ 
+    for (Int_t i=0;i<ntimes;i++) {
+       for (Int_t j=0;j<fLast;j++) {
+-         Int_t k = (Int_t)gRandom->Uniform(0,fLast);
++         Int_t k = (Int_t)(fLast*rand()/(RAND_MAX+1.0));
+          if (k == j) continue;
+          TObject *obj = fCont[j];
+          fCont[j] = fCont[k];

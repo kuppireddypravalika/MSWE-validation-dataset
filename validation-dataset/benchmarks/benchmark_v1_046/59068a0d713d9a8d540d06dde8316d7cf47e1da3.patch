@@ -1,0 +1,25 @@
+From 59068a0d713d9a8d540d06dde8316d7cf47e1da3 Mon Sep 17 00:00:00 2001
+From: Chris Lattner <sabre@nondot.org>
+Date: Wed, 10 Sep 2003 19:52:24 +0000
+Subject: [PATCH] Only emit inter-field-padding if the amount of padding is !=
+ 0
+
+llvm-svn: 8452
+---
+ llvm/lib/Target/X86/Printer.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/llvm/lib/Target/X86/Printer.cpp b/llvm/lib/Target/X86/Printer.cpp
+index 0afd399e299..d36f298fe99 100644
+--- a/llvm/lib/Target/X86/Printer.cpp
++++ b/llvm/lib/Target/X86/Printer.cpp
+@@ -351,7 +351,8 @@ void Printer::printConstantValueOnly(const Constant *CV) {
+       printConstantValueOnly(field);
+ 
+       // Insert the field padding unless it's zero bytes...
+-      O << "\t.zero\t " << padSize << "\n";      
++      if (padSize)
++        O << "\t.zero\t " << padSize << "\n";      
+     }
+     assert(sizeSoFar == cvsLayout->StructSize &&
+            "Layout of constant struct may be incorrect!");

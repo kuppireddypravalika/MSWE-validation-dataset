@@ -1,0 +1,28 @@
+From f3ea17296875e212b0d9db6680ab3e85f2d67995 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@spatialys.com>
+Date: Mon, 1 Jan 2024 23:02:32 +0100
+Subject: [PATCH] XYZ: avoid CodeQL cpp/integer-multiplication-cast-to-long
+
+---
+ frmts/xyz/xyzdataset.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/frmts/xyz/xyzdataset.cpp b/frmts/xyz/xyzdataset.cpp
+index 1267b9f641d6..afa349eecda9 100644
+--- a/frmts/xyz/xyzdataset.cpp
++++ b/frmts/xyz/xyzdataset.cpp
+@@ -301,10 +301,12 @@ CPLErr XYZRasterBand::IReadBlock(CPL_UNUSED int nBlockXOff, int nBlockYOff,
+         }
+ 
+         if (eDataType == GDT_Int16)
+-            memcpy(pImage, &gasValues[nBlockYOff * nBlockXSize],
++            memcpy(pImage,
++                   &gasValues[static_cast<size_t>(nBlockYOff) * nBlockXSize],
+                    sizeof(short) * nBlockXSize);
+         else
+-            memcpy(pImage, &gafValues[nBlockYOff * nBlockXSize],
++            memcpy(pImage,
++                   &gafValues[static_cast<size_t>(nBlockYOff) * nBlockXSize],
+                    sizeof(float) * nBlockXSize);
+         return CE_None;
+     }

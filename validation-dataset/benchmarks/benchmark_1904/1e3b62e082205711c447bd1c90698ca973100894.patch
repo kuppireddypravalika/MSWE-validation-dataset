@@ -1,0 +1,27 @@
+From 1e3b62e082205711c447bd1c90698ca973100894 Mon Sep 17 00:00:00 2001
+From: Hadi Jooybar <hjooybar@ca.ibm.com>
+Date: Mon, 15 May 2017 15:41:40 -0400
+Subject: [PATCH] Fix support query of vector multiply sum on Z
+
+VMSL instruction is used to improve ECC performance.
+Like other vector instructions, this instruction can only be used on machines with proper hardware and OS support for vector instructions.
+This PR prevents using VMSL instruction when hardware or OS do not have support for vector instructions.
+
+Signed-off-by: Hadi Jooybar <hjooybar@ca.ibm.com>
+---
+ compiler/z/codegen/OMRTreeEvaluator.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/compiler/z/codegen/OMRTreeEvaluator.cpp b/compiler/z/codegen/OMRTreeEvaluator.cpp
+index 4fca1f7f82..cd9af7ef70 100644
+--- a/compiler/z/codegen/OMRTreeEvaluator.cpp
++++ b/compiler/z/codegen/OMRTreeEvaluator.cpp
+@@ -9516,7 +9516,7 @@ inlineP256Multiply(TR::Node * node, TR::CodeGenerator * cg)
+    bool disableSIMDP256 = NULL != disableECCSIMD || comp->getOption(TR_Randomize) && cg->randomizer.randomBoolean();
+    bool disableMLGRP256 = NULL != disableECCMLGR || comp->getOption(TR_Randomize) && cg->randomizer.randomBoolean();
+ 
+-   if (!disableVMSL && cg->getS390ProcessorInfo()->supportsArch(TR_S390ProcessorInfo::TR_zNext))
++   if (!disableVMSL && cg->getS390ProcessorInfo()->supportsArch(TR_S390ProcessorInfo::TR_zNext) && cg->getSupportsVectorRegisters())
+       return inlineVMSL256Multiply(node, cg);
+    if (disableECCKarat==NULL && cg->getSupportsVectorRegisters())
+       return inlineSIMDP256Multiply(node, cg);

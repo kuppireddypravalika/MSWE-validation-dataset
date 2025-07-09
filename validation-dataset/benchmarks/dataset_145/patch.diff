@@ -1,0 +1,23 @@
+From 99d222b03579ab480e69aa8f7922d829c0ff266b Mon Sep 17 00:00:00 2001
+From: Jeremy McMinis <jmcminis@gmail.com>
+Date: Mon, 24 Aug 2009 19:07:05 +0000
+Subject: [PATCH] additional safety for optimization
+
+git-svn-id: https://subversion.assembla.com/svn/qmcdev/trunk@4139 e5b18d87-469d-4833-9cc0-8cdfa06e9491
+---
+ src/QMCDrivers/QMCLinearOptimize.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/QMCDrivers/QMCLinearOptimize.cpp b/src/QMCDrivers/QMCLinearOptimize.cpp
+index c3476637f8..2f3a64f19b 100644
+--- a/src/QMCDrivers/QMCLinearOptimize.cpp
++++ b/src/QMCDrivers/QMCLinearOptimize.cpp
+@@ -296,7 +296,7 @@ bool QMCLinearOptimize::run()
+           {
+             for (int i=0;i<(N-1); i++) optTarget->Params(i) = optparm[i] + Lambda * optdir[i];
+             newCost = optTarget->Cost();
+-            if ((LastCost-newCost<costgradtol) || (!optTarget->IsValid))
++            if ((LastCost-newCost<costgradtol) || (!optTarget->IsValid) || (newCost!=newCost))
+             {
+               for (int i=0;i<(N-1); i++) optTarget->Params(i) = optparm[i]; 
+               optTarget->Cost();

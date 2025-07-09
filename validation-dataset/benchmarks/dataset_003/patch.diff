@@ -1,0 +1,31 @@
+From dcb61753071a3344f1839829b5c933a5a82dae94 Mon Sep 17 00:00:00 2001
+From: Petr Ohlidal <petr@ohlidal.cz>
+Date: Sun, 18 Sep 2022 08:07:24 +0200
+Subject: [PATCH] CollisionsDebug UI: handled out of memory situation.
+
+---
+ source/main/gui/panels/GUI_CollisionsDebug.cpp | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/source/main/gui/panels/GUI_CollisionsDebug.cpp b/source/main/gui/panels/GUI_CollisionsDebug.cpp
+index deee546101..605d09ade5 100644
+--- a/source/main/gui/panels/GUI_CollisionsDebug.cpp
++++ b/source/main/gui/panels/GUI_CollisionsDebug.cpp
+@@ -458,7 +458,16 @@ void CollisionsDebug::SetDrawCollisionCells(bool val)
+     {
+         this->GenerateCellDebugMaterials();
+         m_collision_grid_root = App::GetGfxScene()->GetSceneManager()->getRootSceneNode()->createChildSceneNode();
+-        App::GetSimTerrain()->GetCollisions()->createCollisionDebugVisualization(m_collision_grid_root, m_collision_cells);
++        try
++        {
++            App::GetSimTerrain()->GetCollisions()->createCollisionDebugVisualization(m_collision_grid_root, m_collision_cells);
++        }
++        catch (std::bad_alloc const& allocex)
++        {
++            App::GetConsole()->putMessage(Console::CONSOLE_MSGTYPE_INFO, Console::CONSOLE_SYSTEM_ERROR,
++                fmt::format("Could not create debug view, error: {}", allocex.what()));
++            this->ClearCollisionCellVisuals();
++        }
+     }
+     // Update visibility
+     if (m_collision_grid_root)

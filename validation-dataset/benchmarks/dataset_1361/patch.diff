@@ -1,0 +1,38 @@
+From 31476aea0c774e18c408abd10dc263fc63cd4e6c Mon Sep 17 00:00:00 2001
+From: corvid <corvid@lavabit.com>
+Date: Wed, 9 Jan 2013 16:40:25 +0000
+Subject: [PATCH] Reduced number of redraws when selecting text: unhighlight
+
+---
+ dw/textblock_iterator.cc | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/dw/textblock_iterator.cc b/dw/textblock_iterator.cc
+index cfd27941e..245df3744 100644
+--- a/dw/textblock_iterator.cc
++++ b/dw/textblock_iterator.cc
+@@ -145,6 +145,11 @@ void Textblock::TextblockIterator::unhighlight (int direction,
+    if (textblock->hlStart[layer].index > textblock->hlEnd[layer].index)
+       return;
+ 
++   int oldStartIndex = textblock->hlStart[layer].index;
++   int oldStartChar = textblock->hlStart[layer].nChar;
++   int oldEndIndex = textblock->hlEnd[layer].index;
++   int oldEndChar = textblock->hlEnd[layer].nChar;
++
+    if (direction == 0) {
+       index1 = textblock->hlStart[layer].index;
+       index2 = textblock->hlEnd[layer].index;
+@@ -160,7 +165,11 @@ void Textblock::TextblockIterator::unhighlight (int direction,
+       textblock->hlEnd[layer].nChar = INT_MAX;
+    }
+ 
+-   textblock->queueDrawRange (index1, index2);
++   if (oldStartIndex != textblock->hlStart[layer].index ||
++       oldStartChar != textblock->hlStart[layer].nChar ||
++       oldEndIndex != textblock->hlEnd[layer].index ||
++       oldEndChar != textblock->hlEnd[layer].nChar)
++      textblock->queueDrawRange (index1, index2);
+ }
+ 
+ void Textblock::TextblockIterator::getAllocation (int start, int end,

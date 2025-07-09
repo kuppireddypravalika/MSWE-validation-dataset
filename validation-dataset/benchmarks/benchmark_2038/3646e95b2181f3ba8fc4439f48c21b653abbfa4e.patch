@@ -1,0 +1,33 @@
+From 3646e95b2181f3ba8fc4439f48c21b653abbfa4e Mon Sep 17 00:00:00 2001
+From: Andreas Drewke <andreas@drewke.net>
+Date: Sat, 4 Feb 2023 13:05:10 +0100
+Subject: [PATCH] MiniScript::ScriptVariable::added move constructor which
+ should speed up stl operations and returning of variables with non primitive
+ variable types
+
+---
+ src/tdme/utilities/MiniScript.h | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/src/tdme/utilities/MiniScript.h b/src/tdme/utilities/MiniScript.h
+index ad7ef6077..360a1c92f 100644
+--- a/src/tdme/utilities/MiniScript.h
++++ b/src/tdme/utilities/MiniScript.h
+@@ -446,6 +446,17 @@ class tdme::utilities::MiniScript {
+ 			}
+ 		}
+ 
++		/**
++		 * Move constructor
++		 * @param scriptVariable script variable to move from
++		 */
++		inline ScriptVariable(ScriptVariable&& scriptVariable) {
++			type = scriptVariable.type;
++			valuePtr = scriptVariable.valuePtr;
++			scriptVariable.type = TYPE_VOID;
++			scriptVariable.valuePtr = 0LL;
++		}
++
+ 		/**
+ 		 * Constructor
+ 		 */

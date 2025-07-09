@@ -1,0 +1,29 @@
+From 9629ca8e88a2f577240ed0e8abbc33b2710c92c7 Mon Sep 17 00:00:00 2001
+From: Philippe Canal <pcanal@fnal.gov>
+Date: Thu, 8 May 2014 20:01:53 -0500
+Subject: [PATCH] Don't try to get the base class offset when we know it will
+ fail
+
+---
+ core/meta/src/TBaseClass.cxx | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/core/meta/src/TBaseClass.cxx b/core/meta/src/TBaseClass.cxx
+index dfaa22e67e7e6..1a15cbda460d5 100644
+--- a/core/meta/src/TBaseClass.cxx
++++ b/core/meta/src/TBaseClass.cxx
+@@ -76,8 +76,12 @@ Int_t TBaseClass::GetDelta()
+ 
+    // Initialized to INT_MAX to signal that it's unset; -1 is a valid value
+    // meaning "cannot calculate base offset".
+-   if (fDelta == INT_MAX)
+-      fDelta = (Int_t)gCling->BaseClassInfo_Offset(fInfo);
++   if (fDelta == INT_MAX) {
++      if (Property() & kIsVirtualBase)
++         fDelta = -1;
++      else
++         fDelta = (Int_t)gCling->BaseClassInfo_Offset(fInfo);
++   }
+    return fDelta;
+ }
+ 

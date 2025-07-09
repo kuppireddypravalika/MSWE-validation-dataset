@@ -1,0 +1,35 @@
+From 6b877ec53f3308e4a685c43142fde951f81de02b Mon Sep 17 00:00:00 2001
+From: Shawn Rutledge <shawn.rutledge@qt.io>
+Date: Tue, 6 Mar 2018 14:23:06 +0100
+Subject: [PATCH] touchDevice: don't lose bits from QTouchDevice::capabilities
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+It was a bug that we made a local QQuickPointerDevice::Capabilities
+instance and didn't pass it to the QQuickPointerDevice constructor.
+Further, we've now reserved the entire lower byte for storing
+QTouchDevice::capabilities, and the upper byte for storing QtQuick-
+specific capabilities, so we can copy the whole lower byte instead
+of just the lower nybble.
+
+Change-Id: Ia21b6a1503ea870a1e16cebe70a20f4e21903054
+Reviewed-by: Jan Arve Sæther <jan-arve.saether@qt.io>
+---
+ src/quick/items/qquickevents.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/quick/items/qquickevents.cpp b/src/quick/items/qquickevents.cpp
+index 40d1fab3dc4..1be4bafe288 100644
+--- a/src/quick/items/qquickevents.cpp
++++ b/src/quick/items/qquickevents.cpp
+@@ -625,8 +625,7 @@ QQuickPointerDevice *QQuickPointerDevice::touchDevice(const QTouchDevice *d)
+     int maximumTouchPoints = 10;
+     QQuickPointerDevice::Capabilities caps = QQuickPointerDevice::Capabilities(QTouchDevice::Position);
+     if (d) {
+-        QQuickPointerDevice::Capabilities caps =
+-            static_cast<QQuickPointerDevice::Capabilities>(static_cast<int>(d->capabilities()) & 0x0F);
++        caps = static_cast<QQuickPointerDevice::Capabilities>(static_cast<int>(d->capabilities()) & 0xFF);
+         if (d->type() == QTouchDevice::TouchPad) {
+             type = QQuickPointerDevice::TouchPad;
+             caps |= QQuickPointerDevice::Scroll;

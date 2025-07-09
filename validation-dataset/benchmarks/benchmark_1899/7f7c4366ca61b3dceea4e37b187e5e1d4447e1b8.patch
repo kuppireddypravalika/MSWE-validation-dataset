@@ -1,0 +1,25 @@
+From 7f7c4366ca61b3dceea4e37b187e5e1d4447e1b8 Mon Sep 17 00:00:00 2001
+From: Dan Gohman <gohman@apple.com>
+Date: Sun, 14 Jun 2009 22:53:57 +0000
+Subject: [PATCH] Check for the short-circuiting condition before performing
+ the potentially expensive erase.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@73359 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Analysis/ScalarEvolution.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/Analysis/ScalarEvolution.cpp b/lib/Analysis/ScalarEvolution.cpp
+index ee077d56b62..a2ab6e63da6 100644
+--- a/lib/Analysis/ScalarEvolution.cpp
++++ b/lib/Analysis/ScalarEvolution.cpp
+@@ -1012,8 +1012,8 @@ SCEVHandle ScalarEvolution::getAddExpr(SmallVectorImpl<SCEVHandle> &Ops) {
+       // We found two constants, fold them together!
+       Ops[0] = getConstant(LHSC->getValue()->getValue() +
+                            RHSC->getValue()->getValue());
++      if (Ops.size() == 2) return Ops[0];
+       Ops.erase(Ops.begin()+1);  // Erase the folded element
+-      if (Ops.size() == 1) return Ops[0];
+       LHSC = cast<SCEVConstant>(Ops[0]);
+     }
+ 

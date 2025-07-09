@@ -1,0 +1,31 @@
+From c65b71a657acddb0bb37f993b4f5f960b2800230 Mon Sep 17 00:00:00 2001
+From: Robert Osfield <robert@openscenegraph.com>
+Date: Tue, 14 Apr 2020 12:37:04 +0100
+Subject: [PATCH] Improved handling of numerical precision issues to avoid
+ values greater than 1.0 being passed to acos.
+
+---
+ include/vsg/viewer/ProjectionMatrix.h | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/include/vsg/viewer/ProjectionMatrix.h b/include/vsg/viewer/ProjectionMatrix.h
+index 5b902365ef..3986687ef5 100644
+--- a/include/vsg/viewer/ProjectionMatrix.h
++++ b/include/vsg/viewer/ProjectionMatrix.h
+@@ -301,9 +301,14 @@ namespace vsg
+             double R = ellipsoidModel->radiusEquator();
+             double H = ellipsoidModel->convertECEFToLatLongHeight(v).z;
+             double D = R + H;
++
+             double alpha = (D > R) ? std::acos(R / D) : 0.0;
+-            double beta = std::acos(R / (R + horizonMountainHeight));
+-            double theta = std::acos(-vsg::dot(lv, v) / (vsg::length(lv) * vsg::length(v)));
++
++            double beta_ratio = R / (R + horizonMountainHeight);
++            double beta = beta_ratio < 1.0 ? std::acos(beta_ratio) : 0.0;
++
++            double theta_ratio = -vsg::dot(lv, v) / (vsg::length(lv) * vsg::length(v));
++            double theta = theta_ratio < 1.0 ? std::acos(theta_ratio) : 0.0;
+ 
+             double l = R * (std::tan(alpha) + std::tan(beta));
+ 

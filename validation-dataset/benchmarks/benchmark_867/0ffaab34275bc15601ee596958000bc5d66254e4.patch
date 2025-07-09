@@ -1,0 +1,27 @@
+From 0ffaab34275bc15601ee596958000bc5d66254e4 Mon Sep 17 00:00:00 2001
+From: "Friedrich W. H. Kossebau" <kossebau@kde.org>
+Date: Sun, 28 Aug 2022 01:28:06 +0200
+Subject: [PATCH] Use QLatin1Char('\x01') instead of implicit conversion of 1
+ by QChar(int)
+
+Also prepares for Qt6 no longer providing implicit conversions for
+QChar(int).
+
+GIT_SILENT
+---
+ src/dcc/chatcontainer.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/dcc/chatcontainer.cpp b/src/dcc/chatcontainer.cpp
+index cd506db72..31f47db75 100644
+--- a/src/dcc/chatcontainer.cpp
++++ b/src/dcc/chatcontainer.cpp
+@@ -291,7 +291,7 @@ namespace Konversation
+             const QString line(sterilizeUnicode(_line));
+             if (line.startsWith(QLatin1Char('\x01'))) {
+                 // cut out the CTCP command
+-                const QString ctcp = line.mid(1, line.indexOf(1, 1) - 1);
++                const QString ctcp = line.mid(1, line.indexOf(QLatin1Char('\x01'), 1) - 1);
+ 
+                 const QString ctcpCommand = ctcp.section(QLatin1Char(' '), 0, 0);
+                 QString ctcpArgument = ctcp.section(QLatin1Char(' '), 1);

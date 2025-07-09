@@ -1,0 +1,32 @@
+From 68ee9e177702c90a00f9959427d38593de918717 Mon Sep 17 00:00:00 2001
+From: David Roundy <roundyd@physics.oregonstate.edu>
+Date: Tue, 31 Oct 2017 11:55:17 -0700
+Subject: [PATCH] increase iterations_per_update to sw.N to give things a
+ faster start
+
+---
+ src/Monte-Carlo/liquid-vapor-monte-carlo.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/Monte-Carlo/liquid-vapor-monte-carlo.cpp b/src/Monte-Carlo/liquid-vapor-monte-carlo.cpp
+index ead3a42ae..aeecc4794 100644
+--- a/src/Monte-Carlo/liquid-vapor-monte-carlo.cpp
++++ b/src/Monte-Carlo/liquid-vapor-monte-carlo.cpp
+@@ -755,7 +755,7 @@ int main(int argc, const char *argv[]) {
+   long how_often_to_check_finish = sw.N;
+   //long iterations_per_update = 10*sw.N;
+   //const long iterations_to_time = 100*sw.N;
+-  long iterations_per_update = 1;
++  long iterations_per_update = sw.N;
+   do {
+     for (int i = 0; i < sw.N; i++) sw.move_a_ball();
+     //~ if (sw.iteration % (100*sw.N*sw.N) == 0) {
+@@ -793,7 +793,7 @@ int main(int argc, const char *argv[]) {
+       }
+     }
+     if (sw.iteration % iterations_per_update == 0) {
+-      iterations_per_update += 1;
++      iterations_per_update += sw.N;
+       if (tmi) {
+         sw.update_weights_using_transitions(tmi_version);
+       } else if (toe) {

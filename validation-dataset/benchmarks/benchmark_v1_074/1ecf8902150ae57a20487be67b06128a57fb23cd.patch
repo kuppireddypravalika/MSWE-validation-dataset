@@ -1,0 +1,26 @@
+From 1ecf8902150ae57a20487be67b06128a57fb23cd Mon Sep 17 00:00:00 2001
+From: "Michael J. Spencer" <bigcheesegs@gmail.com>
+Date: Tue, 12 Mar 2013 00:10:00 +0000
+Subject: [PATCH] [Pass][Layout] Make algorithm not n^2.
+
+This reduces the time spent in this function while linking ASTMatchersTests
+from %43 to %2.4 of total link time.
+
+llvm-svn: 176842
+---
+ lld/lib/Passes/LayoutPass.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/lld/lib/Passes/LayoutPass.cpp b/lld/lib/Passes/LayoutPass.cpp
+index 4f2a177511f..2bf43aa8263 100644
+--- a/lld/lib/Passes/LayoutPass.cpp
++++ b/lld/lib/Passes/LayoutPass.cpp
+@@ -390,6 +390,8 @@ void LayoutPass::buildOrdinalOverrideMap(MutableFile::DefinedAtomRange &range) {
+   uint64_t index = 0;
+   for (auto ai : range) {
+     const DefinedAtom *atom = ai;
++    if (_ordinalOverrideMap.find(atom) != _ordinalOverrideMap.end())
++      continue;
+     AtomToAtomT::iterator start = _followOnRoots.find(atom);
+     if (start != _followOnRoots.end()) {
+       for (const DefinedAtom *nextAtom = start->second; nextAtom != NULL;

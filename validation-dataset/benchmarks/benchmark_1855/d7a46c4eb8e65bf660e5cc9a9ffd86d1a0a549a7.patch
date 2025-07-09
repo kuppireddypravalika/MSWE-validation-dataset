@@ -1,0 +1,28 @@
+From d7a46c4eb8e65bf660e5cc9a9ffd86d1a0a549a7 Mon Sep 17 00:00:00 2001
+From: Vadim Zeitlin <vadim@wxwidgets.org>
+Date: Thu, 10 Nov 2011 11:58:04 +0000
+Subject: [PATCH] Compilation fix for wxUSE_UNICODE=0 build after wxUSE_STL=1
+ fix.
+
+The result of wxString::mb_str() can't be converted to wxScopedCharBuffer in
+non-Unicode build but converting it to wxCharBuffer is always fine (though
+slightly less efficient).
+
+git-svn-id: https://svn.wxwidgets.org/svn/wx/wxWidgets/trunk@69730 c3d73ce0-8a6f-49c7-b76d-6d57e0e08775
+---
+ src/xrc/xmlres.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/xrc/xmlres.cpp b/src/xrc/xmlres.cpp
+index e0ad8d851539..0afbbcb58861 100644
+--- a/src/xrc/xmlres.cpp
++++ b/src/xrc/xmlres.cpp
+@@ -2493,7 +2493,7 @@ static inline unsigned XRCIdHash(const char *str_id)
+ 
+ static void XRCID_Assign(const wxString& str_id, int value)
+ {
+-    wxScopedCharBuffer buf_id(str_id.mb_str());
++    const wxCharBuffer buf_id(str_id.mb_str());
+     const unsigned index = XRCIdHash(buf_id);
+ 
+ 

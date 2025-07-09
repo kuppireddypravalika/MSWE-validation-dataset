@@ -1,0 +1,39 @@
+From d2c99def1295e210d2c3a39a109bfce25b881b1f Mon Sep 17 00:00:00 2001
+From: "bernard.parisse" <bernard.parisse@23ce0884-8a58-47d3-bc5c-ddf1cd5b9f9e>
+Date: Wed, 3 May 2017 13:34:39 +0000
+Subject: [PATCH] [giac] improved evaluation of incomplete gamma function for
+ some arguments, like igamma(1/3,-216.0)
+
+git-svn-id: https://dev.geogebra.org/svn/trunk/geogebra/giac@53765 23ce0884-8a58-47d3-bc5c-ddf1cd5b9f9e
+---
+ src/giac/cpp/usual.cc | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/src/giac/cpp/usual.cc b/src/giac/cpp/usual.cc
+index 71c08d74..279b811f 100644
+--- a/src/giac/cpp/usual.cc
++++ b/src/giac/cpp/usual.cc
+@@ -7518,20 +7518,19 @@ namespace giac {
+   // lower_incomplete_gamma(a,z)=z^(-a)*gammaetoile(a,z)
+   // gammaetoile(a,z)=sum(n=0..inf,(-z)^n/(a+n)/n!)
+   gen gammaetoile(const gen & a,const gen &z,GIAC_CONTEXT){
+-    gen res=0,resr,resi,fact=1,zn=1,tmp,tmpr,tmpi;
++    gen res=0,resr,resi,znsurfact=1,tmp,tmpr,tmpi;
+     double eps2=epsilon(contextptr); eps2=eps2*eps2;
+     if (eps2<=0)
+       eps2=1e-14;
+     for (int n=0;;){
+-      tmp=zn/((a+n)*fact);
++      tmp=znsurfact/(a+n);
+       reim(tmp,tmpr,tmpi,contextptr);
+       reim(res,resr,resi,contextptr);
+       if (is_greater(eps2*(resr*resr+resi*resi),tmpr*tmpr+tmpi*tmpi,contextptr))
+ 	break;
+       res += tmp;
+       ++n;
+-      fact=n*fact;
+-      zn=(-z)*zn;
++      znsurfact = znsurfact *(-z)/n;
+     }
+     return res;
+   }

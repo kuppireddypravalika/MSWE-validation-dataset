@@ -1,0 +1,39 @@
+From 22785f2fa32032345ad741d3c5ee2fabf13f616b Mon Sep 17 00:00:00 2001
+From: Ye Luo <xw111luoye@gmail.com>
+Date: Mon, 20 Apr 2015 05:50:43 +0000
+Subject: [PATCH] Memory usage has been reduced by approximately 2/3 through
+ commenting the resize of large unused matrices in the determinants. When ZVZB
+ forces and stresses are ready for deployment, R. Clay will take care of those
+ matrices.
+
+git-svn-id: https://subversion.assembla.com/svn/qmcdev/trunk@6451 e5b18d87-469d-4833-9cc0-8cdfa06e9491
+---
+ src/QMCWaveFunctions/Fermion/DiracDeterminantBase.cpp | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/src/QMCWaveFunctions/Fermion/DiracDeterminantBase.cpp b/src/QMCWaveFunctions/Fermion/DiracDeterminantBase.cpp
+index 3e6efb7719..0d8c37b8f4 100644
+--- a/src/QMCWaveFunctions/Fermion/DiracDeterminantBase.cpp
++++ b/src/QMCWaveFunctions/Fermion/DiracDeterminantBase.cpp
+@@ -84,7 +84,13 @@ void DiracDeterminantBase::resize(int nel, int morb)
+   LastIndex = FirstIndex + nel;
+   NumPtcls=nel;
+   NumOrbitals=norb;
++
+   // For forces
++  /* Ye Luo, Apr 18th 2015
++   * To save the memory used by every walker, the resizing the following giant matrices are commented.
++   * When ZVZB forces and stresses are ready for deployment, R. Clay will take care of those matrices.
++   */
++  /*
+   grad_source_psiM.resize(nel,norb);
+   grad_lapl_source_psiM.resize(nel,norb);
+   grad_grad_source_psiM.resize(nel,norb);
+@@ -92,6 +98,7 @@ void DiracDeterminantBase::resize(int nel, int morb)
+   grad_phi_Minv.resize(nel,norb);
+   lapl_phi_Minv.resize(nel,norb);
+   grad_phi_alpha_Minv.resize(nel,norb);
++  */
+ }
+ 
+ DiracDeterminantBase::RealType

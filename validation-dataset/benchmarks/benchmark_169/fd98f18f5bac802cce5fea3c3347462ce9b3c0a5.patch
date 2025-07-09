@@ -1,0 +1,26 @@
+From fd98f18f5bac802cce5fea3c3347462ce9b3c0a5 Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Thu, 18 May 2023 10:41:22 -0600
+Subject: [PATCH] Pre-convert to `std::size_t` to avoid overflow
+
+Fixes MSVC Code Analysis warning:
+> warning C26451: Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow.
+---
+ OPHD/UI/IconGrid.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/OPHD/UI/IconGrid.cpp b/OPHD/UI/IconGrid.cpp
+index 72a1868dc..4cf2cc7d2 100644
+--- a/OPHD/UI/IconGrid.cpp
++++ b/OPHD/UI/IconGrid.cpp
+@@ -124,8 +124,8 @@ void IconGrid::onMouseMove(NAS2D::Point<int> position, NAS2D::Vector<int> /*rela
+  */
+ std::size_t IconGrid::translateCoordsToIndex(NAS2D::Vector<int> relativeOffset)
+ {
+-	const auto gridOffset = relativeOffset / (mIconSize + mIconMargin);
+-	return static_cast<std::size_t>(gridOffset.x + (mGridSize.x * gridOffset.y));
++	const auto gridOffset = (relativeOffset / (mIconSize + mIconMargin)).to<std::size_t>();
++	return gridOffset.x + (static_cast<std::size_t>(mGridSize.x) * gridOffset.y);
+ }
+ 
+ 

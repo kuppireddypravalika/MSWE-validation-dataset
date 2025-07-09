@@ -1,0 +1,34 @@
+From 056b7ae29229780d36141b397b23684c885cebd2 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?B=C3=A5rd=20Skaflestad?= <Bard.Skaflestad@sintef.no>
+Date: Sun, 5 May 2013 22:02:40 +0200
+Subject: [PATCH] Make Darcy flux actually constant.
+
+The definition from commit 6f22d10 included a non-zero derivative
+which interfered with the automatic differentiation solver.  Using a
+fully constant Darcy flux enables using dt=150 while still computing
+the correct solution.
+
+While here, output the solution (s1) using more precision/digits for
+comparison with 'sim_simple.m'.
+---
+ sim_simple.cpp | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/sim_simple.cpp b/sim_simple.cpp
+index 319add4e62d..7373e164e2c 100644
+--- a/sim_simple.cpp
++++ b/sim_simple.cpp
+@@ -409,7 +409,12 @@ int main()
+     const std::vector<ADB> pmobc0 = phaseMobility<ADB>(props, allcells, s00.value());
+     const std::vector<ADB> pmobf0 = upws.select(p1, pmobc0);
+     const std::vector<ADB::M> null = { ADB::M(transi.size(), nc) };
+-    const ADB dflux = (pmobf0[0] + pmobf0[1]) * ADB::function(nkdp.value(), null);
++    const ADB dflux = (ADB::function((pmobf0[0] + pmobf0[1]).value(), null) *
++                       ADB::function(nkdp.value()                   , null));
++
++    std::cout.setf(std::ios::scientific);
++    std::cout.precision(16);
++
+     do {
+         const std::vector<int>& bp = block_pattern;
+         ADB s = ADB::variable(0, s1, bp);

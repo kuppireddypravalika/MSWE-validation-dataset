@@ -1,0 +1,22 @@
+From 250367cdc70ee35fe476cbb1ba4871450faab65d Mon Sep 17 00:00:00 2001
+From: Timothy Banks <timothy.banks@block.one>
+Date: Tue, 29 Sep 2020 09:53:39 -0400
+Subject: [PATCH] Changed more places to use cached rocksdb begin/end
+ iterators.
+
+---
+ libraries/chain_kv/include/b1/session/session.hpp | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/libraries/chain_kv/include/b1/session/session.hpp b/libraries/chain_kv/include/b1/session/session.hpp
+index d54ec20890e..4e919d74863 100644
+--- a/libraries/chain_kv/include/b1/session/session.hpp
++++ b/libraries/chain_kv/include/b1/session/session.hpp
+@@ -332,7 +332,6 @@ template <typename Parent>
+ typename session<Parent>::iterator& session<Parent>::end_(session<Parent>& s, typename session<Parent>::iterator& it) const {
+    auto it_cache = std::end(s.m_iterator_cache);
+    it = session<Parent>::iterator{};
+-   it.m_iterator_version = it_cache->second.version;
+    it.m_active_iterator = std::move(it_cache);
+    it.m_active_session = &s;
+    return it;

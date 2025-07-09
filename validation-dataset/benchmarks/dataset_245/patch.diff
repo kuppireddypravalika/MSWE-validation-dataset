@@ -1,0 +1,30 @@
+From 9e53c6f7a5a5a46a1ec6bdeec2f17aeb48aebf85 Mon Sep 17 00:00:00 2001
+From: NotCompsky <adammarkgray@gmail.com>
+Date: Sat, 1 Aug 2020 12:26:16 +0100
+Subject: [PATCH] Performance		Replace WHERE NOT IN with LEFT JOIN
+ ... IS NULL
+
+---
+ wangle-server/src/server.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/wangle-server/src/server.cpp b/wangle-server/src/server.cpp
+index d7c96450..4e7ba223 100644
+--- a/wangle-server/src/server.cpp
++++ b/wangle-server/src/server.cpp
+@@ -1372,11 +1372,11 @@ class RTaggerHandler : public wangle::HandlerAdapter<const std::string_view,  co
+ 		
+ 		this->reset_buf_index();
+ 		this->mysql_query(
+-			"SELECT GROUP_CONCAT(f.id)"
+-			"FROM file f "
+-			"JOIN file2post f2p ON f2p.file=f.id "
++			"SELECT GROUP_CONCAT(f2p.file)"
++			"FROM file2post f2p "
++			"LEFT JOIN" USER_DISALLOWED_FILES(user_id) "A ON A.id=f2p.file "
+ 			"WHERE f2p.post IN (", post_ids, ")"
+-			  FILE_TBL_USER_PERMISSION_FILTER(user_id)
++			  "AND A.id IS NULL "
+ 			"LIMIT " TABLE_LIMIT
+ 		);
+ 		mysql_free_result(_post_ids_res);

@@ -1,0 +1,26 @@
+From be9c3db039655008fafcdebd07adeb11ad09b6f1 Mon Sep 17 00:00:00 2001
+From: Frederik Schwarzer <schwarzerf@gmail.com>
+Date: Thu, 12 Apr 2007 00:49:37 +0000
+Subject: [PATCH] uint count() => int numRows() avoids a cast from unsigned int
+ to int
+
+svn path=/trunk/extragear/network/konversation/; revision=652752
+---
+ src/identitydialog.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/identitydialog.cpp b/src/identitydialog.cpp
+index 0f0beda8d..6ee08d917 100644
+--- a/src/identitydialog.cpp
++++ b/src/identitydialog.cpp
+@@ -358,9 +358,8 @@ namespace Konversation
+         m_upNicknameBtn->setEnabled(m_nicknameLBox->selectedItem() && m_nicknameLBox->count()>1
+             && m_nicknameLBox->currentItem()>0);
+ 
+-        // FIXME: find another way than casting to overcome signedness warning
+         m_downNicknameBtn->setEnabled(m_nicknameLBox->selectedItem() && m_nicknameLBox->count()>1
+-            && m_nicknameLBox->currentItem()<static_cast<int>(m_nicknameLBox->count()-1) );
++            && m_nicknameLBox->currentItem()<m_nicknameLBox->numRows()-1 );
+ 
+     }
+ 

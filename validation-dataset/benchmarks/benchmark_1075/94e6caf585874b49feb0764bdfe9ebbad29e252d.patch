@@ -1,0 +1,22 @@
+From 94e6caf585874b49feb0764bdfe9ebbad29e252d Mon Sep 17 00:00:00 2001
+From: Jean-Philip Desjardins <jean-philip.desjardins@polymtl.ca>
+Date: Sat, 1 Oct 2016 21:21:16 -0400
+Subject: [PATCH] Only use CPUID when it's available.
+
+---
+ src/Jitter_CodeGen_x86.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/Jitter_CodeGen_x86.cpp b/src/Jitter_CodeGen_x86.cpp
+index 4edfbd5d..b8afdd13 100644
+--- a/src/Jitter_CodeGen_x86.cpp
++++ b/src/Jitter_CodeGen_x86.cpp
+@@ -205,7 +205,7 @@ void CCodeGen_x86::InsertMatchers(const CONSTMATCHER* constMatchers)
+ 
+ void CCodeGen_x86::SetGenerationFlags()
+ {
+-#ifdef _WIN32
++#if defined(_WIN32) && (defined(_M_IX86) || defined(_M_X64))
+ 	static uint32 CPUID_FLAG_SSE41 = 0x080000;
+ 	std::array<int, 4> cpuInfo;
+ 	__cpuid(cpuInfo.data(), 1);

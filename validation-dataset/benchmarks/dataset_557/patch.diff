@@ -1,0 +1,24 @@
+From dc245f389cffb1cb50d7dc066827be702b424a01 Mon Sep 17 00:00:00 2001
+From: Eric Wong <normalperson@yhbt.net>
+Date: Mon, 6 Oct 2008 18:41:41 +0200
+Subject: [PATCH] song: call freeJustSong if newSong fails
+
+There's no reason to scan the playlist for a song we
+just allocated.
+---
+ src/song.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/song.c b/src/song.c
+index 0bdf40c022..9436df97c2 100644
+--- a/src/song.c
++++ b/src/song.c
+@@ -70,7 +70,7 @@ Song *newSong(const char *url, enum song_type type, Directory * parentDir)
+ 			song->tag = plugin->tag_dup(abs_path);
+ 		}
+ 		if (!song->tag || song->tag->time < 0) {
+-			freeSong(song);
++			freeJustSong(song);
+ 			song = NULL;
+ 		}
+ 	}

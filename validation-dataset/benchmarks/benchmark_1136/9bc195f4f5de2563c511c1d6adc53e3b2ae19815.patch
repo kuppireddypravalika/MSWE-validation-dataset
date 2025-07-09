@@ -1,0 +1,26 @@
+From 9bc195f4f5de2563c511c1d6adc53e3b2ae19815 Mon Sep 17 00:00:00 2001
+From: Steven Johnson <stejohns@adobe.com>
+Date: Tue, 10 Mar 2009 16:18:19 -0700
+Subject: [PATCH] Converts a slew of AvmCore methods to static. Performance
+ increase is modest in JIT mode on most benchmarks, but math-centric
+ benchmarks (eg primes, crypto) show 15-25% improvement in JIT mode. Also
+ added some minor but worthwhile optimizations to the bodies of
+ AvmCore::number, AvmCore::istype, Toplevel::add2. (r=lhansen)
+
+---
+ nanojit/LIR.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/nanojit/LIR.cpp b/nanojit/LIR.cpp
+index 4bbc66b..f2f5045 100755
+--- a/nanojit/LIR.cpp
++++ b/nanojit/LIR.cpp
+@@ -1730,7 +1730,7 @@ namespace nanojit
+ 			VMPI_strcat(buf, cname8.c_str());
+ 		}
+ 		else if (ref->isconstq()) {
+-            VMPI_sprintf(buf, "#0x%llxLL", (int64_t) ref->constvalq());
++            VMPI_sprintf(buf, "#0x%llxLL", (long long unsigned int) ref->constvalq());
+ 		}
+ 		else if (ref->isconst()) {
+ 			formatImm(ref->constval(), buf);

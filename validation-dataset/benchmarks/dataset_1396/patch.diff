@@ -1,0 +1,24 @@
+From c6151909efefdb6c560b92c9d81af5b52a492582 Mon Sep 17 00:00:00 2001
+From: David Robillard <d@drobilla.net>
+Date: Sun, 5 Apr 2015 02:49:59 +0000
+Subject: [PATCH] Use a fixed max buffer size to avoid several values.
+
+git-svn-id: http://svn.drobilla.net/lad/trunk/ingen@5662 a436a847-0d15-0410-975c-d299462d15a1
+---
+ src/server/Engine.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/server/Engine.cpp b/src/server/Engine.cpp
+index 2e2d571e2..a84a24233 100644
+--- a/src/server/Engine.cpp
++++ b/src/server/Engine.cpp
+@@ -266,7 +266,8 @@ Engine::activate()
+ 			          Resource::Property(uris.atom_Sequence)));
+ 		control_properties.insert(
+ 			make_pair(uris.rsz_minimumSize,
+-			          forge.make(int32_t(driver()->seq_size()))));
++			          // forge.make(int32_t(driver()->seq_size()))));
++			          forge.make(4096)));
+ 
+ 		// Add control input
+ 		Resource::Properties in_properties(control_properties);

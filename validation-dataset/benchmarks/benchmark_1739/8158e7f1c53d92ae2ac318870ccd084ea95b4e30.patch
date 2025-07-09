@@ -1,0 +1,23 @@
+From 8158e7f1c53d92ae2ac318870ccd084ea95b4e30 Mon Sep 17 00:00:00 2001
+From: DennisOSRM <luxen@kit.edu>
+Date: Fri, 11 Jan 2013 18:16:08 +0100
+Subject: [PATCH] Using explicit 64bit integer instead of compiler-dependent
+ long long
+
+---
+ Extractor/PBFParser.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Extractor/PBFParser.cpp b/Extractor/PBFParser.cpp
+index 42a2571da0b..d86fbc457b1 100644
+--- a/Extractor/PBFParser.cpp
++++ b/Extractor/PBFParser.cpp
+@@ -281,7 +281,7 @@ inline void PBFParser::parseRelation(_ThreadData * threadData) {
+ 
+ 
+ 		if(isRestriction) {
+-			long long lastRef = 0;
++			int64_t lastRef = 0;
+ 			_RawRestrictionContainer currentRestrictionContainer(isOnlyRestriction);
+ 			for(int rolesIndex = 0; rolesIndex < inputRelation.roles_sid_size(); ++rolesIndex) {
+ 				std::string role(threadData->PBFprimitiveBlock.stringtable().s( inputRelation.roles_sid( rolesIndex ) ).data());

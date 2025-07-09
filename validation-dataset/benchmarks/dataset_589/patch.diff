@@ -1,0 +1,36 @@
+From 36d2eada626b2962bb34f3bee58c6983bd5c99f1 Mon Sep 17 00:00:00 2001
+From: Jonathan Poelen <jonathan.poelen@gmail.com>
+Date: Mon, 27 Sep 2021 18:20:21 +0200
+Subject: [PATCH] replace multiple string concatenation with str_concat()
+
+---
+ src/mod/rdp/rdp.hpp | 9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
+
+diff --git a/src/mod/rdp/rdp.hpp b/src/mod/rdp/rdp.hpp
+index 0c58af3c87..5994872855 100644
+--- a/src/mod/rdp/rdp.hpp
++++ b/src/mod/rdp/rdp.hpp
+@@ -998,8 +998,7 @@ class mod_rdp_channels
+             }
+         }
+         else if (upper_order == "EVENT"_ascii_upper) {
+-            if (parameters.size() == 3)
+-            {
++            if (parameters.size() == 3) {
+                 this->log6(LogId::SESSION_EVENT, {
+                     KVLog("level"_av, parameters[0]),
+                     KVLog("id"_av, parameters[1]),
+@@ -1007,11 +1006,7 @@ class mod_rdp_channels
+                 });
+             }
+ 
+-            std::string message(parameters[0].data(), parameters[0].size());
+-            message += " : ";
+-            message.append(parameters[1].data(), parameters[1].size());
+-            message += " : ";
+-            message.append(parameters[2].data(), parameters[2].size());
++            std::string message = str_concat(parameters[0], " : ", parameters[1], " : ", parameters[2]);
+             this->session_log.report("SESSION_EVENT", message.c_str());
+         }
+         else {

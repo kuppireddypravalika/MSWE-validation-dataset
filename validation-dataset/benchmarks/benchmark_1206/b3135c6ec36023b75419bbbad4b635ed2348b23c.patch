@@ -1,0 +1,24 @@
+From b3135c6ec36023b75419bbbad4b635ed2348b23c Mon Sep 17 00:00:00 2001
+From: Lennart Braun <lenerd@posteo.de>
+Date: Wed, 6 May 2020 21:27:08 +0200
+Subject: [PATCH] Remove std::move from return statement
+
+From the compiler warning:
+> moving a local object in a return statement prevents copy elision
+---
+ src/motioncore/crypto/sharing_randomness_generator.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/motioncore/crypto/sharing_randomness_generator.h b/src/motioncore/crypto/sharing_randomness_generator.h
+index 1d137a0e7..df8df90a0 100644
+--- a/src/motioncore/crypto/sharing_randomness_generator.h
++++ b/src/motioncore/crypto/sharing_randomness_generator.h
+@@ -141,7 +141,7 @@ class SharingRandomnessGenerator {
+           static_cast<T>(single_result));  // static-cast the result to the smaller ring
+     }
+ 
+-    return std::move(results);
++    return results;
+   }
+ 
+   ENCRYPTO::BitVector<> GetBits(const std::size_t gate_id, const std::size_t num_of_bits);

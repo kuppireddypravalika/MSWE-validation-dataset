@@ -1,0 +1,38 @@
+From fd5a3a99ce95903e6a7b6d9937de0cf03c173908 Mon Sep 17 00:00:00 2001
+From: fritsch <Peter.Fruehberger@gmail.com>
+Date: Wed, 18 May 2022 19:44:09 +0200
+Subject: [PATCH] FFmpegImage: Reduce quality a tiny bit
+
+While reading the forum I have seen that a user copied his Thumbnails
+directory to a PC and "optimized" the jpegs. From this I checked what
+we do in code and have seen that we use the "maximum" possible quality
+when storing in a lossy jpeg format. This results in very large jpegs
+which from quality POV are hardly to distinguish at all from a little
+compressed (reduced quality) image. I chose 4 as a sensible value.
+
+Size comparisons:
+53K Mai 18 19:16 1b005dd9.jpg
+53K Mai 18 19:40 1b005dd9-2.jpg (seems default)
+43K Mai 18 19:40 1b005dd9-3.jpg
+30K Mai 18 19:40 1b005dd9-4.jpg
+28K Mai 18 19:41 1b005dd9-5.jpg
+26K Mai 18 19:41 1b005dd9-6.jpg
+22K Mai 18 19:41 1b005dd9-7.jpg
+21K Mai 18 19:41 1b005dd9-8.jpg
+---
+ xbmc/guilib/FFmpegImage.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/xbmc/guilib/FFmpegImage.cpp b/xbmc/guilib/FFmpegImage.cpp
+index 6089577bff9ca..e9aed8658364f 100644
+--- a/xbmc/guilib/FFmpegImage.cpp
++++ b/xbmc/guilib/FFmpegImage.cpp
+@@ -582,7 +582,7 @@ bool CFFmpegImage::CreateThumbnailFromSurface(unsigned char* bufferin, unsigned
+   tdm.avOutctx->flags = AV_CODEC_FLAG_QSCALE;
+   tdm.avOutctx->mb_lmin = tdm.avOutctx->qmin * FF_QP2LAMBDA;
+   tdm.avOutctx->mb_lmax = tdm.avOutctx->qmax * FF_QP2LAMBDA;
+-  tdm.avOutctx->global_quality = tdm.avOutctx->qmin * FF_QP2LAMBDA;
++  tdm.avOutctx->global_quality = jpg_output ? 4 * FF_QP2LAMBDA : tdm.avOutctx->qmin * FF_QP2LAMBDA;
+ 
+   unsigned int internalBufOutSize = 0;
+ 

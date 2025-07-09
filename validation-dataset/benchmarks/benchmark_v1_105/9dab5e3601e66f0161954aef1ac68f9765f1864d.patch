@@ -1,0 +1,26 @@
+From 9dab5e3601e66f0161954aef1ac68f9765f1864d Mon Sep 17 00:00:00 2001
+From: turley <turley@polserver.com>
+Date: Sun, 18 Dec 2016 19:07:21 +0100
+Subject: [PATCH] fix for older vs
+
+---
+ pol-core/pol/realms/realmlos.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/pol-core/pol/realms/realmlos.cpp b/pol-core/pol/realms/realmlos.cpp
+index ae1078ee58..8f6c72ef04 100644
+--- a/pol-core/pol/realms/realmlos.cpp
++++ b/pol-core/pol/realms/realmlos.cpp
+@@ -169,7 +169,12 @@ bool Realm::has_los( const Core::ULWObject& att, const Core::ULWObject& tgt ) co
+ 
+   // due to the nature of los check the same x,y coordinates get checked, cache the last used coords
+   // to reduce the expensive map/multi read per coordinate
++
++#if (!defined(_MSC_VER) || _MSC_VER >= 1900)
+   static THREADLOCAL LosCache cache;
++#else // older ms support only primitive types :(
++  LosCache cache;
++#endif
+   cache.last_x = 0xFFFF;
+   cache.last_y = 0xFFFF;
+   cache.shapes.clear();

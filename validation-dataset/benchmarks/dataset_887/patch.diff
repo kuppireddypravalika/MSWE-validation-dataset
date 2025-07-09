@@ -1,0 +1,31 @@
+From d0378f871da1b0c14d00f8134c7ff59685293b91 Mon Sep 17 00:00:00 2001
+From: atmyers <atmyers2@gmail.com>
+Date: Fri, 20 Apr 2018 15:49:12 -0700
+Subject: [PATCH] divide instead of multiply by csq here
+
+---
+ Source/WarpXParticleContainer.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/Source/WarpXParticleContainer.cpp b/Source/WarpXParticleContainer.cpp
+index aad90a7e173..b0e16a25888 100644
+--- a/Source/WarpXParticleContainer.cpp
++++ b/Source/WarpXParticleContainer.cpp
+@@ -351,6 +351,8 @@ std::array<Real, 3> WarpXParticleContainer::meanParticleVelocity(bool local) {
+ 
+     long np_total = 0;
+ 
++    amrex::Real inv_clight_sq = 1.0/PhysConst::c/PhysConst::c;
++
+ #ifdef _OPENMP
+ #pragma omp parallel reduction(+:vx_total, vy_total, vz_total, np_total)
+ #endif
+@@ -363,7 +365,7 @@ std::array<Real, 3> WarpXParticleContainer::meanParticleVelocity(bool local) {
+         np_total += pti.numParticles();
+ 
+         for (unsigned long i = 0; i < ux.size(); i++) {
+-            Real usq = (ux[i]*ux[i] + uy[i]*uy[i] + uz[i]*uz[i])*PhysConst::c*PhysConst::c;
++            Real usq = (ux[i]*ux[i] + uy[i]*uy[i] + uz[i]*uz[i])*inv_clight_sq;
+             Real gaminv = 1.0/std::sqrt(1.0 + usq);
+             vx_total += ux[i]*gaminv;
+             vy_total += uy[i]*gaminv;

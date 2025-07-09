@@ -1,0 +1,22 @@
+From e1fc987b21798d8d2803859633d278f8c682d897 Mon Sep 17 00:00:00 2001
+From: Sanjoy Das <sanjoy@playingwithpointers.com>
+Date: Sun, 7 May 2017 05:29:34 +0000
+Subject: [PATCH] Use array_pod_sort instead of std::sort
+
+---
+ llvm/lib/Analysis/ScalarEvolution.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/llvm/lib/Analysis/ScalarEvolution.cpp b/llvm/lib/Analysis/ScalarEvolution.cpp
+index e19bca4a236c..3429a04eaa21 100644
+--- a/llvm/lib/Analysis/ScalarEvolution.cpp
++++ b/llvm/lib/Analysis/ScalarEvolution.cpp
+@@ -9642,7 +9642,7 @@ void ScalarEvolution::findArrayDimensions(SmallVectorImpl<const SCEV *> &Terms,
+     });
+ 
+   // Remove duplicates.
+-  std::sort(Terms.begin(), Terms.end());
++  array_pod_sort(Terms.begin(), Terms.end());
+   Terms.erase(std::unique(Terms.begin(), Terms.end()), Terms.end());
+ 
+   // Put larger terms first.

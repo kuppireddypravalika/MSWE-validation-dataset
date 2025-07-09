@@ -1,0 +1,40 @@
+From 01c2c325bdf49345aa03fa4cc9b4adca72512783 Mon Sep 17 00:00:00 2001
+From: Yura Yaroshevich <yura.yaroshevich@gmail.com>
+Date: Tue, 1 Nov 2022 21:20:52 +0100
+Subject: [PATCH] Faster erase buffer within FrameCombiner with -Oz opt level.
+
+Previous erase implementation on clang with -Oz optimization
+leve produced effectively per element zeroing, causing
+unnecessary CPU usage on mobiles.
+Using zero-initialization is both shorter and easier to
+optimize for clang:
+https://en.cppreference.com/w/cpp/language/zero_initialization
+Godbolt links with example of codegen:
+Before: https://godbolt.org/z/feT3bfoxr
+After: https://godbolt.org/z/PTra3sfoz
+
+Bug: None
+Change-Id: Ie1eae3455ded42e2b65fdb15436d8698277f6504
+Reviewed-on: https://webrtc-review.googlesource.com/c/src/+/281400
+Commit-Queue: Henrik Lundin <henrik.lundin@webrtc.org>
+Reviewed-by: Henrik Lundin <henrik.lundin@webrtc.org>
+Cr-Commit-Position: refs/heads/main@{#38547}
+---
+ modules/audio_mixer/frame_combiner.cc | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/modules/audio_mixer/frame_combiner.cc b/modules/audio_mixer/frame_combiner.cc
+index e31eea595f..abfc5e3ad9 100644
+--- a/modules/audio_mixer/frame_combiner.cc
++++ b/modules/audio_mixer/frame_combiner.cc
+@@ -98,9 +98,7 @@ void MixToFloatFrame(rtc::ArrayView<const AudioFrame* const> mix_list,
+   RTC_DCHECK_LE(samples_per_channel, FrameCombiner::kMaximumChannelSize);
+   RTC_DCHECK_LE(number_of_channels, FrameCombiner::kMaximumNumberOfChannels);
+   // Clear the mixing buffer.
+-  for (auto& one_channel_buffer : *mixing_buffer) {
+-    std::fill(one_channel_buffer.begin(), one_channel_buffer.end(), 0.f);
+-  }
++  *mixing_buffer = {};
+ 
+   // Convert to FloatS16 and mix.
+   for (size_t i = 0; i < mix_list.size(); ++i) {

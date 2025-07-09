@@ -1,0 +1,23 @@
+From 4dabd59a849a5e464659f9e38bcc3961a099d45f Mon Sep 17 00:00:00 2001
+From: Neil Cook <neil.cook@noware.co.uk>
+Date: Thu, 16 Mar 2017 11:11:04 +0000
+Subject: [PATCH] Use std::move instead of copy for returned string in
+ MiniCurl::getURL
+
+---
+ minicurl.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/minicurl.cc b/minicurl.cc
+index 4c3ca706..8213f166 100644
+--- a/minicurl.cc
++++ b/minicurl.cc
+@@ -61,7 +61,7 @@ std::string MiniCurl::getURL(const std::string& url, const MiniCurlHeaders& head
+     d_error_buf[0] = '\0';
+ 
+     curl_easy_perform(d_curl);
+-    std::string ret=d_data;
++    std::string ret=std::move(d_data);
+     d_data.clear();
+ 
+     clearCurlHeaders(header_list);

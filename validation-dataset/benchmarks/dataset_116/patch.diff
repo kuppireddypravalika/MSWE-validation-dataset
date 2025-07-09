@@ -1,0 +1,31 @@
+From 40558e7ac179789941ad4d6cc3546500add0ae97 Mon Sep 17 00:00:00 2001
+From: Nekotekina <nekotekina@gmail.com>
+Date: Wed, 14 Oct 2020 02:53:58 +0300
+Subject: [PATCH] Use std::invoke in cpu_thread::suspend_all
+
+---
+ rpcs3/Emu/CPU/CPUThread.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/rpcs3/Emu/CPU/CPUThread.h b/rpcs3/Emu/CPU/CPUThread.h
+index 25b3a6a992ee7..600c88ebd6ba0 100644
+--- a/rpcs3/Emu/CPU/CPUThread.h
++++ b/rpcs3/Emu/CPU/CPUThread.h
+@@ -144,7 +144,7 @@ class cpu_thread
+ 		{
+ 			suspend_work work{&op, nullptr, [](void* func, void*)
+ 			{
+-				(*static_cast<F*>(func))();
++				std::invoke(*static_cast<F*>(func));
+ 			}};
+ 
+ 			work.push(_this);
+@@ -156,7 +156,7 @@ class cpu_thread
+ 
+ 			suspend_work work{&op, &result, [](void* func, void* res_buf)
+ 			{
+-				*static_cast<std::invoke_result_t<F>*>(res_buf) = (*static_cast<F*>(func))();
++				*static_cast<std::invoke_result_t<F>*>(res_buf) = std::invoke(*static_cast<F*>(func));
+ 			}};
+ 
+ 			work.push(_this);

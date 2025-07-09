@@ -1,0 +1,23 @@
+From 5e8396fd2743702b9efdca1841c91987f28581f4 Mon Sep 17 00:00:00 2001
+From: Joshua Haberman <jhaberman@gmail.com>
+Date: Fri, 24 Sep 2021 15:17:30 -0700
+Subject: [PATCH] Performance fix for DynamicMessage: force GetRaw() to be
+ inlined.
+
+---
+ src/google/protobuf/dynamic_message.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/google/protobuf/dynamic_message.cc b/src/google/protobuf/dynamic_message.cc
+index f6781f252f5c9..b475c5289afc2 100644
+--- a/src/google/protobuf/dynamic_message.cc
++++ b/src/google/protobuf/dynamic_message.cc
+@@ -355,7 +355,7 @@ DynamicMessage::DynamicMessage(DynamicMessageFactory::TypeInfo* type_info,
+   SharedCtor(lock_factory);
+ }
+ 
+-void* DynamicMessage::MutableRaw(int i) {
++inline void* DynamicMessage::MutableRaw(int i) {
+   return OffsetToPointer(
+       OffsetValue(type_info_->offsets[i], type_info_->type->field(i)->type()));
+ }

@@ -1,0 +1,35 @@
+From 7fbf08dd5da262fae38919f944cebe6bed589005 Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Thu, 27 Oct 2016 23:28:39 -0400
+Subject: [PATCH] [libromdata] N64.cpp: Use the array byteswap functions.
+
+---
+ src/libromdata/N64.cpp | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/src/libromdata/N64.cpp b/src/libromdata/N64.cpp
+index 14c64beb07..6458088279 100644
+--- a/src/libromdata/N64.cpp
++++ b/src/libromdata/N64.cpp
+@@ -144,9 +144,7 @@ N64::N64(IRpFile *file)
+ 		case N64Private::ROM_TYPE_V64:
+ 			// V64 format. (16-bit byteswapped)
+ 			// Convert the header to Z64 first.
+-			for (int i = 0; i < ARRAY_SIZE(d->romHeader.u16); i++) {
+-				d->romHeader.u16[i] = __swab16(d->romHeader.u16[i]);
+-			}
++			__byte_swap_16_array(d->romHeader.u16, sizeof(d->romHeader.u16));
+ 			break;
+ 
+ 		case N64Private::ROM_TYPE_SWAP2:
+@@ -164,9 +162,7 @@ N64::N64(IRpFile *file)
+ 			// TODO: Optimize by not converting the non-text fields
+ 			// if the host system is little-endian?
+ 			// FIXME: Untested - ucon64 doesn't support it.
+-			for (int i = 0; i < ARRAY_SIZE(d->romHeader.u32); i++) {
+-				d->romHeader.u32[i] = __swab32(d->romHeader.u32[i]);
+-			}
++			__byte_swap_32_array(d->romHeader.u32, sizeof(d->romHeader.u32));
+ 			break;
+ 
+ 		default:

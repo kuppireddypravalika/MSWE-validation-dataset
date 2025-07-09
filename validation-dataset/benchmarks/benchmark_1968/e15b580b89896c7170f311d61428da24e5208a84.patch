@@ -1,0 +1,27 @@
+From e15b580b89896c7170f311d61428da24e5208a84 Mon Sep 17 00:00:00 2001
+From: sinamas <sinamas@users.sourceforge.net>
+Date: Sun, 29 Jul 2012 10:21:12 +0000
+Subject: [PATCH] rgb32ToRgb16: save 1 instruction in inner-loop on ARM (gcc).
+ gcc is bad at folding shifts into ands (and probably other ops) with simple
+ constants (it prefers using immediates, saving a register and reducing loop
+ header). help it fold shifts into the ors (non-constant, so gcc cannot pick
+ the immediate version) instead.
+
+git-svn-id: https://gambatte.svn.sourceforge.net/svnroot/gambatte@330 9dfb2916-2d38-0410-aef4-c5fe6c9ffc24
+---
+ common/videolink/rgb32conv.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/common/videolink/rgb32conv.cpp b/common/videolink/rgb32conv.cpp
+index 580b8993..6bc403ae 100755
+--- a/common/videolink/rgb32conv.cpp
++++ b/common/videolink/rgb32conv.cpp
+@@ -97,7 +97,7 @@ static void rgb32ToRgb16(const gambatte::uint_least32_t *s, gambatte::uint_least
+ 		d += w;
+ 
+ 		do {
+-			d[i] = (s[i] >> 8 & 0xF800) | (s[i] >> 5 & 0x07E0) | (s[i] >> 3 & 0x001F);
++			d[i] = (s[i] >> 8 & 0xF800) | (s[i] & 0xFC00) >> 5 | (s[i] & 0xFF) >> 3;
+ 		} while (++i);
+ 
+ 		s += srcPitch - static_cast<int>(w);

@@ -1,0 +1,43 @@
+From 35b55f7a16becf646fd67b5d0d2d7dc26b73f77c Mon Sep 17 00:00:00 2001
+From: David Roundy <roundyd@physics.oregonstate.edu>
+Date: Thu, 5 Mar 2015 12:56:07 -0800
+Subject: [PATCH] slight optimization in vector3d::ran Tested on bennet. Took
+ 27:35.80.
+
+---
+ src/vector3d.h | 22 +++++++++++++++-------
+ 1 file changed, 15 insertions(+), 7 deletions(-)
+
+diff --git a/src/vector3d.h b/src/vector3d.h
+index 9d62087a7..f4d06cb7d 100644
+--- a/src/vector3d.h
++++ b/src/vector3d.h
+@@ -107,13 +107,21 @@ class vector3d {
+     } while(r2 >= 1 || r2 == 0);
+     double fac = scale*sqrt(-2*log(r2)/r2);
+     vector3d out(x*fac, y*fac, 0);
+-    do {
+-      x = 2*random::ran() - 1;
+-      y = 2*random::ran() - 1;
+-      r2 = x*x + y*y;
+-    } while(r2 >= 1 || r2 == 0);
+-    fac = scale*sqrt(-2*log(r2)/r2);
+-    out[2]=x*fac;
++    static double extra_z = 0;
++    if (extra_z) {
++      // We have a z value left over from last time!
++      out[2] = extra_z;
++      extra_z = 0;
++    } else {
++      do {
++        x = 2*random::ran() - 1;
++        y = 2*random::ran() - 1;
++        r2 = x*x + y*y;
++      } while(r2 >= 1 || r2 == 0);
++      fac = scale*sqrt(-2*log(r2)/r2);
++      extra_z = y*fac; // Save this one for later!
++      out[2]=x*fac;
++    }
+     return out;
+   }
+ };

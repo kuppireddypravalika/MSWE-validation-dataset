@@ -1,0 +1,22 @@
+From da3fa3caae40861c647e241d97c3a83dfc6d8343 Mon Sep 17 00:00:00 2001
+From: Alex Beregszaszi <alex@rtfs.hu>
+Date: Thu, 8 Oct 2020 19:05:24 +0100
+Subject: [PATCH] Use fabs in fnearest
+
+---
+ lib/fizzy/execute.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/fizzy/execute.cpp b/lib/fizzy/execute.cpp
+index d00352168..1ef59d9b0 100644
+--- a/lib/fizzy/execute.cpp
++++ b/lib/fizzy/execute.cpp
+@@ -451,7 +451,7 @@ T fnearest(T value) noexcept
+ 
+     // This implementation is based on adjusting the result produced by trunc() by +-1 when needed.
+     const auto t = std::trunc(value);
+-    if (const auto diff = std::abs(value - t); diff > T{0.5} || (diff == T{0.5} && !is_even(t)))
++    if (const auto diff = fabs(value - t); diff > T{0.5} || (diff == T{0.5} && !is_even(t)))
+         return t + fcopysign(T{1}, value);
+     else
+         return t;

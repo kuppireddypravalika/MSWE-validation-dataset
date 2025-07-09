@@ -1,0 +1,30 @@
+From 94dd27b878a55205ef053917d80bb85742b4f8d9 Mon Sep 17 00:00:00 2001
+From: NHOrus <jy6x2b32pie9@yahoo.com>
+Date: Fri, 11 Sep 2015 21:17:11 +0300
+Subject: [PATCH] Char comparsion instead of string comparsion. One of maybe
+ not a problems that I saw accidentally and decided that it needs to be
+ solved, as to not weigth my conscience
+
+Originally, path was trimmed from ending slash by looking if
+sting of slash is equal one-character substring on the end of main
+string. Now it merely compared two characters.
+---
+ src/Engine/FileMap.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/Engine/FileMap.cpp b/src/Engine/FileMap.cpp
+index 80cff7e959..f648453ac7 100644
+--- a/src/Engine/FileMap.cpp
++++ b/src/Engine/FileMap.cpp
+@@ -57,9 +57,9 @@ const std::set<std::string> &getVFolderContents(const std::string &relativePath)
+ 	std::string canonicalRelativePath = _canonicalize(relativePath);
+ 	
+ 	// trim of trailing '/' characters
+-	while (!canonicalRelativePath.empty() && "/" == canonicalRelativePath.substr(canonicalRelativePath.length() - 1, 1))
++    while (!canonicalRelativePath.empty() && '/' == canonicalRelativePath.at(canonicalRelativePath.length() - 1))
+ 	{
+-		canonicalRelativePath.resize(canonicalRelativePath.length() -1);
++        canonicalRelativePath.resize(canonicalRelativePath.length() - 1);
+ 	}
+ 	
+ 	if (_vdirs.find(canonicalRelativePath) == _vdirs.end())

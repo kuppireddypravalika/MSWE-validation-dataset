@@ -1,0 +1,22 @@
+From 83b49c6674b37063dfae9dde6c98747a931041e2 Mon Sep 17 00:00:00 2001
+From: Steven Watanabe <steven.watanabe@block.one>
+Date: Wed, 25 Sep 2019 12:32:08 -0400
+Subject: [PATCH] Reduce mmap fragmentation for eos-vm interpreter
+
+---
+ include/eosio/vm/allocator.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/eosio/vm/allocator.hpp b/include/eosio/vm/allocator.hpp
+index 136bacb8..f0574d36 100644
+--- a/include/eosio/vm/allocator.hpp
++++ b/include/eosio/vm/allocator.hpp
+@@ -308,7 +308,7 @@ namespace eosio { namespace vm {
+ 
+       // Sets protection on code pages to allow them to be executed.
+       void enable_code(bool is_jit) {
+-         mprotect(_code_base, _code_size, is_jit?PROT_EXEC:PROT_READ);
++         mprotect(_code_base, _code_size, is_jit?PROT_EXEC:(PROT_READ|PROT_WRITE));
+       }
+       // Make code pages unexecutable
+       void disable_code() {

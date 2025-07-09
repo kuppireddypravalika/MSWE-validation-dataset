@@ -1,0 +1,38 @@
+From 423f0b98e4b8672bfc8b40691cb90dc6c966328a Mon Sep 17 00:00:00 2001
+From: Christophe Grosjean <pykoder@gmail.com>
+Date: Fri, 12 Aug 2011 02:14:27 +0200
+Subject: [PATCH] Inlining mcs_send (stage 2)
+
+---
+ front/server_sec.hpp | 15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
+
+diff --git a/front/server_sec.hpp b/front/server_sec.hpp
+index 1410f49d1b..4f2c7e2443 100644
+--- a/front/server_sec.hpp
++++ b/front/server_sec.hpp
+@@ -369,19 +369,14 @@ struct server_sec {
+ // -------------------------
+ //        McsOut pdu(stream);
+         X224Out tpdu(X224Packet::DT_TPDU, stream);
+-        stream.mcs_hdr = stream.p;
+-        stream.p += 8;
+-//-------------------------
+ 
++        stream.out_uint8(MCS_SDIN << 2);
++        stream.out_uint16_be(this->mcs_layer.userid);
++        stream.out_uint16_be(MCS_GLOBAL_CHANNEL);
++        stream.out_uint8(0x70);
++        stream.out_uint16_be((8+20)|0x8000);
+         stream.out_copy_bytes((char*)lic2, 20);
+ 
+-// -------------------------
+-//        pdu.end()
+-//        pdu.send(this->trans);
+-
+-        stream.mark_end();
+-        this->mcs_layer.mcs_send(stream, MCS_GLOBAL_CHANNEL);
+-
+         tpdu.end();
+         tpdu.send(this->trans);
+ // ----------------------------

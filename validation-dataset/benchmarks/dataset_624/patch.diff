@@ -1,0 +1,42 @@
+From 875156ed2a14bcc16e53be7dba0a7ee53a0f0eca Mon Sep 17 00:00:00 2001
+From: Juli Mallett <juli@clockworksquid.com>
+Date: Sat, 1 Aug 2009 09:00:38 +0000
+Subject: [PATCH] Only ever try to read 64K onto the stack at a time.
+
+---
+ io/io_system.cc | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
+
+diff --git a/io/io_system.cc b/io/io_system.cc
+index 091353f..fe05db0 100644
+--- a/io/io_system.cc
++++ b/io/io_system.cc
+@@ -12,6 +12,8 @@
+ 
+ #include <io/io_system.h>
+ 
++#define	IO_READ_BUFFER_SIZE	65536
++
+ IOSystem::Handle::Handle(int fd, Channel *owner)
+ : log_("/io/system/handle"),
+   fd_(fd),
+@@ -109,12 +111,15 @@ IOSystem::Handle::read_callback(Event e)
+ 	size_t rlen;
+ 
+ 	if (read_amount_ == 0)
+-		rlen = 65536;
+-	else
++		rlen = IO_READ_BUFFER_SIZE;
++	else {
+ 		rlen = read_amount_ - read_buffer_.length();
+-	ASSERT(rlen != 0);
++		ASSERT(rlen != 0);
++		if (rlen > IO_READ_BUFFER_SIZE)
++			rlen = IO_READ_BUFFER_SIZE;
++	}
+ 
+-	uint8_t data[rlen];
++	uint8_t data[IO_READ_BUFFER_SIZE];
+ 	ssize_t len = ::read(fd_, data, sizeof data);
+ 	if (len == -1) {
+ 		switch (errno) {

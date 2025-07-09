@@ -1,0 +1,34 @@
+From dbf039097ea4e39ee81fcc5522ed3fb0503b84ab Mon Sep 17 00:00:00 2001
+From: alyokhin <ipochto@gmail.com>
+Date: Thu, 29 Apr 2021 12:41:57 +0300
+Subject: [PATCH] Added environmen variable into the stratagus launcer to
+ reduce CPU load while already finished threads are wating for still working
+ yet ones.
+
+---
+ gameheaders/stratagus-game-launcher.h | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/gameheaders/stratagus-game-launcher.h b/gameheaders/stratagus-game-launcher.h
+index 471dd2034..48ebc1b2b 100644
+--- a/gameheaders/stratagus-game-launcher.h
++++ b/gameheaders/stratagus-game-launcher.h
+@@ -661,13 +661,16 @@ int main(int argc, char * argv[]) {
+ 	}
+ 	stratagus_argv[argc + 2] = NULL;
+ 
++	// Needed to reduce CPU load while idle threads are wating for havn't finished yet ones
++	char *const env[] = { (char*)"OMP_WAIT_POLICY=passive", NULL }; 
++
+ #ifdef WIN32
+-	int ret = _spawnvp(_P_WAIT, stratagus_bin, stratagus_argv);
++	int ret = _spawnvpe(_P_WAIT, stratagus_bin, stratagus_argv, env);
+ #else
+ 	int ret = 0;
+ 	int childpid = fork();
+ 	if (childpid == 0) {
+-		execvp(stratagus_bin, stratagus_argv);
++		execvpe(stratagus_bin, stratagus_argv, env);
+ 		if (strcmp(stratagus_bin, "stratagus") == 0) {
+ 			realpath(argv[0], stratagus_bin);
+ 			parentdir(stratagus_bin);

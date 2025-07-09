@@ -1,0 +1,22 @@
+From c93b5e848a8137db4800bd9e8218e2436598575e Mon Sep 17 00:00:00 2001
+From: Claudio Lanconelli <claudiolanconelli@gmail.com>
+Date: Thu, 17 Sep 2009 21:01:10 +0000
+Subject: [PATCH] Add volatile to avoid optimization on wait loop variable
+
+---
+ wait.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/wait.cpp b/wait.cpp
+index c40567de..8cd83e0a 100644
+--- a/wait.cpp
++++ b/wait.cpp
+@@ -172,7 +172,7 @@ void Wait::WaitUsec(int usec)
+ 	}
+ 	else
+ 	{
+-		int k = usec * GetBogoKips() / 1000;
++		volatile int k = usec * GetBogoKips() / 1000;
+ 
+ 		while (k--)
+ 			;

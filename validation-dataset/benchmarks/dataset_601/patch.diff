@@ -1,0 +1,31 @@
+From 31bb24af644938b2b36c943b69baa6bc4091302f Mon Sep 17 00:00:00 2001
+From: = <675973885@qq.com>
+Date: Mon, 1 Aug 2016 15:13:33 -0400
+Subject: [PATCH] Fix performance test evaluation formula
+
+---
+ src/performance_test.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/performance_test.cpp b/src/performance_test.cpp
+index 02cd64c..d63f9e6 100644
+--- a/src/performance_test.cpp
++++ b/src/performance_test.cpp
+@@ -521,7 +521,7 @@ void TestBwTreeMultiThreadReadPerformance(TreeType *t, int key_num) {
+   }
+ 
+   std::cout << num_thread << " Threads BwTree: overall "
+-            << (iter * key_num / (1024.0 * 1024.0) * num_thread) / elapsed_seconds
++            << (iter * key_num / (1024.0 * 1024.0) * num_thread * num_thread) / elapsed_seconds
+             << " million read/sec" << "\n";
+             
+   ///////////////////////////////////////////////////////////////////
+@@ -575,7 +575,7 @@ void TestBwTreeMultiThreadReadPerformance(TreeType *t, int key_num) {
+   }
+ 
+   std::cout << num_thread << " Threads BwTree: overall "
+-            << (iter * key_num / (1024.0 * 1024.0) * num_thread) / elapsed_seconds
++            << (iter * key_num / (1024.0 * 1024.0) * num_thread * num_thread) / elapsed_seconds
+             << " million read (random)/sec" << "\n";
+ 
+   return;

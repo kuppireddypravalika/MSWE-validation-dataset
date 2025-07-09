@@ -1,0 +1,45 @@
+From 3ff20f771fb97e8809c4116ceccdba006f582eb3 Mon Sep 17 00:00:00 2001
+From: John Bartholomew <jpa.bartholomew@gmail.com>
+Date: Sat, 15 Dec 2012 17:33:41 +0000
+Subject: [PATCH] correctly interpret galaxy density bitmap as unsigned values.
+ fixes #1813
+
+The C `char` type can be signed or unsigned. If it's signed, then values
+"greater" than 127 are actually interpreted as negative values. When
+converting to (signed) int, sign extension leads to all the high bits
+being set. When that value is later shifted right (aka, divided by a
+power of two), those high bits get shifted into the value, making it
+much larger than it should be. This leads to a sudden jump in sector
+density.
+
+By interpreting the density bitmap pixels as unsigned values, all these
+problems are avoided (when converting unsigned char to signed int, the
+result is always non-negative).
+
+This patch also changes right-shifts to divisions, because division is
+the intended operation; the compiler can turn it back into a right-shift
+if that's useful.
+---
+ src/galaxy/Galaxy.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/galaxy/Galaxy.cpp b/src/galaxy/Galaxy.cpp
+index 2bf36d55c52..599ed507b8a 100644
+--- a/src/galaxy/Galaxy.cpp
++++ b/src/galaxy/Galaxy.cpp
+@@ -57,12 +57,12 @@ Uint8 GetSectorDensity(int sx, int sy, int sz)
+ 	int y = int(floor(offset_y * (s_galaxybmp->h - 1)));
+ 
+ 	SDL_LockSurface(s_galaxybmp);
+-	int val = static_cast<char*>(s_galaxybmp->pixels)[x + y*s_galaxybmp->pitch];
++	int val = static_cast<unsigned char*>(s_galaxybmp->pixels)[x + y*s_galaxybmp->pitch];
+ 	SDL_UnlockSurface(s_galaxybmp);
+ 	// crappy unrealistic but currently adequate density dropoff with sector z
+-	val = val * (256 - std::min(abs(sz),256)) >> 8;
++	val = val * (256 - std::min(abs(sz),256)) / 256;
+ 	// reduce density somewhat to match real (gliese) density
+-	val >>= 1;
++	val /= 2;
+ 	return Uint8(val);
+ }
+ 

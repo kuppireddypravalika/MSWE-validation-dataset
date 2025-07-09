@@ -1,0 +1,28 @@
+From 171947fa62aaf4e4d9cd1aaed163279e6b8a6222 Mon Sep 17 00:00:00 2001
+From: ccrs <ccrs@users.noreply.github.com>
+Date: Wed, 17 Apr 2019 00:06:06 +0200
+Subject: [PATCH] Core/Movement: replace multiset::find with std::find in
+ MotionMaster
+
+same reasoning as 11de6b5
+Container's find uses the defined custom comparator
+
+(cherry picked from commit 6e011c974d55135f56df7802699c05fc95ee7873)
+---
+ src/server/game/Movement/MotionMaster.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/server/game/Movement/MotionMaster.cpp b/src/server/game/Movement/MotionMaster.cpp
+index 9f36af744b1fd..2cee75d556f95 100644
+--- a/src/server/game/Movement/MotionMaster.cpp
++++ b/src/server/game/Movement/MotionMaster.cpp
+@@ -361,7 +361,8 @@ void MotionMaster::Remove(MovementGenerator* movement, MovementSlot slot/* = MOT
+         case MOTION_SLOT_ACTIVE:
+             if (!_generators.empty())
+             {
+-                auto itr = _generators.find(movement);
++                auto bounds = _generators.equal_range(movement);
++                auto itr = std::find(bounds.first, bounds.second, movement);
+                 if (itr != _generators.end())
+                     Remove(itr, GetCurrentMovementGenerator() == *itr, false);
+             }

@@ -1,0 +1,22 @@
+From 3e8192758f93c5137e79b91585eafe80ef4856b8 Mon Sep 17 00:00:00 2001
+From: Sylvain Joyeux <sylvain.joyeux@m4x.org>
+Date: Wed, 30 Jun 2010 00:32:20 +0200
+Subject: [PATCH] readonlypointer: do delete the value in the optimized path of
+ reset()
+
+---
+ rtt/extras/ReadOnlyPointer.hpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/rtt/extras/ReadOnlyPointer.hpp b/rtt/extras/ReadOnlyPointer.hpp
+index 80e43ef53..73b53d8f9 100644
+--- a/rtt/extras/ReadOnlyPointer.hpp
++++ b/rtt/extras/ReadOnlyPointer.hpp
+@@ -111,6 +111,7 @@ namespace RTT
+             { os::MutexLock do_lock(safe->lock);
+                 if (safe->readers == 2) // we are sole owner
+                 {
++                    delete safe->value;
+                     safe->value = ptr;
+                     return;
+                 }

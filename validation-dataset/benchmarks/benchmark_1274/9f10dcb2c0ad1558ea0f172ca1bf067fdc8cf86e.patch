@@ -1,0 +1,24 @@
+From 9f10dcb2c0ad1558ea0f172ca1bf067fdc8cf86e Mon Sep 17 00:00:00 2001
+From: David Rowland <drowland96@gmail.com>
+Date: Wed, 30 Sep 2020 11:31:04 +0100
+Subject: [PATCH] Plugins:   Minor atomic memory order optimisation
+
+---
+ .../model/automation/tracktion_AutomatableParameter.cpp       | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/modules/tracktion_engine/model/automation/tracktion_AutomatableParameter.cpp b/modules/tracktion_engine/model/automation/tracktion_AutomatableParameter.cpp
+index ee09c4aa319..5142f46fb86 100644
+--- a/modules/tracktion_engine/model/automation/tracktion_AutomatableParameter.cpp
++++ b/modules/tracktion_engine/model/automation/tracktion_AutomatableParameter.cpp
+@@ -343,8 +343,8 @@ struct AutomatableParameter::AutomationSourceList  : private ValueTreeObjectList
+ 
+     bool isActive() const
+     {
+-        jassert (numSources.load() == objects.size());
+-        return numSources.load() > 0;
++        jassert (numSources.load (std::memory_order_acquire) == objects.size());
++        return numSources.load (std::memory_order_acquire) > 0;
+     }
+ 
+     template<typename Fn>

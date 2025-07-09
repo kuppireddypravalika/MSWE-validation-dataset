@@ -1,0 +1,25 @@
+From 2c01e79b47ab97a52ae03b5fdc2041f32729c17a Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max.kellermann@gmail.com>
+Date: Wed, 6 Sep 2023 16:11:53 +0200
+Subject: [PATCH] SongSave: omit FixTagString() for strings from the database
+ file
+
+Strings in the database should have been sanitized already, so let's
+not waste CPU on this.
+---
+ src/SongSave.cxx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/SongSave.cxx b/src/SongSave.cxx
+index a82b4ff405..79bbd4f499 100644
+--- a/src/SongSave.cxx
++++ b/src/SongSave.cxx
+@@ -92,7 +92,7 @@ song_load(LineReader &file, const char *uri,
+ 
+ 		TagType type;
+ 		if ((type = tag_name_parse(line)) != TAG_NUM_OF_ITEM_TYPES) {
+-			tag.AddItem(type, value);
++			tag.AddItemUnchecked(type, value);
+ 		} else if (StringIsEqual(line, "Time")) {
+ 			tag.SetDuration(SignedSongTime::FromS(ParseDouble(value)));
+ 		} else if (StringIsEqual(line, "Target")) {

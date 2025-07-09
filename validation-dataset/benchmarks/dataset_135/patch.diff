@@ -1,0 +1,29 @@
+From 2a316e5a5538be3326fe43fafd00bd9ea13609e9 Mon Sep 17 00:00:00 2001
+From: Thomas Goyne <plorkyeran@aegisub.org>
+Date: Tue, 4 Mar 2014 20:19:12 -0800
+Subject: [PATCH] Make BaseGrid::UpdateMaps far less slow
+
+---
+ aegisub/src/base_grid.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/aegisub/src/base_grid.cpp b/aegisub/src/base_grid.cpp
+index 377552b02..669b91dda 100644
+--- a/aegisub/src/base_grid.cpp
++++ b/aegisub/src/base_grid.cpp
+@@ -301,12 +301,12 @@ void BaseGrid::UpdateMaps(bool preserve_selected_rows) {
+ 		SetSelectedSet(sel);
+ 	}
+ 	else {
+-		Selection lines;
+-		copy(index_line_map.begin(), index_line_map.end(), inserter(lines, lines.begin()));
++		auto sorted = index_line_map;
++		sort(begin(sorted), end(sorted));
+ 		Selection new_sel;
+ 		// Remove lines which no longer exist from the selection
+ 		set_intersection(selection.begin(), selection.end(),
+-			lines.begin(), lines.end(),
++			sorted.begin(), sorted.end(),
+ 			inserter(new_sel, new_sel.begin()));
+ 
+ 		SetSelectedSet(new_sel);

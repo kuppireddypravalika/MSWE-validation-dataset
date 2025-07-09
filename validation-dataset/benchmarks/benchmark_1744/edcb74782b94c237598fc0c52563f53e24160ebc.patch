@@ -1,0 +1,32 @@
+From edcb74782b94c237598fc0c52563f53e24160ebc Mon Sep 17 00:00:00 2001
+From: Klaus Iglberger <klaus.iglberger@gmail.com>
+Date: Sun, 4 May 2014 11:20:33 +0200
+Subject: [PATCH] Improve the vector multiplication operator of the
+ 'HybridVector' class template
+
+---
+ blaze/math/dense/HybridVector.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/blaze/math/dense/HybridVector.h b/blaze/math/dense/HybridVector.h
+index b889c4cd6..788620573 100644
+--- a/blaze/math/dense/HybridVector.h
++++ b/blaze/math/dense/HybridVector.h
+@@ -1034,7 +1034,7 @@ template< typename Type  // Data type of the vector
+ template< typename VT >  // Type of the right-hand side vector
+ inline HybridVector<Type,N,TF>& HybridVector<Type,N,TF>::operator*=( const Vector<VT,TF>& rhs )
+ {
+-   using blaze::assign;
++   using blaze::multAssign;
+ 
+    if( (~rhs).size() != size_ )
+       throw std::invalid_argument( "Vector sizes do not match" );
+@@ -1044,7 +1044,7 @@ inline HybridVector<Type,N,TF>& HybridVector<Type,N,TF>::operator*=( const Vecto
+       this->operator=( tmp );
+    }
+    else {
+-      assign( *this, *this * (~rhs) );
++      multAssign( *this, ~rhs );
+    }
+ 
+    return *this;

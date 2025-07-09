@@ -1,0 +1,24 @@
+From b307a801175ba113c7765f7a36f293e76ab0544d Mon Sep 17 00:00:00 2001
+From: Pilow <pierre.laupretre@gmail.com>
+Date: Wed, 3 Jul 2019 21:09:27 +0200
+Subject: [PATCH] [compiler] Don't load variable if not necessary
+
+---
+ src/compiler/Compiler.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/compiler/Compiler.cpp b/src/compiler/Compiler.cpp
+index a3e3baa3..538c7a6c 100644
+--- a/src/compiler/Compiler.cpp
++++ b/src/compiler/Compiler.cpp
+@@ -1025,7 +1025,9 @@ void Compiler::insn_delete_variable(Compiler::value v) const {
+ 	if (v.t->is_mpz_ptr()) {
+ 		insn_delete_mpz(v);
+ 	} else {
+-		insn_delete(insn_load(v));
++		if (v.t->pointed()->must_manage_memory()) {
++			insn_delete(insn_load(v));
++		}
+ 	}
+ }
+ 

@@ -1,0 +1,29 @@
+From 6f160eda4799dc1545152623853ab00921056164 Mon Sep 17 00:00:00 2001
+From: Gunnar Beutner <gunnar.beutner@netways.de>
+Date: Fri, 31 Oct 2014 14:34:28 +0100
+Subject: [PATCH] Remove static_cast optimization for Value's operator
+ shared_ptr<T>
+
+---
+ lib/base/value.hpp | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/lib/base/value.hpp b/lib/base/value.hpp
+index e2ce64e59d8..7a069c96326 100644
+--- a/lib/base/value.hpp
++++ b/lib/base/value.hpp
+@@ -99,14 +99,10 @@ class I2_BASE_API Value
+ 		if (IsEmpty())
+ 			return shared_ptr<T>();
+ 
+-#ifdef _DEBUG
+ 		shared_ptr<T> object = dynamic_pointer_cast<T>(boost::get<Object::Ptr>(m_Value));
+ 
+ 		if (!object)
+ 			BOOST_THROW_EXCEPTION(std::bad_cast());
+-#else /* _DEBUG */
+-		shared_ptr<T> object = static_pointer_cast<T>(boost::get<Object::Ptr>(m_Value));
+-#endif /* _DEBUG */
+ 
+ 		return object;
+ 	}

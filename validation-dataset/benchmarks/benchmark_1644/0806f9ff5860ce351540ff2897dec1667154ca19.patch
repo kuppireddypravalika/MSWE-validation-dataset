@@ -1,0 +1,28 @@
+From 0806f9ff5860ce351540ff2897dec1667154ca19 Mon Sep 17 00:00:00 2001
+From: Daniel Dunbar <daniel@zuster.org>
+Date: Sat, 30 Jan 2010 00:24:06 +0000
+Subject: [PATCH] FileCheck: When looking for "possible matches", only compare
+ against the prefix line. Turns out edit_distance can be slow if the string we
+ are scanning for happens to be quite large.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@94860 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ utils/FileCheck/FileCheck.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/utils/FileCheck/FileCheck.cpp b/utils/FileCheck/FileCheck.cpp
+index 9619f945aac..3c4742cc36f 100644
+--- a/utils/FileCheck/FileCheck.cpp
++++ b/utils/FileCheck/FileCheck.cpp
+@@ -340,7 +340,10 @@ unsigned Pattern::ComputeMatchDistance(StringRef Buffer,
+   if (ExampleString.empty())
+     ExampleString = RegExStr;
+ 
+-  return Buffer.substr(0, ExampleString.size()).edit_distance(ExampleString);
++  // Only compare up to the first line in the buffer, or the string size.
++  StringRef BufferPrefix = Buffer.substr(0, ExampleString.size());
++  BufferPrefix = BufferPrefix.split('\n').first;
++  return BufferPrefix.edit_distance(ExampleString);
+ }
+ 
+ void Pattern::PrintFailureInfo(const SourceMgr &SM, StringRef Buffer,

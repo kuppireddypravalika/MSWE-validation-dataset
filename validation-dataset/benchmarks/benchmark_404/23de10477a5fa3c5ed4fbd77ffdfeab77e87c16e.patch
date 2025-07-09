@@ -1,0 +1,26 @@
+From 23de10477a5fa3c5ed4fbd77ffdfeab77e87c16e Mon Sep 17 00:00:00 2001
+From: fyang <unknown>
+Date: Wed, 27 Jan 2016 12:20:53 +0800
+Subject: [PATCH] 8148328: aarch64: redundant lsr instructions in stub code.
+ Summary: avoid redundant lsr instructions in jbyte_arraycopy and
+ jbyte_disjoint_arraycopy. Reviewed-by: aph Contributed-by:
+ felix.yang@linaro.org
+
+---
+ src/cpu/aarch64/vm/stubGenerator_aarch64.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/cpu/aarch64/vm/stubGenerator_aarch64.cpp b/src/cpu/aarch64/vm/stubGenerator_aarch64.cpp
+index f9b66d668..71f376474 100644
+--- a/src/cpu/aarch64/vm/stubGenerator_aarch64.cpp
++++ b/src/cpu/aarch64/vm/stubGenerator_aarch64.cpp
+@@ -1079,7 +1079,8 @@ class StubGenerator: public StubCodeGenerator {
+       }
+       // rscratch2 is the byte adjustment needed to align s.
+       __ cbz(rscratch2, aligned);
+-      __ lsr(rscratch2, rscratch2, exact_log2(granularity));
++      int shift = exact_log2(granularity);
++      if (shift)  __ lsr(rscratch2, rscratch2, shift);
+       __ sub(count, count, rscratch2);
+ 
+ #if 0

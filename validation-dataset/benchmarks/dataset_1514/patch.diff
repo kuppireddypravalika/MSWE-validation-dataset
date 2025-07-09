@@ -1,0 +1,22 @@
+From 86ef3e42b70b5165671628c10a78c7bf4f0fd200 Mon Sep 17 00:00:00 2001
+From: Andreas Nicolai <andreas.nicolai@tu-dresden.de>
+Date: Thu, 20 Aug 2020 21:08:36 +0200
+Subject: [PATCH] Increased output cache size to about 100 Mb
+
+---
+ NandradSolver/src/NM_OutputHandler.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/NandradSolver/src/NM_OutputHandler.cpp b/NandradSolver/src/NM_OutputHandler.cpp
+index a88028d86..4a96e8772 100644
+--- a/NandradSolver/src/NM_OutputHandler.cpp
++++ b/NandradSolver/src/NM_OutputHandler.cpp
+@@ -65,7 +65,7 @@ void OutputHandler::setup(bool restart, NANDRAD::Project & prj, const IBK::Path
+ 		throw IBK::Exception( IBK::FormatString("Output time unit '%1' is not a valid time unit.").arg(m_timeUnit.name()), FUNC_ID);
+ 	}
+ 
+-	m_outputCacheLimit = 100000; // 100 Mb for starters
++	m_outputCacheLimit = 100000000; // ~100 Mb for starters
+ 	m_realTimeOutputDelay = 10; // wait a few seconds second simulation time before flushing the cache
+ 
+ 	// initialize and check output grids

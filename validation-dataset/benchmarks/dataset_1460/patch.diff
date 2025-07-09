@@ -1,0 +1,61 @@
+From f70e3cee598b9a628264ca3414cab543100a13ce Mon Sep 17 00:00:00 2001
+From: rudradevbasak <rudradevbasak@fb.com>
+Date: Tue, 22 Jan 2013 18:13:50 -0800
+Subject: [PATCH] Fix LRU flushing, thereby fixing xtrabackup slowness
+
+Summary:
+For BUF_FLUSH_LRU_FAST, stop after checking too far from end of the LRU.
+
+Sysbench QPS for 24 core server, 19G database, 1G buffer pool:
+
+SELECT 1 row by PK
+8 16 32 64 128 256 threads
+69248 120357 140980 121111 102121 108838 innodb_fast_free_list=0
+71683 127663 166772 146757 122888 114020 innodb_fast_free_list=1
+
+UPDATE 1 row by PK
+8 16 32 64 128 256 threads
+27497 22470 15072 8968 5261 2662 innodb_fast_free_list=0
+28055 23679 15027 8840 5004 2539 innodb_fast_free_list=1
+
+Test Plan:
+Tested by running on a 600GB instance, with a 3.2G xtrabackup_logfile.
+Earlier used to take > 2 hrs. Now takes ~ 8 mins.
+
+Reviewers: mcallaghan, steaphan, nponnekanti
+
+Reviewed By: steaphan
+---
+ storage/innodb_plugin/buf/buf0flu.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/storage/innodb_plugin/buf/buf0flu.c b/storage/innodb_plugin/buf/buf0flu.c
+index 85f7092e..04846717 100644
+--- a/storage/innodb_plugin/buf/buf0flu.c
++++ b/storage/innodb_plugin/buf/buf0flu.c
+@@ -1442,12 +1442,6 @@ buf_flush_batch(
+ 			break;
+ 		}
+ 
+-		++distance;
+-
+-		if (distance > search_limit) {
+-			break;
+-		}
+-
+ 		/* Start from the end of the list looking for a suitable
+ 		block to be flushed. */
+ 
+@@ -1475,6 +1469,12 @@ buf_flush_batch(
+ 		do {
+ 			mutex_t*block_mutex = buf_page_get_mutex(bpage);
+ 			ibool	ready;
++		
++			++distance;
++
++			if (distance > search_limit) {
++				break;
++			}
+ 
+ 			ut_a(buf_page_in_file(bpage));
+ 

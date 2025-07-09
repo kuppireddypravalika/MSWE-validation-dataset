@@ -1,0 +1,30 @@
+From 0d3d87859febef204a74d3321bbb0a4da521db7c Mon Sep 17 00:00:00 2001
+From: ksooo <3226626+ksooo@users.noreply.github.com>
+Date: Sat, 25 Mar 2023 16:14:25 +0100
+Subject: [PATCH] [PVR] Slightly optimize
+ CPVRChannelGroupInternal::LoadFromDatabase not to iterate m_members twice.
+
+---
+ xbmc/pvr/channels/PVRChannelGroupInternal.cpp | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/xbmc/pvr/channels/PVRChannelGroupInternal.cpp b/xbmc/pvr/channels/PVRChannelGroupInternal.cpp
+index bf6e3b725e4f3..e17dee9508239 100644
+--- a/xbmc/pvr/channels/PVRChannelGroupInternal.cpp
++++ b/xbmc/pvr/channels/PVRChannelGroupInternal.cpp
+@@ -54,10 +54,14 @@ bool CPVRChannelGroupInternal::LoadFromDatabase(
+   {
+     for (const auto& groupMember : m_members)
+     {
++      const auto channel = groupMember.second->Channel();
+       groupMember.second->Channel()->CreateEPG();
++      groupMember.second->SetGroupName(GroupName());
++
++      if (groupMember.second->Channel()->IsHidden())
++        m_iHiddenChannels++;
+     }
+ 
+-    UpdateChannelPaths();
+     return true;
+   }
+ 

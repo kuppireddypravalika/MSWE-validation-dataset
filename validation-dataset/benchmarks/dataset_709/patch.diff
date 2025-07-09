@@ -1,0 +1,35 @@
+From bc7c4e854b47e1bac7ae3475ea0f3946c22851b1 Mon Sep 17 00:00:00 2001
+From: vitamin-caig <vitamin.caig@gmail.com>
+Date: Mon, 14 Nov 2016 15:56:01 +0300
+Subject: [PATCH] Use mono mode for AHX format playback.
+
+---
+ src/module/players/dac/abysshighestexperience.cpp | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/src/module/players/dac/abysshighestexperience.cpp b/src/module/players/dac/abysshighestexperience.cpp
+index 1b669a8bd5..c416269251 100644
+--- a/src/module/players/dac/abysshighestexperience.cpp
++++ b/src/module/players/dac/abysshighestexperience.cpp
+@@ -34,6 +34,12 @@ namespace AHX
+ 
+   typedef std::shared_ptr<hvl_tune> HvlPtr;
+   
++  enum StereoSeparation
++  {
++    MONO = 0,
++    STEREO = 4
++  };
++  
+   HvlPtr LoadModule(const Binary::Data& data)
+   {
+     static bool initialized = false;
+@@ -42,7 +48,7 @@ namespace AHX
+       hvl_InitReplayer();
+       initialized = true;
+     }
+-    const HvlPtr result = HvlPtr(hvl_LoadTune(static_cast<const uint8*>(data.Start()), data.Size(), 4, Parameters::ZXTune::Sound::FREQUENCY_DEFAULT), &hvl_FreeTune);
++    const HvlPtr result = HvlPtr(hvl_LoadTune(static_cast<const uint8*>(data.Start()), data.Size(), MONO, Parameters::ZXTune::Sound::FREQUENCY_DEFAULT), &hvl_FreeTune);
+     Require(result.get() != nullptr);
+     return result;
+   }

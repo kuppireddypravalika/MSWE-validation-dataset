@@ -1,0 +1,23 @@
+From f68e6bfce80ef6eca9b12aaa64406c25fe10ad29 Mon Sep 17 00:00:00 2001
+From: Scott Pakin <pakin@lanl.gov>
+Date: Mon, 8 Apr 2013 18:08:42 -0600
+Subject: [PATCH] Avoided string::pop_back()
+
+Replaced string::pop_back() with string::resize(string::size() - 1) so Byfl can build with older versions of GCC (e.g., 4.6 instead of 4.7).
+---
+ lib/byfl/byfl.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/byfl/byfl.cpp b/lib/byfl/byfl.cpp
+index abcb100..75c270f 100644
+--- a/lib/byfl/byfl.cpp
++++ b/lib/byfl/byfl.cpp
+@@ -530,7 +530,7 @@ static bool suppress_output (void)
+       // and write all output there.
+       if ((bf_output_prefix.size() >= 1 && bf_output_prefix[0] == '/')
+           || (bf_output_prefix.size() >= 2 && bf_output_prefix[0] == '.' && bf_output_prefix[1] == '/')) {
+-        bf_output_prefix.pop_back();   // Drop the trailing space character.
++	bf_output_prefix.resize(bf_output_prefix.size() - 1);  // Drop the trailing space character.
+         bfout = new ofstream(bf_output_prefix.c_str(), ios_base::out | ios_base::trunc);
+         if (bfout->fail()) {
+           cerr << "Failed to create output file " << bf_output_prefix << '\n';

@@ -1,0 +1,22 @@
+From 98f17d7cdbc953f1354cb8d2d1b784019fecc661 Mon Sep 17 00:00:00 2001
+From: Victor Coda <victor.coda@gmail.com>
+Date: Thu, 19 Mar 2020 00:56:38 +0200
+Subject: [PATCH] Use std::move() for <basePipeline> argument
+
+---
+ auxiliary/graphicsPipelineCache.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/auxiliary/graphicsPipelineCache.cpp b/auxiliary/graphicsPipelineCache.cpp
+index 390bcd4bf..9c17ec5f5 100644
+--- a/auxiliary/graphicsPipelineCache.cpp
++++ b/auxiliary/graphicsPipelineCache.cpp
+@@ -113,7 +113,7 @@ std::shared_ptr<GraphicsPipeline> GraphicsPipelineCache::lookupPipeline(
+         stages, vertexInputState, inputAssemblyState, tesselationState, viewportState,
+         rasterizationState, multisampleState, depthStencilState, colorBlendState, dynamicStates,
+         std::move(pipelineLayout), std::move(renderPass), subpass,
+-        pipelineCache, basePipeline, allocator, info.flags);
++        pipelineCache, std::move(basePipeline), allocator, info.flags);
+     MAGMA_ASSERT(pipeline->getHash() == hash); // Check hash computation
+     pipelines.emplace(hash, pipeline);
+     basePipelines.emplace(baseHash, pipeline);

@@ -1,0 +1,33 @@
+From d20d26895d53acf8cb480a85ccc907ea6ad0793d Mon Sep 17 00:00:00 2001
+From: Matthew Andres Moreno <mmore500.login+git@gmail.com>
+Date: Thu, 1 Oct 2020 01:28:20 -0400
+Subject: [PATCH] Use intrinsic (if available) for runtime std::pow
+
+Closes #279
+---
+ source/tools/math.h | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/source/tools/math.h b/source/tools/math.h
+index 7e7615c86b..c93d42bc0a 100644
+--- a/source/tools/math.h
++++ b/source/tools/math.h
+@@ -254,9 +254,17 @@ namespace emp {
+   /// A fast method for calculating exponents on doubles or integral types.
+   /// Uses if constexpr to work around compiler bug in Emscripten (issue #296).
+   template<typename T>
+-  static constexpr decltype(auto) Pow(
++  static constexpr T Pow(
+     T base, typename internal::identity<T>::type exp
+   ) {
++    // TODO cpp20, C++20 replace with std::is_constant_evaluated
++    // adapted from https://stackoverflow.com/a/62610143
++    #ifdef __GNUC__ // defined for both GCC and clang
++    // if base is not known at compile time, use std::pow which is faster
++    if ( !__builtin_constant_p( base ) ) return std::pow(base, exp); 
++    // otherwise, use constexpr-friendly implementations
++    else
++    #endif
+     if constexpr( std::is_integral<T>::value ){
+       return internal::PowIntImpl(base, exp);
+     } else return internal::PowDoubleImpl(base, exp);

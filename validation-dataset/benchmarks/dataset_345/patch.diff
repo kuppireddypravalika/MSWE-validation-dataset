@@ -1,0 +1,25 @@
+From 86eb29b4c3a18c0d8e7096e507e2e69cce9338c5 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?B=C3=A5rd=20Skaflestad?= <Bard.Skaflestad@sintef.no>
+Date: Tue, 30 Apr 2013 12:48:02 +0200
+Subject: [PATCH] variable(): Avoid memory overhead of identity constructor.
+
+---
+ AutoDiffVec.hpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/AutoDiffVec.hpp b/AutoDiffVec.hpp
+index 98dc92c1997..e3ed01bddbe 100644
+--- a/AutoDiffVec.hpp
++++ b/AutoDiffVec.hpp
+@@ -42,8 +42,10 @@ namespace AutoDiff
+         static ForwardVec variable(const V& val)
+         {
+             ForwardVec ret(val);
++
++            ret.jac_.reserve(Eigen::VectorXi::Constant(val.size(), 1));
+             for (typename M::Index row = 0; row < val.size(); ++row) {
+-                ret.jac_.insert(row, row) = 1.0;
++                ret.jac_.insert(row, row) = Scalar(1.0);
+             }
+             ret.jac_.makeCompressed();
+             return ret;

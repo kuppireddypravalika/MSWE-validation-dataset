@@ -1,0 +1,36 @@
+From 53a9907f26d3770ece25d95e5bf2de057fea21ca Mon Sep 17 00:00:00 2001
+From: dsp56300 <dsp56300@users.noreply.github.com>
+Date: Wed, 26 Jun 2024 23:52:34 +0200
+Subject: [PATCH] optimize dsp mode lookups by using unordered_map and custom
+ hash function
+
+---
+ source/dsp56kEmu/jit.h | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/source/dsp56kEmu/jit.h b/source/dsp56kEmu/jit.h
+index a331e9d3..b3e1a979 100644
+--- a/source/dsp56kEmu/jit.h
++++ b/source/dsp56kEmu/jit.h
+@@ -7,6 +7,7 @@
+ 
+ #include <set>
+ #include <vector>
++#include <unordered_map>
+ 
+ #include "debuggerinterface.h"
+ #include "jitblockchain.h"
+@@ -101,7 +102,12 @@ namespace dsp56k
+ 
+ 		asmjit::_abi_1_9::JitRuntime* m_rt = nullptr;
+ 
+-		std::map<JitDspMode, std::unique_ptr<JitBlockChain>> m_chains;
++		struct DspModeHash
++		{
++		    std::size_t operator () (const JitDspMode& m) const	{ return m.get(); }
++		};
++
++		std::unordered_map<JitDspMode, std::unique_ptr<JitBlockChain>, DspModeHash> m_chains;
+ 		JitBlockChain* m_currentChain = nullptr;
+ 
+ 		std::vector<TJitFunc> m_jitFuncs;

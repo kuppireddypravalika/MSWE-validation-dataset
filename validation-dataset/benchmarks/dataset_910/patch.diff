@@ -1,0 +1,23 @@
+From 1c1a4c27dd87550bac4caa257bbc4206a74bb2ce Mon Sep 17 00:00:00 2001
+From: Jeroen Baert <jerbae@gmail.com>
+Date: Thu, 28 Sep 2017 01:11:36 +0200
+Subject: [PATCH] Combine assignment and bitwise AND
+
+---
+ libmorton/include/morton3D.h | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/libmorton/include/morton3D.h b/libmorton/include/morton3D.h
+index e4ec784..157aa49 100644
+--- a/libmorton/include/morton3D.h
++++ b/libmorton/include/morton3D.h
+@@ -100,8 +100,7 @@ inline morton m3D_e_LUT_ET(const coord x, const coord y, const coord z) {
+ template<typename morton, typename coord>
+ static inline morton morton3D_SplitBy3bits(const coord a) {
+ 	const morton* masks = (sizeof(morton) <= 4) ? reinterpret_cast<const morton*>(magicbit3D_masks32_encode) : reinterpret_cast<const morton*>(magicbit3D_masks64_encode);
+-	morton x = a;
+-	x = x & masks[0];
++	morton x = ((morton) a) & masks[0];
+ 	if (sizeof(morton) == 8) {x = (x | (uint_fast64_t) x << 32) & masks[1];} // for 64-bit case
+ 	x = (x | x << 16) & masks[2];
+ 	x = (x | x << 8)  & masks[3];

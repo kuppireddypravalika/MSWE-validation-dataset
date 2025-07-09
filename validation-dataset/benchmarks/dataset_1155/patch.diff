@@ -1,0 +1,24 @@
+From cbe9e64d8c025c52654abeb8e13e43cdb983317b Mon Sep 17 00:00:00 2001
+From: Frank Warmerdam <warmerdam@pobox.com>
+Date: Fri, 16 Nov 2007 22:54:36 +0000
+Subject: [PATCH] Fixed DecompressMask() to only decompress the mask once,
+ instead of on every call (resulting in a large memory leak).
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@12823 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/frmts/jpeg/jpgdataset.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gdal/frmts/jpeg/jpgdataset.cpp b/gdal/frmts/jpeg/jpgdataset.cpp
+index fa529c7567b6..f284e4ca5d09 100644
+--- a/gdal/frmts/jpeg/jpgdataset.cpp
++++ b/gdal/frmts/jpeg/jpgdataset.cpp
+@@ -1551,7 +1551,7 @@ void JPGDataset::CheckForMask()
+ void JPGDataset::DecompressMask()
+ 
+ {
+-    if( pabyCMask == NULL )
++    if( pabyCMask == NULL || pabyBitMask != NULL )
+         return;
+ 
+ /* -------------------------------------------------------------------- */

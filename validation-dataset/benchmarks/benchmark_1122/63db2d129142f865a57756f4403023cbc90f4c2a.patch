@@ -1,0 +1,44 @@
+From 63db2d129142f865a57756f4403023cbc90f4c2a Mon Sep 17 00:00:00 2001
+From: Alex Shlyapnikov <alekseys@google.com>
+Date: Mon, 25 Jun 2018 17:27:13 +0000
+Subject: [PATCH] [HWASan] Initalize shadow earler.
+
+Summary:
+Initialize shadow memory before calling more libc functions to allow
+for HWASan-instrumented libc.
+
+Reviewers: eugenis
+
+Subscribers: kubamracek, delcypher, #sanitizers, llvm-commits
+
+Differential Revision: https://reviews.llvm.org/D48551
+---
+ compiler-rt/lib/hwasan/hwasan.cc | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/compiler-rt/lib/hwasan/hwasan.cc b/compiler-rt/lib/hwasan/hwasan.cc
+index 05818e1ca09b..7dab8249e3f7 100644
+--- a/compiler-rt/lib/hwasan/hwasan.cc
++++ b/compiler-rt/lib/hwasan/hwasan.cc
+@@ -177,10 +177,6 @@ void __hwasan_init() {
+ 
+   __sanitizer_set_report_path(common_flags()->log_path);
+ 
+-  InitializeInterceptors();
+-  InstallDeadlySignalHandlers(HwasanOnDeadlySignal);
+-  InstallAtExitHandler(); // Needs __cxa_atexit interceptor.
+-
+   DisableCoreDumperIfNecessary();
+   if (!InitShadow()) {
+     Printf("FATAL: HWAddressSanitizer cannot mmap the shadow memory.\n");
+@@ -194,6 +190,10 @@ void __hwasan_init() {
+     Die();
+   }
+ 
++  InitializeInterceptors();
++  InstallDeadlySignalHandlers(HwasanOnDeadlySignal);
++  InstallAtExitHandler(); // Needs __cxa_atexit interceptor.
++
+   Symbolizer::GetOrInit()->AddHooks(EnterSymbolizer, ExitSymbolizer);
+ 
+   InitializeCoverage(common_flags()->coverage, common_flags()->coverage_dir);

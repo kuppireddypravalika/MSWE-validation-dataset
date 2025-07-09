@@ -1,0 +1,30 @@
+From f5e02d4128bdd9fef5b0073097050cd20a90bf57 Mon Sep 17 00:00:00 2001
+From: Konstantin Ritt <ritt.ks@gmail.com>
+Date: Thu, 10 Dec 2015 14:26:05 +0400
+Subject: [PATCH] Avoid needless string comparison
+
+by inlining and reordering the condition.
+
+Change-Id: I68a91e75071975a4cc26333094db3433afbaeb72
+Reviewed-by: Eskil Abrahamsen Blomfeldt <eskil.abrahamsen-blomfeldt@theqtcompany.com>
+---
+ src/gui/text/qfontdatabase.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/gui/text/qfontdatabase.cpp b/src/gui/text/qfontdatabase.cpp
+index aae84dc9885f..f20f574bc646 100644
+--- a/src/gui/text/qfontdatabase.cpp
++++ b/src/gui/text/qfontdatabase.cpp
+@@ -945,9 +945,10 @@ QFontEngine *loadSingleEngine(int script,
+         // If the font data's native stretch matches the requested stretch we need to set stretch to 100
+         // to avoid the fontengine synthesizing stretch. If they didn't match exactly we need to calculate
+         // the new stretch factor. This only done if not matched by styleName.
+-        bool styleNameMatch = !request.styleName.isEmpty() && request.styleName == style->styleName;
+-        if (!styleNameMatch && style->key.stretch != 0 && request.stretch != 0)
++        if (style->key.stretch != 0 && request.stretch != 0
++            && (request.styleName.isEmpty() || request.styleName != style->styleName)) {
+             def.stretch = (request.stretch * 100 + 50) / style->key.stretch;
++        }
+ 
+         engine = pfdb->fontEngine(def, size->handle);
+         if (engine) {

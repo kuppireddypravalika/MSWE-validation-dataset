@@ -1,0 +1,23 @@
+From 054be30344e3d300fdfbdafa6327442020474a06 Mon Sep 17 00:00:00 2001
+From: UdjinM6 <UdjinM6@users.noreply.github.com>
+Date: Mon, 15 Feb 2021 01:11:20 +0300
+Subject: [PATCH] llmq: Sleep less in quorum data recovery threads (#3989)
+
+Speeds up feature_llmq_data_recovery.py test ~25% and makes sense overall imo.
+---
+ src/llmq/quorums.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/llmq/quorums.cpp b/src/llmq/quorums.cpp
+index 95a605faba..2c1d7e028e 100644
+--- a/src/llmq/quorums.cpp
++++ b/src/llmq/quorums.cpp
+@@ -319,7 +319,7 @@ void CQuorum::StartQuorumDataRecoveryThread(const CQuorumCPtr _this, const CBloc
+                 }
+             });
+             _this->interruptQuorumDataReceived.reset();
+-            _this->interruptQuorumDataReceived.sleep_for(std::chrono::seconds(nRequestTimeout));
++            _this->interruptQuorumDataReceived.sleep_for(std::chrono::seconds(1));
+         }
+         _this->fQuorumDataRecoveryThreadRunning = false;
+         printLog("Done");

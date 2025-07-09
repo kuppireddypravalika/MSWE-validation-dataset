@@ -1,0 +1,29 @@
+From e5872d0f4eddc75a099d278b9cf39e90b0cecd2a Mon Sep 17 00:00:00 2001
+From: johnk <johnk@arlut.utexas.edu>
+Date: Wed, 11 Aug 2021 10:18:55 -0500
+Subject: [PATCH] Make comparison default page static const to avoid
+ reallocating with each call of isAlmDefault
+
+---
+ core/lib/NewNav/PNBBDSD1NavDataFactory.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/core/lib/NewNav/PNBBDSD1NavDataFactory.cpp b/core/lib/NewNav/PNBBDSD1NavDataFactory.cpp
+index d065a47af..7d03b13b9 100644
+--- a/core/lib/NewNav/PNBBDSD1NavDataFactory.cpp
++++ b/core/lib/NewNav/PNBBDSD1NavDataFactory.cpp
+@@ -1828,10 +1828,10 @@ namespace gpstk
+          // Create a PNB with the same metadata, but all 0s, which is
+          // how the BeiDou default pages appear (except words 1-2
+          // which we ignore).
+-      PackedNavBits defPage(navIn->getsatSys(), navIn->getobsID(),
+-                            navIn->getNavID(), navIn->getRxID(),
+-                            navIn->getTransmitTime(), navIn->getNumBits(),
+-                            false);
++      static const PackedNavBits defPage(navIn->getsatSys(), navIn->getobsID(),
++                                         navIn->getNavID(), navIn->getRxID(),
++                                         navIn->getTransmitTime(),
++                                         navIn->getNumBits(), false);
+          // Start match at bit 90 which is the first bit of word 3,
+          // and end at bit 289 which excludes the AmEpID bits and
+          // parity in word 10.

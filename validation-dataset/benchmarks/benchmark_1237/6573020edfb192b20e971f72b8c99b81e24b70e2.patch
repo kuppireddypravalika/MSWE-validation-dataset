@@ -1,0 +1,26 @@
+From 6573020edfb192b20e971f72b8c99b81e24b70e2 Mon Sep 17 00:00:00 2001
+From: do-jason <jason.do@intel.com>
+Date: Tue, 13 Apr 2021 22:41:38 -0700
+Subject: [PATCH] This timer is not defined in reconstructGrad function and
+ will break CPU code compilation.
+
+---
+ src/backprojector.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/backprojector.cpp b/src/backprojector.cpp
+index a6b74cd0b..e6d1e1daf 100644
+--- a/src/backprojector.cpp
++++ b/src/backprojector.cpp
+@@ -2070,9 +2070,9 @@ void BackProjector::reconstructGrad(
+ 	// Pass the transformer to prevent making and clearing a new one before clearing the one declared above....
+ 	// The latter may give memory problems as detected by electric fence....
+ 	Projector::decenter(PPref.data, Fconv, max_r2);
+-	RCTIC(ReconTimer,ReconS_17);
++//	RCTIC(ReconTimer,ReconS_17);
+ 	windowToOridimRealSpace(transformer, vol_out, printTimes);
+-	RCTOC(ReconTimer,ReconS_17);
++//	RCTOC(ReconTimer,ReconS_17);
+ 
+ #ifdef DEBUG_NGD
+ 	Image<RFLOAT> Itmp;

@@ -1,0 +1,45 @@
+From 671362c7bc279c4cb14991323e884f9713a6a1dd Mon Sep 17 00:00:00 2001
+From: Matt Spraggs <matthew.spraggs@gmail.com>
+Date: Mon, 5 Mar 2018 22:18:29 +0000
+Subject: [PATCH] Main: Replaced Resolver and Interpreter with Compiler and
+ VirtualMachine
+
+---
+ src/main.cpp | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/src/main.cpp b/src/main.cpp
+index 381683f..6e3b392 100644
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -10,6 +10,8 @@
+ #include "Parser.hpp"
+ #include "Resolver.hpp"
+ #include "Scanner.hpp"
++#include "Compiler.hpp"
++#include "VirtualMachine.hpp"
+ 
+ 
+ namespace loxx
+@@ -41,16 +43,17 @@ namespace loxx
+       std::cout << printer.print(statements) << std::endl;
+     }
+ 
+-    static Interpreter interpreter(in_repl);
++    Compiler compiler;
+ 
+-    Resolver resolver(interpreter);
+-    resolver.resolve(statements);
++    compiler.compile(statements);
+ 
+     if (had_error) {
+       return;
+     }
+ 
+-    interpreter.interpret(statements);
++    static VirtualMachine vm;
++
++    vm.execute(compiler.byte_code(), compiler.constants());
+   }
+ 
+ 

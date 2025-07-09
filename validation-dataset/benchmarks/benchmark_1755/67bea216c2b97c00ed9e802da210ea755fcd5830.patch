@@ -1,0 +1,22 @@
+From 67bea216c2b97c00ed9e802da210ea755fcd5830 Mon Sep 17 00:00:00 2001
+From: Peter Vanroose <peter_vanroose@users.sourceforge.net>
+Date: Mon, 6 May 2002 18:19:26 -0400
+Subject: [PATCH] better use ::sqrt instead of vcl_sqrt for argument double
+
+---
+ vcl/sgi/vcl_complex.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/vcl/sgi/vcl_complex.h b/vcl/sgi/vcl_complex.h
+index 8deb352531b..4f77f135a23 100644
+--- a/vcl/sgi/vcl_complex.h
++++ b/vcl/sgi/vcl_complex.h
+@@ -25,7 +25,7 @@ inline std::complex<T> vcl_sqrt(std::complex<T> const &z) {
+   // NOW implemented without using log() or exp() which are
+   // not necessarily available with type T - PVr, May 2002.
+   T c = vcl_abs(z);
+-  return std::complex<T>(vcl_sqrt((c+z.real())/T(2)), vcl_sqrt((c-z.real())/T(2)));
++  return std::complex<T>(::sqrt((c+z.real())/T(2)), ::sqrt((c-z.real())/T(2)));
+ }
+ 
+ # undef vcl_cos

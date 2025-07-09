@@ -1,0 +1,23 @@
+From d7fd78760341ae9cff44803a30a9a1918b79174d Mon Sep 17 00:00:00 2001
+From: Xerbo <xerbo@protonmail.com>
+Date: Sat, 1 Jan 2022 20:53:39 +0000
+Subject: [PATCH] Significantly faster projection This makes gdalwarp use
+ multithreading and use a larger cache
+
+---
+ src/projectdialog.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/projectdialog.cpp b/src/projectdialog.cpp
+index c5e7134..a8b5560 100644
+--- a/src/projectdialog.cpp
++++ b/src/projectdialog.cpp
+@@ -165,7 +165,7 @@ void ProjectDialog::start(Imager sensor) {
+     QString program = "gdalwarp";
+ #endif
+     QStringList arguments;
+-    arguments << "-overwrite" << "-r" << interpolation << "-tps" << "-t_srs" << epsg << (QString::fromStdString(get_temp_dir()) + "/image.vrt") << outputFilename;
++    arguments << "-multi" << "-wm" << "512" << "-wo" << "NUM_THREADS=ALL_CPUS" << "-overwrite" << "-r" << interpolation << "-tps" << "-t_srs" << epsg << (QString::fromStdString(get_temp_dir()) + "/image.vrt") << outputFilename;
+ 
+     history = "Command: " + program + " " + arguments.join(" ") + "\n";
+ 

@@ -1,0 +1,30 @@
+From d67ba18e6084b6ff394125239543cc473bf4e054 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Devernay?= <frederic.devernay@m4x.org>
+Date: Wed, 10 Aug 2016 15:13:24 +0200
+Subject: [PATCH] OutputSchedulerTrread: use pop_front() instead of
+ erase(begin())
+
+---
+ Engine/OutputSchedulerThread.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Engine/OutputSchedulerThread.cpp b/Engine/OutputSchedulerThread.cpp
+index 5cf1a3394a..ede52d8637 100644
+--- a/Engine/OutputSchedulerThread.cpp
++++ b/Engine/OutputSchedulerThread.cpp
+@@ -3057,13 +3057,13 @@ RenderEngine::onCurrentFrameRenderRequestPosted()
+             rSet = true;
+         } else {
+             if ( (queueBegin.enableAbort == r.enableAbort) && (queueBegin.enableStats == r.enableStats) ) {
+-                _imp->refreshQueue.erase( _imp->refreshQueue.begin() );
++                _imp->refreshQueue.pop_front();
+                 continue;
+             }
+         }
+         r = queueBegin;
+         renderCurrentFrameNow(r.enableStats, r.enableAbort);
+-        _imp->refreshQueue.erase( _imp->refreshQueue.begin() );
++        _imp->refreshQueue.pop_front();
+     }
+ }
+ 

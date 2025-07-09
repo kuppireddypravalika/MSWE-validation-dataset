@@ -1,0 +1,32 @@
+From 68b763e91d96f608aa4bab64a9b61c9c099e0a74 Mon Sep 17 00:00:00 2001
+From: Aaron Ballman <aaron@aaronballman.com>
+Date: Fri, 15 May 2020 13:22:11 -0400
+Subject: [PATCH] Convert a few more uses of cast<> to dyn_cast<> when
+ deserializing.
+
+---
+ src/Module.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/Module.cpp b/src/Module.cpp
+index 32c9bc107..1fa7b920a 100644
+--- a/src/Module.cpp
++++ b/src/Module.cpp
+@@ -95,7 +95,7 @@ Module* Module::fromProtobuf(Context& C, IR* Parent,
+       UUID Id;
+       if (!uuidFromBytes(ProtoBI.uuid(), Id))
+         return nullptr;
+-      auto* BI = cast_or_null<ByteInterval>(getByUUID(C, Id));
++      auto* BI = dyn_cast_or_null<ByteInterval>(getByUUID(C, Id));
+       if (!BI)
+         return nullptr;
+       if (!BI->symbolicExpressionsFromProtobuf(C, ProtoBI))
+@@ -106,7 +106,7 @@ Module* Module::fromProtobuf(Context& C, IR* Parent,
+     UUID Id;
+     if (!uuidFromBytes(Message.entry_point(), Id))
+       return nullptr;
+-    M->EntryPoint = cast_or_null<CodeBlock>(Node::getByUUID(C, Id));
++    M->EntryPoint = dyn_cast_or_null<CodeBlock>(Node::getByUUID(C, Id));
+     if (!M->EntryPoint)
+       return nullptr;
+   }

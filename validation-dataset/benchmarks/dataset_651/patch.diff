@@ -1,0 +1,23 @@
+From 133b53adc4535b2975b33057be516ba765773ff1 Mon Sep 17 00:00:00 2001
+From: Erik Frey <erik@fawx.com>
+Date: Sun, 12 Aug 2012 22:25:03 +0100
+Subject: [PATCH] whoops, placement new was leaking memory.  i guess default
+ string heap allocates.
+
+---
+ include/darner/net/request.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/darner/net/request.h b/include/darner/net/request.h
+index a4cf794..ba4f905 100644
+--- a/include/darner/net/request.h
++++ b/include/darner/net/request.h
+@@ -50,7 +50,7 @@ class request_parser
+          grammars_.reset(new request_grammar());
+       request_grammar& grammar = *grammars_;
+ 
+-      new(&grammar.req) request(); // spooky placement new!
++      grammar.req = request();
+       bool success = boost::spirit::qi::parse(begin, end, grammar) && (begin == end);
+       if (success)
+          req = grammar.req;

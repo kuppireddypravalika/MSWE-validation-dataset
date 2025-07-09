@@ -1,0 +1,43 @@
+From 2c7f0d6ae2487018e31fb9ac5d258766750c1455 Mon Sep 17 00:00:00 2001
+From: Alex Bahm <alexgbahm@gmail.com>
+Date: Mon, 28 Dec 2015 20:32:44 -0800
+Subject: [PATCH] Improved mechanic selection for broken rides
+
+Switch to using manhattan distance to calculate distance. Also changed
+starting closestDistance to UINT_MAX and removed ternary check because it is not needed.
+---
+ src/ride/ride.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/ride/ride.c b/src/ride/ride.c
+index c23b403a561f..78da7a123013 100644
+--- a/src/ride/ride.c
++++ b/src/ride/ride.c
+@@ -2466,7 +2466,7 @@ rct_peep *find_closest_mechanic(int x, int y, int forInspection)
+ 	uint16 spriteIndex;
+ 	rct_peep *peep, *closestMechanic = NULL;
+ 
+-	closestDistance = -1;
++	closestDistance = UINT_MAX;
+ 	FOR_ALL_STAFF(spriteIndex, peep) {
+ 		if (peep->staff_type != STAFF_TYPE_MECHANIC)
+ 			continue;
+@@ -2493,15 +2493,15 @@ rct_peep *find_closest_mechanic(int x, int y, int forInspection)
+ 		if (peep->x == (sint16)0x8000)
+ 			continue;
+ 
+-		// Should probably be euclidean or manhattan distance, this seems a bit naive
+-		distance = max(abs(peep->x - x), abs(peep->y - y));
++		// manhattan distance
++		distance = abs(peep->x - x) + abs(peep->y - y);
+ 		if (distance < closestDistance) {
+ 			closestDistance = distance;
+ 			closestMechanic = peep;
+ 		}
+ 	}
+ 
+-	return closestDistance == -1 ? NULL : closestMechanic;
++	return closestMechanic;
+ }
+ 
+ rct_peep *ride_get_assigned_mechanic(rct_ride *ride)

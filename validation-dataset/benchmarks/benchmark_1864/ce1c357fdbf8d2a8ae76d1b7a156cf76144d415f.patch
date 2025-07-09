@@ -1,0 +1,31 @@
+From ce1c357fdbf8d2a8ae76d1b7a156cf76144d415f Mon Sep 17 00:00:00 2001
+From: David Lindauer <touchstone222@runbox.com>
+Date: Mon, 15 Aug 2016 18:43:25 -0400
+Subject: [PATCH] fix problem optimizing '%'
+
+---
+ src/occ/middle/iconst.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/occ/middle/iconst.c b/src/occ/middle/iconst.c
+index cb1577cda..d4b15eedd 100644
+--- a/src/occ/middle/iconst.c
++++ b/src/occ/middle/iconst.c
+@@ -757,7 +757,7 @@ void ConstantFold(QUAD *d, BOOLEAN reflow)
+                     ReassignInt(d,(unsigned LLONG_TYPE)left->v.i % (unsigned LLONG_TYPE)right->v.i);
+                 break;
+             case icnl:
+-                if ((shift = calmask((unsigned LLONG_TYPE)right->v.i)) != 0)
++                if ((shift = calmask((unsigned LLONG_TYPE)right->v.i)) != -1)
+                 {
+                     ReassignMulDiv(d,i_and,shift,FALSE);
+                 }
+@@ -845,7 +845,7 @@ void ConstantFold(QUAD *d, BOOLEAN reflow)
+                 }
+                 break;
+             case icnl:
+-                if ((shift = calmask(right->v.i)) != 0)
++                if ((shift = calmask(right->v.i)) != -1)
+                 {
+                     ReassignMulDiv(d,i_and,shift,FALSE);
+                 }

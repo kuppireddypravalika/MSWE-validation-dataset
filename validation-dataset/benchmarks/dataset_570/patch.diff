@@ -1,0 +1,23 @@
+From d57c77b42d0b4f10f7e9194ffcbb2aea0caed4c9 Mon Sep 17 00:00:00 2001
+From: CastagnaIT <gottardo.stefano.83@gmail.com>
+Date: Mon, 31 Jul 2023 12:42:12 +0200
+Subject: [PATCH] [StringUtils] Replaced strstr with find
+
+strstr require null terminated string while string_view not
+---
+ src/utils/StringUtils.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/utils/StringUtils.cpp b/src/utils/StringUtils.cpp
+index b050761a9..088e37cef 100644
+--- a/src/utils/StringUtils.cpp
++++ b/src/utils/StringUtils.cpp
+@@ -197,7 +197,7 @@ bool UTILS::STRING::Contains(std::string_view str,
+     return (itStr != str.end());
+   }
+ 
+-  return std::strstr(str.data(), keyword.data()) != nullptr;
++  return str.find(keyword) != std::string_view::npos;
+ }
+ 
+ bool UTILS::STRING::StartsWith(std::string_view str, std::string_view startStr)

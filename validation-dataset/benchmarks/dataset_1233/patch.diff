@@ -1,0 +1,29 @@
+From f3fafb0c3129c3ca1a01fbd83183be4c011e102d Mon Sep 17 00:00:00 2001
+From: Fs <Fsu0413@vip.qq.com>
+Date: Tue, 15 Jul 2014 20:01:32 +0800
+Subject: [PATCH] optimize luoshen code, use do-while, now it is not so
+ complicated
+
+---
+ src/package/standard-wei-generals.cpp | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/src/package/standard-wei-generals.cpp b/src/package/standard-wei-generals.cpp
+index 63c00a1520..68672f4025 100644
+--- a/src/package/standard-wei-generals.cpp
++++ b/src/package/standard-wei-generals.cpp
+@@ -471,11 +471,10 @@ class Luoshen : public TriggerSkill {
+         judge.who = zhenji;
+         judge.time_consuming = true;
+ 
+-        forever{
++        do {
+             room->judge(judge);
+-            if (judge.isBad() || !zhenji->askForSkillInvoke(objectName()))
+-                break;
+-        }
++        } while (judge.isGood() && zhenji->askForSkillInvoke(objectName()));
++
+         QList<int> card_list = VariantList2IntList(zhenji->tag[objectName()].toList());
+         zhenji->tag.remove(objectName());
+         QList<int> subcards;

@@ -1,0 +1,30 @@
+From 49d169a680611caddaa7820bcc716cc603b9fd18 Mon Sep 17 00:00:00 2001
+From: Milian Wolff <mail@milianw.de>
+Date: Sat, 14 Jun 2014 20:42:31 +0200
+Subject: [PATCH] Allocate needle only once in
+ KateHighlighting::lookupAttrName.
+
+This is an optimization mostly for debug builds, where the
+compiler does not do this optimization for us automatically.
+Considering how simple it is to reduce the amount of calls to
+allocation functions this way, I hope its OK if I push things
+like this.
+---
+ src/syntax/katehighlight.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/syntax/katehighlight.cpp b/src/syntax/katehighlight.cpp
+index 26ef5e715..b82354e5c 100644
+--- a/src/syntax/katehighlight.cpp
++++ b/src/syntax/katehighlight.cpp
+@@ -925,8 +925,9 @@ void KateHighlighting::addToKateExtendedAttributeList()
+  */
+ int  KateHighlighting::lookupAttrName(const QString &name, QList<KTextEditor::Attribute::Ptr> &iDl)
+ {
++    const QString needle = buildPrefix + name;
+     for (int i = 0; i < iDl.count(); i++)
+-        if (iDl.at(i)->name() == buildPrefix + name) {
++        if (iDl.at(i)->name() == needle) {
+             return i;
+         }
+ 

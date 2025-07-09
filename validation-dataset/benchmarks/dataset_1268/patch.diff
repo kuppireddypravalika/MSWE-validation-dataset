@@ -1,0 +1,24 @@
+From 0ba867ec16fad9e35be9531991f0a50ecbb89cd0 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@musicpd.org>
+Date: Thu, 21 Oct 2021 20:00:33 +0200
+Subject: [PATCH] output/pipewire: use MAX_CHANNELS, not SPA_AUDIO_MAX_CHANNELS
+
+MPD supports only 8 channels, so MAX_CHANNELS is enough, the array
+doens't need to be SPA_AUDIO_MAX_CHANNELS (which is 64).
+---
+ src/output/plugins/PipeWireOutputPlugin.cxx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/output/plugins/PipeWireOutputPlugin.cxx b/src/output/plugins/PipeWireOutputPlugin.cxx
+index 987c5d6e36..b665dd280c 100644
+--- a/src/output/plugins/PipeWireOutputPlugin.cxx
++++ b/src/output/plugins/PipeWireOutputPlugin.cxx
+@@ -292,7 +292,7 @@ PipeWireOutput::SetVolume(float _volume)
+ 	float newvol = _volume*_volume*_volume;
+ 
+ 	if (stream != nullptr && !restore_volume) {
+-		float vol[SPA_AUDIO_MAX_CHANNELS];
++		float vol[MAX_CHANNELS];
+ 
+ 		for (unsigned i = 0; i < channels; i++)
+ 			vol[i] = newvol;

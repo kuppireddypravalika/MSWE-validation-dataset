@@ -1,0 +1,23 @@
+From a1cf8f7aaf0bbf322933124f261ab08c3eb2cd36 Mon Sep 17 00:00:00 2001
+From: Ethan Burns <burns.ethan@gmail.com>
+Date: Tue, 27 Sep 2011 15:18:13 -0400
+Subject: [PATCH] Sort operators for better tie-breaking instead of worse
+ tie-breaking.
+
+---
+ tiles/mdlearn.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tiles/mdlearn.hpp b/tiles/mdlearn.hpp
+index 013ae30b..0c46e2a0 100644
+--- a/tiles/mdlearn.hpp
++++ b/tiles/mdlearn.hpp
+@@ -85,7 +85,7 @@ class TilesMDLearn : public TilesMdist {
+ 		OpinfoPtr(void) : ptr(NULL) { }
+ 
+ 		bool operator<(const OpinfoPtr &other) const {
+-			return ptr->prob() < other.ptr->prob();
++			return ptr->prob() > other.ptr->prob();
+ 		}
+ 
+ 		Pos b(void) const { return ptr->b; }

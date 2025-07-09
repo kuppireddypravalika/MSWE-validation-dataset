@@ -1,0 +1,43 @@
+From 12bf43103ec2b10fc1b46aac8ef2ec926423d312 Mon Sep 17 00:00:00 2001
+From: Sven Eckelmann <sven@narfation.org>
+Date: Tue, 15 Nov 2022 20:52:31 +0100
+Subject: [PATCH] rdp: Avoid signed overflow during texture block loading
+
+It isn't well defined how the compiler should behave when a signed integer
+overlows. This can lead to artifacts like scrambled textures when such an
+overflow happens.
+
+For the input v16 == 1879048192 (0x70000000) and dxt == 268435456
+(0x10000000) , it would calculate the result 536870912 (0x20000000) instead
+of -1 (2147483648 aka 0x80000000). Which means that the flipping will not
+be performed correctly.
+
+Fixes: mupen64plus/mupen64plus-video-glide64mk2#120
+Signed-off-by: Sven Eckelmann <sven@narfation.org>
+---
+ src/Glide64/rdp.cpp | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/src/Glide64/rdp.cpp b/src/Glide64/rdp.cpp
+index cb6bfd3e63..c6f83216d2 100644
+--- a/src/Glide64/rdp.cpp
++++ b/src/Glide64/rdp.cpp
+@@ -1901,7 +1901,17 @@ static inline void loadBlock(uint32_t *src, uint32_t *dst, uint32_t off, int dxt
+     --v15;
+     if ( !v15 )
+       break;
+-    v16 += dxt;
++
++    /* use unsigned overflow handling because signed integer might trigger
++     * "undefined" compiler behavior
++     */
++    unsigned int t = v16;
++    unsigned int _dxt = dxt;
++    t += _dxt;
++
++    /* convert back to signed integer */
++    v16 = t;
++
+     if ( v16 < 0 )
+     {
+       while ( 1 )

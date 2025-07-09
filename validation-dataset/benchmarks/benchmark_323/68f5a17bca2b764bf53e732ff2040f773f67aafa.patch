@@ -1,0 +1,25 @@
+From 68f5a17bca2b764bf53e732ff2040f773f67aafa Mon Sep 17 00:00:00 2001
+From: Bartosz Taudul <wolf.pld@gmail.com>
+Date: Sun, 29 Oct 2017 13:15:43 +0100
+Subject: [PATCH] Use 32-bit registers for rdtscp output.
+
+---
+ client/TracyProfiler.hpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/client/TracyProfiler.hpp b/client/TracyProfiler.hpp
+index 85efa8dfce..a29130885c 100644
+--- a/client/TracyProfiler.hpp
++++ b/client/TracyProfiler.hpp
+@@ -54,9 +54,9 @@ class Profiler
+         const auto t = int64_t( __rdtscp( &cpu ) );
+         return t;
+ #elif defined __i386 || defined _M_IX86 || defined __x86_64__ || defined _M_X64
+-        uint64_t eax, edx;
++        uint32_t eax, edx;
+         asm volatile ( "rdtscp" : "=a" (eax), "=d" (edx), "=c" (cpu) :: );
+-        return ( edx << 32 ) + eax;
++        return ( uint64_t( edx ) << 32 ) + uint64_t( eax );
+ #endif
+     }
+ #endif

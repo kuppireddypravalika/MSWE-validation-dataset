@@ -1,0 +1,34 @@
+From 5ca688b3da35ea2a8da6e915c503b12d4d814bb2 Mon Sep 17 00:00:00 2001
+From: Joachim Bauch <jbauch@webrtc.org>
+Date: Wed, 20 May 2015 10:40:15 +0200
+Subject: [PATCH] Enable read-ahead on OpenSSL DTLS stream adapters. Prevent
+ multiple BIO reads when reading header and body but read from internal
+ OpenSSL buffer where possible.
+
+BUG=chromium:447431
+R=davidben@chromium.org, juberti@google.com
+
+Review URL: https://webrtc-codereview.appspot.com/46319004
+
+Cr-Commit-Position: refs/heads/master@{#9230}
+---
+ webrtc/base/opensslstreamadapter.cc | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/webrtc/base/opensslstreamadapter.cc b/webrtc/base/opensslstreamadapter.cc
+index 619f3e1ea4..f3ad599f1b 100644
+--- a/webrtc/base/opensslstreamadapter.cc
++++ b/webrtc/base/opensslstreamadapter.cc
+@@ -739,6 +739,12 @@ int OpenSSLStreamAdapter::BeginSSL() {
+   SSL_set_app_data(ssl_, this);
+ 
+   SSL_set_bio(ssl_, bio, bio);  // the SSL object owns the bio now.
++  if (ssl_mode_ == SSL_MODE_DTLS) {
++    // Enable read-ahead for DTLS so whole packets are read from internal BIO
++    // before parsing.
++    // TODO(jbauch): Remove for BoringSSL when this is handled internally.
++    SSL_set_read_ahead(ssl_, 1);
++  }
+ 
+   SSL_set_mode(ssl_, SSL_MODE_ENABLE_PARTIAL_WRITE |
+                SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);

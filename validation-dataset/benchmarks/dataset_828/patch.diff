@@ -1,0 +1,30 @@
+From d958961c6c77c5de3da5ce8ed4af6c31aa789688 Mon Sep 17 00:00:00 2001
+From: Alexandre Courbot <gnurou@gmail.com>
+Date: Thu, 25 Nov 2010 18:10:11 +0900
+Subject: [PATCH] Optimize new lists database
+
+---
+ src/core/Database.cc | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/src/core/Database.cc b/src/core/Database.cc
+index 48d3a6c0..717ad6c5 100644
+--- a/src/core/Database.cc
++++ b/src/core/Database.cc
+@@ -186,10 +186,12 @@ static bool update7to8(SQLite::Query &query) {
+ 		listId = next.second;
+ 	} while (true);
+ 
+-	//QUERY("DROP TABLE oldLists");
+-	// Also drop listsLabels!
+-	//QUERY("CREATE INDEX idx_lists_parent ON lists(parent)");
+-	//QUERY("CREATE INDEX idx_lists_entry ON lists(type, id)");
++	// Create the list index
++	QUERY("CREATE INDEX lists_idx on lists(type,id)");
++
++	// Drop the old tables
++	QUERY("DROP TABLE oldLists");
++	QUERY("DROP TABLE listsLabels");
+ 	return true;
+ }
+ 

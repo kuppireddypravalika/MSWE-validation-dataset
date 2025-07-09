@@ -1,0 +1,25 @@
+From dd3cf35728df43996bad872cde3cc1bcab620c5f Mon Sep 17 00:00:00 2001
+From: Jan Blechta <blechta@karlin.mff.cuni.cz>
+Date: Thu, 12 Feb 2015 17:19:42 +0100
+Subject: [PATCH] Switch from Eigen::Matrix<double, Eigen::Dynamic, 1> to
+ Eigen::VectorXd in EigenKrylovSolver.
+
+---
+ dolfin/la/EigenKrylovSolver.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/dolfin/la/EigenKrylovSolver.cpp b/dolfin/la/EigenKrylovSolver.cpp
+index 79b59151033..6d2d3d1c6e7 100644
+--- a/dolfin/la/EigenKrylovSolver.cpp
++++ b/dolfin/la/EigenKrylovSolver.cpp
+@@ -407,8 +407,8 @@ double EigenKrylovSolver::_compute_tolerance(const EigenMatrix& A,
+     const double rtol = parameters["relative_tolerance"];
+ 
+     const double b_norm = b.norm("l2");
+-    // Define laze evaluated residual vector and compute its norm
+-    Eigen::Matrix<double, Eigen::Dynamic, 1> r0;
++    // Define lazy evaluated residual vector and compute its norm
++    Eigen::VectorXd r0;
+     r0.noalias() = b.vec() - A.mat()*x.vec();
+     const double r0_norm = r0.norm();
+ 

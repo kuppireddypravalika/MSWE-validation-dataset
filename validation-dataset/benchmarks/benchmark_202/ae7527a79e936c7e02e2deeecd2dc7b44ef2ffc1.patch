@@ -1,0 +1,35 @@
+From ae7527a79e936c7e02e2deeecd2dc7b44ef2ffc1 Mon Sep 17 00:00:00 2001
+From: Amaury Sechet <deadalnix@gmail.com>
+Date: Tue, 24 Jan 2017 17:48:25 +0000
+Subject: [PATCH] Use InstCombine's builder in foldSelectCttzCtlz instead of
+ creating a new one.
+
+Summary: As per title. This will add the instructiions we are interested in in the worklist.
+
+Reviewers: mehdi_amini, majnemer, andreadb
+
+Differential Revision: https://reviews.llvm.org/D29081
+---
+ llvm/lib/Transforms/InstCombine/InstCombineSelect.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/llvm/lib/Transforms/InstCombine/InstCombineSelect.cpp b/llvm/lib/Transforms/InstCombine/InstCombineSelect.cpp
+index a889a6702750..b5718c3a9e0b 100644
+--- a/llvm/lib/Transforms/InstCombine/InstCombineSelect.cpp
++++ b/llvm/lib/Transforms/InstCombine/InstCombineSelect.cpp
+@@ -395,13 +395,12 @@ static Value *foldSelectCttzCtlz(ICmpInst *ICI, Value *TrueVal, Value *FalseVal,
+   if (match(Count, m_Intrinsic<Intrinsic::cttz>(m_Specific(CmpLHS))) ||
+       match(Count, m_Intrinsic<Intrinsic::ctlz>(m_Specific(CmpLHS)))) {
+     IntrinsicInst *II = cast<IntrinsicInst>(Count);
+-    IRBuilder<> Builder(II);
+     // Explicitly clear the 'undef_on_zero' flag.
+     IntrinsicInst *NewI = cast<IntrinsicInst>(II->clone());
+     Type *Ty = NewI->getArgOperand(1)->getType();
+     NewI->setArgOperand(1, Constant::getNullValue(Ty));
+-    Builder.Insert(NewI);
+-    return Builder.CreateZExtOrTrunc(NewI, ValueOnZero->getType());
++    Builder->Insert(NewI);
++    return Builder->CreateZExtOrTrunc(NewI, ValueOnZero->getType());
+   }
+ 
+   return nullptr;

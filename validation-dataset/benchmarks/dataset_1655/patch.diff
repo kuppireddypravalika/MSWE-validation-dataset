@@ -1,0 +1,32 @@
+From f4c8fb6b397744fde1581187b2c7cdb330e1e0f3 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Thorbj=C3=B8rn=20Martsum?= <tmartsum@gmail.com>
+Date: Tue, 26 Mar 2013 21:52:56 +0100
+Subject: [PATCH] QTreeView - improve ItemNeverHasChildren slightly
+
+QTreeViewPrivate has a private function hasVisibleChildren that
+returns if an index has visual children. This can (and should)
+check the ItemNeverHasChildren flag.
+
+That will likely be an performance improvement and it will ensure
+consistent behavior in error-situations. (The flag will then always
+overrule even if the model is inconsistent)
+
+Change-Id: Ied37daf56c39daccea1cb4f5cc555d5cdbc7d971
+Reviewed-by: Stephen Kelly <stephen.kelly@kdab.com>
+---
+ src/widgets/itemviews/qtreeview.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/widgets/itemviews/qtreeview.cpp b/src/widgets/itemviews/qtreeview.cpp
+index a15e0509399a..70523815e848 100644
+--- a/src/widgets/itemviews/qtreeview.cpp
++++ b/src/widgets/itemviews/qtreeview.cpp
+@@ -3739,6 +3739,8 @@ QPair<int,int> QTreeViewPrivate::startAndEndColumns(const QRect &rect) const
+ bool QTreeViewPrivate::hasVisibleChildren(const QModelIndex& parent) const
+ {
+     Q_Q(const QTreeView);
++    if (parent.flags() & Qt::ItemNeverHasChildren)
++        return false;
+     if (model->hasChildren(parent)) {
+         if (hiddenIndexes.isEmpty())
+             return true;

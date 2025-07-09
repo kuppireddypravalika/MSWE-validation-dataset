@@ -1,0 +1,41 @@
+From bfd54e6d94c0da1cfcdf94a50dfe42bfa4ddd58f Mon Sep 17 00:00:00 2001
+From: Emily Kahl <emily.v.kahl@gmail.com>
+Date: Wed, 10 May 2017 15:10:55 +1000
+Subject: [PATCH] Default size of HamiltonianMatrix chunks is now equal to the
+ number of OpenMP threads
+
+---
+ Atom/Atom_Open.cpp | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/Atom/Atom_Open.cpp b/Atom/Atom_Open.cpp
+index de3c565..be1af41 100644
+--- a/Atom/Atom_Open.cpp
++++ b/Atom/Atom_Open.cpp
+@@ -1,6 +1,11 @@
+ #ifdef AMBIT_USE_MPI
+ #include <mpi.h>
+ #endif
++
++#ifdef AMBIT_USE_OPENMP
++#include<omp.h>
++#endif
++
+ #include "Include.h"
+ #include "Atom.h"
+ #include "Universal/Enums.h"
+@@ -597,7 +602,13 @@ LevelVector Atom::CalculateEnergies(pHamiltonianID hID)
+             else
+                 H.reset(new HamiltonianMatrix(hf_electron, twobody_electron, configs));
+ 
+-            H->GenerateMatrix(user_input("CI/ChunkSize", 4));
++            // If we're using OpenMP then the chunksize should be a multiple of the number of threads
++            int default_chunksize = 4;
++            #ifdef AMBIT_USE_OPENMP
++            default_chunksize = omp_get_num_threads();
++            #endif
++
++            H->GenerateMatrix(user_input("CI/ChunkSize", default_chunksize));
+             //H->PollMatrix();
+ 
+             if(user_input.search("--write-hamiltonian"))

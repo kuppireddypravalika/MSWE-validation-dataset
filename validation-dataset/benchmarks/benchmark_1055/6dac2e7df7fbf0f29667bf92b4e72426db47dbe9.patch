@@ -1,0 +1,35 @@
+From 6dac2e7df7fbf0f29667bf92b4e72426db47dbe9 Mon Sep 17 00:00:00 2001
+From: Andy Shaw <andy.shaw@qt.io>
+Date: Sat, 13 Apr 2019 00:31:06 +0200
+Subject: [PATCH] Only create the imports array if importCount is greater than
+ 0
+
+Since it is possible that CompilationUnit::instantiate() might be called
+more than once when the importCount is 0 then it should only create the
+imports array when it is greater than 0. This prevents a memory leak due
+to the recreation of this array each time it is called even though there
+is no imports to assign.
+
+Change-Id: I5d84b01de10bff2ca25248251e8337839e434bd5
+Reviewed-by: Simon Hausmann <simon.hausmann@qt.io>
+---
+ src/qml/compiler/qv4compileddata.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/qml/compiler/qv4compileddata.cpp b/src/qml/compiler/qv4compileddata.cpp
+index 9ffcb81fa2e..8f2f4a11c16 100644
+--- a/src/qml/compiler/qv4compileddata.cpp
++++ b/src/qml/compiler/qv4compileddata.cpp
+@@ -470,8 +470,10 @@ Heap::Module *CompilationUnit::instantiate(ExecutionEngine *engine)
+     ScopedString importName(scope);
+ 
+     const uint importCount = data->importEntryTableSize;
+-    imports = new const Value *[importCount];
+-    memset(imports, 0, importCount * sizeof(Value *));
++    if (importCount > 0) {
++        imports = new const Value *[importCount];
++        memset(imports, 0, importCount * sizeof(Value *));
++    }
+     for (uint i = 0; i < importCount; ++i) {
+         const CompiledData::ImportEntry &entry = data->importEntryTable()[i];
+         auto dependentModuleUnit = engine->loadModule(QUrl(stringAt(entry.moduleRequest)), this);

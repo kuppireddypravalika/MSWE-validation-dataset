@@ -1,0 +1,27 @@
+From af81b3812a0f27347c7a1e7df5843157757e8b43 Mon Sep 17 00:00:00 2001
+From: ulteq <ulteq@web.de>
+Date: Mon, 17 Oct 2016 18:34:09 +0200
+Subject: [PATCH] [Codechange] Optimized thread pool size calculation
+
+This only affects players with at least 6 cores
+---
+ source/main/physics/BeamFactory.cpp | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/source/main/physics/BeamFactory.cpp b/source/main/physics/BeamFactory.cpp
+index 351f5f6ccf..b866e716cc 100644
+--- a/source/main/physics/BeamFactory.cpp
++++ b/source/main/physics/BeamFactory.cpp
+@@ -160,7 +160,11 @@ BeamFactory::BeamFactory() :
+ 		{
+ 			int logical_cpus = hardware_concurrency();
+ 			int physical_cpus = getNumberOfCPUCores();
+-			m_num_cpu_cores = std::max(physical_cpus, logical_cpus - 1);
++
++			if (physical_cpus < 6 && logical_cpus > physical_cpus)
++				m_num_cpu_cores = logical_cpus - 1;
++			else
++				m_num_cpu_cores = physical_cpus - 1;
+ 		}
+ 
+ 		bool disableThreadPool = BSETTING("DisableThreadPool", false);

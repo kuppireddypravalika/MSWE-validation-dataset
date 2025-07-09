@@ -1,0 +1,32 @@
+From 8ab056f1330373d23a683da1dedad2aca1b2080b Mon Sep 17 00:00:00 2001
+From: Davide Italiano <davide@freebsd.org>
+Date: Fri, 18 Nov 2016 02:18:04 +0000
+Subject: [PATCH] [ELF] Use std::for_each() and hoist common code in a lambda.
+
+---
+ lld/ELF/OutputSections.cpp | 12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
+
+diff --git a/lld/ELF/OutputSections.cpp b/lld/ELF/OutputSections.cpp
+index 4bf95294a047..6034db13d5da 100644
+--- a/lld/ELF/OutputSections.cpp
++++ b/lld/ELF/OutputSections.cpp
+@@ -542,13 +542,11 @@ template <class ELFT> void OutputSection<ELFT>::writeTo(uint8_t *Buf) {
+   ArrayRef<uint8_t> Filler = Script<ELFT>::X->getFiller(this->Name);
+   if (!Filler.empty())
+     fill(Buf, this->Size, Filler);
+-  if (Config->Threads) {
+-    parallel_for_each(Sections.begin(), Sections.end(),
+-                      [=](InputSection<ELFT> *C) { C->writeTo(Buf); });
+-  } else {
+-    for (InputSection<ELFT> *C : Sections)
+-      C->writeTo(Buf);
+-  }
++  auto Fn = [=](InputSection<ELFT> *C) { C->writeTo(Buf); };
++  if (Config->Threads)
++    parallel_for_each(Sections.begin(), Sections.end(), Fn);
++  else
++    std::for_each(Sections.begin(), Sections.end(), Fn);
+   // Linker scripts may have BYTE()-family commands with which you
+   // can write arbitrary bytes to the output. Process them if any.
+   Script<ELFT>::X->writeDataBytes(this->Name, Buf);

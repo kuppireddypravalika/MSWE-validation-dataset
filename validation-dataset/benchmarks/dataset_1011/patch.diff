@@ -1,0 +1,40 @@
+From bbf2d4ed874268a61c86a48a934c56c9519f5b30 Mon Sep 17 00:00:00 2001
+From: Denis Corbin <dar.linux@free.fr>
+Date: Thu, 6 Aug 2015 19:45:39 +0200
+Subject: [PATCH] added speed optimization for real_infinint's [] operator
+
+---
+ src/libdar/real_infinint.cpp | 20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
+
+diff --git a/src/libdar/real_infinint.cpp b/src/libdar/real_infinint.cpp
+index d9a58f3db..59018d629 100644
+--- a/src/libdar/real_infinint.cpp
++++ b/src/libdar/real_infinint.cpp
+@@ -546,7 +546,25 @@ namespace libdar
+ 
+     unsigned char infinint::operator [] (const infinint & position) const
+     {
+-	return (*field)[field->size() - (position + 1)];
++	if(field == NULL)
++	    throw SRC_BUG;
++
++	if(position.is_zero())
++	{
++	    infinint::iterator it = field->rbegin();
++
++	    if(it != field.rend())
++		return *it;
++	    else
++		return 0x00;
++	}
++	else
++	{
++	    if(position < field->size())
++		return (*field)[field->size() - (position + 1)];
++	    else
++		return 0x00;
++	}
+     }
+ 
+     bool infinint::is_zero() const

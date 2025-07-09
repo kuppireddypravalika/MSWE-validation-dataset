@@ -1,0 +1,26 @@
+From 09b017fc534514a3d591a9e80df1256a506d9d5d Mon Sep 17 00:00:00 2001
+From: Alexander Block <ablock84@gmail.com>
+Date: Thu, 27 Jun 2019 22:25:02 +0200
+Subject: [PATCH] Only load signingActiveQuorumCount + 1 quorums into cache
+ (#3002)
+
+No need to load 25 quorums when we're scanning for the larger quorums which
+only have 4 active quorums. This avoids loading thousands of masternode
+lists unnecessarily.
+---
+ src/llmq/quorums.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/llmq/quorums.cpp b/src/llmq/quorums.cpp
+index ba5b90eb59..c980e3021b 100644
+--- a/src/llmq/quorums.cpp
++++ b/src/llmq/quorums.cpp
+@@ -313,7 +313,7 @@ std::vector<CQuorumCPtr> CQuorumManager::ScanQuorums(Consensus::LLMQType llmqTyp
+     auto& params = Params().GetConsensus().llmqs.at(llmqType);
+ 
+     auto cacheKey = std::make_pair(llmqType, pindexStart->GetBlockHash());
+-    const size_t cacheMaxSize = 25; // largest active set + 1
++    const size_t cacheMaxSize = params.signingActiveQuorumCount + 1;
+ 
+     std::vector<CQuorumCPtr> result;
+ 

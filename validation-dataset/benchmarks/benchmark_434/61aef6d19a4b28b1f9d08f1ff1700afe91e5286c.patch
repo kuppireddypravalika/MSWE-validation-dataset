@@ -1,0 +1,34 @@
+From 61aef6d19a4b28b1f9d08f1ff1700afe91e5286c Mon Sep 17 00:00:00 2001
+From: Muck van Weerdenburg <m.j.van.weerdenburg@tue.nl>
+Date: Tue, 14 Jun 2005 16:10:21 +0000
+Subject: [PATCH] Because variable flags are now used for compilation, it is no
+ longer sufficient to use a constant size array to store the compile command
+ string.
+
+git-svn-id: https://svn.win.tue.nl/repos/MCRL2/trunk@375 21252fe5-60e8-0310-8ff0-c1ae1001594e
+---
+ src/gsrewr_innerc.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/gsrewr_innerc.c b/src/gsrewr_innerc.c
+index a52f24422d..d3a8e8b431 100644
+--- a/src/gsrewr_innerc.c
++++ b/src/gsrewr_innerc.c
+@@ -462,7 +462,7 @@ void rewrite_init_innerc()
+ 	ATtableDestroy(tmp_eqns);
+ 
+ 	s = "innerc_XXXXXX"; // XXX
+-	t = (char *) malloc(100);
++	t = (char *) malloc(100+strlen(INNERC_LDFLAGS)+strlen(INNERC_CFLAGS)+strlen(INNERC_CPPFLAGS));
+ 	sprintf(t,"%s.c",s);
+ 	f = fopen(t,"w");
+ 
+@@ -887,7 +887,7 @@ void rewrite_init_innerc()
+ 
+ 	fclose(f);
+ 
+-	sprintf(t,"gcc %s %s -Wno-unused -O3 -rdynamic -c %s.c",INNERC_CFLAGS,INNERC_CPPFLAGS,s);
++	sprintf(t,"gcc -c %s %s -Wno-unused -O3 -rdynamic %s.c",INNERC_CPPFLAGS,INNERC_CFLAGS,s);
+ 	system(t);
+ 	sprintf(t,"gcc %s -Wno-unused -shared -o %s.so %s.o",INNERC_LDFLAGS,s,s);
+ 	system(t);

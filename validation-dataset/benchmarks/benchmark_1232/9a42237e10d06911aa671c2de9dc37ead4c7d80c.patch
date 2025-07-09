@@ -1,0 +1,38 @@
+From 9a42237e10d06911aa671c2de9dc37ead4c7d80c Mon Sep 17 00:00:00 2001
+From: Danilo Piparo <danilo.piparo@cern.ch>
+Date: Tue, 7 Oct 2014 12:01:35 +0200
+Subject: [PATCH] Allow to get a TClass instance via typedef name w/o parsing
+
+performing the following steps:
+0) Autoload based using the name of the typedef as key (was there already)
+1) Check if the name is a typedef
+2) If yes, try to get in the class table the TClass linked to the underlying
+type. Do not use a nested GetClass call.
+---
+ core/meta/src/TClass.cxx | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/core/meta/src/TClass.cxx b/core/meta/src/TClass.cxx
+index c23ba31c35f19..39fc770996f69 100644
+--- a/core/meta/src/TClass.cxx
++++ b/core/meta/src/TClass.cxx
+@@ -2803,6 +2803,19 @@ TClass *TClass::GetClass(const char *name, Bool_t load, Bool_t silent)
+       if (gInterpreter->AutoLoad(normalizedName.c_str(),kTRUE)) {
+          loadedcl = LoadClassDefault(normalizedName.c_str(),silent);
+       }
++      // Maybe this was a typedef: let's try to see if this is the case
++      if (!loadedcl){
++         if (TDataType* theDataType = gROOT->GetType(normalizedName.c_str())){
++            // We have a typedef: we get the name of the underlying type
++            auto underlyingTypeName = theDataType->GetTypeName().Data();
++            // We see if we can bootstrap a class with it
++            auto underlyingTypeDict = TClassTable::GetDictNorm(underlyingTypeName);
++            if (underlyingTypeDict){
++               loadedcl = underlyingTypeDict();
++            }
++
++         }
++      }
+    }
+    if (loadedcl) return loadedcl;
+ 

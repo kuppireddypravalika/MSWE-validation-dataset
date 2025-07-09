@@ -1,0 +1,27 @@
+From 6a58f6da5d91f2e09816e739abbc6547bbf17723 Mon Sep 17 00:00:00 2001
+From: "Lucas C. Villa Real" <lucasvr@gmail.com>
+Date: Mon, 21 Dec 2020 11:35:43 -0300
+Subject: [PATCH] C++: strip symbol table and relocation info from UDF
+
+Size matters: we want to keep the UDF shared library as small as we can.
+We already compile with -Os and compress the output library prior to
+saving it to disk, but somehow we missed to include '-s' on our original
+optimization list. Doing so reduces the output by stripping its symbol
+table and relocation information. Some of the example UDFs have been
+shrinked by ~25% with this code change.
+---
+ src/cpp_backend.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/cpp_backend.cpp b/src/cpp_backend.cpp
+index 6bd5d90..9554c12 100644
+--- a/src/cpp_backend.cpp
++++ b/src/cpp_backend.cpp
+@@ -76,6 +76,7 @@ std::string CppBackend::compile(
+             (char *) "-fPIC",
+             (char *) "-flto",
+             (char *) "-Os",
++            (char *) "-s",
+             (char *) "-C",
+             (char *) "-o",
+             (char *) output.c_str(),

@@ -1,0 +1,23 @@
+From d68e625b010a4e22afe44439017338e87a11b3b7 Mon Sep 17 00:00:00 2001
+From: Radoslaw Zarzynski <rzarzynski@mirantis.com>
+Date: Thu, 17 Nov 2016 16:14:17 +0100
+Subject: [PATCH] rgw: optimize out ctor-copy in RGWListBuckets_ObjStore_SWIFT.
+
+Signed-off-by: Radoslaw Zarzynski <rzarzynski@mirantis.com>
+---
+ src/rgw/rgw_rest_swift.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/rgw/rgw_rest_swift.cc b/src/rgw/rgw_rest_swift.cc
+index 2d94e481b20..40cfda218a8 100644
+--- a/src/rgw/rgw_rest_swift.cc
++++ b/src/rgw/rgw_rest_swift.cc
+@@ -177,7 +177,7 @@ void RGWListBuckets_ObjStore_SWIFT::send_response_data(RGWUserBuckets& buckets)
+     return;
+ 
+   for (iter = m.begin(); iter != m.end(); ++iter) {
+-    RGWBucketEnt obj = iter->second;
++    const RGWBucketEnt& obj = iter->second;
+     s->formatter->open_object_section("container");
+     s->formatter->dump_string("name", obj.bucket.name);
+     if (need_stats) {

@@ -1,0 +1,42 @@
+From 9133f17e825db4ecdfa7615d75d45549f34e122d Mon Sep 17 00:00:00 2001
+From: Thomas Goyne <plorkyeran@aegisub.org>
+Date: Sun, 9 Jun 2013 07:56:20 -0700
+Subject: [PATCH] Insignificantly speed up opening UTF-8 files
+
+---
+ .../include/libaegisub/line_iterator.h        | 19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
+
+diff --git a/aegisub/libaegisub/include/libaegisub/line_iterator.h b/aegisub/libaegisub/include/libaegisub/line_iterator.h
+index 676015dc5..c26df9630 100644
+--- a/aegisub/libaegisub/include/libaegisub/line_iterator.h
++++ b/aegisub/libaegisub/include/libaegisub/line_iterator.h
+@@ -67,18 +67,19 @@ class line_iterator : public std::iterator<std::input_iterator_tag, OutputType>
+ 	: stream(&stream)
+ 	, valid(true)
+ 	, encoding(encoding)
+-	, cr(0)
+-	, lf(0)
+-	, width(0)
++	, cr('\r')
++	, lf('\n')
++	, width(1)
+ 	{
+ 		boost::to_lower(encoding);
+-		agi::charset::IconvWrapper c("utf-8", encoding.c_str());
+-		c.Convert("\r", 1, reinterpret_cast<char *>(&cr), sizeof(int));
+-		c.Convert("\n", 1, reinterpret_cast<char *>(&lf), sizeof(int));
+-		width = c.RequiredBufferSize("\n");
++		if (encoding != "utf-8") {
++			agi::charset::IconvWrapper c("utf-8", encoding.c_str());
++			c.Convert("\r", 1, reinterpret_cast<char *>(&cr), sizeof(int));
++			c.Convert("\n", 1, reinterpret_cast<char *>(&lf), sizeof(int));
++			width = c.RequiredBufferSize("\n");
++			conv = std::make_shared<agi::charset::IconvWrapper>(encoding.c_str(), "utf-8");
++		}
+ 
+-		if (encoding != "utf-8")
+-			conv.reset(new agi::charset::IconvWrapper(encoding.c_str(), "utf-8"));
+ 		init();
+ 		++(*this);
+ 	}

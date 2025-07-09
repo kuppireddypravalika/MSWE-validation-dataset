@@ -1,0 +1,23 @@
+From 2898dbae3b8a526590b783c24b5a0a226c841e32 Mon Sep 17 00:00:00 2001
+From: Kevin Gott <kngott@lbl.gov>
+Date: Fri, 15 Nov 2019 14:06:19 -0800
+Subject: [PATCH] Use Pinned Arena for plotting. Avoids unneeded memory
+ movement.
+
+---
+ Src/Base/AMReX_PlotFileUtil.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Src/Base/AMReX_PlotFileUtil.cpp b/Src/Base/AMReX_PlotFileUtil.cpp
+index d436889a79e..f0ae7b8314e 100644
+--- a/Src/Base/AMReX_PlotFileUtil.cpp
++++ b/Src/Base/AMReX_PlotFileUtil.cpp
+@@ -215,7 +215,7 @@ WriteMultiLevelPlotfile (const std::string& plotfilename, int nlevels,
+         if (mf[level]->nGrow() > 0) {
+             mf_tmp.reset(new MultiFab(mf[level]->boxArray(),
+                                       mf[level]->DistributionMap(),
+-                                      mf[level]->nComp(), 0, MFInfo(),
++                                      mf[level]->nComp(), 0, MFInfo().SetArena(The_Pinned_Arena()),
+                                       mf[level]->Factory()));
+             MultiFab::Copy(*mf_tmp, *mf[level], 0, 0, mf[level]->nComp(), 0);
+             data = mf_tmp.get();

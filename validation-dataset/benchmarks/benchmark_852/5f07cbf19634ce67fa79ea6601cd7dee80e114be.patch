@@ -1,0 +1,41 @@
+From 5f07cbf19634ce67fa79ea6601cd7dee80e114be Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Th=C3=A9o=20DELRIEU?= <delrieutheo@gmail.com>
+Date: Thu, 28 Sep 2017 23:38:38 +0200
+Subject: [PATCH] split.hpp: make group_globally_on_labeled work with generic
+ lambdas
+
+---
+ include/fplus/split.hpp | 17 ++++++-----------
+ 1 file changed, 6 insertions(+), 11 deletions(-)
+
+diff --git a/include/fplus/split.hpp b/include/fplus/split.hpp
+index 8178e987..d4841738 100644
+--- a/include/fplus/split.hpp
++++ b/include/fplus/split.hpp
+@@ -161,20 +161,15 @@ ContainerOut group_globally_on(F f, const ContainerIn& xs)
+ // group_globally_on_labeled((mod 10), [12,34,22]) == [(2,[12,22]),(4, [34])]
+ // O(n^2)
+ // If you need O(n*log(n)), sort and then use group_on_labeled
+-template <typename F, typename ContainerIn,
+-    typename FIn = typename utils::function_traits<F>::template arg<0>::type,
+-    typename FOut = typename std::result_of<F(FIn)>::type,
+-    typename ContainerOutValue = std::pair<FOut,ContainerIn>,
+-    typename ContainerOut = typename std::vector<ContainerOutValue>>
+-ContainerOut group_globally_on_labeled(F f, const ContainerIn& xs)
++template <typename F, typename ContainerIn>
++auto group_globally_on_labeled(F f, const ContainerIn& xs)
+ {
+-    const auto grouped = group_globally_by(is_equal_by(f), xs);
+-    typedef typename decltype(grouped)::value_type Group;
+-    const auto attach_label = [f](const Group& g) -> ContainerOutValue
++    const auto group = [](auto f, const auto& xs)
+     {
+-        return std::make_pair(f(g.front()), g);
++        return group_globally_by(f, xs);
+     };
+-    return transform(attach_label, grouped);
++
++    return detail::group_on_labeled_impl(group, f, xs);
+ }
+ 
+ // API search type: group_globally : [a] -> [[a]]

@@ -1,0 +1,29 @@
+From 9166218d07ab1d08233dbd5ccfe79fad1bc6a455 Mon Sep 17 00:00:00 2001
+From: Connor McLaughlin <stenzek@gmail.com>
+Date: Sun, 12 Dec 2021 22:16:09 +1000
+Subject: [PATCH] EERec: Remove zero-distance jmp in full fpu mode
+
+---
+ pcsx2/x86/iFPUd.cpp | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/pcsx2/x86/iFPUd.cpp b/pcsx2/x86/iFPUd.cpp
+index bd22f498b535b..adc9252b7ba51 100644
+--- a/pcsx2/x86/iFPUd.cpp
++++ b/pcsx2/x86/iFPUd.cpp
+@@ -413,7 +413,6 @@ void FPU_ADD_SUB(int tempd, int tempt) //tempd and tempt are overwritten, they a
+ 	x86SetJ8(j8Ptr[3]);
+ 	//diff = -255 .. -25, expd < expt
+ 	xAND.PS(xRegisterSSE(tempd), ptr[s_const.neg]);
+-	j8Ptr[7] = JMP8(0);
+ 
+ 	x86SetJ8(j8Ptr[2]);
+ 	//diff == 0
+@@ -421,7 +420,6 @@ void FPU_ADD_SUB(int tempd, int tempt) //tempd and tempt are overwritten, they a
+ 	x86SetJ8(j8Ptr[4]);
+ 	x86SetJ8(j8Ptr[5]);
+ 	x86SetJ8(j8Ptr[6]);
+-	x86SetJ8(j8Ptr[7]);
+ 
+ 	_freeXMMreg(xmmtemp);
+ 	_freeX86reg(temp2);

@@ -1,0 +1,23 @@
+From 5882fc7b687a35a850c5b65461efa138c9f35903 Mon Sep 17 00:00:00 2001
+From: Martin Marmsoler <martin.marmsoler@gmail.com>
+Date: Fri, 17 Feb 2023 12:32:34 +0100
+Subject: [PATCH] Decrease wait time to original one Reason: No need to wait so
+ long
+
+---
+ test/rebase.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/test/rebase.cpp b/test/rebase.cpp
+index 02f1e021e..647779e8c 100644
+--- a/test/rebase.cpp
++++ b/test/rebase.cpp
+@@ -249,7 +249,7 @@ void TestRebase::conflictingRebase() {
+   QCOMPARE(rebaseConflict, 1);
+ 
+   // Check that buttons are visible
+-  QTest::qWait(5000);
++  QTest::qWait(100);
+   QCOMPARE(continueRebaseButton->isVisible(), true);
+   QCOMPARE(abortRebaseButton->isVisible(), true);
+ 

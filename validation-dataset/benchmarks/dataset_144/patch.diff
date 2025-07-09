@@ -1,0 +1,35 @@
+From 55c073fa605342d2e5bc9654d2c48fdfc3dcb81e Mon Sep 17 00:00:00 2001
+From: Jeongnim Kim <jeongnim.kim@intel.com>
+Date: Mon, 7 Jul 2008 16:47:32 +0000
+Subject: [PATCH] Call put only once during a loop operation.
+
+git-svn-id: https://subversion.assembla.com/svn/qmcdev/trunk@2790 e5b18d87-469d-4833-9cc0-8cdfa06e9491
+---
+ src/QMCDrivers/QMCOptimize.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/QMCDrivers/QMCOptimize.cpp b/src/QMCDrivers/QMCOptimize.cpp
+index 6467738aff..dce48816ba 100644
+--- a/src/QMCDrivers/QMCOptimize.cpp
++++ b/src/QMCDrivers/QMCOptimize.cpp
+@@ -219,6 +219,7 @@ namespace qmcplusplus {
+     else
+       optSolver->put(optNode);
+ 
++    bool success=true;
+     if(optTarget == 0) 
+     {
+ #if defined(ENABLE_OPENMP)
+@@ -229,9 +230,11 @@ namespace qmcplusplus {
+       else
+ #endif
+         optTarget = new QMCCostFunctionSingle(W,Psi,H);
++
+       optTarget->setStream(&app_log());
++      success=optTarget->put(q);
+     }
+-    return optTarget->put(q);
++    return success;
+   }
+ }
+ /***************************************************************************

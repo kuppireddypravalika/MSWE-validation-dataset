@@ -1,0 +1,26 @@
+From 903c8fb6681c23680756bd6b7ac4754be9ddfb7a Mon Sep 17 00:00:00 2001
+From: Evgeny Kotelnikov <evgeny.kotelnikov@gmail.com>
+Date: Wed, 22 Feb 2017 15:44:23 +0100
+Subject: [PATCH] Do not run SimplifyFalseTrue if newcns is on
+
+SimplifyFalseTrue eliminates propositional constrants. NewCNF eliminates them as well, but in a more efficient way.
+---
+ Shell/Preprocess.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/Shell/Preprocess.cpp b/Shell/Preprocess.cpp
+index e817db43fa..3b2ff7bcb0 100644
+--- a/Shell/Preprocess.cpp
++++ b/Shell/Preprocess.cpp
+@@ -436,7 +436,10 @@ void Preprocess::preprocess1 (Problem& prb)
+     fu = Rectify::rectify(fu);
+     FormulaUnit* rectFu = fu;
+     // Simplify the formula if it contains true or false
+-    fu = SimplifyFalseTrue::simplify(fu);
++    if (!_options.newCNF()) {
++      // NewCNF effectively implements this simplification already
++      fu = SimplifyFalseTrue::simplify(fu);
++    }
+     if (fu!=rectFu) {
+       formulasSimplified = true;
+     }

@@ -1,0 +1,25 @@
+From 88c6e813927dd1e1b1668334160b0a2a715ef4d1 Mon Sep 17 00:00:00 2001
+From: Ghabry <gabriel+github@mastergk.de>
+Date: Wed, 13 May 2015 02:26:05 +0200
+Subject: [PATCH] Better way to start parallel events after save loading. Only
+ spawn a new interpreter when no parallel activity was saved.
+
+---
+ src/game_event.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/game_event.cpp b/src/game_event.cpp
+index bce46449b5..bfb0020f79 100644
+--- a/src/game_event.cpp
++++ b/src/game_event.cpp
+@@ -317,7 +317,9 @@ void Game_Event::SetupFromSave(RPG::EventPage* new_page) {
+ 	trigger = page->trigger;
+ 	list = page->event_commands;
+ 
+-	if (trigger == RPG::EventPage::Trigger_parallel) {
++	// Trigger parallel events when the interpreter wasn't already running
++	// (because it was the middle of a parallel event while saving)
++	if (!interpreter && trigger == RPG::EventPage::Trigger_parallel) {
+ 		interpreter.reset(new Game_Interpreter_Map());
+ 	}
+ 	CheckEventTriggerAuto();

@@ -1,0 +1,28 @@
+From 870183f26bd774a0073779f14519712a5cbf50fb Mon Sep 17 00:00:00 2001
+From: Jacob Walser <jwalser90@gmail.com>
+Date: Wed, 22 Feb 2017 12:20:51 -0500
+Subject: [PATCH] AP_TemperatureSensor: Use powf instead of pow
+
+---
+ libraries/AP_TemperatureSensor/TSYS01.cpp | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/libraries/AP_TemperatureSensor/TSYS01.cpp b/libraries/AP_TemperatureSensor/TSYS01.cpp
+index 845e5c552df126..440c8a691fb968 100644
+--- a/libraries/AP_TemperatureSensor/TSYS01.cpp
++++ b/libraries/AP_TemperatureSensor/TSYS01.cpp
+@@ -134,9 +134,9 @@ void TSYS01::_calculate(uint32_t adc)
+ {
+     float adc16 = adc/256;
+     _temperature =
+-        -2   * _k[4] * pow(10, -21) * pow(adc16, 4) +
+-        4    * _k[3] * pow(10, -16) * pow(adc16, 3) +
+-        -2   * _k[2] * pow(10, -11) * pow(adc16, 2) +
+-        1    * _k[1] * pow(10, -6)  * adc16 +
+-        -1.5 * _k[0] * pow(10, -2);
++        -2   * _k[4] * powf(10, -21) * powf(adc16, 4) +
++        4    * _k[3] * powf(10, -16) * powf(adc16, 3) +
++        -2   * _k[2] * powf(10, -11) * powf(adc16, 2) +
++        1    * _k[1] * powf(10, -6)  * adc16 +
++        -1.5 * _k[0] * powf(10, -2);
+ }

@@ -1,0 +1,34 @@
+From 3bb488fb2ac2e11602fe74dae35d074223d3192a Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@qt.io>
+Date: Fri, 14 Jul 2023 22:06:17 +0200
+Subject: [PATCH] Use new QByteArray::assign() in
+ QTlsBackendOpenSSL::dhParametersFromPem()
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+QBA::assign() re-uses existing unshared capacity(), if any, and is
+therefore potentially more efficient than = QByteArray(.,.) (and never
+slower).
+
+Pick-to: 6.6
+Task-number: QTBUG-106201
+Change-Id: I2c45aa268c4c06396e9d7e0490666a13d8cfd532
+Reviewed-by: Mårten Nordheim <marten.nordheim@qt.io>
+---
+ src/plugins/tls/openssl/qssldiffiehellmanparameters_openssl.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/plugins/tls/openssl/qssldiffiehellmanparameters_openssl.cpp b/src/plugins/tls/openssl/qssldiffiehellmanparameters_openssl.cpp
+index 49e583b0fd4..16e31e605fb 100644
+--- a/src/plugins/tls/openssl/qssldiffiehellmanparameters_openssl.cpp
++++ b/src/plugins/tls/openssl/qssldiffiehellmanparameters_openssl.cpp
+@@ -139,7 +139,7 @@ int QTlsBackendOpenSSL::dhParametersFromPem(const QByteArray &pem, QByteArray *d
+             const int len = q_i2d_DHparams(dh, reinterpret_cast<unsigned char **>(&buf));
+             const auto freeBuf = qScopeGuard([&] { q_OPENSSL_free(buf); });
+             if (len > 0)
+-                *data = QByteArray(buf, len);
++                data->assign({buf, len});
+             else
+                 return DHParams::InvalidInputDataError;
+         } else {

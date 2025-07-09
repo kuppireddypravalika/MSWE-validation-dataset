@@ -1,0 +1,47 @@
+From 432dc9cc78c0be0092b123d36fca7893484d1b79 Mon Sep 17 00:00:00 2001
+From: Matthias Braun <matze@braunis.de>
+Date: Mon, 5 Dec 2016 06:41:47 +0000
+Subject: [PATCH] ListInit::convertInitializerTo: avoid foldingset lookup if
+ nothing changed
+
+---
+ llvm/lib/TableGen/Record.cpp | 17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
+
+diff --git a/llvm/lib/TableGen/Record.cpp b/llvm/lib/TableGen/Record.cpp
+index 2875375f4cde..de13cd2246a8 100644
+--- a/llvm/lib/TableGen/Record.cpp
++++ b/llvm/lib/TableGen/Record.cpp
+@@ -533,19 +533,28 @@ void ListInit::Profile(FoldingSetNodeID &ID) const {
+ }
+ 
+ Init *ListInit::convertInitializerTo(RecTy *Ty) const {
++  if (getType() == Ty)
++    return const_cast<ListInit*>(this);
++
+   if (auto *LRT = dyn_cast<ListRecTy>(Ty)) {
+     std::vector<Init*> Elements;
++    Elements.reserve(getValues().size());
+ 
+     // Verify that all of the elements of the list are subclasses of the
+     // appropriate class!
++    bool Changed = false;
++    RecTy *ElementType = LRT->getElementType();
+     for (Init *I : getValues())
+-      if (Init *CI = I->convertInitializerTo(LRT->getElementType()))
++      if (Init *CI = I->convertInitializerTo(ElementType)) {
+         Elements.push_back(CI);
+-      else
++        if (CI != I)
++          Changed = true;
++	  } else
+         return nullptr;
+ 
+-    if (isa<ListRecTy>(getType()))
+-      return ListInit::get(Elements, Ty);
++    if (!Changed)
++      return const_cast<ListInit*>(this);
++    return ListInit::get(Elements, Ty);
+   }
+ 
+   return nullptr;

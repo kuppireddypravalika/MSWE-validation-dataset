@@ -1,0 +1,25 @@
+From 0cdb44fbd3cedbe49be37e400a3fc48d0cef216c Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Sun, 16 Jul 2017 17:08:00 -0400
+Subject: [PATCH] [libromdata] SegaPVR: uilog2() should use __builtin_ctz(),
+ not __builtin_clz().
+
+I thought I tested this, but I guess I forgot to clear the thumbnail
+cache when I rebuilt with __builtin_clz().
+---
+ src/libromdata/SegaPVR.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/libromdata/SegaPVR.cpp b/src/libromdata/SegaPVR.cpp
+index 32db705ebe..29b5c443d6 100644
+--- a/src/libromdata/SegaPVR.cpp
++++ b/src/libromdata/SegaPVR.cpp
+@@ -166,7 +166,7 @@ inline void SegaPVRPrivate::byteswap_gvr(PVR_Header *gvr)
+ inline unsigned int SegaPVRPrivate::uilog2(unsigned int n)
+ {
+ #if defined(__GNUC__)
+-	return (n == 0 ? 0 : __builtin_clz(n));
++	return (n == 0 ? 0 : __builtin_ctz(n));
+ #elif defined(_MSC_VER)
+ 	if (n == 0)
+ 		return 0;

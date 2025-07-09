@@ -1,0 +1,36 @@
+From 6609e4f9235d32427392055c73468b6ceb28b5ff Mon Sep 17 00:00:00 2001
+From: Dominik Haumann <dhaumann@kde.org>
+Date: Fri, 3 Jan 2020 15:07:44 +0100
+Subject: [PATCH] Fix warning about unused variable and minor optimization
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Fixes this warning:
+katescriptmanager.cpp: In member function ‘virtual bool KateScriptManager::exec(KTextEditor::View*, const QString&, QString&, const KTextEditor::Range&)’:
+katescriptmanager.cpp:309:85: warning: unused parameter ‘errorMsg’ [-Wunused-parameter]
+  309 | bool KateScriptManager::exec(KTextEditor::View *view, const QString &_cmd, QString &errorMsg, const KTextEditor::Range &)
+      |                                                                            ~~~~~~~~~^~~~~~~~
+
+In addition, avoid QString construction by using the QStringRef
+for == string comparison.
+---
+ src/script/katescriptmanager.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/script/katescriptmanager.cpp b/src/script/katescriptmanager.cpp
+index e9167621c..4eec5df2d 100644
+--- a/src/script/katescriptmanager.cpp
++++ b/src/script/katescriptmanager.cpp
+@@ -309,9 +309,10 @@ void KateScriptManager::reload()
+ bool KateScriptManager::exec(KTextEditor::View *view, const QString &_cmd, QString &errorMsg, const KTextEditor::Range &)
+ {
+     Q_UNUSED(view)
++    Q_UNUSED(errorMsg)
+ 
+     QVector<QStringRef> args = _cmd.splitRef(QRegularExpression(QStringLiteral("\\s+")), QString::SkipEmptyParts);
+-    const QString cmd = args.first().toString();
++    const QStringRef cmd = args.first();
+ 
+     if (cmd == QLatin1String("reload-scripts")) {
+         reload();

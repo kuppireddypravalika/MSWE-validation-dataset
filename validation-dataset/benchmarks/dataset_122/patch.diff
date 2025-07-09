@@ -1,0 +1,22 @@
+From af11546b1e10988988dc984a0300a0fe24315116 Mon Sep 17 00:00:00 2001
+From: Megamouse <studienricky89@googlemail.com>
+Date: Mon, 4 Oct 2021 19:13:39 +0200
+Subject: [PATCH] Overlays: fix small performance overlay font sizes
+
+---
+ rpcs3/Emu/RSX/Overlays/overlay_perf_metrics.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/rpcs3/Emu/RSX/Overlays/overlay_perf_metrics.cpp b/rpcs3/Emu/RSX/Overlays/overlay_perf_metrics.cpp
+index 6856644365115..42f0502ed7256 100644
+--- a/rpcs3/Emu/RSX/Overlays/overlay_perf_metrics.cpp
++++ b/rpcs3/Emu/RSX/Overlays/overlay_perf_metrics.cpp
+@@ -92,7 +92,7 @@ namespace rsx
+ 		void perf_metrics_overlay::reset_transform(label& elm) const
+ 		{
+ 			// left, top, right, bottom
+-			const areau padding { m_padding, m_padding - 4, m_padding, m_padding };
++			const areau padding { m_padding, m_padding - std::min<u32>(4, m_padding), m_padding, m_padding };
+ 			const positionu margin { m_margin_x, m_margin_y };
+ 			positionu pos;
+ 

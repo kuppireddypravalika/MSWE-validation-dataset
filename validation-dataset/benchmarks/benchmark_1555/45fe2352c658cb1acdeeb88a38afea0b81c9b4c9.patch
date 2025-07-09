@@ -1,0 +1,22 @@
+From 45fe2352c658cb1acdeeb88a38afea0b81c9b4c9 Mon Sep 17 00:00:00 2001
+From: Pilow <pierre.laupretre@gmail.com>
+Date: Thu, 23 Mar 2017 23:49:21 +0100
+Subject: [PATCH] [return] Use new_integer instead of LS_CREATE_INTEGER
+
+---
+ src/compiler/instruction/Return.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/compiler/instruction/Return.cpp b/src/compiler/instruction/Return.cpp
+index dd8af520..2b431b8d 100644
+--- a/src/compiler/instruction/Return.cpp
++++ b/src/compiler/instruction/Return.cpp
+@@ -51,7 +51,7 @@ Compiler::value Return::compile(Compiler& c) const {
+ 		jit_insn_return(c.F, r.v);
+ 	}
+ 
+-	jit_insn_return(c.F, LS_CREATE_INTEGER(c.F, 0));
++	jit_insn_return(c.F, c.new_integer(0).v);
+ 	return {nullptr, Type::UNKNOWN};
+ }
+ 

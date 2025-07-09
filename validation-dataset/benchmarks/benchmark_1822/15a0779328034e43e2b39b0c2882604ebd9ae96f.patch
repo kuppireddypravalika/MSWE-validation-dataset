@@ -1,0 +1,33 @@
+From 15a0779328034e43e2b39b0c2882604ebd9ae96f Mon Sep 17 00:00:00 2001
+From: gbeauche <>
+Date: Tue, 11 May 2004 21:53:48 +0000
+Subject: [PATCH] Size optimization: don't generate jump_next_A0() code in
+ block chaining mode since the only case we would reach that is when there are
+ pending interrupts, thus needing to exit from this basic block ASAP.
+ Otherwise, we jumped to linker trampolines
+
+---
+ SheepShaver/src/kpx_cpu/src/cpu/ppc/ppc-translate.cpp | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/SheepShaver/src/kpx_cpu/src/cpu/ppc/ppc-translate.cpp b/SheepShaver/src/kpx_cpu/src/cpu/ppc/ppc-translate.cpp
+index 3673664e..1f4bc0d7 100644
+--- a/SheepShaver/src/kpx_cpu/src/cpu/ppc/ppc-translate.cpp
++++ b/SheepShaver/src/kpx_cpu/src/cpu/ppc/ppc-translate.cpp
+@@ -1425,9 +1425,13 @@ powerpc_cpu::compile_block(uint32 entry_point)
+ 			goto again;
+ 		}
+ 	}
+-	// TODO: optimize this to a direct jump to pregenerated code?
+-	dg.gen_mov_ad_A0_im((uintptr)bi);
+-	dg.gen_jump_next_A0();
++	// In direct block chaining mode, this code is reached only if
++	// there are pending spcflags, i.e. get out of this block
++	if (!use_direct_block_chaining) {
++		// TODO: optimize this to a direct jump to pregenerated code?
++		dg.gen_mov_ad_A0_im((uintptr)bi);
++		dg.gen_jump_next_A0();
++	}
+ 	dg.gen_exec_return();
+ 	dg.gen_end();
+ 	bi->end_pc = dpc;

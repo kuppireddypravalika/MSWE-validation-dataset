@@ -1,0 +1,22 @@
+From ba9e9397aa685db8f6f270e4829d7f53f57abd40 Mon Sep 17 00:00:00 2001
+From: Lorenz Meier <lm@inf.ethz.ch>
+Date: Sun, 29 May 2016 16:27:27 +0200
+Subject: [PATCH] Navigator: Be more efficient
+
+---
+ src/modules/navigator/navigator_main.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/modules/navigator/navigator_main.cpp b/src/modules/navigator/navigator_main.cpp
+index 812fe4982129..e74e75905e49 100644
+--- a/src/modules/navigator/navigator_main.cpp
++++ b/src/modules/navigator/navigator_main.cpp
+@@ -640,7 +640,7 @@ Navigator::start()
+ 	_navigator_task = px4_task_spawn_cmd("navigator",
+ 					 SCHED_DEFAULT,
+ 					 SCHED_PRIORITY_DEFAULT + 5,
+-					 1500,
++					 1300,
+ 					 (px4_main_t)&Navigator::task_main_trampoline,
+ 					 nullptr);
+ 

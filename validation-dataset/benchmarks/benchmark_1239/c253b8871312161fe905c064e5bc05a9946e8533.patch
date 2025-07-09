@@ -1,0 +1,32 @@
+From c253b8871312161fe905c064e5bc05a9946e8533 Mon Sep 17 00:00:00 2001
+From: Jason Dillaman <dillaman@redhat.com>
+Date: Fri, 6 Jan 2017 09:29:02 -0500
+Subject: [PATCH] librbd: rewatch complete callback should be invoked w/o lock
+
+It's currently being incorrectly invoked twice -- but the direct
+callback is holding the Watcher lock. This results in a recursive
+lock when ManagedLock attempts to retrieve the watch id from the
+Watcher.
+
+Signed-off-by: Jason Dillaman <dillaman@redhat.com>
+---
+ src/librbd/Watcher.cc | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/src/librbd/Watcher.cc b/src/librbd/Watcher.cc
+index 44ee24651e5..6b3af958fb7 100644
+--- a/src/librbd/Watcher.cc
++++ b/src/librbd/Watcher.cc
+@@ -199,10 +199,9 @@ void Watcher::handle_rewatch(int r) {
+ 
+     std::swap(unregister_watch_ctx, m_unregister_watch_ctx);
+ 
+-    handle_rewatch_complete(r);
+     m_work_queue->queue(
+-        create_context_callback<Watcher,
+-                                &Watcher::handle_rewatch_complete>(this));
++      create_context_callback<Watcher,
++                              &Watcher::handle_rewatch_complete>(this), r);
+   }
+ 
+   // wake up pending unregister request

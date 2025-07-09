@@ -1,0 +1,29 @@
+From 4d2bbb4993e0647048273ee4bec46ff17d8fb104 Mon Sep 17 00:00:00 2001
+From: Hendrik Leppkes <h.leppkes@gmail.com>
+Date: Mon, 23 Sep 2013 21:52:32 +0200
+Subject: [PATCH] Read into a fixed size buffer instead of all at once.
+
+---
+ demuxer/Demuxers/BDDemuxer.cpp | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/demuxer/Demuxers/BDDemuxer.cpp b/demuxer/Demuxers/BDDemuxer.cpp
+index cf29ecf30..764c815df 100644
+--- a/demuxer/Demuxers/BDDemuxer.cpp
++++ b/demuxer/Demuxers/BDDemuxer.cpp
+@@ -48,9 +48,12 @@ int64_t BDByteStreamSeek(void *opaque,  int64_t offset, int whence)
+     pos = 0;
+   int64_t achieved = bd_seek(bd, pos);
+   if (pos > achieved) {
+-    offset = (int)(pos - achieved);
+-    uint8_t *dump_buffer = (uint8_t *)CoTaskMemAlloc(offset);
+-    bd_read(bd, dump_buffer, offset);
++    offset = pos - achieved;
++    uint8_t *dump_buffer = (uint8_t *)CoTaskMemAlloc(6144);
++    while (offset > 0) {
++      bd_read(bd, dump_buffer, min(offset, 6144));
++      offset -= 6144;
++    }
+     CoTaskMemFree(dump_buffer);
+     achieved = bd_tell(bd);
+   }

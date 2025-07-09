@@ -1,0 +1,24 @@
+From 30abc31e2d6b348d777a13b4406ef5f9fe4f0248 Mon Sep 17 00:00:00 2001
+From: Paul Harris <paulharris@computer.org>
+Date: Tue, 18 Nov 2008 17:12:52 +0900
+Subject: [PATCH] On suggestion of Sylvain, we changed from sort() to
+ nth_element in the optimise function - got a good speedup :)
+
+---
+ kdtree++/kdtree.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/kdtree++/kdtree.hpp b/kdtree++/kdtree.hpp
+index 5bc330c..cb275e6 100644
+--- a/kdtree++/kdtree.hpp
++++ b/kdtree++/kdtree.hpp
+@@ -1097,8 +1097,8 @@ namespace KDTree
+       {
+         if (__A == __B) return;
+         _Node_compare_ compare(__L % __K, _M_acc, _M_cmp);
+-        std::sort(__A, __B, compare);
+         _Iter __m = __A + (__B - __A) / 2;
++        std::nth_element(__A, __m, __B, compare);
+         this->insert(*__m);
+         if (__m != __A) _M_optimise(__A, __m, __L+1);
+         if (++__m != __B) _M_optimise(__m, __B, __L+1);

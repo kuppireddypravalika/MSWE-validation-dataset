@@ -1,0 +1,40 @@
+From 7888d773aa62eab20aa17a13ebf2b14d980e397e Mon Sep 17 00:00:00 2001
+From: Roman Lebedev <lebedev.ri@gmail.com>
+Date: Sat, 29 Oct 2016 20:28:15 +0300
+Subject: [PATCH] BitPumpJPEG: peekBitsNoFill(): don't load uint32 from
+ misaligned addresses.
+
+When loading CR2:
+
+/home/lebedevri/darktable/src/external/rawspeed/RawSpeed/BitPumpJPEG.h:53:51:
+runtime error: load of misaligned address 0x557522ca95aa for type
+'uint32', which requires 4 byte alignment
+0x557522ca95aa: note: pointer points here
+ 87 7c  fc cb 1d ff 00 00 00 00  2a ef 62 01 60 00 00 00  0d 00 00 00 00
+00 00 00  e2 22 22 22 22 22
+              ^
+/home/lebedevri/darktable/src/external/rawspeed/RawSpeed/BitPumpJPEG.h:53:51:
+runtime error: load of misaligned address 0x557522ca95a9 for type
+'uint32', which requires 4 byte alignment
+0x557522ca95a9: note: pointer points here
+ bc 87 7c  fc cb 1d ff 00 00 00 00  2a ef 62 01 57 00 00 00  0d 00 00 00
+00 00 00 00  e2 22 22 22 22
+              ^
+---
+ RawSpeed/BitPumpJPEG.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/RawSpeed/BitPumpJPEG.h b/RawSpeed/BitPumpJPEG.h
+index 90a5100..41a8227 100644
+--- a/RawSpeed/BitPumpJPEG.h
++++ b/RawSpeed/BitPumpJPEG.h
+@@ -50,7 +50,8 @@ class BitPumpJPEG
+  __inline uint32 peekBitsNoFill( uint32 nbits )
+  {
+    int shift = mLeft-nbits;
+-   uint32 ret = *(uint32*)&current_buffer[shift>>3];
++   uint32 ret;
++   memcpy(&ret, (uint32*)&current_buffer[shift>>3], sizeof(uint32));
+    ret >>= shift & 7;
+    return ret & ((1 << nbits) - 1);
+  }

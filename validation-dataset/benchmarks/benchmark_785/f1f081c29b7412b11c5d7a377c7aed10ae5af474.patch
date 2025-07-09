@@ -1,0 +1,36 @@
+From f1f081c29b7412b11c5d7a377c7aed10ae5af474 Mon Sep 17 00:00:00 2001
+From: Jessica Paquette <jpaquette@apple.com>
+Date: Mon, 18 Dec 2017 21:44:52 +0000
+Subject: [PATCH] [MachineOutliner][NFC] Gardening: use std::any_of instead of
+ bool + loop
+
+River Riddle suggested to use std::any_of instead of the bool + loop thing on
+r320229. This commit does that.
+---
+ llvm/lib/Target/AArch64/AArch64InstrInfo.cpp | 13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
+
+diff --git a/llvm/lib/Target/AArch64/AArch64InstrInfo.cpp b/llvm/lib/Target/AArch64/AArch64InstrInfo.cpp
+index c7c560a81328..abbba7d1d5a9 100644
+--- a/llvm/lib/Target/AArch64/AArch64InstrInfo.cpp
++++ b/llvm/lib/Target/AArch64/AArch64InstrInfo.cpp
+@@ -4963,16 +4963,9 @@ void AArch64InstrInfo::insertOutlinerEpilogue(
+     MachineBasicBlock &MBB, MachineFunction &MF,
+     const MachineOutlinerInfo &MInfo) const {
+ 
+-  bool ContainsCalls = false;
+-
+-  for (MachineInstr &MI : MBB) {
+-    if (MI.isCall()) {
+-      ContainsCalls = true;
+-      break;
+-    }
+-  }
+-
+-  if (ContainsCalls) {
++  // Is there a call in the outlined range?
++  if (std::any_of(MBB.instr_begin(), MBB.instr_end(),
++                  [](MachineInstr &MI) { return MI.isCall(); })) {
+     // Fix up the instructions in the range, since we're going to modify the
+     // stack.
+     fixupPostOutline(MBB);

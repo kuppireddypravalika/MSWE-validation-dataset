@@ -1,0 +1,24 @@
+From 9a54578fd8cec9284c3623359aac297005dd461f Mon Sep 17 00:00:00 2001
+From: Ryan Houdek <Sonicadvance1@gmail.com>
+Date: Sun, 15 Mar 2020 22:32:23 -0700
+Subject: [PATCH] Minor optimization in vsqxtun for x86
+
+No need to zero the register when we are going to logical shift the
+upper 64bits to the lower 64bits anyway
+---
+ External/FEXCore/Source/Interface/Core/JIT/x86_64/JIT.cpp | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/External/FEXCore/Source/Interface/Core/JIT/x86_64/JIT.cpp b/External/FEXCore/Source/Interface/Core/JIT/x86_64/JIT.cpp
+index 9c2f332175..18108a750d 100644
+--- a/External/FEXCore/Source/Interface/Core/JIT/x86_64/JIT.cpp
++++ b/External/FEXCore/Source/Interface/Core/JIT/x86_64/JIT.cpp
+@@ -2353,8 +2353,6 @@ void *JITCore::CompileCode([[maybe_unused]] FEXCore::IR::IRListView<true> const
+         }
+         case IR::OP_VSQXTUN: {
+           auto Op = IROp->C<IR::IROp_VSQXTUN>();
+-          // Zero the lower bits
+-          vpxor(xmm15, xmm15, xmm15);
+           switch (Op->ElementSize) {
+             case 2:
+               packuswb(xmm15, GetSrc(Op->Header.Args[0].ID()));

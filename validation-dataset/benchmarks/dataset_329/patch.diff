@@ -1,0 +1,26 @@
+From 157219e63d6d6a4a01db6005e799478fc1de6509 Mon Sep 17 00:00:00 2001
+From: Magne Sjaastad <magne.sjaastad@ceetronsolutions.com>
+Date: Fri, 8 Nov 2019 11:12:06 +0100
+Subject: [PATCH] #5015 libecl : Make sure *.UNSMRY is  closed properly after
+ data is read
+
+Earlier attempts to fix this caused major performance issues. Now closing the file stream when reading of vector data is completed, seems to work as expected.
+---
+ ThirdParty/Ert/lib/ecl/ecl_unsmry_loader.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/ThirdParty/Ert/lib/ecl/ecl_unsmry_loader.cpp b/ThirdParty/Ert/lib/ecl/ecl_unsmry_loader.cpp
+index e30b038d890..e8319bfba2a 100644
+--- a/ThirdParty/Ert/lib/ecl/ecl_unsmry_loader.cpp
++++ b/ThirdParty/Ert/lib/ecl/ecl_unsmry_loader.cpp
+@@ -65,6 +65,10 @@ std::vector<double> unsmry_loader::get_vector(int pos) const {
+     data[index] = *data_value;
+   }
+   int_vector_free( index_map );
++
++  if (ecl_file_view_flags_set(file_view, ECL_FILE_CLOSE_STREAM))
++      ecl_file_view_fclose_stream(file_view);
++
+   return data;
+ }
+ 

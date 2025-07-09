@@ -1,0 +1,26 @@
+From 41d94ace3696d467269ecefda952bf3b13c6fdbb Mon Sep 17 00:00:00 2001
+From: Teseo Schneider <teseo@bluewin.ch>
+Date: Wed, 10 Jan 2018 20:11:59 -0500
+Subject: [PATCH] change assembler to spare memory
+
+---
+ cpp/src/assembler/Assembler.hpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/cpp/src/assembler/Assembler.hpp b/cpp/src/assembler/Assembler.hpp
+index cbce7a38b3..f66bc9d24a 100644
+--- a/cpp/src/assembler/Assembler.hpp
++++ b/cpp/src/assembler/Assembler.hpp
+@@ -106,10 +106,11 @@ namespace poly_fem
+ 					}
+ 				}
+ 
+-				if(entries.size() > 1e6)
++				if(entries.size() > 1000)
+ 				{
+ 					tmp.setFromTriplets(entries.begin(), entries.end());
+ 					stiffness += tmp;
++					entries.clear();
+ 				}
+ 			}
+ 

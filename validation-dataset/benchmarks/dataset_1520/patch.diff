@@ -1,0 +1,41 @@
+From 3f0b42e579e972cbcabbfdc067b1f41ca8d9ac74 Mon Sep 17 00:00:00 2001
+From: Mikko Partio <mikko.partio@fmi.fi>
+Date: Wed, 14 Aug 2013 08:20:50 +0000
+Subject: [PATCH] Fixing slow LCL calculation method
+
+---
+ himan-lib/source/util.cpp | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/himan-lib/source/util.cpp b/himan-lib/source/util.cpp
+index b19a79cc1..18da47db9 100644
+--- a/himan-lib/source/util.cpp
++++ b/himan-lib/source/util.cpp
+@@ -477,6 +477,7 @@ const std::vector<double> util::LCL(double P, double T, double TD)
+ 	double PLCL = kFloatMissing;
+ 
+ 	double Torig = T;
++	double Porig = P;
+ 
+ 	short nq = 0;
+ 
+@@ -511,16 +512,16 @@ const std::vector<double> util::LCL(double P, double T, double TD)
+ 
+ 	nq = 0;
+ 
+-	while (++nq <= 1000)
++	while (++nq <= 500)
+ 	{
+-		if ((C * pow(Es(T), kRCp)-T+kKelvin) > 0)
++		if ((C * pow(Es(T), kRCp)-(T+kKelvin)) > 0)
+ 		{
+ 			T -= Tstep;
+ 		}
+ 		else
+ 		{
+ 			TLCL = T;
+-			PLCL = pow((TLCL + kKelvin) / (T+kKelvin), (1/kRCp)) * P;
++			PLCL = pow((TLCL + kKelvin) / (Torig+kKelvin), (1/kRCp)) * Porig;
+ 
+ 			ret[0] = PLCL;
+ 			ret[1] = TLCL;

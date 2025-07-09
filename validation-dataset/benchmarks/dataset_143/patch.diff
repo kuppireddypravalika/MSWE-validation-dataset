@@ -1,0 +1,29 @@
+From 1842eaae79c06ac43b8ae9ca7f82377a47b68b99 Mon Sep 17 00:00:00 2001
+From: wangqr <wangqr@wangqr.tk>
+Date: Sat, 24 Aug 2019 01:16:18 -0400
+Subject: [PATCH] Use absolute distance when scrolling audio box with mouse
+ wheel
+
+Instead of 1/3 screen per tick. So the distance of scroll no longer depends on the width of the audio box. Besides, 1/3 is feels to far for me when the audio box is wide.
+
+See wangqr/Aegisub#5
+---
+ src/audio_box.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/audio_box.cpp b/src/audio_box.cpp
+index 4d1f1518f..dea20cd31 100644
+--- a/src/audio_box.cpp
++++ b/src/audio_box.cpp
+@@ -129,10 +129,9 @@ END_EVENT_TABLE()
+ void AudioBox::OnMouseWheel(wxMouseEvent &evt) {
+ 	if (!ForwardMouseWheelEvent(audioDisplay, evt))
+ 		return;
+-
+ 	bool zoom = evt.CmdDown() != OPT_GET("Audio/Wheel Default to Zoom")->GetBool();
+ 	if (!zoom) {
+-		int amount = -evt.GetWheelRotation() * GetClientSize().GetWidth() / (evt.GetWheelDelta() * 3);
++		int amount = -evt.GetWheelRotation();
+ 		// If the user did a horizontal scroll the amount should be inverted
+ 		// for it to be natural.
+ 		if (evt.GetWheelAxis() == 1) amount = -amount;

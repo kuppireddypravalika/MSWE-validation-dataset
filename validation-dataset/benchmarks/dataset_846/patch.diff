@@ -1,0 +1,40 @@
+From 09775e8896adc7c8b26883cfc7767ebde41c5f46 Mon Sep 17 00:00:00 2001
+From: U-Zyn Chua <chua@uzyn.com>
+Date: Fri, 30 Oct 2020 16:09:56 +0800
+Subject: [PATCH] Improve slope calculation efficiency
+
+---
+ src/masternodes/poolpairs.cpp | 19 ++++++++-----------
+ 1 file changed, 8 insertions(+), 11 deletions(-)
+
+diff --git a/src/masternodes/poolpairs.cpp b/src/masternodes/poolpairs.cpp
+index ee0067de88..a04d6cfb1f 100644
+--- a/src/masternodes/poolpairs.cpp
++++ b/src/masternodes/poolpairs.cpp
+@@ -156,18 +156,15 @@ CAmount CPoolPair::slopeSwap(CAmount unswapped, CAmount &poolFrom, CAmount &pool
+ 
+     arith_uint256 poolF = arith_uint256(poolFrom);
+     arith_uint256 poolT = arith_uint256(poolTo);
++    arith_uint256 unswappedA = arith_uint256(unswapped);
+     arith_uint256 swapped = 0;
+-    CAmount chunk = poolFrom/SLOPE_SWAP_RATE < unswapped ? poolFrom/SLOPE_SWAP_RATE : unswapped;
+-    while (unswapped > 0) {
+-        //arith_uint256 stepFrom = std::min(poolFrom/1000, unswapped); // 0.1%
+-        CAmount stepFrom = std::min(chunk, unswapped);
+-        arith_uint256 stepFrom256(stepFrom);
+-        arith_uint256 stepTo = poolT * stepFrom256 / poolF;
+-        poolF += stepFrom256;
+-        poolT -= stepTo;
+-        unswapped -= stepFrom;
+-        swapped += stepTo;
+-    }
++
++    swapped = poolT * (1 - (poolF / (poolF + unswappedA)));
++    poolF += unswappedA;
++    poolT -= swapped;
++
++    assert(poolF > 0 && poolT > 0 && swapped > 0);
++
+     poolFrom = poolF.GetLow64();
+     poolTo = poolT.GetLow64();
+     return swapped.GetLow64();

@@ -1,0 +1,23 @@
+From fc25f7d923fa9c32ef065f31e6901ceea7718e17 Mon Sep 17 00:00:00 2001
+From: Andrew Mustun <andrew@qcad.org>
+Date: Tue, 9 Mar 2021 11:51:46 +0100
+Subject: [PATCH] performance fix for snapping in uniformly scaled but mirrored
+ blocks (scaled with factors 1/-1 or -1/1)
+
+---
+ src/core/RBlockReferenceData.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/core/RBlockReferenceData.cpp b/src/core/RBlockReferenceData.cpp
+index 579f5d3156..e4b2ba3c6a 100644
+--- a/src/core/RBlockReferenceData.cpp
++++ b/src/core/RBlockReferenceData.cpp
+@@ -673,7 +673,7 @@ QList<QSharedPointer<RShape> > RBlockReferenceData::getShapes(const RBox& queryB
+     }
+ 
+     bool isArray = (columnCount!=1 || rowCount!=1);
+-    bool isUniform = RMath::fuzzyCompare(scaleFactors.x, scaleFactors.y);
++    bool isUniform = RMath::fuzzyCompare(scaleFactors.x, scaleFactors.y) || RMath::fuzzyCompare(scaleFactors.x, -scaleFactors.y);
+ 
+     RBox queryBoxBlockCoordinates;
+     if (queryBox.isValid()) {

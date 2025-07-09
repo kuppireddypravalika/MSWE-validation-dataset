@@ -1,0 +1,26 @@
+From b5b10e967e822019d932f9ae675a8470c87ec680 Mon Sep 17 00:00:00 2001
+From: ldicker83 <leeor_net@yahoo.com>
+Date: Mon, 7 Sep 2020 20:37:10 -0400
+Subject: [PATCH] Modify MapViewState::deployCargoLander() to push resources
+ into storage instead of using the player's cumulative total
+
+---
+ OPHD/States/MapViewStateEvent.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/OPHD/States/MapViewStateEvent.cpp b/OPHD/States/MapViewStateEvent.cpp
+index 815789094..a34a9d881 100644
+--- a/OPHD/States/MapViewStateEvent.cpp
++++ b/OPHD/States/MapViewStateEvent.cpp
+@@ -114,10 +114,9 @@ void MapViewState::deployColonistLander()
+  */
+ void MapViewState::deployCargoLander()
+ {
+-	mPlayerResources = mPlayerResources + StorableResources{25, 25, 15, 15};
+-
+ 	auto cc = static_cast<CommandCenter*>(mTileMap->getTile(ccLocation()).structure());
+ 	cc->foodLevel(cc->foodLevel() + 125);
++	cc->storage() += StorableResources{ 25, 25, 15, 15 };
+ 
+ 	updateStructuresAvailability();
+ }

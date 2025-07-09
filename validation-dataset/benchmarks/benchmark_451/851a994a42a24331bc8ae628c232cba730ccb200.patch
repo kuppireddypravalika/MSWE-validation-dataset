@@ -1,0 +1,23 @@
+From 851a994a42a24331bc8ae628c232cba730ccb200 Mon Sep 17 00:00:00 2001
+From: Benjamin Kramer <benny.kra@googlemail.com>
+Date: Thu, 28 Oct 2010 18:41:23 +0000
+Subject: [PATCH] Reduce malloc thrashing.
+
+llvm-svn: 117572
+---
+ llvm/lib/Target/TargetRegisterInfo.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/llvm/lib/Target/TargetRegisterInfo.cpp b/llvm/lib/Target/TargetRegisterInfo.cpp
+index 55f222c7c1c..f2434a62248 100644
+--- a/llvm/lib/Target/TargetRegisterInfo.cpp
++++ b/llvm/lib/Target/TargetRegisterInfo.cpp
+@@ -82,7 +82,7 @@ BitVector TargetRegisterInfo::getAllocatableSet(const MachineFunction &MF,
+ 
+   // Mask out the reserved registers
+   BitVector Reserved = getReservedRegs(MF);
+-  Allocatable ^= Reserved & Allocatable;
++  Allocatable &= Reserved.flip();
+ 
+   return Allocatable;
+ }

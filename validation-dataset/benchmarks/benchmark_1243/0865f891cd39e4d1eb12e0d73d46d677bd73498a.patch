@@ -1,0 +1,22 @@
+From 0865f891cd39e4d1eb12e0d73d46d677bd73498a Mon Sep 17 00:00:00 2001
+From: Siu Chi Chan <siuchi.chan@amd.com>
+Date: Wed, 24 Jan 2018 21:08:06 +0000
+Subject: [PATCH] instead of appending to the triple string just assign to it
+
+---
+ hc2/headers/types/code_object_bundle.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/hc2/headers/types/code_object_bundle.hpp b/hc2/headers/types/code_object_bundle.hpp
+index 10b27a476a6..2d6bf227d99 100644
+--- a/hc2/headers/types/code_object_bundle.hpp
++++ b/hc2/headers/types/code_object_bundle.hpp
+@@ -69,7 +69,7 @@ namespace hc2
+                     std::copy_n(it, sizeof(y.cbuf), y.cbuf);
+                     it += sizeof(y.cbuf);
+ 
+-                    y.triple.append(it, it + y.triple_sz);
++                    y.triple.assign(it, it + y.triple_sz);
+ 
+                     std::copy_n(
+                         f + y.offset, y.bundle_sz, std::back_inserter(y.blob));

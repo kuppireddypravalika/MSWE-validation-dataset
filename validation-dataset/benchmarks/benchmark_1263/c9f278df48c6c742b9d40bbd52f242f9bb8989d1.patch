@@ -1,0 +1,29 @@
+From c9f278df48c6c742b9d40bbd52f242f9bb8989d1 Mon Sep 17 00:00:00 2001
+From: Wenyu Zhao <wenyuz@fox.moma>
+Date: Wed, 22 Apr 2020 13:53:26 +1000
+Subject: [PATCH] Remove register spilling within allocation fast-path
+
+---
+ openjdk/mmtkBarrierSetAssembler_x86.cpp | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/openjdk/mmtkBarrierSetAssembler_x86.cpp b/openjdk/mmtkBarrierSetAssembler_x86.cpp
+index f3a9be95..6fadde04 100644
+--- a/openjdk/mmtkBarrierSetAssembler_x86.cpp
++++ b/openjdk/mmtkBarrierSetAssembler_x86.cpp
+@@ -59,13 +59,9 @@ void MMTkBarrierSetAssembler::eden_allocate(MacroAssembler* masm, Register threa
+     __ cmpptr(end, obj);
+     __ jcc(Assembler::below, slow_case);
+     // slowpath if end > lab.limit
+-    // FIXME: We are lack of temp registers here... we have to push obj to stack
+-    __ push(obj);
+-    __ movptr(obj, limit);
+-    __ cmpptr(end, obj);
+-    __ pop(obj);
++    __ cmpptr(end, limit);
+     __ jcc(Assembler::above, slow_case);
+-    // lab.limit = end
++    // lab.cursor = end
+     __ movptr(cursor, end);
+     // BarrierSetAssembler::incr_allocated_bytes
+     if (var_size_in_bytes->is_valid()) {

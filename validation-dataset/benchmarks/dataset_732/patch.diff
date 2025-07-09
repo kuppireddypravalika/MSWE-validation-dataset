@@ -1,0 +1,34 @@
+From 560a81b913f23800e286d297d8cd38e72a207641 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Va=CC=81clav=20Slavi=CC=81k?= <vaclav@slavik.io>
+Date: Wed, 8 May 2019 18:28:34 +0200
+Subject: [PATCH] wxDVC: Don't calculate hidden columns' widths
+
+Don't call wxDataViewColumn::GetWidth() in OnPaint() for columns that
+are hidden: they won't be drawn and their width won't affect anything.
+The call looks deceptively simple, but may invoke best width
+recalculation that can be very expensive on large models.
+---
+ src/generic/datavgen.cpp | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/src/generic/datavgen.cpp b/src/generic/datavgen.cpp
+index 178a3c886f07..704e0ac4b31a 100644
+--- a/src/generic/datavgen.cpp
++++ b/src/generic/datavgen.cpp
+@@ -2508,11 +2508,13 @@ void wxDataViewMainWindow::OnPaint( wxPaintEvent &WXUNUSED(event) )
+     for (unsigned int i = col_start; i < col_last; i++)
+     {
+         wxDataViewColumn *col = GetOwner()->GetColumnAt( i );
++        if ( col->IsHidden() )
++            continue;       // skip it!
++
+         wxDataViewRenderer *cell = col->GetRenderer();
+         cell_rect.width = col->GetWidth();
+-
+-        if ( col->IsHidden() || cell_rect.width <= 0 )
+-            continue;       // skip it!
++        if ( cell_rect.width <= 0 )
++            continue;
+ 
+         cell_rect.y = first_line_start;
+         for (unsigned int item = item_start; item < item_last; item++)

@@ -1,0 +1,24 @@
+From e3f2bf7fcf4200db21be7dec61d6271f9b53fdc1 Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Thu, 10 Dec 2020 15:29:10 -0700
+Subject: [PATCH] Use ListBox::selectIf in FactoryReport
+
+This should improve efficiency, since it is cheaper to compare by the
+tag value, rather than by text string.
+---
+ OPHD/UI/Reports/FactoryReport.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/OPHD/UI/Reports/FactoryReport.cpp b/OPHD/UI/Reports/FactoryReport.cpp
+index 8d47a344f..135fd15da 100644
+--- a/OPHD/UI/Reports/FactoryReport.cpp
++++ b/OPHD/UI/Reports/FactoryReport.cpp
+@@ -419,7 +419,7 @@ void FactoryReport::lstFactoryListSelectionChanged()
+ 			lstProducts.addItem(productDescription(item), static_cast<int>(item));
+ 		}
+ 	}
+-	lstProducts.setSelectedByName(productDescription(selectedFactory->productType()));
++	lstProducts.selectIf([productType = selectedFactory->productType()](const auto& item){ return item.tag == productType; });
+ 	selectedProductType = selectedFactory->productType();
+ 
+ 	StructureState _state = selectedFactory->state();

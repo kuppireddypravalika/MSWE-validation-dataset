@@ -1,0 +1,32 @@
+From 3e47435d68658587ba7acdaf32070d8eb47a8cf6 Mon Sep 17 00:00:00 2001
+From: Z Stern <zalman@zalman-macbookpro2.roam.corp.google.com>
+Date: Tue, 26 Dec 2017 06:15:22 -0800
+Subject: [PATCH] Attempt to elide Hexagon offload passes if they are not
+ enabled. Mostly to eliminate superfluous debug output which has been annoying
+ me for a fair while.
+
+---
+ src/Lower.cpp | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/src/Lower.cpp b/src/Lower.cpp
+index b091920b88..94f65dcc30 100644
+--- a/src/Lower.cpp
++++ b/src/Lower.cpp
+@@ -318,9 +318,13 @@ Module lower(const vector<Function> &output_funcs, const string &pipeline_name,
+     s = loop_invariant_code_motion(s);
+     debug(1) << "Lowering after final simplification:\n" << s << "\n\n";
+ 
+-    debug(1) << "Splitting off Hexagon offload...\n";
+-    s = inject_hexagon_rpc(s, t, result_module);
+-    debug(2) << "Lowering after splitting off Hexagon offload:\n" << s << '\n';
++    if (t.arch != Target::Hexagon && (t.features_any_of({Target::HVX_64, Target::HVX_128}))) {
++        debug(1) << "Splitting off Hexagon offload...\n";
++        s = inject_hexagon_rpc(s, t, result_module);
++        debug(2) << "Lowering after splitting off Hexagon offload:\n" << s << '\n';
++    } else {
++        debug(1) << "Skipping Hexagon offload...\n";
++    }
+ 
+     if (!custom_passes.empty()) {
+         for (size_t i = 0; i < custom_passes.size(); i++) {

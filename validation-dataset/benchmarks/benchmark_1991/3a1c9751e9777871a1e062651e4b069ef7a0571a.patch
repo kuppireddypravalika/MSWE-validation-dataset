@@ -1,0 +1,57 @@
+From 3a1c9751e9777871a1e062651e4b069ef7a0571a Mon Sep 17 00:00:00 2001
+From: George Rimar <grimar@accesssoftek.com>
+Date: Wed, 21 Dec 2016 08:11:49 +0000
+Subject: [PATCH] [ELF] - Fix use of freed memory.
+
+It was revealed by D27831.
+
+If we have linkerscript that includes another one that sets OUTPUT for example:
+
+RUN: echo "INCLUDE \"foo.script\"" > %t.script
+RUN: echo "OUTPUT(\"%t.out\")" > %T/foo.script
+then we do:
+
+void ScriptParser::readInclude() {
+...
+  std::unique_ptr<MemoryBuffer> &MB = *MBOrErr;
+  tokenize(MB->getMemBufferRef());
+  OwningMBs.push_back(std::move(MB));
+}
+
+void ScriptParser::readOutput() {
+...
+    Config->OutputFile = unquote(Tok);
+...
+}
+Problem is that OwningMBs are destroyed after script parser do its job.
+So all Toks are dead and Config->OutputFile points to destroyed data.
+
+Patch suggests to save all included scripts into using string Saver.
+
+Differential revision: https://reviews.llvm.org/D27987
+---
+ lld/ELF/LinkerScript.cpp | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/lld/ELF/LinkerScript.cpp b/lld/ELF/LinkerScript.cpp
+index 53daaa6743d9..3e229b0eaa0d 100644
+--- a/lld/ELF/LinkerScript.cpp
++++ b/lld/ELF/LinkerScript.cpp
+@@ -1030,7 +1030,6 @@ class elf::ScriptParser final : public ScriptParserBase {
+ 
+   ScriptConfiguration &Opt = *ScriptConfig;
+   bool IsUnderSysroot;
+-  std::vector<std::unique_ptr<MemoryBuffer>> OwningMBs;
+ };
+ 
+ void ScriptParser::readDynamicList() {
+@@ -1180,8 +1179,7 @@ void ScriptParser::readInclude() {
+     return;
+   }
+   std::unique_ptr<MemoryBuffer> &MB = *MBOrErr;
+-  tokenize(MB->getMemBufferRef());
+-  OwningMBs.push_back(std::move(MB));
++  tokenize({Saver.save(MB->getBuffer()), unquote(Tok)});
+ }
+ 
+ void ScriptParser::readOutput() {

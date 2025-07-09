@@ -1,0 +1,35 @@
+From 1db5b9a712b17636513f6a09550b97d7cd111777 Mon Sep 17 00:00:00 2001
+From: Mars Saxman <mars.saxman@intel.com>
+Date: Wed, 10 Oct 2018 09:57:41 -0700
+Subject: [PATCH] negotiate thread-pool kernel execution with fewer context
+ switches
+
+---
+ tile/hal/cpu/executable.cc | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/tile/hal/cpu/executable.cc b/tile/hal/cpu/executable.cc
+index af0fe6bb3c..371dfd077e 100644
+--- a/tile/hal/cpu/executable.cc
++++ b/tile/hal/cpu/executable.cc
+@@ -79,16 +79,15 @@ std::shared_ptr<hal::Event> Executable::Run(const context::Context& ctx, std::si
+         }
+         {
+           std::unique_lock<std::mutex> lock(mutex);
+-          ++completed;
+-          cv.notify_all();
++          if (++completed == threads) {
++            cv.notify_all();
++          }
+         }
+       });
+     }
+     {
+       std::unique_lock<std::mutex> lock(mutex);
+-      while (completed < threads) {
+-        cv.wait(lock);
+-      }
++      cv.wait(lock, [&]() { return threads <= completed; });
+     }
+ 
+     return std::make_shared<Result>(act.ctx(), "tile::hal::cpu::Executing", start,

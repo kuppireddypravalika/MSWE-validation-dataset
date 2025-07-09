@@ -1,0 +1,72 @@
+You are provided with a benchmark optimization scenario. Evaluate it carefully along the following four dimensions, using a Likert scale (1-5), where:
+
+**Conceptual Depth (1-5):**
+
+* 1: Very superficial; trivial or obvious optimization.
+* 2: Basic optimization requiring minimal insight.
+* 3: Moderate depth; some reasoning needed.
+* 4: Significant depth; nuanced reasoning required.
+* 5: Very high depth; deep and sophisticated reasoning needed.
+
+**Diagnostic Value (1-5):**
+
+* 1: Very low; doesn't effectively differentiate model capabilities.
+* 2: Low; limited differentiation power.
+* 3: Moderate; moderately effective for differentiating model capabilities.
+* 4: High; clearly differentiates between advanced and basic models.
+* 5: Very high; exceptionally effective at highlighting subtle model differences.
+
+**Optimization Complexity (1-5):**
+
+* 1: Single trivial or minimal optimization.
+* 2: Simple optimization; localized changes only.
+* 3: Moderate; multiple straightforward optimizations or moderate structural change.
+* 4: High; involves substantial restructuring or multiple impactful optimizations.
+* 5: Very high; significant multi-dimensional optimizations, highly complex structural changes.
+
+**Domain-Specific Knowledge (1-5):**
+
+* 1: Completely general; no specialized domain knowledge required.
+* 2: Slightly domain-specific; minimal familiarity helpful.
+* 3: Moderately domain-specific; some specialized knowledge beneficial.
+* 4: Strongly domain-specific; requires good understanding of specific domain concepts.
+* 5: Highly domain-specific; requires deep specialized knowledge.
+
+---
+
+### Few-Shot Examples:
+
+**Example 1:**
+*Optimization:* Replace indirect iterator-based traversal with direct indexing in a tight loop.
+
+* Conceptual Depth: 2 (Basic optimization requiring minimal insight)
+* Diagnostic Value: 2 (Low differentiation; common optimization)
+* Optimization Complexity: 2 (Simple, localized change)
+* Domain-Specific Knowledge: 1 (Completely general)
+
+**Example 2:**
+*Optimization:* Change sorting algorithm from Bubble Sort (O(n²)) to QuickSort (O(n log n)), involving restructuring data handling logic.
+
+* Conceptual Depth: 4 (Significant depth; nuanced reasoning)
+* Diagnostic Value: 5 (Clearly differentiates between advanced and basic models)
+* Optimization Complexity: 4 (High; substantial restructuring)
+* Domain-Specific Knowledge: 2 (Slightly domain-specific; general algorithmic knowledge)
+
+**Example 3:**
+*Optimization:* Introduce caching mechanisms to prevent repeated expensive database queries in a web application, considering cache invalidation logic.
+
+Provide your ratings in JSON format using the keys 'conceptual_depth', 'diagnostic_value', 'optimization_complexity', and 'domain_specific_knowledge'.
+
+Benchmark '{bench}':
+
+Original implementation:
+{orig}
+
+Optimized implementation:
+{opt}
+
+Patch diff:
+{patch}
+
+Upstream before/after code:
+{before_after}

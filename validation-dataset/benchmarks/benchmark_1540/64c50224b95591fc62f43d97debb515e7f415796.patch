@@ -1,0 +1,50 @@
+From 64c50224b95591fc62f43d97debb515e7f415796 Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@qt.io>
+Date: Wed, 20 Sep 2023 21:30:10 +0200
+Subject: [PATCH] Port qSwap()'s exception detection to C++17
+ std::is_nothrow_swappable
+
+It's been available since C++17, and since we compile the trait
+anyway, using it will probably speed up instantiation of qSwap()
+(didn't test, just guesstimating).
+
+Change-Id: If77ca71a8021a73edf4864bdd9e5fce517dcabb1
+Reviewed-by: Giuseppe D'Angelo <giuseppe.dangelo@kdab.com>
+---
+ src/corelib/global/qswap.h | 14 ++------------
+ 1 file changed, 2 insertions(+), 12 deletions(-)
+
+diff --git a/src/corelib/global/qswap.h b/src/corelib/global/qswap.h
+index 7feff5eb08d..8ea0d3a16f0 100644
+--- a/src/corelib/global/qswap.h
++++ b/src/corelib/global/qswap.h
+@@ -7,6 +7,7 @@
+ #include <QtCore/qtconfigmacros.h>
+ #include <QtCore/qcompilerdetection.h>
+ 
++#include <type_traits>
+ #include <utility>
+ 
+ #if 0
+@@ -20,20 +21,9 @@ QT_WARNING_PUSH
+ // warning: noexcept-expression evaluates to 'false' because of a call to 'void swap(..., ...)'
+ QT_WARNING_DISABLE_GCC("-Wnoexcept")
+ 
+-namespace QtPrivate
+-{
+-namespace SwapExceptionTester { // insulate users from the "using std::swap" below
+-    using std::swap; // import std::swap
+-    template <typename T>
+-    void checkSwap(T &t)
+-        noexcept(noexcept(swap(t, t)));
+-    // declared, but not implemented (only to be used in unevaluated contexts (noexcept operator))
+-}
+-} // namespace QtPrivate
+-
+ template <typename T>
+ constexpr void qSwap(T &value1, T &value2)
+-    noexcept(noexcept(QtPrivate::SwapExceptionTester::checkSwap(value1)))
++    noexcept(std::is_nothrow_swappable_v<T>)
+ {
+     using std::swap;
+     swap(value1, value2);

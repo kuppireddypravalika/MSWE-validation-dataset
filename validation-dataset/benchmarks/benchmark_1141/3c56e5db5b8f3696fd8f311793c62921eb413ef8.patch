@@ -1,0 +1,26 @@
+From 3c56e5db5b8f3696fd8f311793c62921eb413ef8 Mon Sep 17 00:00:00 2001
+From: boda sadalla <boda998@yahoo.com>
+Date: Tue, 10 Mar 2020 16:35:31 +0200
+Subject: [PATCH] Improve optimisation of always-matching OP_VALUE_GE
+
+We now also apply this optimisation when the value slot's lower bound
+is equal to the limit of the OP_VALUE_GE.
+
+Testcase valuege1 exercises this edge case.
+---
+ xapian-core/api/queryinternal.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/xapian-core/api/queryinternal.cc b/xapian-core/api/queryinternal.cc
+index 8b3a4cda356..957f307eb0f 100644
+--- a/xapian-core/api/queryinternal.cc
++++ b/xapian-core/api/queryinternal.cc
+@@ -1314,7 +1314,7 @@ QueryValueGE::postlist(QueryOptimiser *qopt, double factor) const
+     if (limit > db.get_value_upper_bound(slot)) {
+ 	RETURN(NULL);
+     }
+-    if (limit < lb) {
++    if (limit <= lb) {
+ 	// The range check isn't needed, but we do still need to consider
+ 	// which documents have a value set in this slot.  If this value is
+ 	// set for all documents, we can replace it with the MatchAll

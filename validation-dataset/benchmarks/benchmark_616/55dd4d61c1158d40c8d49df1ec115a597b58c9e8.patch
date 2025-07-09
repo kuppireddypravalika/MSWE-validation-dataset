@@ -1,0 +1,26 @@
+From 55dd4d61c1158d40c8d49df1ec115a597b58c9e8 Mon Sep 17 00:00:00 2001
+From: emoose <abc@cock.li>
+Date: Sat, 10 Aug 2024 15:06:16 +0100
+Subject: [PATCH] idaloader: mark gprlr funcs as outline to improve
+ decompilation
+
+---
+ idaloader.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/idaloader.cpp b/idaloader.cpp
+index 142221a..ced23ad 100644
+--- a/idaloader.cpp
++++ b/idaloader.cpp
+@@ -63,7 +63,10 @@ void label_regsaveloads(ea_t start, ea_t end)
+         create_insn(addr);
+ 
+         set_name(addr, qstring().sprnt(pattern_labels[pat_idx], i).c_str(), SN_FORCE);
+-        add_func(addr, addr + size);
++
++        func_t fn(addr, addr + size);
++        fn.flags |= FUNC_OUTLINE;
++        add_func_ex(&fn);
+ 
+         addr += size;
+       }

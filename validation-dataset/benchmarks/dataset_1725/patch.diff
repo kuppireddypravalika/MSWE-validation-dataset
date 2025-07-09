@@ -1,0 +1,32 @@
+From fd941ebb6f504c3397e5793992397829fd92a95d Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Fri, 4 Mar 2016 11:09:18 +0100
+Subject: [PATCH] QHttpNetworkConnection: fix expensive iteration over
+ QMultiMap::values()
+
+Just iterate over the container instead, saving one
+iteration and the creation of a temporary QList.
+
+Change-Id: I564e3e83cb247a12c413fc5a9dc17299ae089e30
+Reviewed-by: Lars Knoll <lars.knoll@theqtcompany.com>
+---
+ src/network/access/qhttpnetworkconnection.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/src/network/access/qhttpnetworkconnection.cpp b/src/network/access/qhttpnetworkconnection.cpp
+index 15a886c21d1b..3489c3a1ccaf 100644
+--- a/src/network/access/qhttpnetworkconnection.cpp
++++ b/src/network/access/qhttpnetworkconnection.cpp
+@@ -1180,10 +1180,9 @@ void QHttpNetworkConnectionPrivate::_q_hostLookupFinished(const QHostInfo &info)
+         }
+ #ifndef QT_NO_SSL
+         else if (connectionType == QHttpNetworkConnection::ConnectionTypeSPDY) {
+-            QList<HttpMessagePair> spdyPairs = channels[0].spdyRequestsToSend.values();
+-            for (int a = 0; a < spdyPairs.count(); ++a) {
++            for (const HttpMessagePair &spdyPair : qAsConst(channels[0].spdyRequestsToSend)) {
+                 // emit error for all replies
+-                QHttpNetworkReply *currentReply = spdyPairs.at(a).second;
++                QHttpNetworkReply *currentReply = spdyPair.second;
+                 Q_ASSERT(currentReply);
+                 emitReplyError(channels[0].socket, currentReply, QNetworkReply::HostNotFoundError);
+             }

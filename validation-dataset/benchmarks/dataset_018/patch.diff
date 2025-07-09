@@ -1,0 +1,24 @@
+From cf1425f9d1b269d1ebfc4b595703bdad6f044179 Mon Sep 17 00:00:00 2001
+From: Thomas Goyne <plorkyeran@aegisub.org>
+Date: Tue, 31 Jan 2012 00:43:06 +0000
+Subject: [PATCH] Don't get the strings for hidden columns when painting the
+ grid. Speeds up grid painting by up to 25%.
+
+Originally committed to SVN as r6390.
+---
+ aegisub/src/base_grid.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/aegisub/src/base_grid.cpp b/aegisub/src/base_grid.cpp
+index ea7c9b852..b1aae5183 100644
+--- a/aegisub/src/base_grid.cpp
++++ b/aegisub/src/base_grid.cpp
+@@ -452,7 +452,7 @@ void BaseGrid::OnPaint(wxPaintEvent &) {
+ 		wxRect updrect = region.GetRect();
+ 		int x = 0;
+ 		for (size_t i = 0; i < 11; ++i) {
+-			if (updrect.x < x + colWidth[i] && updrect.x + updrect.width > x)
++			if (updrect.x < x + colWidth[i] && updrect.x + updrect.width > x && colWidth[i])
+ 				paint_columns[i] = true;
+ 			x += colWidth[i];
+ 		}

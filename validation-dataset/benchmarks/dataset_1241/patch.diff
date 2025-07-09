@@ -1,0 +1,24 @@
+From 7df467b391ec6bfd448245cff9965cac45927170 Mon Sep 17 00:00:00 2001
+From: Morwenn <morwenn29@hotmail.fr>
+Date: Tue, 10 Jan 2017 20:01:19 +0100
+Subject: [PATCH] Improve ska_sort (change from skarupke/ska_sort)
+
+---
+ include/cpp-sort/detail/ska_sort.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/include/cpp-sort/detail/ska_sort.h b/include/cpp-sort/detail/ska_sort.h
+index 636156da..1009c6c3 100644
+--- a/include/cpp-sort/detail/ska_sort.h
++++ b/include/cpp-sort/detail/ska_sort.h
+@@ -949,8 +949,8 @@ namespace detail
+                   Projection projection)
+         -> void
+     {
+-        detail::inplace_radix_sort<128, 128>(std::move(begin), std::move(end),
+-                                             std::move(projection));
++        detail::inplace_radix_sort<128, 1024>(std::move(begin), std::move(end),
++                                              std::move(projection));
+     }
+ }}
+ 

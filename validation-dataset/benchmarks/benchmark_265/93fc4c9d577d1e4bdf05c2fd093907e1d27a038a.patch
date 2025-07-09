@@ -1,0 +1,31 @@
+From 93fc4c9d577d1e4bdf05c2fd093907e1d27a038a Mon Sep 17 00:00:00 2001
+From: sgehwolf <unknown>
+Date: Tue, 2 Oct 2018 17:17:43 +0200
+Subject: [PATCH] 8211387: [Zero] atomic_copy64: Use ldrexd for atomic reads on
+ ARMv7 Reviewed-by: dholmes, aph Contributed-by: Andrew Haley <aph@redhat.com>
+
+---
+ src/os_cpu/linux_zero/vm/os_linux_zero.hpp | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/src/os_cpu/linux_zero/vm/os_linux_zero.hpp b/src/os_cpu/linux_zero/vm/os_linux_zero.hpp
+index 0f1ad1668..e1a80d7df 100644
+--- a/src/os_cpu/linux_zero/vm/os_linux_zero.hpp
++++ b/src/os_cpu/linux_zero/vm/os_linux_zero.hpp
+@@ -54,6 +54,16 @@
+                   "std %0, %1\n"
+                   : "=&f"(tmp), "=Q"(*(volatile double*)dst)
+                   : "Q"(*(volatile double*)src));
++#elif defined(__ARM_ARCH_7A__)
++    // Note that a ldrexd + clrex combination is only needed for
++    // correctness on the OS level (context-switches). In this
++    // case, clrex *may* be beneficial for performance. For now
++    // don't bother with clrex as this is Zero.
++    jlong tmp;
++    asm volatile ("ldrexd  %0, [%1]\n"
++                  : "=r"(tmp)
++                  : "r"(src), "m"(src));
++    *(jlong *) dst = tmp;
+ #else
+     *(jlong *) dst = *(jlong *) src;
+ #endif

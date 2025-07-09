@@ -1,0 +1,28 @@
+From 04311c64c61712bba524cd21915d2aed56ddba3e Mon Sep 17 00:00:00 2001
+From: Magne Sjaastad <magne.sjaastad@ceetronsolutions.com>
+Date: Thu, 21 May 2020 07:42:22 +0200
+Subject: [PATCH] Performance : Move construction of AABB tree out of parallel
+ loop
+
+Crash seen for regression test TestCase_Surfaces
+---
+ .../Surfaces/RivSurfaceIntersectionGeometryGenerator.cpp    | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/ApplicationCode/ModelVisualization/Surfaces/RivSurfaceIntersectionGeometryGenerator.cpp b/ApplicationCode/ModelVisualization/Surfaces/RivSurfaceIntersectionGeometryGenerator.cpp
+index f07ccf33b39..bd658ab11c1 100644
+--- a/ApplicationCode/ModelVisualization/Surfaces/RivSurfaceIntersectionGeometryGenerator.cpp
++++ b/ApplicationCode/ModelVisualization/Surfaces/RivSurfaceIntersectionGeometryGenerator.cpp
+@@ -157,6 +157,12 @@ void RivSurfaceIntersectionGeometryGenerator::calculateArrays()
+     m_triVxToCellCornerWeights.reserve( nativeTriangleIndices.size() * 24 );
+     outputTriangleVertices.reserve( nativeTriangleIndices.size() * 24 );
+ 
++    // Ensure AABB search tree is constructed outside parallel loop
++    {
++        std::vector<size_t> triIntersectedCellCandidates;
++        m_hexGrid->findIntersectingCells( cvf::BoundingBox(), &triIntersectedCellCandidates );
++    }
++
+ #pragma omp parallel num_threads( 6 ) // More threads have nearly no effect
+     {
+         // Loop local memory allocation.

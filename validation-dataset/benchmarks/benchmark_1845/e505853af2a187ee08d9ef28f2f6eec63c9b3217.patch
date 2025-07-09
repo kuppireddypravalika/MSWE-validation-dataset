@@ -1,0 +1,28 @@
+From e505853af2a187ee08d9ef28f2f6eec63c9b3217 Mon Sep 17 00:00:00 2001
+From: Jeff Walden <jwalden@mit.edu>
+Date: Thu, 7 Jan 2010 17:09:48 -0600
+Subject: [PATCH] Adjust lookupswitch to bail if the value switched upon is not
+ primitive, not if it's not a bunch of different types, for a little more
+ efficiency.  r=brendan
+
+---
+ js/src/jsops.cpp | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/js/src/jsops.cpp b/js/src/jsops.cpp
+index 7687d5dafb9..faacdc8b0ec 100644
+--- a/js/src/jsops.cpp
++++ b/js/src/jsops.cpp
+@@ -2558,11 +2558,8 @@ BEGIN_CASE(JSOP_LOOKUPSWITCH)
+     pc2 = regs.pc;
+     lval = POP_OPND();
+ 
+-    if (!JSVAL_IS_NUMBER(lval) &&
+-        !JSVAL_IS_STRING(lval) &&
+-        !JSVAL_IS_SPECIAL(lval)) {
++    if (!JSVAL_IS_PRIMITIVE(lval))
+         goto end_lookup_switch;
+-    }
+ 
+     pc2 += off;
+     npairs = (jsint) GET_UINT16(pc2);

@@ -1,0 +1,40 @@
+From 257cc69bedebf924bcabf0ff24e237b8705260ad Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Tue, 9 Feb 2016 12:28:04 +0100
+Subject: [PATCH] Optimize string building in QImage::text()
+
+- Don't iterate over QMap::keys(), but directly
+  over the map, saving a temporary QList and
+  double lookups.
+- Always append the item separator, and chop
+  it off once at the end, which allows to
+  fold the separator into the existing string
+  builder expression.
+
+Change-Id: Ibd20ea292695098e0fc575025b1827a75aabfd1e
+Reviewed-by: Olivier Goffart (Woboq GmbH) <ogoffart@woboq.com>
+Reviewed-by: Lars Knoll <lars.knoll@theqtcompany.com>
+---
+ src/gui/image/qimage.cpp | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/src/gui/image/qimage.cpp b/src/gui/image/qimage.cpp
+index 24838080e753..37b7b1852225 100644
+--- a/src/gui/image/qimage.cpp
++++ b/src/gui/image/qimage.cpp
+@@ -3752,11 +3752,10 @@ QString QImage::text(const QString &key) const
+         return d->text.value(key);
+ 
+     QString tmp;
+-    foreach (const QString &key, d->text.keys()) {
+-        if (!tmp.isEmpty())
+-            tmp += QLatin1String("\n\n");
+-        tmp += key + QLatin1String(": ") + d->text.value(key).simplified();
+-    }
++    for (auto it = d->text.begin(), end = d->text.end(); it != end; ++it)
++        tmp += it.key() + QLatin1String(": ") + it.value().simplified() + QLatin1String("\n\n");
++    if (!tmp.isEmpty())
++        tmp.chop(2); // remove final \n\n
+     return tmp;
+ }
+ 

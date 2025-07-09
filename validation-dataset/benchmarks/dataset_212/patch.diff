@@ -1,0 +1,25 @@
+From 20298c8025d66d98bcd0ba28a4ed436b8785b955 Mon Sep 17 00:00:00 2001
+From: juhl <jufoot@icloud.com>
+Date: Sun, 4 Jun 2017 11:58:26 +0900
+Subject: [PATCH] Adjust effort parameter for the speed
+
+---
+ .../Source/BlueshiftEngine/Private/Image/ImageCompressETC.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Engine/Source/BlueshiftEngine/Private/Image/ImageCompressETC.cpp b/Engine/Source/BlueshiftEngine/Private/Image/ImageCompressETC.cpp
+index 83e0b4c0c..10c6ab716 100644
+--- a/Engine/Source/BlueshiftEngine/Private/Image/ImageCompressETC.cpp
++++ b/Engine/Source/BlueshiftEngine/Private/Image/ImageCompressETC.cpp
+@@ -25,9 +25,9 @@ BE_NAMESPACE_BEGIN
+ static float QualityToEffort(Image::CompressionQuality compressoinQuality) {   
+     switch (compressoinQuality) {
+     case Image::HighQuality:
+-        return 60;
++        return 2; // speed is important than quality
+     case Image::Normal:
+-        return 40;
++        return 1;
+     case Image::Fast:
+         return 0;
+     }

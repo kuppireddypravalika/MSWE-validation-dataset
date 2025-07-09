@@ -1,0 +1,25 @@
+From c5c306f90c24eeec6b6c6b1b60edb4f8bfcfb020 Mon Sep 17 00:00:00 2001
+From: Niels Martin Hansen <nielsm@aegisub.org>
+Date: Sat, 26 Jun 2010 15:49:05 +0000
+Subject: [PATCH] Make SubtitlesGrid::InsertLine() smarter about updating maps,
+ saves quite a lot of time on big insertions.
+
+Originally committed to SVN as r4609.
+---
+ aegisub/src/subs_grid.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/aegisub/src/subs_grid.cpp b/aegisub/src/subs_grid.cpp
+index 070ea71df..a985465dc 100644
+--- a/aegisub/src/subs_grid.cpp
++++ b/aegisub/src/subs_grid.cpp
+@@ -875,7 +875,8 @@ void SubtitlesGrid::InsertLine(AssDialogue *line,int n,bool after,bool update) {
+ 	else pos = ass->Line.end();
+ 	
+ 	entryIter newIter = ass->Line.insert(pos,line);
+-	UpdateMaps();
++	line_iter_map[line] = newIter;
++	BaseGrid::UpdateMaps();
+ 
+ 	// Update
+ 	if (update) {

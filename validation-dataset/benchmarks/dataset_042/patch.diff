@@ -1,0 +1,35 @@
+From 5e7653d62ee38e9153c97a7a070eeeb1005f0b46 Mon Sep 17 00:00:00 2001
+From: Flamefire <Flamefire@users.noreply.github.com>
+Date: Sat, 25 Jul 2020 12:28:06 +0200
+Subject: [PATCH] Run lua code only once to check value equality of the result
+
+---
+ tests/s25Main/lua/LuaBaseFixture.h | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/tests/s25Main/lua/LuaBaseFixture.h b/tests/s25Main/lua/LuaBaseFixture.h
+index 16d50bfbd0..3d3be18ff2 100644
+--- a/tests/s25Main/lua/LuaBaseFixture.h
++++ b/tests/s25Main/lua/LuaBaseFixture.h
+@@ -22,6 +22,7 @@
+ #include "lua/LuaInterfaceGameBase.h"
+ #include <boost/format.hpp>
+ #include <boost/test/unit_test.hpp>
++#include <sstream>
+ 
+ /// Provide lua execution methods and check if lua values equal given value
+ class LuaBaseFixture
+@@ -43,7 +44,12 @@ class LuaBaseFixture
+     {
+         try
+         {
+-            executeLua(std::string("assert(") + luaVal + "==" + expectedValue + ", 'xxx=' .. tostring(" + luaVal + "))");
++            std::ostringstream ss;
++            // Save to temporaries to run code only once
++            ss << "_isVal = " << luaVal << "\n";
++            ss << "_expectedVal = " << expectedValue << "\n";
++            ss << "assert(_isVal == _expectedVal, 'xxx=' .. tostring(_isVal))";
++            executeLua(ss.str());
+         } catch(std::runtime_error& e)
+         {
+             boost::test_tools::predicate_result result(false);

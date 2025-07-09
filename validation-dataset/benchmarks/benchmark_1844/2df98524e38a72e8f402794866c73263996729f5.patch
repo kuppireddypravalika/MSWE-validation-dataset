@@ -1,0 +1,27 @@
+From 2df98524e38a72e8f402794866c73263996729f5 Mon Sep 17 00:00:00 2001
+From: winkelma <winkelma>
+Date: Wed, 29 Sep 2004 14:57:52 +0000
+Subject: [PATCH] turned abs into fabs, because std::abs is not called any more
+
+---
+ life/lifealg/vectorNorms.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/life/lifealg/vectorNorms.cpp b/life/lifealg/vectorNorms.cpp
+index 7b96d48dd..c0fb8f4e0 100644
+--- a/life/lifealg/vectorNorms.cpp
++++ b/life/lifealg/vectorNorms.cpp
+@@ -23,10 +23,10 @@ namespace LifeV
+ {
+ 
+ Real maxnorm(const Vector& v) {
+-  Real max = abs(v[0]);
++  Real max = fabs(v[0]);
+   for (UInt i=1; i<v.size(); ++i) {
+-    if ( abs(v[i]) > max )
+-      max =  abs(v[i]);
++    if ( fabs(v[i]) > max )
++      max =  fabs(v[i]);
+   }
+   return max;
+ }

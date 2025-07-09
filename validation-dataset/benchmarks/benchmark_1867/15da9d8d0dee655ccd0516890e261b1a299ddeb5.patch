@@ -1,0 +1,24 @@
+From 15da9d8d0dee655ccd0516890e261b1a299ddeb5 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Beno=C3=AEt=20Jacob?= <jacob.benoit.1@gmail.com>
+Date: Thu, 21 Aug 2008 23:51:16 +0000
+Subject: [PATCH] Just realized that qAbs does a runtime branching. That's
+ really not optimized! So, use std::abs instead.
+
+svn path=/trunk/koffice/; revision=850670
+---
+ krita/image/kis_perspective_math.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/krita/image/kis_perspective_math.cpp b/krita/image/kis_perspective_math.cpp
+index 11d1d4a2840..ab200928e4e 100644
+--- a/krita/image/kis_perspective_math.cpp
++++ b/krita/image/kis_perspective_math.cpp
+@@ -134,7 +134,7 @@ QPointF KisPerspectiveMath::computeIntersection(const KisPerspectiveMath::LineEq
+     // whether the two lines are approximately parallel.
+     if(Eigen::ei_isMuchSmallerThan(det, qreal(1)))
+     {   // special case where the two lines are approximately parallel. Pick any point on the first line.
+-        if(qAbs(d1.b)>qAbs(d1.a))
++        if(std::abs(d1.b)>std::abs(d1.a))
+             return QPointF(d1.b, d1.c/d1.b-d1.a);
+         else
+             return QPointF(d1.c/d1.a-d1.b, d1.a);

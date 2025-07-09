@@ -1,0 +1,37 @@
+From 031675dd03a8fc9090925f35a5617864ca31c300 Mon Sep 17 00:00:00 2001
+From: Jay Foad <jay.foad@amd.com>
+Date: Thu, 19 May 2022 15:14:38 +0100
+Subject: [PATCH] Use min/max intrinsics for subgroup operations (#1793)
+
+Use standard LLVM min/max intrinsics for subgroup operations
+instead of creating separate compare and select instructions. This
+matches what the SPIRV reader already does for normal (non-
+subgroup) min/max operations.
+---
+ lgc/builder/SubgroupBuilder.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/lgc/builder/SubgroupBuilder.cpp b/lgc/builder/SubgroupBuilder.cpp
+index 05f8eb293f..63aef4ee44 100644
+--- a/lgc/builder/SubgroupBuilder.cpp
++++ b/lgc/builder/SubgroupBuilder.cpp
+@@ -1195,15 +1195,15 @@ Value *SubgroupBuilder::createGroupArithmeticOperation(GroupArithOp groupArithOp
+   case GroupArithOp::FMul:
+     return CreateFMul(x, y);
+   case GroupArithOp::SMin:
+-    return CreateSelect(CreateICmpSLT(x, y), x, y);
++    return CreateBinaryIntrinsic(Intrinsic::smin, x, y);
+   case GroupArithOp::UMin:
+-    return CreateSelect(CreateICmpULT(x, y), x, y);
++    return CreateBinaryIntrinsic(Intrinsic::umin, x, y);
+   case GroupArithOp::FMin:
+     return CreateMinNum(x, y);
+   case GroupArithOp::SMax:
+-    return CreateSelect(CreateICmpSGT(x, y), x, y);
++    return CreateBinaryIntrinsic(Intrinsic::smax, x, y);
+   case GroupArithOp::UMax:
+-    return CreateSelect(CreateICmpUGT(x, y), x, y);
++    return CreateBinaryIntrinsic(Intrinsic::umax, x, y);
+   case GroupArithOp::FMax:
+     return CreateMaxNum(x, y);
+   case GroupArithOp::And:

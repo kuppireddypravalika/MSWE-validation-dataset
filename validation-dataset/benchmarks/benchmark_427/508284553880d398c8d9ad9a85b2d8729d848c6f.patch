@@ -1,0 +1,23 @@
+From 508284553880d398c8d9ad9a85b2d8729d848c6f Mon Sep 17 00:00:00 2001
+From: Klecko <david.mateos.romero@gmail.com>
+Date: Sun, 28 Mar 2021 16:10:17 +0200
+Subject: [PATCH] Kernel: reduce virtual memory allocation when kmalloc needs
+ more memory
+
+---
+ kernel/src/libcpp.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/kernel/src/libcpp.cpp b/kernel/src/libcpp.cpp
+index 966c722..68996a1 100644
+--- a/kernel/src/libcpp.cpp
++++ b/kernel/src/libcpp.cpp
+@@ -34,7 +34,7 @@ void* kmalloc(size_t size) {
+ 
+ 	// Request more size if needed
+ 	if (size > remaining) {
+-		size_t to_alloc = PAGE_CEIL(size*2);
++		size_t to_alloc = PAGE_CEIL((size_t)(size*1.25));
+ 		Mem::Virt::alloc(next_alloc + remaining, to_alloc, PDE64_NX | PDE64_RW);
+ 		remaining += to_alloc;
+ 	}

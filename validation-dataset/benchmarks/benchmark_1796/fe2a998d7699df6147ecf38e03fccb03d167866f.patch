@@ -1,0 +1,23 @@
+From fe2a998d7699df6147ecf38e03fccb03d167866f Mon Sep 17 00:00:00 2001
+From: Carlos Licea <carlos_licea@hotmail.com>
+Date: Thu, 13 May 2010 07:55:46 +0000
+Subject: [PATCH] Be a little more efficient by using preincrement.
+
+svn path=/trunk/koffice/; revision=1126184
+---
+ filters/kspread/excel/import/excelimport.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/filters/kspread/excel/import/excelimport.cc b/filters/kspread/excel/import/excelimport.cc
+index e839f37dbf0..470ff46a48e 100644
+--- a/filters/kspread/excel/import/excelimport.cc
++++ b/filters/kspread/excel/import/excelimport.cc
+@@ -1900,7 +1900,7 @@ void ExcelImport::Private::addManifestEntries(KoXmlWriter* manifestWriter)
+     QMap<QString, QString>::const_iterator end = manifestEntries.constEnd();
+     while( iterator != end ) {
+         manifestWriter->addManifestEntry(iterator.key(), iterator.value());
+-        iterator++;
++        ++iterator;
+     }
+ }
+ 

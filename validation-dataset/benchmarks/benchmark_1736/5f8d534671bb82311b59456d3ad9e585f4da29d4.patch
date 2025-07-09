@@ -1,0 +1,33 @@
+From 5f8d534671bb82311b59456d3ad9e585f4da29d4 Mon Sep 17 00:00:00 2001
+From: Raymond Clay <j.k.rofling@gmail.com>
+Date: Tue, 16 Sep 2014 20:22:44 +0000
+Subject: [PATCH] Fixed kspace jastrow optimization issue.  Optimizes now.
+
+git-svn-id: https://subversion.assembla.com/svn/qmcdev/trunk@6352 e5b18d87-469d-4833-9cc0-8cdfa06e9491
+---
+ src/QMCWaveFunctions/Jastrow/kSpaceJastrow.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/QMCWaveFunctions/Jastrow/kSpaceJastrow.cpp b/src/QMCWaveFunctions/Jastrow/kSpaceJastrow.cpp
+index 7aa90ff431..8b4e264ad8 100644
+--- a/src/QMCWaveFunctions/Jastrow/kSpaceJastrow.cpp
++++ b/src/QMCWaveFunctions/Jastrow/kSpaceJastrow.cpp
+@@ -881,15 +881,15 @@ kSpaceJastrow::resetParameters(const opt_variables_type& active)
+     int loc_r=myVars.where(ii++);
+     int loc_i=myVars.where(ii++);
+     if(loc_r>=0)
+-      OneBodySymmCoefs[i].cG.real()=active[loc_r];
++      OneBodySymmCoefs[i].cG.real()=myVars[ii-2]=active[loc_r];
+     if(loc_i>=0)
+-      OneBodySymmCoefs[i].cG.imag()=active[loc_i];
++      OneBodySymmCoefs[i].cG.imag()=myVars[ii-1]=active[loc_i];
+   }
+   for (int i=0; i<TwoBodySymmCoefs.size(); i++)
+   {
+     int loc=myVars.where(ii++);
+     if(loc>=0)
+-      TwoBodySymmCoefs[i].cG=active[loc];
++      TwoBodySymmCoefs[i].cG=myVars[ii-1]=active[loc];
+   }
+   for (int i=0; i<OneBodySymmCoefs.size(); i++)
+     OneBodySymmCoefs[i].set(OneBodyCoefs);

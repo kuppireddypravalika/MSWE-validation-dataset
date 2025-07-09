@@ -1,0 +1,23 @@
+From 1dc701270f8a5420e59d065e978564c81deaf261 Mon Sep 17 00:00:00 2001
+From: mjn-mixael <mjn.other@gmail.com>
+Date: Sat, 23 Sep 2023 18:35:36 -0500
+Subject: [PATCH] optimize this entirely out of release builds
+
+---
+ code/localization/localize.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/code/localization/localize.cpp b/code/localization/localize.cpp
+index 4b6ba1ca9aa..c4c5c00bc2e 100644
+--- a/code/localization/localize.cpp
++++ b/code/localization/localize.cpp
+@@ -1187,7 +1187,9 @@ const char *XSTR(const char *str, int index, bool force_lookup)
+ 		return str;
+ 	}
+ 
++#ifndef NDEBUG
+ 	nprintf(("XSTR", "Localizing String: %i, \"%s\"\n", index, str));
++#endif
+ 
+ 	// for some internal strings, such as the ones we loaded using $Has XStr:,
+ 	// we want to force a lookup even if we're normally untranslated

@@ -1,0 +1,25 @@
+From 16853468e39d66eb1388924063b7e00b5e548194 Mon Sep 17 00:00:00 2001
+From: ulteq <ulteq@web.de>
+Date: Sat, 6 Feb 2016 20:58:38 +0100
+Subject: [PATCH] [Uglyfix] Attempt to fix the performance drops near
+ spawnzones
+
+---
+ source/main/terrain/TerrainObjectManager.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/source/main/terrain/TerrainObjectManager.cpp b/source/main/terrain/TerrainObjectManager.cpp
+index af82c86927..fa67e869bb 100644
+--- a/source/main/terrain/TerrainObjectManager.cpp
++++ b/source/main/terrain/TerrainObjectManager.cpp
+@@ -946,6 +946,10 @@ void TerrainObjectManager::loadObject(const Ogre::String &name, const Ogre::Vect
+ 				if (strlen(ts) == 0)
+ 					event_filter=EVENT_ALL;
+ 
++				// hack to avoid fps drops near spawnzones
++				if (!strncmp(eventname, "spawnzone", 9))
++					event_filter=EVENT_AVATAR;
++
+ 				continue;
+ 			}
+ 			if (!strcmp("endbox", ptline))

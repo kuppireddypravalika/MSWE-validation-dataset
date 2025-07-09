@@ -1,0 +1,37 @@
+From a1bffbe185c573ee113da97a30290fa89dea9fd1 Mon Sep 17 00:00:00 2001
+From: Erik Lindahl <erik.lindahl@gmail.com>
+Date: Sun, 19 Mar 2017 17:57:33 +0100
+Subject: [PATCH] Use OpenMP up to 16 threads with AMD Ryzen
+
+AMD Ryzen appears to always perform slightly better with OpenMP
+than MPI, up to using all 16 threads on the 8-core die.
+
+Change-Id: Iaaf77c87b7f69cabfd3dd7f1b080f3ee45d4ce89
+---
+ src/programs/mdrun/resource-division.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/src/programs/mdrun/resource-division.cpp b/src/programs/mdrun/resource-division.cpp
+index d5518a725c..295ad05cd3 100644
+--- a/src/programs/mdrun/resource-division.cpp
++++ b/src/programs/mdrun/resource-division.cpp
+@@ -99,6 +99,7 @@ static const int min_atoms_per_gpu        = 900;
+ const int nthreads_omp_faster_default   =  8;
+ const int nthreads_omp_faster_Nehalem   = 12;
+ const int nthreads_omp_faster_Intel_AVX = 16;
++const int nthreads_omp_faster_AMD_Ryzen = 16;
+ /* For CPU only runs the fastest options are usually MPI or OpenMP only.
+  * With one GPU, using MPI only is almost never optimal, so we need to
+  * compare running pure OpenMP with combined MPI+OpenMP. This means higher
+@@ -140,6 +141,11 @@ static int nthreads_omp_faster(const gmx::CpuInfo &cpuInfo, gmx_bool bUseGPU)
+         // Intel Nehalem
+         nth = nthreads_omp_faster_Nehalem;
+     }
++    else if (cpuInfo.vendor() == gmx::CpuInfo::Vendor::Amd && cpuInfo.family() >= 23)
++    {
++        // AMD Ryzen
++        nth = nthreads_omp_faster_AMD_Ryzen;
++    }
+     else
+     {
+         nth = nthreads_omp_faster_default;

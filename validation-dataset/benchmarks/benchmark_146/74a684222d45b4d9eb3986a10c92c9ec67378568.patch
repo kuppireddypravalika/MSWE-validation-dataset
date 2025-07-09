@@ -1,0 +1,27 @@
+From 74a684222d45b4d9eb3986a10c92c9ec67378568 Mon Sep 17 00:00:00 2001
+From: Jakob Stoklund Olesen <stoklund@2pi.dk>
+Date: Tue, 9 Mar 2010 22:17:06 +0000
+Subject: [PATCH] Permit inlining into huge functions. This heuristic is
+ ancient, and inlining can sometimes help reduce function size.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@98088 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Analysis/InlineCost.cpp | 5 -----
+ 1 file changed, 5 deletions(-)
+
+diff --git a/lib/Analysis/InlineCost.cpp b/lib/Analysis/InlineCost.cpp
+index ca50a1721e0..140e7daa6d3 100644
+--- a/lib/Analysis/InlineCost.cpp
++++ b/lib/Analysis/InlineCost.cpp
+@@ -352,11 +352,6 @@ InlineCost InlineCostAnalyzer::getInlineCost(CallSite CS,
+   // Calls usually take a long time, so they make the inlining gain smaller.
+   InlineCost += CalleeFI.Metrics.NumCalls * InlineConstants::CallPenalty;
+ 
+-  // Don't inline into something too big, which would make it bigger.
+-  // "size" here is the number of basic blocks, not instructions.
+-  //
+-  InlineCost += Caller->size()/15;
+-  
+   // Look at the size of the callee. Each instruction counts as 5.
+   InlineCost += CalleeFI.Metrics.NumInsts*InlineConstants::InstrCost;
+ 

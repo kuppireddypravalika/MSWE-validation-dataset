@@ -1,0 +1,30 @@
+From e7a1337597d6b9f1dc43eba3fc55927b927235a5 Mon Sep 17 00:00:00 2001
+From: ppalkar <ppalkar.iitb@gmail.com>
+Date: Mon, 23 Dec 2019 16:05:32 +0530
+Subject: [PATCH] Setting Cplex parallel mode to opportunistic in LSTOA.
+
+For lazy cuts callback algorithm (LSTOA), Cplex was automatically
+selecting the deterministic mode for parallel tree search. With the
+callback function thread-safe now, the opportunistic mode can be
+utilized.
+---
+ src/engines/Cplex/CplexMILPEngine.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/engines/Cplex/CplexMILPEngine.cpp b/src/engines/Cplex/CplexMILPEngine.cpp
+index 32036a3a1..b19ed2460 100644
+--- a/src/engines/Cplex/CplexMILPEngine.cpp
++++ b/src/engines/Cplex/CplexMILPEngine.cpp
+@@ -1213,8 +1213,11 @@ EngineStatus CplexMILPEngine::solveSTLazy(double *objLb, SolutionPtr* sol,
+      goto TERMINATE;
+   }
+ 
++  /* Set parallel search mode (default deterministic with callbacks) */
++  cpxstatus_ = CPXXsetintparam (cpxenv_, CPXPARAM_Parallel, CPX_PARALLEL_OPPORTUNISTIC);
++
+   if (cpxstatus_) {
+-     logger_->msgStream(LogError) << me_ << "Failure to set number of threads, error "
++     logger_->msgStream(LogError) << me_ << "Failure to set parallel mode, error "
+        << cpxstatus_ << std::endl;
+      goto TERMINATE;
+   }

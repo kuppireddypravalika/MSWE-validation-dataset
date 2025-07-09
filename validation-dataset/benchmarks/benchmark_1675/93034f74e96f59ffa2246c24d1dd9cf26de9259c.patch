@@ -1,0 +1,23 @@
+From 93034f74e96f59ffa2246c24d1dd9cf26de9259c Mon Sep 17 00:00:00 2001
+From: Nils Asmussen <nils@script-solution.de>
+Date: Sat, 14 Sep 2013 17:25:34 +0200
+Subject: [PATCH] Don't use __sync_lock_release because it uses the
+ lock-prefix.
+
+This is unnecessary for release and costs a lot of time.
+---
+ source/include/sys/arch/i586/spinlock.h | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/source/include/sys/arch/i586/spinlock.h b/source/include/sys/arch/i586/spinlock.h
+index 36fa61104..e512c2a58 100644
+--- a/source/include/sys/arch/i586/spinlock.h
++++ b/source/include/sys/arch/i586/spinlock.h
+@@ -33,6 +33,5 @@ inline bool SpinLock::tryAcquire(klock_t *l) {
+ }
+ 
+ inline void SpinLock::release(klock_t *l) {
+-	/* generates a memory-barrier as well */
+-    __sync_lock_release(l);
++	asm volatile ("movl	$0,%0" : : "m"(*l) : "memory");
+ }

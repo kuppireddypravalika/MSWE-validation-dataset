@@ -1,0 +1,23 @@
+From 20cf87f8219fd78b9c86c84b17e4cfc979fd7e3b Mon Sep 17 00:00:00 2001
+From: Luis Ibanez <luis.ibanez@kitware.com>
+Date: Sun, 2 May 2004 13:40:39 -0400
+Subject: [PATCH] FIX: MattesMI is optimal for a minimal value. The optimizer
+ should be set      to MaximizeOff().
+
+---
+ Examples/Registration/ImageRegistration11.cxx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Examples/Registration/ImageRegistration11.cxx b/Examples/Registration/ImageRegistration11.cxx
+index 1043b204149..dc7217902f3 100644
+--- a/Examples/Registration/ImageRegistration11.cxx
++++ b/Examples/Registration/ImageRegistration11.cxx
+@@ -226,7 +226,7 @@ int main( int argc, char *argv[] )
+   //  Software Guide : EndLatex 
+ 
+   // Software Guide : BeginCodeSnippet
+-  optimizer->MaximizeOn();
++  optimizer->MaximizeOff();
+ 
+   optimizer->SetNormalVariateGenerator( generator );
+   optimizer->Initialize( 10 );

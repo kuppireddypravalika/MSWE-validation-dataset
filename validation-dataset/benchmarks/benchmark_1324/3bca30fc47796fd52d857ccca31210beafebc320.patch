@@ -1,0 +1,23 @@
+From 3bca30fc47796fd52d857ccca31210beafebc320 Mon Sep 17 00:00:00 2001
+From: Jan Friso Groote <j.f.groote@tue.nl>
+Date: Sun, 1 Jan 2017 10:20:19 +0000
+Subject: [PATCH] Made an expensive copy assignment a reference.
+
+git-svn-id: https://svn.win.tue.nl/repos/MCRL2/trunk@14453 21252fe5-60e8-0310-8ff0-c1ae1001594e
+---
+ libraries/lts/include/mcrl2/lts/detail/liblts_pbisim_fast.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libraries/lts/include/mcrl2/lts/detail/liblts_pbisim_fast.h b/libraries/lts/include/mcrl2/lts/detail/liblts_pbisim_fast.h
+index ce81371028..0c6a41729b 100644
+--- a/libraries/lts/include/mcrl2/lts/detail/liblts_pbisim_fast.h
++++ b/libraries/lts/include/mcrl2/lts/detail/liblts_pbisim_fast.h
+@@ -810,7 +810,7 @@ class prob_bisim_partitioner_fast
+       for( probabilistic_transition_type& pt: Bc.incoming_probabilistic_transitions)
+       {
+         probabilistic_state_type& s = probabilistic_states[pt.from];
+-        probability_label_type p = pt.label;
++        const probability_label_type& p = pt.label;
+         probabilistic_block_type& B = probabilistic_blocks[s.parent_block];
+ 
+         // If the block was not previously marked, then mark the block and add all states to right

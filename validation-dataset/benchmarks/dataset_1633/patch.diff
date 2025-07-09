@@ -1,0 +1,32 @@
+From e6a36f21a3c44943afc8c60b9dc2e40976fcdb49 Mon Sep 17 00:00:00 2001
+From: Ivan Solovev <ivan.solovev@qt.io>
+Date: Thu, 17 Aug 2023 13:18:09 +0200
+Subject: [PATCH] QNativeIpcKey: improve operator==()
+
+There is no need to check if lhs.d == rhs.d in the end of the function,
+because we already have the same condition earlier.
+If none of the previous conditions was true, we can just return false.
+
+This commit amends 7a370838177e581c8a9342808ba86e081951a41c.
+
+Pick-to: 6.6
+Change-Id: I06dca9b3dedf5895820685a6ded5363963e6fa3f
+Reviewed-by: Thiago Macieira <thiago.macieira@intel.com>
+Reviewed-by: Marc Mutz <marc.mutz@qt.io>
+---
+ src/corelib/ipc/qtipccommon.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/corelib/ipc/qtipccommon.h b/src/corelib/ipc/qtipccommon.h
+index 73b17c1578b4..ba26681787ad 100644
+--- a/src/corelib/ipc/qtipccommon.h
++++ b/src/corelib/ipc/qtipccommon.h
+@@ -170,7 +170,7 @@ class QNativeIpcKey
+             return true;
+         if (lhs.isSlowPath() && rhs.isSlowPath())
+             return compare_internal(lhs, rhs) == 0;
+-        return lhs.d == rhs.d;
++        return false;
+     }
+     friend bool operator!=(const QNativeIpcKey &lhs, const QNativeIpcKey &rhs) noexcept
+     {

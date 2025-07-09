@@ -1,0 +1,36 @@
+From 4863bac12a91f0c66b2060214a5a72d6d625b2b2 Mon Sep 17 00:00:00 2001
+From: toxieainc <toxie@ainc.de>
+Date: Sat, 4 Jun 2022 13:25:04 +0200
+Subject: [PATCH] port from VPVR/vbousquet: Improve very slow layer operations
+ (open/close table, filter/unfilter)
+
+---
+ dialogs/LayersListDialog.cpp | 13 ++-----------
+ 1 file changed, 2 insertions(+), 11 deletions(-)
+
+diff --git a/dialogs/LayersListDialog.cpp b/dialogs/LayersListDialog.cpp
+index e2cb9f2dea..eef87bbd6a 100644
+--- a/dialogs/LayersListDialog.cpp
++++ b/dialogs/LayersListDialog.cpp
+@@ -24,19 +24,10 @@ bool LayersListDialog::AddLayer(const string& name, IEditable* piedit)
+ {
+    bool success = false;
+ 
+-   if (m_layerTreeView.GetItemCount() == 0)
+-   {
++    if (!m_layerTreeView.ContainsLayer(name))
+       success = m_layerTreeView.AddLayer(name);
+-   }
+    else
+-   {
+-      if (!m_layerTreeView.ContainsLayer(name))
+-      {
+-         success = m_layerTreeView.AddLayer(name);
+-      }
+-      else
+-         m_layerTreeView.SetActiveLayer(name);
+-   }
++      m_layerTreeView.SetActiveLayer(name);
+    if (piedit != nullptr)
+       success = m_layerTreeView.AddElement(piedit->GetName(), piedit);
+ 

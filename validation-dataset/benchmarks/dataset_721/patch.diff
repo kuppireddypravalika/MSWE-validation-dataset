@@ -1,0 +1,45 @@
+From c112c20d5f5bf8dd2f656a549683b210dada83cc Mon Sep 17 00:00:00 2001
+From: Artur Wieczorek <artwik@wp.pl>
+Date: Wed, 26 Dec 2018 11:15:44 +0100
+Subject: [PATCH] Optimize calculating position of the right edge of the last
+ cell
+
+Cell widths are invariant during the drawing so calculation can be done once, not on every loop.
+---
+ src/propgrid/propgrid.cpp | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/src/propgrid/propgrid.cpp b/src/propgrid/propgrid.cpp
+index bacf402ba159..8b12d0cab4e2 100644
+--- a/src/propgrid/propgrid.cpp
++++ b/src/propgrid/propgrid.cpp
+@@ -2182,6 +2182,11 @@ int wxPropertyGrid::DoDrawItems( wxDC& dc,
+ 
+     int gridWidth = state->GetVirtualWidth();
+ 
++    // Calculate position of the right edge of the last cell
++    int cellX = x + 1;
++    for (wxVector<int>::const_iterator cit = colWidths.begin(); cit != colWidths.end(); ++cit)
++        cellX += *cit;
++
+     y = firstItemTopY;
+     for ( unsigned int arrInd=1;
+           nextP && y <= lastItemBottomY;
+@@ -2377,16 +2382,12 @@ int wxPropertyGrid::DoDrawItems( wxDC& dc,
+         int firstCellX = cellRect.x;
+ 
+         // Calculate cellRect.x for the last cell
+-        unsigned int ci = 0;
+-        int cellX = x + 1;
+-        for ( ci = 0; ci < colCount; ci++ )
+-            cellX += colWidths[ci];
+         cellRect.x = cellX;
+ 
+         // Draw cells from back to front so that we can easily tell if the
+         // cell on the right was empty from text
+         bool prevFilled = true;
+-        ci = colCount;
++        unsigned int ci = colCount;
+         do
+         {
+             ci--;

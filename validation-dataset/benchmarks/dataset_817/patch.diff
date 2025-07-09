@@ -1,0 +1,26 @@
+From 1eafcae28a659d6ba4a64ff9cab489e48eb23b50 Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Sat, 12 Oct 2024 00:59:57 -0400
+Subject: [PATCH] [libromdata] CdiReaderPrivate::parseCdiFile(): Combine two
+ seek_cur() calls.
+
+They're done one right after the other, so they can be combined to
+reduce overhead.
+---
+ src/libromdata/disc/CdiReader.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/libromdata/disc/CdiReader.cpp b/src/libromdata/disc/CdiReader.cpp
+index 3ce5e4de9..f81723d14 100644
+--- a/src/libromdata/disc/CdiReader.cpp
++++ b/src/libromdata/disc/CdiReader.cpp
+@@ -322,8 +322,7 @@ int CdiReaderPrivate::parseCdiFile(void)
+ 		}
+ 
+ 		// Go to the next session.
+-		q->m_file->seek_cur(4);
+-		q->m_file->seek_cur(8);
++		q->m_file->seek_cur(4 + 8);
+ 		if (cdiFooter.version != CdiVersion::CDI_V2) {
+ 			q->m_file->seek_cur(1);
+ 		}

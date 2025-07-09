@@ -1,0 +1,39 @@
+From 572a58cd90d8f18092321836d5fc2cbaa13cc9ca Mon Sep 17 00:00:00 2001
+From: Thomas Goyne <plorkyeran@aegisub.org>
+Date: Wed, 26 Dec 2012 19:59:42 -0800
+Subject: [PATCH] Have FFMS2 do the audio downmixing when possible
+
+Aegisub's downmixer is terrible for anything with more than two channels
+(averaging all the channels together is not even vaguely close to the
+correct thing to do for 5.1), so libavresample should be far better.
+---
+ aegisub/src/audio_provider_ffmpegsource.cpp | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+diff --git a/aegisub/src/audio_provider_ffmpegsource.cpp b/aegisub/src/audio_provider_ffmpegsource.cpp
+index 930b9ad7b..b843e16af 100644
+--- a/aegisub/src/audio_provider_ffmpegsource.cpp
++++ b/aegisub/src/audio_provider_ffmpegsource.cpp
+@@ -173,6 +173,22 @@ void FFmpegSourceAudioProvider::LoadAudio(wxString filename) {
+ 		default:
+ 			throw agi::AudioProviderOpenError("unknown or unsupported sample format", 0);
+ 	}
++
++#if FFMS_VERSION >= ((2 << 24) | (17 << 16) | (4 << 8) | 0)
++	if (channels > 1 || bytes_per_sample != 2) {
++		std::unique_ptr<FFMS_ResampleOptions, decltype(&FFMS_DestroyResampleOptions)>
++			opt(FFMS_CreateResampleOptions(AudioSource), FFMS_DestroyResampleOptions);
++		opt->ChannelLayout = FFMS_CH_FRONT_CENTER;
++		opt->SampleFormat = FFMS_FMT_S16;
++
++		// Might fail if FFMS2 wasn't built with libavresample
++		if (!FFMS_SetOutputFormatA(AudioSource, opt.get(), nullptr)) {
++			channels = 1;
++			bytes_per_sample = 2;
++			float_samples = false;
++		}
++	}
++#endif
+ }
+ 
+ void FFmpegSourceAudioProvider::FillBuffer(void *Buf, int64_t Start, int64_t Count) const {

@@ -1,0 +1,41 @@
+From 330411c94a8df303c9ef68af24e7f5c79d2e0f78 Mon Sep 17 00:00:00 2001
+From: Thomas Goyne <plorkyeran@aegisub.org>
+Date: Wed, 17 Aug 2011 05:32:01 +0000
+Subject: [PATCH] Add some special cases to line_iterator that makes it
+ significantly faster in common cases
+
+Originally committed to SVN as r5534.
+---
+ .../include/libaegisub/line_iterator.h          | 17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
+
+diff --git a/aegisub/libaegisub/include/libaegisub/line_iterator.h b/aegisub/libaegisub/include/libaegisub/line_iterator.h
+index eef2e21b2..e7ad29459 100644
+--- a/aegisub/libaegisub/include/libaegisub/line_iterator.h
++++ b/aegisub/libaegisub/include/libaegisub/line_iterator.h
+@@ -191,12 +191,21 @@ void line_iterator<OutputType>::next() {
+ 		valid = false;
+ 		return;
+ 	}
+-	std::string str;
+-	getline(str);
++	std::string str, cstr, *target;
++	if (width == 1) {
++		std::getline(*stream, str);
++	}
++	else {
++		getline(str);
++	}
+ 	if (conv.get()) {
+-		str = conv->Convert(str);
++		conv->Convert(str, cstr);
++		target = &cstr;
++	}
++	else {
++		target = &str;
+ 	}
+-	if (!convert(str)) {
++	if (!convert(*target)) {
+ 		next();
+ 		return;
+ 	}

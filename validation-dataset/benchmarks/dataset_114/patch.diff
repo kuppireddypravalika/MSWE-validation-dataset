@@ -1,0 +1,44 @@
+From ec7d243ee942a56a76f7f0a1734f92aea7de7b95 Mon Sep 17 00:00:00 2001
+From: Nekotekina <nekotekina@gmail.com>
+Date: Sat, 10 Oct 2020 14:22:12 +0300
+Subject: [PATCH] More optimization for cpu_thread::suspend_all
+
+Try to not pause inactive threads.
+---
+ rpcs3/Emu/CPU/CPUThread.cpp | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+diff --git a/rpcs3/Emu/CPU/CPUThread.cpp b/rpcs3/Emu/CPU/CPUThread.cpp
+index 2e9d82b7a8c2a..98bdbe29af541 100644
+--- a/rpcs3/Emu/CPU/CPUThread.cpp
++++ b/rpcs3/Emu/CPU/CPUThread.cpp
+@@ -605,6 +605,13 @@ bool cpu_thread::check_state() noexcept
+ 
+ 		if (escape)
+ 		{
++			if (s_tls_thread_slot == umax)
++			{
++				// Restore thread in the suspend list
++				std::lock_guard lock(g_fxo->get<cpu_counter>()->cpu_suspend_lock);
++				s_tls_thread_slot = g_fxo->get<cpu_counter>()->add(this, true);
++			}
++
+ 			return retval;
+ 		}
+ 
+@@ -612,6 +619,15 @@ bool cpu_thread::check_state() noexcept
+ 		{
+ 			cpu_sleep();
+ 			cpu_sleep_called = true;
++
++			if (s_tls_thread_slot != umax)
++			{
++				// Exclude inactive threads from the suspend list (optimization)
++				std::lock_guard lock(g_fxo->get<cpu_counter>()->cpu_suspend_lock);
++				g_fxo->get<cpu_counter>()->remove(this);
++				s_tls_thread_slot = -1;
++			}
++
+ 			continue;
+ 		}
+ 

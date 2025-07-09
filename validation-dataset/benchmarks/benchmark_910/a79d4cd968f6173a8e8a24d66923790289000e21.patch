@@ -1,0 +1,30 @@
+From a79d4cd968f6173a8e8a24d66923790289000e21 Mon Sep 17 00:00:00 2001
+From: James Pallister <james.pallister@bristol.ac.uk>
+Date: Tue, 28 Jul 2015 11:14:20 +0100
+Subject: [PATCH] Reorder the register slots to speed up the canonical iterator
+
+---
+ src/algorithms/canonical.cpp | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/src/algorithms/canonical.cpp b/src/algorithms/canonical.cpp
+index e73a18b..6ac295b 100644
+--- a/src/algorithms/canonical.cpp
++++ b/src/algorithms/canonical.cpp
+@@ -10,6 +10,16 @@ using namespace std;
+ canonicalIterator::canonicalIterator(vector<Slot*> &slotlist_)
+ : canonicalIteratorBasic(slotlist_), canonical(slotlist.size())
+ {
++    // Sort our list of slots by valid arguments size. This can massively
++    // speed up the enumeration of some register classes, based on the
++    // observation that the remapping function can 'early out' if it runs out
++    // of register classes. Therefore the smallest classes should go first.
++    sort(slotlist.begin(), slotlist.end(),
++        [] (RegisterSlot *a, RegisterSlot *b) {
++            return a->getValidArguments().size() < b->getValidArguments().size();
++        }
++        );
++
+     // Find number of different register values possible
+     std::set<int> all;
+     int largest_classid=0;

@@ -1,0 +1,27 @@
+From 114be0e62b549383b0764972a0c975f38a582bb5 Mon Sep 17 00:00:00 2001
+From: Matt <m.moninger.h@gmail.com>
+Date: Thu, 31 Dec 2020 20:36:17 +0200
+Subject: [PATCH] Avoid unnecessary calculations when the passed DPI is the
+ active DPI
+
+---
+ .../drawing/engines/opengl/OpenGLDrawingEngine.cpp          | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/src/openrct2-ui/drawing/engines/opengl/OpenGLDrawingEngine.cpp b/src/openrct2-ui/drawing/engines/opengl/OpenGLDrawingEngine.cpp
+index c917a90e5bf9..ffb3905adb59 100644
+--- a/src/openrct2-ui/drawing/engines/opengl/OpenGLDrawingEngine.cpp
++++ b/src/openrct2-ui/drawing/engines/opengl/OpenGLDrawingEngine.cpp
+@@ -1010,6 +1010,12 @@ void OpenGLDrawingContext::HandleTransparency()
+ 
+ void OpenGLDrawingContext::SetDPI(rct_drawpixelinfo* dpi)
+ {
++    if (dpi == _dpi)
++    {
++        // Don't need to recalculate anything if identical.
++        return;
++    }
++
+     auto screenDPI = _engine->GetDPI();
+     auto bytesPerRow = screenDPI->GetBytesPerRow();
+     auto bitsOffset = static_cast<size_t>(dpi->bits - screenDPI->bits);

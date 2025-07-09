@@ -1,0 +1,22 @@
+From 50b7f5fb99d4d5fe37792a157b06c75f3dcc2e6e Mon Sep 17 00:00:00 2001
+From: Dmitry Tsarevich <dimhotepus@gmail.com>
+Date: Thu, 24 Sep 2020 21:38:29 +0300
+Subject: [PATCH] [perf] Construct solving operator in place
+
+---
+ src/xrAICore/Components/problem_solver_inline.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/xrAICore/Components/problem_solver_inline.h b/src/xrAICore/Components/problem_solver_inline.h
+index 479bd769cb0..bdc87b31b86 100644
+--- a/src/xrAICore/Components/problem_solver_inline.h
++++ b/src/xrAICore/Components/problem_solver_inline.h
+@@ -84,7 +84,7 @@ IC void CProblemSolverAbstract::add_operator(const _operator_id_type& operator_i
+     validate_properties(_op->effects());
+ #endif
+     m_actuality = false;
+-    m_operators.insert(I, SOperator(operator_id, _op));
++    m_operators.emplace(I, operator_id, _op);
+ }
+ 
+ #ifdef DEBUG

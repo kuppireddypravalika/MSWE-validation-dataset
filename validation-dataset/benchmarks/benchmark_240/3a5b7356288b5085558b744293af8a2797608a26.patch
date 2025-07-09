@@ -1,0 +1,32 @@
+From 3a5b7356288b5085558b744293af8a2797608a26 Mon Sep 17 00:00:00 2001
+From: Blayne Chard <blayne@chard.com>
+Date: Mon, 20 Mar 2023 01:07:21 +1300
+Subject: [PATCH] COG: set GDAL_NUM_THREADS to NUM_THREADS if its not already
+ set (#7479)
+
+This greatly increases the performance of the COG warp
+
+fixes: #7478
+---
+ frmts/gtiff/cogdriver.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/frmts/gtiff/cogdriver.cpp b/frmts/gtiff/cogdriver.cpp
+index 018b039dfa1e..e501832b126c 100644
+--- a/frmts/gtiff/cogdriver.cpp
++++ b/frmts/gtiff/cogdriver.cpp
+@@ -662,6 +662,14 @@ static std::unique_ptr<GDALDataset> CreateReprojectedDS(
+                                   pScaledProgress);
+     CPLString osTmpFile(GetTmpFilename(pszDstFilename, "warped.tif.tmp"));
+     auto hSrcDS = GDALDataset::ToHandle(poSrcDS);
++
++    std::unique_ptr<CPLConfigOptionSetter> poWarpThreadSetter;
++    if (pszNumThreads)
++    {
++        poWarpThreadSetter.reset(new CPLConfigOptionSetter(
++            "GDAL_NUM_THREADS", pszNumThreads, false));
++    }
++
+     auto hRet = GDALWarp(osTmpFile, nullptr, 1, &hSrcDS, psOptions, nullptr);
+     GDALWarpAppOptionsFree(psOptions);
+     CPLDebug("COG", "Reprojecting source dataset: end");

@@ -1,0 +1,34 @@
+From 17925fa027e0c20fbaeff11a421c60f61c99d02d Mon Sep 17 00:00:00 2001
+From: Tom Tang <xmader@distributive.network>
+Date: Tue, 28 Mar 2023 21:28:29 +0000
+Subject: [PATCH] perf(string): remove a `memcpy` call when handling UCS4-range
+ strings to JS functions
+
+`JS_NewUCStringCopyN` only copies by the specified length `u16Length`, so no need to make another `memcpy` call
+---
+ src/jsTypeFactory.cc | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/src/jsTypeFactory.cc b/src/jsTypeFactory.cc
+index 443acb3b..2f0e934e 100644
+--- a/src/jsTypeFactory.cc
++++ b/src/jsTypeFactory.cc
+@@ -38,7 +38,7 @@ struct PythonExternalString : public JSExternalStringCallbacks {
+ static constexpr PythonExternalString PythonExternalStringCallbacks;
+ 
+ size_t UCS4ToUTF16(const uint32_t *chars, size_t length, uint16_t **outStr) {
+-  uint16_t utf16String[length*2];
++  uint16_t *utf16String = (uint16_t *)malloc(sizeof(uint16_t) * length*2);
+   size_t utf16Length = 0;
+ 
+   for (size_t i = 0; i < length; i++) {
+@@ -54,8 +54,7 @@ size_t UCS4ToUTF16(const uint32_t *chars, size_t length, uint16_t **outStr) {
+       /* *INDENT-ON* */
+     }
+   }
+-  (*outStr) = (uint16_t *)malloc(sizeof(uint16_t) * utf16Length);
+-  memcpy(*outStr, utf16String, sizeof(uint16_t) * utf16Length);
++  *outStr = utf16String;
+   return utf16Length;
+ }
+ 

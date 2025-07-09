@@ -1,0 +1,28 @@
+From 3e5cd17e4a0306dc976e1dc37b39d19dee4451a7 Mon Sep 17 00:00:00 2001
+From: Ben Cheng <bccheng@android.com>
+Date: Mon, 8 Feb 2010 20:57:59 -0800
+Subject: [PATCH] Free the memory associated with the trace descriptor of
+ dropped JIT work orders.
+
+---
+ vm/compiler/Compiler.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/vm/compiler/Compiler.c b/vm/compiler/Compiler.c
+index 705333b85..e01ca894a 100644
+--- a/vm/compiler/Compiler.c
++++ b/vm/compiler/Compiler.c
+@@ -62,7 +62,12 @@ bool dvmCompilerWorkEnqueue(const u2 *pc, WorkOrderKind kind, void* info)
+     bool result = true;
+ 
+     if (dvmTryLockMutex(&gDvmJit.compilerLock)) {
+-        return false;  // Couldn't aquire the lock
++        /*
++         * Make sure the memory associated with the info pointer is freed for
++         * dropped work orders.
++         */
++        free(info);
++        return false;  // Couldn't acquire the lock
+     }
+ 
+     /*

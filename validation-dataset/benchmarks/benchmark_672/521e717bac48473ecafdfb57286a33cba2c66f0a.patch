@@ -1,0 +1,22 @@
+From 521e717bac48473ecafdfb57286a33cba2c66f0a Mon Sep 17 00:00:00 2001
+From: Bill Lorensen <lorensen@crd.ge.com>
+Date: Fri, 14 Feb 1997 07:18:12 -0500
+Subject: [PATCH] PERF: Replaced [] operator with GetValue in GetId.
+
+---
+ common/vtkIdList.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/common/vtkIdList.h b/common/vtkIdList.h
+index b2cdc0a33c1..c880d217cd8 100644
+--- a/common/vtkIdList.h
++++ b/common/vtkIdList.h
+@@ -86,7 +86,7 @@ inline int vtkIdList::GetNumberOfIds()
+ // Return the id at location i.
+ inline int vtkIdList::GetId(const int i) 
+ {
+-  return this->Ia[i];
++  return this->Ia.GetValue(i);
+ }
+ 
+ // Description:

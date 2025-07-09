@@ -1,0 +1,40 @@
+From 3bf0d2f2917efb4a62b3e5e2cdb3cc02f16fb77d Mon Sep 17 00:00:00 2001
+From: Rui Ueyama <ruiu@google.com>
+Date: Tue, 26 Sep 2017 04:17:13 +0000
+Subject: [PATCH] Speed up SymbolTable::insert().
+
+SymbolTable::insert() is a hot path function. When linking a clang debug
+build, the function is called 3.7 million times. The total amount of "Name"
+string contents is 300 MiB. That means this `Name.find("@@")` scans almost
+300 MiB of data. That's far from negligible.
+
+StringRef::find(StringRef) uses a sophisticated algorithm, but the
+function is slow for a short needle. This patch replaces it with
+StringRef::find(char).
+
+This patch alone speeds up a clang debug build link time by 0.5 seconds
+from 8.2s to 7.7s. That's 6% speed up. It seems too good for this tiny
+change, but looks like it's real.
+---
+ lld/ELF/SymbolTable.cpp | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/lld/ELF/SymbolTable.cpp b/lld/ELF/SymbolTable.cpp
+index 24b40a5da12c..b9480075a851 100644
+--- a/lld/ELF/SymbolTable.cpp
++++ b/lld/ELF/SymbolTable.cpp
+@@ -206,8 +206,12 @@ static uint8_t getMinVisibility(uint8_t VA, uint8_t VB) {
+ std::pair<Symbol *, bool> SymbolTable::insert(StringRef Name) {
+   // <name>@@<version> means the symbol is the default version. In that
+   // case <name>@@<version> will be used to resolve references to <name>.
+-  size_t Pos = Name.find("@@");
+-  if (Pos != StringRef::npos)
++  //
++  // Since this is a hot path, the following string search code is
++  // optimized for speed. StringRef::find(char) is much faster than
++  // StringRef::find(StringRef).
++  size_t Pos = Name.find('@');
++  if (Pos != StringRef::npos && Pos + 1 < Name.size() && Name[Pos + 1] == '@')
+     Name = Name.take_front(Pos);
+ 
+   auto P = Symtab.insert(

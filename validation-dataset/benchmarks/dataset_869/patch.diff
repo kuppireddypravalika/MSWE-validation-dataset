@@ -1,0 +1,31 @@
+From fe7db7f5f2df7352e8127492e53ed7b4ed9eac50 Mon Sep 17 00:00:00 2001
+From: Tom Tang <xmader@distributive.network>
+Date: Wed, 22 Mar 2023 17:53:24 +0000
+Subject: [PATCH] perf(bigint): use `mozilla::Span` constructor directly
+
+---
+ src/IntType.cc | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/IntType.cc b/src/IntType.cc
+index fc7ef18c..059f3efe 100644
+--- a/src/IntType.cc
++++ b/src/IntType.cc
+@@ -102,7 +102,7 @@ JS::BigInt *IntType::toJsBigInt(JSContext *cx) {
+   // Calculate the number of chars required to represent the bigint in hex string
+   auto charCount = byteCount * 2;
+   // Convert bytes to hex string (big-endian)
+-  auto chars = std::vector<char>(charCount+1);
++  auto chars = std::vector<char>(charCount); // can't be null-terminated, otherwise SimpleStringToBigInt would read the extra \0 character and then segfault
+   for (size_t i = 0, j = 0; i < charCount; i += 2, j++) {
+     chars[i] = HEX_CHAR_LOOKUP_TABLE[(bytes[j] >> 4)&0xf]; // high nibble
+     chars[i+1] = HEX_CHAR_LOOKUP_TABLE[bytes[j]&0xf];      // low  nibble
+@@ -110,7 +110,7 @@ JS::BigInt *IntType::toJsBigInt(JSContext *cx) {
+   PyMem_Free(bytes);
+ 
+   // Convert hex string to JS::BigInt
+-  auto strSpan = mozilla::MakeStringSpan(chars.data());
++  auto strSpan = mozilla::Span<const char>(chars); // storing only a pointer to the underlying array and length
+   return JS::SimpleStringToBigInt(cx, strSpan, 16);
+ }
+ 

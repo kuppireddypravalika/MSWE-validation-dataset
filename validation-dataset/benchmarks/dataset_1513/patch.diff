@@ -1,0 +1,27 @@
+From 2692620f46c40fca3e3b9724d98fc6b4dc9e4006 Mon Sep 17 00:00:00 2001
+From: Rafael Silva <rafaelmds@users.noreply.github.com>
+Date: Tue, 8 Mar 2022 14:42:00 -0300
+Subject: [PATCH] increase memory allocation for array used in for particles
+ operations (#63)
+
+---
+ src/DMSwarm.cpp | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/DMSwarm.cpp b/src/DMSwarm.cpp
+index d239d1e..c3af119 100644
+--- a/src/DMSwarm.cpp
++++ b/src/DMSwarm.cpp
+@@ -326,7 +326,11 @@ PetscErrorCode createSwarm()
+ 		ierr = DMSwarmSetLocalSizes(dms,milocal*mklocal*(particles_per_ele),4);CHKERRQ(ierr);
+ 		ierr = DMSwarmGetLocalSize(dms,&nlocal);CHKERRQ(ierr);
+ 
+-		particles_add_remove = milocal*mklocal;
++		if (particles_per_ele > 50) {
++			particles_add_remove = milocal*mklocal * (PetscInt)(particles_per_ele/50);
++		} else {
++			particles_add_remove = milocal*mklocal;
++		}
+ 
+ 		ierr = DMSwarmGetField(dms,DMSwarmPICField_coor,&bs,NULL,(void**)&array);CHKERRQ(ierr);
+ 

@@ -1,0 +1,32 @@
+From b7f4f476088476551c55abb260612bc4e8e807d7 Mon Sep 17 00:00:00 2001
+From: Piotr Dulikowski <piodul@scylladb.com>
+Date: Thu, 1 Apr 2021 02:12:04 +0200
+Subject: [PATCH] storage_service: release token_metadata lock before
+ notify_left
+
+There is no need to keep holding the token_metadata lock after metadata
+was successfully updated on all shards.
+---
+ service/storage_service.cc | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/service/storage_service.cc b/service/storage_service.cc
+index b9e3f96530db..69230aa0f647 100644
+--- a/service/storage_service.cc
++++ b/service/storage_service.cc
+@@ -2338,13 +2338,14 @@ void storage_service::excise(std::unordered_set<token> tokens, inet_address endp
+     slogger.info("Removing tokens {} for {}", tokens, endpoint);
+     // FIXME: HintedHandOffManager.instance.deleteHintsForEndpoint(endpoint);
+     remove_endpoint(endpoint);
+-    auto tmlock = get_token_metadata_lock().get0();
++    auto tmlock = std::make_optional(get_token_metadata_lock().get0());
+     auto tmptr = get_mutable_token_metadata_ptr().get0();
+     tmptr->remove_endpoint(endpoint);
+     tmptr->remove_bootstrap_tokens(tokens);
+ 
+     update_pending_ranges(tmptr, format("excise {}", endpoint)).get();
+     replicate_to_all_cores(std::move(tmptr)).get();
++    tmlock.reset();
+ 
+     notify_left(endpoint);
+ }

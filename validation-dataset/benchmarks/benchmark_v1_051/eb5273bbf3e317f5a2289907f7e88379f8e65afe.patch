@@ -1,0 +1,33 @@
+From eb5273bbf3e317f5a2289907f7e88379f8e65afe Mon Sep 17 00:00:00 2001
+From: Jeroen Keiren <j.j.a.keiren@tue.nl>
+Date: Mon, 21 Apr 2008 12:00:23 +0000
+Subject: [PATCH] Use optimized::and_ in lpsuntime. This removes annoying true
+ && conjuncts
+
+git-svn-id: https://svn.win.tue.nl/repos/MCRL2/trunk@4466 21252fe5-60e8-0310-8ff0-c1ae1001594e
+---
+ libraries/lps/source/untime.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/libraries/lps/source/untime.cpp b/libraries/lps/source/untime.cpp
+index 9b5f5f23b6..abe7bb91fa 100644
+--- a/libraries/lps/source/untime.cpp
++++ b/libraries/lps/source/untime.cpp
+@@ -101,7 +101,7 @@ lps::specification untime(const lps::specification& spec) {
+ 	untime_summation_variables = i->summation_variables();
+ 
+ 	// Extend the original condition with an additional argument t.i(d,e.i)>last_action_time
+-	untime_condition = and_(i->condition(), data::data_expr::greater(i->time(),data_expression(last_action_time)));
++	untime_condition = optimized::and_(i->condition(), data::data_expr::greater(i->time(),data_expression(last_action_time)));
+ 
+ 	// Extend original assignments to include t.i(d,e.i)
+ 	untime_assignments = push_back(i->assignments(),data_assignment(last_action_time,i->time()));
+@@ -115,7 +115,7 @@ lps::specification untime(const lps::specification& spec) {
+ 	untime_summation_variables = push_back(i->summation_variables(), time_var);
+ 
+ 	// Extend the original condition with an additional argument
+-	untime_condition = and_(i->condition(), mcrl2::data::data_expr::greater(time_var, data_expression(last_action_time)));
++	untime_condition = optimized::and_(i->condition(), mcrl2::data::data_expr::greater(time_var, data_expression(last_action_time)));
+ 
+ 
+ 	// Extend original assignments to include t.i(d,e.i)

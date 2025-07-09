@@ -1,0 +1,33 @@
+From 90fe0652e2289ba11cc81e64203eea9b7eb09cdf Mon Sep 17 00:00:00 2001
+From: Andrew Adams <andrew.b.adams@gmail.com>
+Date: Thu, 12 Sep 2013 14:39:57 -0700
+Subject: [PATCH] Split now pushes evaluations upwards instead of downwards.
+
+Simplifies better.
+
+
+Former-commit-id: a896ca7d0e927abaf767b315db398fa15a9a2c4c
+---
+ src/Lower.cpp | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/src/Lower.cpp b/src/Lower.cpp
+index df7bf3f195..36638cfc5a 100644
+--- a/src/Lower.cpp
++++ b/src/Lower.cpp
+@@ -184,10 +184,11 @@ Stmt build_provide_loop_nest(string buffer, string prefix,
+                 stmt = LetStmt::make(name, base, stmt);
+                 base = Variable::make(Int(32), name);
+ 
+-                // Perhaps we'd rather round up than go less than the
+-                // original min, so we can push it forwards a little. I
+-                // don't think this matters, so I'll leave it out for now.
+-                // base = Max::make(base, 0);
++                // We'd rather round up than go less than the original
++                // min, so we push it forwards a little. This keeps
++                // the min of the min at zero, which simplifies bounds
++                // inference.
++                base = Max::make(base, 0);
+             }
+ 
+             // stmt = LetStmt::make(prefix + split.old_var, base + inner + old_min, stmt);

@@ -1,0 +1,32 @@
+From ee0e572b29aae2e2bf9ce0303d816b8dd4c979bc Mon Sep 17 00:00:00 2001
+From: Alexandre Gauthier <alexandre230@msn.com>
+Date: Tue, 18 Nov 2014 17:39:27 +0100
+Subject: [PATCH] When rendering on disk allow a bit more threads to run in
+ parallel given the ram amount of the computer
+
+---
+ Engine/OutputSchedulerThread.cpp | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/Engine/OutputSchedulerThread.cpp b/Engine/OutputSchedulerThread.cpp
+index 47c7e9493f..843c118735 100644
+--- a/Engine/OutputSchedulerThread.cpp
++++ b/Engine/OutputSchedulerThread.cpp
+@@ -799,8 +799,16 @@ OutputSchedulerThread::startRender()
+             double maxRAMPercent = appPTR->getCurrentSettings()->getRamMaximumPercent();
+             double totalRAM = getSystemTotalRAM();
+             
++            ViewerInstance* isViewer = dynamic_cast<ViewerInstance*>(_imp->outputEffect);
++            
+             double usableRAM = maxRAMPercent * totalRAM;
+-            _imp->idealParallelRendersForRAM = usableRAM / approximateRAMNeededFor1Frame;
++            _imp->idealParallelRendersForRAM = (usableRAM / approximateRAMNeededFor1Frame);
++            
++            ///If the node is a viewer increase by 2 to max out the CPU, we don't need interactivity
++            if (!isViewer) {
++                _imp->idealParallelRendersForRAM *= 2;
++            }
++            
+             
+         } else {
+             _imp->idealParallelRendersForRAM = appPTR->getHardwareIdealThreadCount();

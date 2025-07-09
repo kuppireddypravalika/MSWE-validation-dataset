@@ -1,0 +1,22 @@
+From d9d59b7f8185d052e2fc353608502aeeb87ad838 Mon Sep 17 00:00:00 2001
+From: ntonci <tonci.novkovic@gmail.com>
+Date: Tue, 22 Jan 2019 09:58:48 +0100
+Subject: [PATCH] Preallocate only 1 element instead of type::max
+
+---
+ io/src/ply_io.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/io/src/ply_io.cpp b/io/src/ply_io.cpp
+index 5759831a787..53182eef079 100644
+--- a/io/src/ply_io.cpp
++++ b/io/src/ply_io.cpp
+@@ -359,7 +359,7 @@ namespace pcl
+       current_field.name = property_name;
+       current_field.offset = cloud_->point_step;
+       current_field.datatype = pcl::traits::asEnum<ContentType>::value;
+-      current_field.count = std::numeric_limits<SizeType>::max ();
++      current_field.count = 1u;
+       if (current_field.count * sizeof (ContentType) + cloud_->point_step < std::numeric_limits<uint32_t>::max ())
+         cloud_->point_step += static_cast<uint32_t> (current_field.count * sizeof (ContentType));
+       else

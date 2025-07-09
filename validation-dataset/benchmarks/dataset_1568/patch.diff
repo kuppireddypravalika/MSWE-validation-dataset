@@ -1,0 +1,22 @@
+From 06a409ce320b32a6bc11c461bc139eefa9f76509 Mon Sep 17 00:00:00 2001
+From: fr33mind <freemind@live.com.pt>
+Date: Sat, 25 Feb 2017 22:25:44 +0000
+Subject: [PATCH] Load scene's objects only if action doesn't have resource.
+
+---
+ editor/widgets/object_combobox.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/editor/widgets/object_combobox.cpp b/editor/widgets/object_combobox.cpp
+index 6f2d2ba..867277d 100644
+--- a/editor/widgets/object_combobox.cpp
++++ b/editor/widgets/object_combobox.cpp
+@@ -37,7 +37,7 @@ void ObjectComboBox::loadFromAction(Action * action)
+     int currIndex = -1, pindex = -1;
+ 
+     //only load from scene if action is not synced to any resource
+-    if (!action->isSynced() || !action->resource())
++    if (!action->resource())
+         this->loadFromScene(action->scene());
+ 
+     Object* parent = action->parentObject();

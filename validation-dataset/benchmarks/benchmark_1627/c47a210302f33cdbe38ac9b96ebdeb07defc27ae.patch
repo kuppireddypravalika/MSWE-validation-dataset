@@ -1,0 +1,22 @@
+From c47a210302f33cdbe38ac9b96ebdeb07defc27ae Mon Sep 17 00:00:00 2001
+From: Jeff Becker <jeff@i2p.rocks>
+Date: Tue, 26 May 2020 14:04:43 -0400
+Subject: [PATCH] remove a std::move that prevents copy elision
+
+---
+ llarp/ev/ev_libuv.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/llarp/ev/ev_libuv.cpp b/llarp/ev/ev_libuv.cpp
+index 26dd21983..9e45e84ed 100644
+--- a/llarp/ev/ev_libuv.cpp
++++ b/llarp/ev/ev_libuv.cpp
+@@ -737,7 +737,7 @@ namespace libuv
+   {
+     while (not m_LogicCalls.empty())
+     {
+-      auto f = std::move(m_LogicCalls.popFront());
++      auto f = m_LogicCalls.popFront();
+       f();
+     }
+   }

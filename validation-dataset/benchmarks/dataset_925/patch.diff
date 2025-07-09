@@ -1,0 +1,25 @@
+From 1cea17e80f5cb3648da4f56e28d65b0f047aa3f7 Mon Sep 17 00:00:00 2001
+From: tteuling <tteuling@users.sourceforge.net>
+Date: Sun, 6 Sep 2015 22:09:17 +0200
+Subject: [PATCH] Activate multithreaded data loading.
+
+---
+ Demos/src/PerformanceTest.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/Demos/src/PerformanceTest.cpp b/Demos/src/PerformanceTest.cpp
+index 9ec8fe3b2..94f5676a9 100644
+--- a/Demos/src/PerformanceTest.cpp
++++ b/Demos/src/PerformanceTest.cpp
+@@ -240,9 +240,10 @@ int main(int argc, char* argv[])
+   osmscout::TileProjection      projection;
+   osmscout::MapParameter        drawParameter;
+   osmscout::AreaSearchParameter searchParameter;
+-
+   std::list<LevelStats>         statistics;
+ 
++  searchParameter.SetUseMultithreading(true);
++
+   for (uint32_t level=std::min(startZoom,endZoom);
+        level<=std::max(startZoom,endZoom);
+        level++) {

@@ -1,0 +1,31 @@
+From 93c4c2ad1e7d4f4f7eba9197e70235da734457ac Mon Sep 17 00:00:00 2001
+From: Martin Suda <sudam@cs.man.ac.uk>
+Date: Mon, 30 Jun 2014 15:44:14 +0100
+Subject: [PATCH] delete the globals (sharing, signature, sorts, timer,
+ statistics, options) uncoditionally, to release all memory before the end
+
+---
+ Lib/Environment.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Lib/Environment.cpp b/Lib/Environment.cpp
+index e0a0f3de6a..8ae4422338 100644
+--- a/Lib/Environment.cpp
++++ b/Lib/Environment.cpp
+@@ -75,14 +75,14 @@ Environment::~Environment()
+     endOutput();
+   }
+ 
+-#if CHECK_LEAKS
++// #if CHECK_LEAKS
+   delete sharing;
+   delete signature;
+   delete sorts;
+   delete timer;
+   delete statistics;
+   delete options;
+-#endif
++// #endif
+ }
+ 
+ /**

@@ -1,0 +1,23 @@
+From 2d27ec675c5c173d12746bbbd427d7b341a3937f Mon Sep 17 00:00:00 2001
+From: paulc <paulc@acf43c95-373e-0410-b603-e72c3f656dc1>
+Date: Sun, 31 Jan 2010 20:05:43 +0000
+Subject: [PATCH] Precompile regular expressions on construction from constant
+ string so it won't need to compile on first call.
+
+git-svn-id: http://yate.null.ro/svn/yate/trunk@3046 acf43c95-373e-0410-b603-e72c3f656dc1
+---
+ engine/String.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/engine/String.cpp b/engine/String.cpp
+index 7ad7d78ea..7f1a7f0c6 100644
+--- a/engine/String.cpp
++++ b/engine/String.cpp
+@@ -1261,6 +1261,7 @@ Regexp::Regexp(const char* value, bool extended, bool insensitive)
+     XDebug(DebugAll,"Regexp::Regexp(\"%s\",%d,%d) [%p]",
+ 	value,extended,insensitive,this);
+     setFlags(extended,insensitive);
++    compile();
+ }
+ 
+ Regexp::Regexp(const Regexp& value)

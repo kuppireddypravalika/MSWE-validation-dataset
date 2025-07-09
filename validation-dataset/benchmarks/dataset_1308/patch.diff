@@ -1,0 +1,23 @@
+From aa952b53e19a342dbcb0a28b59e802661ffff9eb Mon Sep 17 00:00:00 2001
+From: datavetaren <datavetaren@datavetaren.se>
+Date: Sun, 18 Mar 2018 10:45:52 +0100
+Subject: [PATCH] Updated to microseconds. Optimizations in common made it
+ faster.
+
+---
+ src/interp/test/test_interpreter.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/interp/test/test_interpreter.cpp b/src/interp/test/test_interpreter.cpp
+index 80ff969..a0b6a86 100644
+--- a/src/interp/test/test_interpreter.cpp
++++ b/src/interp/test/test_interpreter.cpp
+@@ -24,7 +24,7 @@ static void test_up_and_down()
+     }
+     auto stop = boost::posix_time::microsec_clock::local_time();
+     auto dt = stop - start;
+-    std::cout << "Prolog engine up+down in " << dt.total_milliseconds() << " milliseconds\n";
++    std::cout << "Prolog engine up+down in " << dt.total_microseconds() << " microseconds\n";
+ }
+ 
+ static bool check_terms(const std::string &actual,

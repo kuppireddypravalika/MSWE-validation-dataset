@@ -1,0 +1,43 @@
+From 2a9608536c83373ae43c395176c5b41c5a5b5dec Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@duempel.org>
+Date: Tue, 26 Aug 2008 08:27:13 +0200
+Subject: [PATCH] mp3: moved num_samples calculation out of the loop
+
+The previous patch removed all loop specific dependencies from the
+num_samples formula; we can now calculate it before entering the loop.
+---
+ src/inputPlugins/mp3_plugin.c | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
+
+diff --git a/src/inputPlugins/mp3_plugin.c b/src/inputPlugins/mp3_plugin.c
+index cba201817f..beb59ea7e2 100644
+--- a/src/inputPlugins/mp3_plugin.c
++++ b/src/inputPlugins/mp3_plugin.c
+@@ -830,7 +830,7 @@ static int openMp3FromInputStream(InputStream * inStream, mp3DecodeData * data,
+ static int mp3Read(mp3DecodeData * data, struct decoder *decoder,
+ 		   ReplayGainInfo ** replayGainInfo)
+ {
+-	unsigned int pcm_length;
++	unsigned int pcm_length, max_samples;
+ 	unsigned int i;
+ 	int ret;
+ 	int skip;
+@@ -922,12 +922,14 @@ static int mp3Read(mp3DecodeData * data, struct decoder *decoder,
+ 				pcm_length -= data->dropSamplesAtEnd;
+ 		}
+ 
++		max_samples = sizeof(data->outputBuffer) /
++			(2 * MAD_NCHANNELS(&(data->frame).header));
++
+ 		while (i < pcm_length) {
+ 			enum decoder_command cmd;
+-			unsigned int num_samples = sizeof(data->outputBuffer) /
+-				(2 * MAD_NCHANNELS(&(data->frame).header));
+-			if (num_samples > pcm_length - i)
+-				num_samples = pcm_length - i;
++			unsigned int num_samples = pcm_length - i;
++			if (num_samples > max_samples)
++				num_samples = max_samples;
+ 
+ 			i += num_samples;
+ 

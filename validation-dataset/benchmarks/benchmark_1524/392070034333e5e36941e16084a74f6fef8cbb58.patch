@@ -1,0 +1,39 @@
+From 392070034333e5e36941e16084a74f6fef8cbb58 Mon Sep 17 00:00:00 2001
+From: aph <unknown>
+Date: Wed, 20 Aug 2014 10:56:55 -0400
+Subject: [PATCH] A more efficient sequence for C1_MacroAssembler::float_cmp.
+
+---
+ src/cpu/aarch64/vm/c1_MacroAssembler_aarch64.cpp | 15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
+
+diff --git a/src/cpu/aarch64/vm/c1_MacroAssembler_aarch64.cpp b/src/cpu/aarch64/vm/c1_MacroAssembler_aarch64.cpp
+index 8f23a6685..0d16384e7 100644
+--- a/src/cpu/aarch64/vm/c1_MacroAssembler_aarch64.cpp
++++ b/src/cpu/aarch64/vm/c1_MacroAssembler_aarch64.cpp
+@@ -50,21 +50,14 @@ void C1_MacroAssembler::float_cmp(bool is_float, int unordered_result,
+   if (unordered_result < 0) {
+     // we want -1 for unordered or less than, 0 for equal and 1 for
+     // greater than.
+-    mov(result, (u_int64_t)-1L);
+-    // for FP LT tests less than or unordered
+-    br(Assembler::LT, done);
+-    // install 0 for EQ otherwise 1
+-    csinc(result, zr, zr, Assembler::EQ);
++    cset(result, NE);  // Not equal or unordered
++    cneg(result, result, LT);  // Less than or unordered
+   } else {
+     // we want -1 for less than, 0 for equal and 1 for unordered or
+     // greater than.
+-    mov(result, 1L);
+-    // for FP HI tests greater than or unordered
+-    br(Assembler::HI, done);
+-    // install 0 for EQ otherwise ~0
+-    csinv(result, zr, zr, Assembler::EQ);
++    cset(result, NE);  // Not equal or unordered
++    cneg(result, result, LO);  // Less than
+   }
+-  bind(done);
+ }
+ 
+ int C1_MacroAssembler::lock_object(Register hdr, Register obj, Register disp_hdr, Register scratch, Label& slow_case) {

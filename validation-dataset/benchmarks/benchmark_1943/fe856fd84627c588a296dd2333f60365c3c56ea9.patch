@@ -1,0 +1,46 @@
+From fe856fd84627c588a296dd2333f60365c3c56ea9 Mon Sep 17 00:00:00 2001
+From: Younes Manton <ymanton@ca.ibm.com>
+Date: Thu, 14 Jun 2018 12:12:51 -0700
+Subject: [PATCH] Improve Relocation diagnostics
+
+Relocation offsets are specified relative to the start of the
+blob of memory that contains the method being relocated. When
+diagnostics are enabled the 'distance' value that is printed
+is this value and will typically point the reader to the
+instruction being relocated if the method being relocated is
+at offset 0. However, if the method is not at offset 0
+(because the runtime has elected to place something else there,
+for example), the offset is no longer useful for this purpose.
+
+This patch simply prints two values, one being the offset of
+the instruction being relocated from the start of the buffer
+and the other being the offset from the start of the method.
+
+The former is useful if one has the start of the buffer on
+hand (e.g. in a debugger) and the latter is useful if looking
+at a trace log file.
+
+Signed-off-by: Younes Manton <ymanton@ca.ibm.com>
+---
+ compiler/codegen/Relocation.cpp | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/compiler/codegen/Relocation.cpp b/compiler/codegen/Relocation.cpp
+index e415bead60..111bf6ab06 100644
+--- a/compiler/codegen/Relocation.cpp
++++ b/compiler/codegen/Relocation.cpp
+@@ -146,10 +146,11 @@ uint8_t TR::ExternalRelocation::collectModifier()
+       updateLocation = getUpdateLocation();
+       }
+ 
+-   int32_t distance = updateLocation - aotMethodCodeStart;
+-   AOTcgDiag1(comp, "TR::ExternalRelocation::collectModifier distance=%x\n", distance);
++   int32_t distanceFromStartOfBuffer = updateLocation - aotMethodCodeStart;
++   int32_t distanceFromStartOfMethod = updateLocation - comp->cg()->getCodeStart();
++   AOTcgDiag2(comp, "TR::ExternalRelocation::collectModifier distance from start of buffer=%x, from start of method=%x\n", distanceFromStartOfBuffer, distanceFromStartOfMethod);
+ 
+-   if (distance < MIN_SHORT_OFFSET || distance > MAX_SHORT_OFFSET)
++   if (distanceFromStartOfBuffer < MIN_SHORT_OFFSET || distanceFromStartOfBuffer > MAX_SHORT_OFFSET)
+       return RELOCATION_TYPE_WIDE_OFFSET;
+ 
+    return 0;

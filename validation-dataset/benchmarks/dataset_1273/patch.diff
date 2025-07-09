@@ -1,0 +1,28 @@
+From 7c9b7fa311c103283f2a96deb9c2195ea7d0cd04 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <mk@cm4all.com>
+Date: Mon, 29 Apr 2024 16:58:04 +0200
+Subject: [PATCH] net/SocketAddress: use std::string_view::find() instead of
+ std::memchr()
+
+---
+ src/net/SocketAddress.cxx | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/src/net/SocketAddress.cxx b/src/net/SocketAddress.cxx
+index 12f3fb2a36..f0fed5f478 100644
+--- a/src/net/SocketAddress.cxx
++++ b/src/net/SocketAddress.cxx
+@@ -56,10 +56,9 @@ SocketAddress::GetLocalPath() const noexcept
+ 	return !raw.empty() &&
+ 		/* must be an absolute path */
+ 		raw.front() == '/' &&
+-		/* must be null-terminated */
+-		raw.back() == 0 &&
+-		/* there must not be any other null byte */
+-		std::memchr(raw.data(), 0, raw.size() - 1) == nullptr
++		/* must be null-terminated and there must not be any
++		   other null byte */
++		raw.find('\0') == raw.size() - 1
+ 		? raw.data()
+ 		: nullptr;
+ }

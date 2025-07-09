@@ -1,0 +1,49 @@
+From a542997a8ef5cc32d59c3e2b52967f4d9d7dac56 Mon Sep 17 00:00:00 2001
+From: Jonas Paulsson <paulsson@linux.vnet.ibm.com>
+Date: Wed, 11 Jan 2017 14:40:39 +0000
+Subject: [PATCH] [SystemZ]  Improve isFoldableMemAccessOffset().
+
+A store of an extracted element or a load which gets inserted into a vector,
+will be combined into a vector load/store element instruction.
+
+Therefore, isFoldableMemAccessOffset(), which is called by LSR, should
+return false in these cases.
+
+Reviewer: Ulrich Weigand
+---
+ .../Target/SystemZ/SystemZISelLowering.cpp    | 22 +++++++++++++++++--
+ 1 file changed, 20 insertions(+), 2 deletions(-)
+
+diff --git a/llvm/lib/Target/SystemZ/SystemZISelLowering.cpp b/llvm/lib/Target/SystemZ/SystemZISelLowering.cpp
+index 2081809def70..2d0a06af18ae 100644
+--- a/llvm/lib/Target/SystemZ/SystemZISelLowering.cpp
++++ b/llvm/lib/Target/SystemZ/SystemZISelLowering.cpp
+@@ -547,8 +547,26 @@ bool SystemZTargetLowering::isFoldableMemAccessOffset(Instruction *I,
+   assert (isa<LoadInst>(I) || isa<StoreInst>(I));
+   Type *MemAccessTy = (isa<LoadInst>(I) ? I->getType() :
+                        I->getOperand(0)->getType());
+-  if (!isUInt<12>(Offset) &&
+-      (MemAccessTy->isFloatingPointTy() || MemAccessTy->isVectorTy()))
++  bool IsFPAccess = MemAccessTy->isFloatingPointTy();
++  bool IsVectorAccess = MemAccessTy->isVectorTy();
++
++  // A store of an extracted vector element will be combined into a VSTE type
++  // instruction.
++  if (!IsVectorAccess && isa<StoreInst>(I)) {
++    Value *DataOp = I->getOperand(0);
++    if (isa<ExtractElementInst>(DataOp))
++      IsVectorAccess = true;
++  }
++
++  // A load which gets inserted into a vector element will be combined into a
++  // VLE type instruction.
++  if (!IsVectorAccess && isa<LoadInst>(I) && I->hasOneUse()) {
++    User *LoadUser = *I->user_begin();
++    if (isa<InsertElementInst>(LoadUser))
++      IsVectorAccess = true;
++  }
++
++  if (!isUInt<12>(Offset) && (IsFPAccess || IsVectorAccess))
+     return false;
+ 
+   return true;

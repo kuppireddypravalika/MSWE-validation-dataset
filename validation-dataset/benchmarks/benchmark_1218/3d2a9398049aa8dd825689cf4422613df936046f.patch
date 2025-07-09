@@ -1,0 +1,26 @@
+From 3d2a9398049aa8dd825689cf4422613df936046f Mon Sep 17 00:00:00 2001
+From: Julian Storer <julianstorer@gmail.com>
+Date: Tue, 16 May 2023 11:48:23 +0100
+Subject: [PATCH] Tweaked the choc::memory::bitcast() implementation to use
+ memcpy rather than a union
+
+---
+ memory/choc_Endianness.h | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/memory/choc_Endianness.h b/memory/choc_Endianness.h
+index 0a46be3..7cb642a 100644
+--- a/memory/choc_Endianness.h
++++ b/memory/choc_Endianness.h
+@@ -107,8 +107,9 @@ inline TargetType bit_cast (SourceType source)
+ {
+     static_assert (sizeof (SourceType) == sizeof (TargetType),
+                    "Can only bitcast between objects of the same size");
+-    union { SourceType src; TargetType dst; } u = { source };
+-    return u.dst;
++    TargetType t;
++    std::memcpy (std::addressof (t), std::addressof (source), sizeof (TargetType));
++    return t;
+ }
+ 
+ template <typename Type>

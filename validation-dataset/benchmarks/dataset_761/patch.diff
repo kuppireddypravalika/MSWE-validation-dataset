@@ -1,0 +1,33 @@
+From d3acada91bf9552a473d091d26b86ea98d1c0811 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Can=20B=C3=B6l=C3=BCk?= <can.boluk89@gmail.com>
+Date: Sat, 27 Jun 2020 11:53:24 +0200
+Subject: [PATCH] Make routine exploration faster, we can insert while
+ iterating the map.
+
+---
+ VTIL-Architecture/routine/routine.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/VTIL-Architecture/routine/routine.cpp b/VTIL-Architecture/routine/routine.cpp
+index 6face6c4..39ae20af 100644
+--- a/VTIL-Architecture/routine/routine.cpp
++++ b/VTIL-Architecture/routine/routine.cpp
+@@ -61,8 +61,7 @@ namespace vtil
+ 
+ 			// Forward propagate.
+ 			//
+-			std::array clone = { path_cache[ 0 ], path_cache[ 1 ] };
+-			for ( auto& [prev, level2] : clone[ 0 ] )
++			for ( auto& [prev, level2] : path_cache[ 0 ] )
+ 			{
+ 				for ( auto& [next, paths] : level2 )
+ 				{
+@@ -76,7 +75,7 @@ namespace vtil
+ 			}
+ 			// Backwards propagate.
+ 			//
+-			for ( auto& [prev, level2] : clone[ 1 ] )
++			for ( auto& [prev, level2] : path_cache[ 1 ] )
+ 			{
+ 				for ( auto& [next, paths] : level2 )
+ 				{

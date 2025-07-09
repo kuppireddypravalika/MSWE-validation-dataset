@@ -1,0 +1,30 @@
+From efa81ac3a79dacbf7ea4bb1a6b5761eee34b8f68 Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Mon, 31 Dec 2018 23:57:05 -0500
+Subject: [PATCH] __byte_swap_32_array_c(): Use array indexing instead of
+ pointer arithmetic.
+
+This fixes LGTM's cpp/suspicious-pointer-scaling warning.
+---
+ src/librpbase/byteswap.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/librpbase/byteswap.c b/src/librpbase/byteswap.c
+index da8d51a8a9..74f3701590 100644
+--- a/src/librpbase/byteswap.c
++++ b/src/librpbase/byteswap.c
+@@ -92,10 +92,10 @@ void __byte_swap_32_array_c(uint32_t *ptr, unsigned int n)
+ 
+ 	// Process 4 DWORDs per iteration.
+ 	for (; n >= 16; n -= 16, ptr += 4) {
+-		*(ptr+0) = __swab32(*(ptr+0));
+-		*(ptr+1) = __swab32(*(ptr+1));
+-		*(ptr+2) = __swab32(*(ptr+2));
+-		*(ptr+3) = __swab32(*(ptr+3));
++		ptr[0] = __swab32(ptr[0]);
++		ptr[1] = __swab32(ptr[1]);
++		ptr[2] = __swab32(ptr[2]);
++		ptr[3] = __swab32(ptr[3]);
+ 	}
+ 
+ 	// Process remaining DWORDs.

@@ -1,0 +1,26 @@
+From 0a9491d6ca95e2fdeb6c1eaef35beaa095eace5a Mon Sep 17 00:00:00 2001
+From: Rainer Keller <Rainer.Keller@qt.io>
+Date: Thu, 4 Apr 2019 11:28:13 +0200
+Subject: [PATCH] Remove second evaluation of property name
+
+The name was evaluated already at the beginning of the function.
+
+Change-Id: I0bf6149c9bce83a543b1946330ec12f318620a71
+Reviewed-by: Ulf Hermann <ulf.hermann@qt.io>
+---
+ src/qml/jsruntime/qv4runtime.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/qml/jsruntime/qv4runtime.cpp b/src/qml/jsruntime/qv4runtime.cpp
+index bde7cc67983..3e9e972d77f 100644
+--- a/src/qml/jsruntime/qv4runtime.cpp
++++ b/src/qml/jsruntime/qv4runtime.cpp
+@@ -1453,7 +1453,7 @@ ReturnedValue Runtime::method_callProperty(ExecutionEngine *engine, Value *base,
+ 
+     if (!f) {
+         QString error = QStringLiteral("Property '%1' of object %2 is not a function")
+-                .arg(engine->currentStackFrame->v4Function->compilationUnit->runtimeStrings[nameIndex]->toQString(),
++                .arg(name->toQString(),
+                      base->toQStringNoThrow());
+         return engine->throwTypeError(error);
+     }

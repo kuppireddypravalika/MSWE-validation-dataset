@@ -1,0 +1,28 @@
+From a356bfdeeeda23be7da337a702097be83b35c426 Mon Sep 17 00:00:00 2001
+From: Daniel Kroening <dkr@amazon.com>
+Date: Sun, 17 Sep 2023 08:45:00 -0700
+Subject: [PATCH] replace forall_named_irep by ranged for
+
+This replaces one instance of forall_named_irep by a standard ranged for.
+---
+ src/verilog/verilog_typecheck.cpp | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/src/verilog/verilog_typecheck.cpp b/src/verilog/verilog_typecheck.cpp
+index 0c9ec97e1..f1ff9735e 100644
+--- a/src/verilog/verilog_typecheck.cpp
++++ b/src/verilog/verilog_typecheck.cpp
+@@ -1512,10 +1512,9 @@ void verilog_typecheckt::convert_module_item(
+   {
+     genvars.clear();
+     const irept &variables=module_item.find("variables");
+-    forall_named_irep(it, variables.get_named_sub())
+-      genvars[name2string(it->first)]=
+-        string2integer(it->second.id_string());
+-      
++    for(auto &var : variables.get_named_sub())
++      genvars[id2string(var.first)] = string2integer(var.second.id_string());
++
+     if(module_item.operands().size()!=1)
+     {
+       error() << "set_genvars expects one operand" << eom;

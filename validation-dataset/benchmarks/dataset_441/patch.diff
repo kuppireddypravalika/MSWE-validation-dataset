@@ -1,0 +1,22 @@
+From 10f086854b8280f0ced27673b1105720f28dafa1 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@duempel.org>
+Date: Sun, 21 Feb 2016 13:34:16 +0100
+Subject: [PATCH] tag/Id3Load: remove unnecessary seek
+
+---
+ src/tag/Id3Load.cxx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/tag/Id3Load.cxx b/src/tag/Id3Load.cxx
+index b39ce3d112..51f7f282dc 100644
+--- a/src/tag/Id3Load.cxx
++++ b/src/tag/Id3Load.cxx
+@@ -105,7 +105,7 @@ tag_id3_read(FILE *file, long offset, int whence)
+ static UniqueId3Tag
+ tag_id3_find_from_beginning(FILE *stream)
+ {
+-	auto tag = tag_id3_read(stream, 0, SEEK_SET);
++	auto tag = ReadId3Tag(stream);
+ 	if (!tag) {
+ 		return nullptr;
+ 	} else if (tag_is_id3v1(tag.get())) {

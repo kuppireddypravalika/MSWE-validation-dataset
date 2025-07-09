@@ -1,0 +1,41 @@
+From 16beea7c90e161ce82764bf046d588e87d38191f Mon Sep 17 00:00:00 2001
+From: Sergey Silkin <ssilkin@webrtc.org>
+Date: Tue, 16 Jan 2018 09:18:31 +0100
+Subject: [PATCH] Set encodedWidth/encodedHeight to actual coded resolution.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This fixes mismatch between resolution of coded frame indicated by VP9
+encoder wrapper and actual coded resolution. If internal resize is
+enabled VP9 encoder might downscale input frame when bitrate is too low
+to keep good spatial quality. Before this fix VP9 wrapper always set
+coded resolution equal to input resolution. Now it sets it to actual
+coded resolution which it reads from frame pkt.
+
+Bug: webrtc:5749
+Change-Id: I7dc8ba89947e99213a3b4c3cd4d974b662f090c4
+Reviewed-on: https://webrtc-review.googlesource.com/39661
+Reviewed-by: Åsa Persson <asapersson@webrtc.org>
+Reviewed-by: Rasmus Brandt <brandtr@webrtc.org>
+Commit-Queue: Sergey Silkin <ssilkin@webrtc.org>
+Cr-Commit-Position: refs/heads/master@{#21651}
+---
+ modules/video_coding/codecs/vp9/vp9_impl.cc | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/modules/video_coding/codecs/vp9/vp9_impl.cc b/modules/video_coding/codecs/vp9/vp9_impl.cc
+index 22993eb66a..6a62cd29a0 100644
+--- a/modules/video_coding/codecs/vp9/vp9_impl.cc
++++ b/modules/video_coding/codecs/vp9/vp9_impl.cc
+@@ -716,8 +716,8 @@ int VP9EncoderImpl::GetEncodedLayerFrame(const vpx_codec_cx_pkt* pkt) {
+     encoded_image_.content_type_ = (codec_.mode == kScreensharing)
+                                        ? VideoContentType::SCREENSHARE
+                                        : VideoContentType::UNSPECIFIED;
+-    encoded_image_._encodedHeight = raw_->d_h;
+-    encoded_image_._encodedWidth = raw_->d_w;
++    encoded_image_._encodedHeight = pkt->data.frame.height;
++    encoded_image_._encodedWidth = pkt->data.frame.width;
+     encoded_image_.timing_.flags = TimingFrameFlags::kInvalid;
+     int qp = -1;
+     vpx_codec_control(encoder_, VP8E_GET_LAST_QUANTIZER, &qp);

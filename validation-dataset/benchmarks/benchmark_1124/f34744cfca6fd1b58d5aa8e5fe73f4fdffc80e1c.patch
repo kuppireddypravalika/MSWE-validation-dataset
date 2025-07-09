@@ -1,0 +1,26 @@
+From f34744cfca6fd1b58d5aa8e5fe73f4fdffc80e1c Mon Sep 17 00:00:00 2001
+From: Simon Pilgrim <llvm-dev@redking.me.uk>
+Date: Wed, 25 Apr 2018 15:22:03 +0000
+Subject: [PATCH] [CostModel][X86] Recursive call for cost of imul for packed
+ v16i16 constant shift left.
+
+Don't just assume cost = 1.
+---
+ llvm/lib/Target/X86/X86TargetTransformInfo.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/llvm/lib/Target/X86/X86TargetTransformInfo.cpp b/llvm/lib/Target/X86/X86TargetTransformInfo.cpp
+index 4813ab3d5152..013c2d569b7a 100644
+--- a/llvm/lib/Target/X86/X86TargetTransformInfo.cpp
++++ b/llvm/lib/Target/X86/X86TargetTransformInfo.cpp
+@@ -492,7 +492,9 @@ int X86TTIImpl::getArithmeticInstrCost(
+          Op2Info == TargetTransformInfo::OK_NonUniformConstantValue))
+       // On AVX2, a packed v16i16 shift left by a constant build_vector
+       // is lowered into a vector multiply (vpmullw).
+-      return LT.first;
++      return getArithmeticInstrCost(Instruction::Mul, Ty, Op1Info, Op2Info,
++                                    TargetTransformInfo::OP_None,
++                                    TargetTransformInfo::OP_None);
+ 
+     if (const auto *Entry = CostTableLookup(AVX2ShiftCostTable, ISD, LT.second))
+       return LT.first * Entry->Cost;

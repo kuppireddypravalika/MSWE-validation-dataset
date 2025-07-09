@@ -1,0 +1,42 @@
+From d239f14952b71c9a12fbb1b7e5e2dcf7d9727e1c Mon Sep 17 00:00:00 2001
+From: Kevin Backhouse <kevinbackhouse@github.com>
+Date: Sun, 14 Apr 2024 14:39:19 +0100
+Subject: [PATCH] Fix performance problem in fuzzer.
+
+---
+ fuzz/fuzz-read-print-write.cpp | 18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
+
+diff --git a/fuzz/fuzz-read-print-write.cpp b/fuzz/fuzz-read-print-write.cpp
+index 2dee1c23fe..5111d961ce 100644
+--- a/fuzz/fuzz-read-print-write.cpp
++++ b/fuzz/fuzz-read-print-write.cpp
+@@ -21,16 +21,22 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
+ 
+     image->readMetadata();
+     for (auto& md : image->exifData()) {
+-      md.print();
+-      md.print(&image->exifData());
++      if (md.tagName().substr(0, 2) != "0x") {
++        md.print();
++        md.print(&image->exifData());
++      }
+     }
+     for (auto& md : image->iptcData()) {
+-      md.print();
+-      md.print(&image->exifData());
++      if (md.tagName().substr(0, 2) != "0x") {
++        md.print();
++        md.print(&image->exifData());
++      }
+     }
+     for (auto& md : image->xmpData()) {
+-      md.print();
+-      md.print(&image->exifData());
++      if (md.tagName().substr(0, 2) != "0x") {
++        md.print();
++        md.print(&image->exifData());
++      }
+     }
+ 
+     // Print to a std::ostringstream so that the fuzzer doesn't

@@ -1,0 +1,30 @@
+From 477780b6fff652c969782d14f97e561ea2c63871 Mon Sep 17 00:00:00 2001
+From: evoskuil <eric@voskuil.org>
+Date: Wed, 19 Apr 2017 00:59:12 -0700
+Subject: [PATCH] Use std::move() vs. std::forward<>() for non-template arg.
+
+---
+ src/p2p.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/p2p.cpp b/src/p2p.cpp
+index 461394716..ef3e58781 100644
+--- a/src/p2p.cpp
++++ b/src/p2p.cpp
+@@ -24,6 +24,7 @@
+ #include <functional>
+ #include <memory>
+ #include <string>
++#include <utility>
+ #include <vector>
+ #include <bitcoin/bitcoin.hpp>
+ #include <bitcoin/network/channel.hpp>
+@@ -318,7 +319,7 @@ checkpoint p2p::top_block() const
+ 
+ void p2p::set_top_block(checkpoint&& top)
+ {
+-    top_block_.store(std::forward<checkpoint>(top));
++    top_block_.store(std::move(top));
+ }
+ 
+ void p2p::set_top_block(const checkpoint& top)

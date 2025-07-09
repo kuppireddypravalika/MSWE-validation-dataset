@@ -1,0 +1,105 @@
+name: Benchmark Suite CI/CD
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  run-benchmarks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # Ensure we have history to detect changes
+
+      - name: Detect Changed Benchmark Directories
+        id: changed_benchmarks
+        run: |
+          CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E 'benchmarks/(benchmark_|dataset_)' | awk -F'/' '{print $1"/"$2}' | sort | uniq)
+          EXISTING=""
+          for DIR in $CHANGED; do
+            if [ -d "$DIR" ]; then
+              EXISTING+=" $DIR"
+            fi
+          done
+          CHANGED=$(echo $EXISTING | xargs)
+          if [ -z "$CHANGED" ]; then
+            echo "No benchmarks changed. Skipping benchmark tests."
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "Benchmarks changed:"
+            echo "$CHANGED"
+            echo "benchmarks=$CHANGED" >> $GITHUB_OUTPUT
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up Docker
+        if: steps.changed_benchmarks.outputs.changed == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Make Script Executable
+        if: steps.changed_benchmarks.outputs.changed == 'true'
+        run: chmod +x run_benchmarks.sh
+
+      - name: Run Only Changed Benchmarks
+        if: steps.changed_benchmarks.outputs.changed == 'true'
+        run: |
+          for i in {1..3}; do
+            docker build --no-cache -t perf-bench . && break || sleep 10
+          done
+          ./run_benchmarks.sh ${{ steps.changed_benchmarks.outputs.benchmarks }}
+
+      - name: No Benchmarks Changed
+        if: steps.changed_benchmarks.outputs.changed == 'false'
+        run: echo "No benchmark tests required. ✅"
+  notify:
+    needs: run-benchmarks
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Map GitHub User to Slack ID
+        id: map_user
+        run: |
+          declare -A USER_MAP=(
+            ["LikhithaKolluru23"]="U08QWAX3XR6"
+            ["kuppireddypravalika"]="U08PSEE7WJK"
+            ["proywm"]="U029HQL35C6"
+          )
+
+          SLACK_ID=${USER_MAP["${{ github.actor }}"]}
+
+          if [ -z "$SLACK_ID" ]; then
+            echo "Slack user ID not found for user ${{ github.actor }}."
+            SLACK_ID="UNKNOWN"
+          fi
+
+          echo "slack_id=$SLACK_ID" >> $GITHUB_OUTPUT
+
+      - name: Send Slack Notification
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
+          payload: |
+            {
+              "text": "${{ needs.run-benchmarks.result == 'success' && ':white_check_mark: Benchmarks ran successfully!' || ':x: Benchmarks failed!' }}",
+              "attachments": [
+                {
+                  "color": "${{ needs.run-benchmarks.result == 'success' && 'good' || 'danger' }}",
+                  "fields": [
+                    {"title": "Repository", "value": "${{ github.repository }}", "short": true},
+                    {"title": "Branch", "value": "${{ github.ref_name }}", "short": true},
+                    {"title": "Contributor", "value": "<@${{ steps.map_user.outputs.slack_id }}>", "short": true},
+                    {"title": "Benchmark Changes Detected", "value": "${{ needs.run-benchmarks.outputs.benchmarks_changed }}", "short": true},
+                    {"title": "Commit Message", "value": "${{ github.event.head_commit.message }}", "short": false},
+                    {"title": "Action URL", "value": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}", "short": false}
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}

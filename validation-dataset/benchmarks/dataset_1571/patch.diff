@@ -1,0 +1,40 @@
+From 085879b2545fd515103b33a04b8f0ad206e1864d Mon Sep 17 00:00:00 2001
+From: Stephen Bennett <spb@exherbo.org>
+Date: Wed, 18 Jul 2012 22:40:55 +0100
+Subject: [PATCH] use unordered_map instead of map for key-value array Values
+
+---
+ src/value.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/value.cpp b/src/value.cpp
+index f52c514..3be457c 100644
+--- a/src/value.cpp
++++ b/src/value.cpp
+@@ -1,7 +1,7 @@
+ #include "value.h"
+ 
+ #include <vector>
+-#include <map>
++#include <unordered_map>
+ #include <memory>
+ 
+ #include <paludis/util/private_implementation_pattern-impl.hh>
+@@ -101,7 +101,7 @@ namespace paludis
+     template <>
+     struct Implementation<KeyValueArray>
+     {
+-        std::map<std::string, Value> _map;
++        std::unordered_map<std::string, Value> _map;
+     };
+ }
+ 
+@@ -544,7 +544,7 @@ bool KeyValueArray::erase(std::string s)
+ 
+ KeyValueArray::iterator KeyValueArray::erase(KeyValueArray::iterator it)
+ {
+-    return _imp->_map.erase(it.underlying_iterator<std::map<std::string,Value>::iterator>());
++    return _imp->_map.erase(it.underlying_iterator<std::unordered_map<std::string,Value>::iterator>());
+ }
+ 
+ void KeyValueArray::clear()

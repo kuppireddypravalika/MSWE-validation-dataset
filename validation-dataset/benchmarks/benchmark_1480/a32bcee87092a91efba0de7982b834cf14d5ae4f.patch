@@ -1,0 +1,27 @@
+From a32bcee87092a91efba0de7982b834cf14d5ae4f Mon Sep 17 00:00:00 2001
+From: "Earle F. Philhower, III" <earlephilhower@yahoo.com>
+Date: Thu, 20 Apr 2017 08:05:40 -0700
+Subject: [PATCH] Timezones w/o DST need sprintf replacement
+
+Some timezones (Japan, for example) have no daylight savings time but
+still include a "%s" in their name string.  Do a sprintf() always in
+ASCTIME to get the timezone, and use "S" to convert from J%sT->JST/etc.
+---
+ timezone.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/timezone.cpp b/timezone.cpp
+index 34ada4d..78eb482 100644
+--- a/timezone.cpp
++++ b/timezone.cpp
+@@ -359,8 +359,8 @@ char *AscTime(time_t whenUTC, bool use12Hr, bool useDMY, char *buff, int buffLen
+ 
+   char tzID[16];
+   if (!useDSTRule) {
+-    // No TZ string replacement needed
+-    strlcpy(tzID, timezoneStr, sizeof(tzID));
++    // Just replace any string with "S" for standard
++    snprintf(tzID, sizeof(tzID), timezoneStr, "S");
+   } else if ((whenUTC >= dstChangeAtUTC[0]) && (whenUTC < dstChangeAtUTC[1])) {
+     // At 1st DST change
+     snprintf(tzID, sizeof(tzID), timezoneStr, dstString[0]);

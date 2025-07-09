@@ -1,0 +1,41 @@
+From 63b736cfa397f1137056e1855a675b3f85dbd5dd Mon Sep 17 00:00:00 2001
+From: senquack <dansilsby@gmail.com>
+Date: Wed, 14 Dec 2016 04:19:46 -0500
+Subject: [PATCH] mipsrec: Rework gen_LWL_LWR() to eliminate NOPs
+
+emitAddrCalc() now promises to only write to TEMP_1, TEMP_2 regs.
+
+gen_LWL_LWR() uses this fact to safely leave out NOPs in branch delay
+slots, and also keep MIPSREG_A0 value preserved across call.
+---
+ src/recompiler/mips/rec_lsu.cpp.h | 13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
+
+diff --git a/src/recompiler/mips/rec_lsu.cpp.h b/src/recompiler/mips/rec_lsu.cpp.h
+index b535f518..94d6c4c5 100644
+--- a/src/recompiler/mips/rec_lsu.cpp.h
++++ b/src/recompiler/mips/rec_lsu.cpp.h
+@@ -834,15 +834,18 @@ static void gen_LWL_LWR(int count)
+ 	// See comments in StoreToAddr() for explanation of check.
+ 
+ #ifdef HAVE_MIPS32R2_EXT_INS
+-	EXT(TEMP_2, MIPSREG_A0, 24, 4);
++	EXT(MIPSREG_A1, MIPSREG_A0, 24, 4);
+ #else
+-	LUI(TEMP_2, 0x0f00);
+-	AND(TEMP_2, TEMP_2, MIPSREG_A0);
++	LUI(MIPSREG_A1, 0x0f00);
++	AND(MIPSREG_A1, MIPSREG_A1, MIPSREG_A0);
+ #endif
+ 	u32 *backpatch_label_hle_1 = (u32 *)recMem;
+-	BGTZ(TEMP_2, 0);
+-	NOP();
++	BGTZ(MIPSREG_A1, 0); // beqz MIPSREG_A1, label_hle
++
++	// NOTE: Branch delay slot contains next emitted instruction,
++	//       which should not write to MIPSREG_A1
+ 
++	// NOTE: emitAddrCalc() promises no writes to MIPSREG_A0, MIPSREG_A1, TEMP_3
+ 	emitAddrCalc(r1); // TEMP_2 == recalculated addr
+ 
+ 	icount = count;

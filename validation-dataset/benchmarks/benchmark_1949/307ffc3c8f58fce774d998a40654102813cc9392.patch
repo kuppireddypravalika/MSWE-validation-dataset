@@ -1,0 +1,28 @@
+From 307ffc3c8f58fce774d998a40654102813cc9392 Mon Sep 17 00:00:00 2001
+From: Vyacheslav Ivanov <islavaivanov76@gmail.com>
+Date: Fri, 2 Aug 2024 01:39:17 +0300
+Subject: [PATCH] fix: optimization: PVS-Studio warning V837
+
+Replaced 'emplace' with 'try_emplace' to avoid unnecessary copies or moves when insertion fails.
+
+The 'emplace' function does not guarantee that arguments will not be copied or moved if insertion is not successful. Using 'try_emplace' ensures that arguments are only copied or moved if the insertion actually takes place, thus improving performance.
+
+Reported by: PVS-Studio
+Signed-off-by: Vyacheslav Ivanov <islavaivanov76@gmail.com>
+---
+ src/window/Events.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/window/Events.cpp b/src/window/Events.cpp
+index cd94946c1..6c237a288 100644
+--- a/src/window/Events.cpp
++++ b/src/window/Events.cpp
+@@ -115,7 +115,7 @@ void Events::bind(const std::string& name, inputtype type, mousecode code) {
+ }
+ 
+ void Events::bind(const std::string& name, inputtype type, int code) {
+-    bindings.emplace(name, Binding(type, code));
++    bindings.try_emplace(name, Binding(type, code));
+ }
+ 
+ void Events::rebind(const std::string& name, inputtype type, int code) {

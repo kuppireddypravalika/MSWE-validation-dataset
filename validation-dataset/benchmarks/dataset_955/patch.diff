@@ -1,0 +1,25 @@
+From 4cba4ffd412d0cd6bf20147c822399f2438e42d4 Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Mon, 2 Jan 2017 01:51:06 -0500
+Subject: [PATCH] [libromdata] GameCubeSavePrivate::loadIcon(): free(icondata)
+
+Found while using valgrind's memory leak checker on both the XFCE and
+KDE5 paths.
+---
+ src/libromdata/GameCubeSave.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/libromdata/GameCubeSave.cpp b/src/libromdata/GameCubeSave.cpp
+index 3cd900991d..213215f8f2 100644
+--- a/src/libromdata/GameCubeSave.cpp
++++ b/src/libromdata/GameCubeSave.cpp
+@@ -473,6 +473,9 @@ rp_image *GameCubeSavePrivate::loadIcon(void)
+ 		iconAnimData->count++;
+ 	}
+ 
++	// Free the icon data.
++	free(icondata);
++
+ 	// NOTE: We're not deleting iconAnimData even if we only have
+ 	// a single icon because iconAnimData() will call loadIcon()
+ 	// if iconAnimData is nullptr.

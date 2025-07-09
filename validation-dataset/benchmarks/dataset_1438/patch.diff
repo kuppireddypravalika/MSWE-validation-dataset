@@ -1,0 +1,31 @@
+From 04384ace79e51170350856c43bde447542a7365a Mon Sep 17 00:00:00 2001
+From: Matthewacon <matthewjbarichello@gmail.com>
+Date: Thu, 5 Sep 2019 21:10:56 -0400
+Subject: [PATCH] Replaced strcmp with memcmp since JVM strings can contain
+ null characters
+
+---
+ src/fake-jni/jvm/string.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/fake-jni/jvm/string.cpp b/src/fake-jni/jvm/string.cpp
+index 68aafa5..51ca516 100644
+--- a/src/fake-jni/jvm/string.cpp
++++ b/src/fake-jni/jvm/string.cpp
+@@ -2,6 +2,7 @@
+ 
+ #include <cmath>
+ #include <cstring>
++#include <algorithm>
+ 
+ namespace FakeJni {
+  const JString JString::EMPTY_STR {""};
+@@ -27,7 +28,7 @@ namespace FakeJni {
+  }
+ 
+  bool JString::operator==(const JString& str) const {
+-  return strcmp((char *)array, (char *)str.array) == 0;
++  return slen == str.slen && memcmp((char *)array, (char *)str.array, slen) == 0;
+  }
+ }
+ 

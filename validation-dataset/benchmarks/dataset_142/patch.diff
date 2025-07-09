@@ -1,0 +1,29 @@
+From 00d13201b5cfcf4dc9ce61c7c6785b275945c5fa Mon Sep 17 00:00:00 2001
+From: wangqr <wangqr@wangqr.tk>
+Date: Sun, 16 Jun 2019 19:14:10 -0400
+Subject: [PATCH] Detect EBML magic number to skip encoding detection for MKV
+
+MKV loads slow after 41511825400921e2f4299e340c03ef22cf0925d1
+---
+ libaegisub/common/charset.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/libaegisub/common/charset.cpp b/libaegisub/common/charset.cpp
+index 5ca248b9e..4a9d40f47 100644
+--- a/libaegisub/common/charset.cpp
++++ b/libaegisub/common/charset.cpp
+@@ -29,6 +29,14 @@ namespace agi { namespace charset {
+ std::string Detect(agi::fs::path const& file) {
+ 	agi::read_file_mapping fp(file);
+ 
++	// FIXME: Dirty hack for Matroska. These 4 bytes are the magic
++	// number of EBML which is used by mkv and webm
++	if (fp.size() >= 4) {
++		const char* buf = fp.read(0, 4);
++		if (!strncmp(buf, "\x1a\x45\xdf\xa3", 4))
++			return "binary";
++	}
++
+ #ifdef WITH_UCHARDET
+ 	agi::scoped_holder<uchardet_t> ud(uchardet_new(), uchardet_delete);
+ 	for (uint64_t offset = 0; offset < fp.size(); ) {

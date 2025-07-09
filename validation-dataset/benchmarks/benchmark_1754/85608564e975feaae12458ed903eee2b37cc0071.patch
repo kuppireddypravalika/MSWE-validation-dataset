@@ -1,0 +1,34 @@
+From 85608564e975feaae12458ed903eee2b37cc0071 Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@gmail.com>
+Date: Sat, 6 May 2017 05:15:11 +0000
+Subject: [PATCH] [SCEV] Use APInt's uint64_t operations instead of creating a
+ temporary APInt to hold 1.
+
+---
+ llvm/lib/Analysis/ScalarEvolution.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/llvm/lib/Analysis/ScalarEvolution.cpp b/llvm/lib/Analysis/ScalarEvolution.cpp
+index 2ae4014bd622..c942df11e1af 100644
+--- a/llvm/lib/Analysis/ScalarEvolution.cpp
++++ b/llvm/lib/Analysis/ScalarEvolution.cpp
+@@ -9306,9 +9306,8 @@ const SCEV *SCEVAddRecExpr::getNumIterationsInRange(const ConstantRange &Range,
+     // the upper value of the range must be the first possible exit value.
+     // If A is negative then the lower of the range is the last possible loop
+     // value.  Also note that we already checked for a full range.
+-    APInt One(BitWidth,1);
+     APInt A = cast<SCEVConstant>(getOperand(1))->getAPInt();
+-    APInt End = A.sge(One) ? (Range.getUpper() - One) : Range.getLower();
++    APInt End = A.sge(1) ? (Range.getUpper() - 1) : Range.getLower();
+ 
+     // The exit value should be (End+A)/A.
+     APInt ExitVal = (End + A).udiv(A);
+@@ -9324,7 +9323,7 @@ const SCEV *SCEVAddRecExpr::getNumIterationsInRange(const ConstantRange &Range,
+     // Ensure that the previous value is in the range.  This is a sanity check.
+     assert(Range.contains(
+            EvaluateConstantChrecAtConstant(this,
+-           ConstantInt::get(SE.getContext(), ExitVal - One), SE)->getValue()) &&
++           ConstantInt::get(SE.getContext(), ExitVal - 1), SE)->getValue()) &&
+            "Linear scev computation is off in a bad way!");
+     return SE.getConstant(ExitValue);
+   } else if (isQuadratic()) {

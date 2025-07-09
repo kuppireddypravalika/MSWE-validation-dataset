@@ -1,0 +1,40 @@
+From 1df737ffb6a3d5fa10a9ab323c745264d5c7d64c Mon Sep 17 00:00:00 2001
+From: Jan Friso Groote <j.f.groote@tue.nl>
+Date: Mon, 18 Oct 2010 10:53:12 +0000
+Subject: [PATCH] Reversed the order in which AFun's are unprotected. This make
+ this operation constant (for its only relevant use in the aterm library),
+ instead of linear.
+
+Jeroen: can you check the effect on your example.
+
+
+
+git-svn-id: https://svn.win.tue.nl/repos/MCRL2/trunk@8276 21252fe5-60e8-0310-8ff0-c1ae1001594e
+---
+ 3rd-party/aterm/source/afun.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/3rd-party/aterm/source/afun.c b/3rd-party/aterm/source/afun.c
+index 21a3da4120..22b7a0d6ed 100644
+--- a/3rd-party/aterm/source/afun.c
++++ b/3rd-party/aterm/source/afun.c
+@@ -534,9 +534,18 @@ void ATprotectSymbol(Symbol sym)
+ 
+ void ATunprotectSymbol(Symbol sym)
+ {
++  /* It is essential for performance that in this file
++   * the protected_symbols array is traversed from back
++   * to front. This function is only invoked by 
++   * ATdestroyBinaryReader, which stacks symbols at the 
++   * end of protected symbols, and removes them in 
++   * reverse order. */
++
+   unsigned int lcv;
+ 
+-  for(lcv = 0; lcv < nr_protected_symbols; ++lcv) {
++  for(lcv = nr_protected_symbols; lcv >0 ; ) 
++  { 
++    --lcv;
+     if(protected_symbols[lcv] == sym) {
+       protected_symbols[lcv] = protected_symbols[--nr_protected_symbols];
+       protected_symbols[nr_protected_symbols] = -1;

@@ -1,0 +1,25 @@
+From ada2950a5008c1509c9c6109a2617cdb27d346f8 Mon Sep 17 00:00:00 2001
+From: ratkosrb <ratkomladic2@abv.bg>
+Date: Thu, 16 Jan 2020 21:18:38 +0200
+Subject: [PATCH] Small code optimization in ExtractLinkArg.
+
+Credit to cmangos https://github.com/cmangos/mangos-classic/commit/015f9659cd3e188f7fc2d42bc11d3fcec1e17853
+---
+ src/game/Chat/Chat.cpp | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/src/game/Chat/Chat.cpp b/src/game/Chat/Chat.cpp
+index aa9372314bb..645437c09a2 100644
+--- a/src/game/Chat/Chat.cpp
++++ b/src/game/Chat/Chat.cpp
+@@ -2738,9 +2738,7 @@ char* ChatHandler::ExtractLinkArg(char** args, char const* const* linkTypes /*=
+     if (*tail == ':' && somethingPair)                      // optional data extraction
+     {
+         // :something...|h[name]|h|r
+-
+-        if (*tail == ':')
+-            ++tail;
++        ++tail;
+ 
+         // something|h[name]|h|r or something:something2...|h[name]|h|r
+ 

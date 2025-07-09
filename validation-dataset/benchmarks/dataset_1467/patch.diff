@@ -1,0 +1,39 @@
+From 3095788b0def57fdff638085fe13c0a8ac81d1a1 Mon Sep 17 00:00:00 2001
+From: Fengguang Wu <fengguang.wu@intel.com>
+Date: Wed, 10 Oct 2018 11:47:06 +0800
+Subject: [PATCH] GlobalScan: reduce nr_walks based adjustment
+
+The young_bytes based adjustment looks good enough.
+Too large nr_walks based adjustment looks somehow disturbing.
+
+interval 0.100000 real 0.446519 * 1.5 for young 13.66%
+interval 0.653552 real 0.653675 * 0.7 for young 30.00%
+interval 0.435845 x2 due to low nr_walks 3
+interval 0.871691 real 0.871832 * 0.8 for young 25.20%
+interval 0.691912 real 0.692056 * 0.8 for young 26.61%
+interval 0.520188 real 0.520324 * 1.0 for young 20.85%
+interval 0.499028 x2 due to low nr_walks 4
+interval 0.998056 real 0.998273 * 0.5 for young 41.66%
+interval 0.479218 real 0.479439 * 0.9 for young 23.33%
+interval 0.411025 real 0.411263 * 1.0 for young 20.20%
+
+Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
+---
+ GlobalScan.cc | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/GlobalScan.cc b/GlobalScan.cc
+index e47b757..16d884b 100644
+--- a/GlobalScan.cc
++++ b/GlobalScan.cc
+@@ -241,8 +241,8 @@ void GlobalScan::update_interval(bool finished)
+     interval = 0.000001;
+ 
+   if (finished && nr_walks < MAX_WALKS / 4) {
+-    printf("interval %f x2 due to low nr_walks %d\n",
++    printf("interval %f x1.2 due to low nr_walks %d\n",
+            (double) interval, nr_walks);
+-    interval *= 2;
++    interval *= 1.2;
+   }
+ }

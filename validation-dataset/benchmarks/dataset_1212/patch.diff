@@ -1,0 +1,26 @@
+From aede51d223f8e5ddad4dd874c5ce46e10d6e573f Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@spatialys.com>
+Date: Sun, 30 Jun 2024 22:13:39 +0200
+Subject: [PATCH] ISGDataset: fix performance inefficiencies (CID 1549336,
+ 1549337, 1549338, 1549339)
+
+---
+ frmts/aaigrid/aaigriddataset.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/frmts/aaigrid/aaigriddataset.cpp b/frmts/aaigrid/aaigriddataset.cpp
+index 96d8325a8be1..910b77a3c8f0 100644
+--- a/frmts/aaigrid/aaigriddataset.cpp
++++ b/frmts/aaigrid/aaigriddataset.cpp
+@@ -864,9 +864,9 @@ int ISGDataset::ParseHeader(const char *pszHeader, const char *)
+         return FALSE;
+     }
+ 
+-    auto parseDMS = [](auto str)
++    const auto parseDMS = [](CPLString &str)
+     {
+-        std::string degreeSymbol{"\xc2\xb0"};
++        const std::string degreeSymbol{"\xc2\xb0"};
+         str.replaceAll(degreeSymbol, "D");
+         return CPLDMSToDec(str);
+     };

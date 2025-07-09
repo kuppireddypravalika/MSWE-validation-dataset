@@ -1,0 +1,27 @@
+From d5a057b025f3a10382db35f6e11161c4db6e20d8 Mon Sep 17 00:00:00 2001
+From: LoveSy <shana@zju.edu.cn>
+Date: Fri, 2 Dec 2022 23:22:13 +0800
+Subject: [PATCH] Redeoptimize when class initialized
+
+---
+ lsplant/src/main/jni/art/runtime/class_linker.hpp | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/lsplant/src/main/jni/art/runtime/class_linker.hpp b/lsplant/src/main/jni/art/runtime/class_linker.hpp
+index 0ee6b1300..4a9c41ea8 100644
+--- a/lsplant/src/main/jni/art/runtime/class_linker.hpp
++++ b/lsplant/src/main/jni/art/runtime/class_linker.hpp
+@@ -70,9 +70,10 @@ class ClassLinker {
+             auto new_trampoline = art_method->GetEntryPoint();
+             art_method->SetEntryPoint(old_trampoline);
+             if (IsDeoptimized(art_method)) {
+-                if (new_trampoline != old_trampoline) [[unlikely]] {
+-                    LOGV("prevent deoptimized method %s from being overwritten",
+-                         art_method->PrettyMethod(true).data());
++                if (new_trampoline != art_quick_to_interpreter_bridge ||
++                    new_trampoline != art_quick_generic_jni_trampoline) {
++                    LOGV("re-deoptimize for %s", art_method->PrettyMethod(true).data());
++                    SetEntryPointsToInterpreter(art_method);
+                 }
+                 continue;
+             }

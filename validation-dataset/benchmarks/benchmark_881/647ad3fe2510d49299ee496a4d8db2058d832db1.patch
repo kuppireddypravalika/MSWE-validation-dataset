@@ -1,0 +1,34 @@
+From 647ad3fe2510d49299ee496a4d8db2058d832db1 Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Thu, 22 Jan 2015 12:34:44 +0100
+Subject: [PATCH] QDate: optimize QDate::toString()
+
+Instead of using a QString::arg() cascade, which creates tons of
+temporaries, use good 'ol sprintf().
+
+Effects on Linux GCC 4.9 stripped release builds:
+ text   -216B
+ data    +-0B
+ relocs  +-0
+
+Change-Id: I6ff551cb9f42e0c05a64f03a8e177fb527915481
+Reviewed-by: Thiago Macieira <thiago.macieira@intel.com>
+---
+ src/corelib/tools/qdatetime.cpp | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/src/corelib/tools/qdatetime.cpp b/src/corelib/tools/qdatetime.cpp
+index b31eb8c23c3..191fcf8cfd2 100644
+--- a/src/corelib/tools/qdatetime.cpp
++++ b/src/corelib/tools/qdatetime.cpp
+@@ -888,9 +888,7 @@ QString QDate::toString(Qt::DateFormat format) const
+         pd = getDateFromJulianDay(jd);
+         if (pd.year < 0 || pd.year > 9999)
+             return QString();
+-        return QString::fromLatin1("%1-%2-%3").arg(pd.year,  4, 10, QLatin1Char('0'))
+-                                              .arg(pd.month, 2, 10, QLatin1Char('0'))
+-                                              .arg(pd.day,   2, 10, QLatin1Char('0'));
++        return QString::asprintf("%04d-%02d-%02d", pd.year, pd.month, pd.day);
+     }
+ }
+ 

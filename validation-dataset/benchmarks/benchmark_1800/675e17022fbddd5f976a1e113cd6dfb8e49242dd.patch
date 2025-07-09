@@ -1,0 +1,30 @@
+From 675e17022fbddd5f976a1e113cd6dfb8e49242dd Mon Sep 17 00:00:00 2001
+From: Taylor Hornby <taylor@defuse.ca>
+Date: Tue, 17 May 2016 13:44:20 -0600
+Subject: [PATCH] Use left shift instead of floating-point pow() in equihash.
+
+---
+ src/crypto/equihash.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/crypto/equihash.cpp b/src/crypto/equihash.cpp
+index ceafd70f2..1383c73eb 100644
+--- a/src/crypto/equihash.cpp
++++ b/src/crypto/equihash.cpp
+@@ -16,7 +16,6 @@
+ #include "util.h"
+ 
+ #include <algorithm>
+-#include <cmath>
+ #include <iostream>
+ #include <stdexcept>
+ 
+@@ -247,7 +246,7 @@ std::set<std::vector<eh_index>> Equihash::BasicSolve(const eh_HashState& base_st
+ 
+ bool Equihash::IsValidSolution(const eh_HashState& base_state, std::vector<eh_index> soln)
+ {
+-    eh_index soln_size { pow(2, k) };
++    eh_index soln_size { 1u << k };
+     if (soln.size() != soln_size) {
+         LogPrint("pow", "Invalid solution size: %d\n", soln.size());
+         return false;

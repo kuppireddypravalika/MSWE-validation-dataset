@@ -1,0 +1,27 @@
+From acb021003bec881cd4a8341487eaa55f55c10d27 Mon Sep 17 00:00:00 2001
+From: Dmitry Vyukov <dvyukov@google.com>
+Date: Fri, 22 Jun 2018 08:27:52 +0000
+Subject: [PATCH] tsan: fix deficiency in MutexReadOrWriteUnlock
+
+MutexUnlock uses ReleaseStore on s->clock, which is the right thing to do.
+However MutexReadOrWriteUnlock for writers uses Release on s->clock.
+Make MutexReadOrWriteUnlock also use ReleaseStore for consistency and performance.
+Unfortunately, I don't think any test can detect this as this only potentially
+affects performance.
+---
+ compiler-rt/lib/tsan/rtl/tsan_rtl_mutex.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/compiler-rt/lib/tsan/rtl/tsan_rtl_mutex.cc b/compiler-rt/lib/tsan/rtl/tsan_rtl_mutex.cc
+index f0f4fbe7c7cb..c61d02b7a766 100644
+--- a/compiler-rt/lib/tsan/rtl/tsan_rtl_mutex.cc
++++ b/compiler-rt/lib/tsan/rtl/tsan_rtl_mutex.cc
+@@ -361,7 +361,7 @@ void MutexReadOrWriteUnlock(ThreadState *thr, uptr pc, uptr addr) {
+     if (s->recursion == 0) {
+       StatInc(thr, StatMutexUnlock);
+       s->owner_tid = SyncVar::kInvalidTid;
+-      ReleaseImpl(thr, pc, &s->clock);
++      ReleaseStoreImpl(thr, pc, &s->clock);
+     } else {
+       StatInc(thr, StatMutexRecUnlock);
+     }

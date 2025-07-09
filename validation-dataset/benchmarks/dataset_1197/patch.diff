@@ -1,0 +1,39 @@
+From 383d05941c6c24b04a8d21bb8e12d58f838158c8 Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Fri, 10 Jul 2020 00:23:54 -0600
+Subject: [PATCH] Use length squared comparison for greater efficiency
+
+---
+ OPHD/States/MapViewStateHelper.cpp | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/OPHD/States/MapViewStateHelper.cpp b/OPHD/States/MapViewStateHelper.cpp
+index c4ba705f0..1e3222ad3 100644
+--- a/OPHD/States/MapViewStateHelper.cpp
++++ b/OPHD/States/MapViewStateHelper.cpp
+@@ -315,10 +315,14 @@ bool selfSustained(StructureID id)
+  */
+ bool outOfCommRange(Point<int>& ccLocation, TileMap* tileMap, Tile* currentTile)
+ {
++	const auto maxCcRangeSquared = constants::ROBOT_COM_RANGE * constants::ROBOT_COM_RANGE;
+ 	const auto tile = tileMap->getVisibleTile();
+-	if (tile->distanceTo(tileMap->getTile(ccLocation, 0)) <= constants::ROBOT_COM_RANGE)
++	const auto ccDistance = tile->position() - tileMap->getTile(ccLocation, 0)->position();
++	if (ccDistance.lengthSquared() <= maxCcRangeSquared)
+ 		return false;
+ 
++	const auto currentPosition = currentTile->position();
++	const auto maxTowerRangeSquared = constants::COMM_TOWER_BASE_RANGE * constants::COMM_TOWER_BASE_RANGE;
+ 	auto structureManager = Utility<StructureManager>::get();
+ 	for (auto tower : structureManager.structureList(Structure::StructureClass::CLASS_COMM))
+ 	{
+@@ -328,7 +332,8 @@ bool outOfCommRange(Point<int>& ccLocation, TileMap* tileMap, Tile* currentTile)
+ 		}
+ 
+ 		const auto commTowerTile = structureManager.tileFromStructure(tower);
+-		if (commTowerTile->distanceTo(currentTile) <= constants::COMM_TOWER_BASE_RANGE)
++		const auto towerDistance = currentPosition - commTowerTile->position();
++		if (towerDistance.lengthSquared() <= maxTowerRangeSquared)
+ 		{
+ 			return false;
+ 		}

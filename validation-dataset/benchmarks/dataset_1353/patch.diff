@@ -1,0 +1,22 @@
+From 95c9323aa50d0f280b04351e61b177f75f284399 Mon Sep 17 00:00:00 2001
+From: jcid <devnull@localhost>
+Date: Wed, 27 Aug 2008 20:07:01 +0200
+Subject: [PATCH] - Minor optimization in dlib's dStr_new().
+
+---
+ dlib/dlib.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/dlib/dlib.c b/dlib/dlib.c
+index aa96bb328..f92f64e7a 100644
+--- a/dlib/dlib.c
++++ b/dlib/dlib.c
+@@ -275,7 +275,7 @@ void dStr_append (Dstr *ds, const char *s)
+ Dstr *dStr_new (const char *s)
+ {
+    Dstr *ds = dStr_sized_new(0);
+-   if (s)
++   if (s && *s)
+       dStr_append(ds, s);
+    return ds;
+ }

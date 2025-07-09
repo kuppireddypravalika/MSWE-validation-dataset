@@ -1,0 +1,26 @@
+From b728057ad94a1b179e57611258b5d6614e1dbb3f Mon Sep 17 00:00:00 2001
+From: WangZhen <23097963+0x45f@users.noreply.github.com>
+Date: Thu, 6 Jun 2024 10:48:03 +0800
+Subject: [PATCH] [CINN]Call GetKernelInfo in thread to speed up compile
+ (#64893)
+
+* Call GetKernelInfo in thread to speed up compile
+
+* Add comment
+---
+ paddle/cinn/hlir/framework/pir_compiler.cc | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/paddle/cinn/hlir/framework/pir_compiler.cc b/paddle/cinn/hlir/framework/pir_compiler.cc
+index 666ae3d3401383..2b13f8a0a5d9cf 100644
+--- a/paddle/cinn/hlir/framework/pir_compiler.cc
++++ b/paddle/cinn/hlir/framework/pir_compiler.cc
+@@ -77,6 +77,8 @@ std::vector<pir::CINNKernelInfo> PirCompiler::Build(
+     auto worker_fn = [&](int index) {
+       CompilationTask task(&group_compilation_contexts[index]);
+       compilation_results[index] = task();
++      // Triggering llvm compilation in thread
++      compilation_results[index]->GetKernelInfo();
+     };
+     utils::parallel_run(worker_fn,
+                         utils::SequenceDispatcher(0, task_size),

@@ -1,0 +1,27 @@
+From 84d466c221e497562e5adcb6a01c3fc4238da355 Mon Sep 17 00:00:00 2001
+From: Boris Dalstein <dalboris@gmail.com>
+Date: Sat, 20 Feb 2021 15:01:28 +0100
+Subject: [PATCH] Improve comparison between std::string and
+ vgc::core::StringId (#489) (#490)
+
+---
+ libs/vgc/core/stringid.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/libs/vgc/core/stringid.h b/libs/vgc/core/stringid.h
+index 169146184..662a2ceda 100644
+--- a/libs/vgc/core/stringid.h
++++ b/libs/vgc/core/stringid.h
+@@ -145,9 +145,9 @@ class VGC_CORE_API StringId
+     /// Returns whether this StringId is equal to the given string.
+     ///
+     bool operator==(const std::string& other) const {
+-        // Note: comparing strings is faster than building a StringId(other)
+-        // then comparing the StringIds, unless they have a long common prefix.
+-        return string() == other;
++        // Note: comparing two std::strings is typically faster than building
++        // a StringId from an std::string, so we choose to do the former.
++        return *stringPtr_ == other;
+     }
+ 
+ private:

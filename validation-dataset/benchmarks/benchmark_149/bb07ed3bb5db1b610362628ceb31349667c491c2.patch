@@ -1,0 +1,34 @@
+From bb07ed3bb5db1b610362628ceb31349667c491c2 Mon Sep 17 00:00:00 2001
+From: Chris Lattner <sabre@nondot.org>
+Date: Sun, 29 Aug 2010 18:03:33 +0000
+Subject: [PATCH] optimize LICM::hoist to use moveBefore.  Correct its updating
+ of AST to remove the hoisted instruction from the AST, since it is no longer
+ in the loop.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@112448 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Transforms/Scalar/LICM.cpp | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
+
+diff --git a/lib/Transforms/Scalar/LICM.cpp b/lib/Transforms/Scalar/LICM.cpp
+index e6a8b2d572e..a214d969e9a 100644
+--- a/lib/Transforms/Scalar/LICM.cpp
++++ b/lib/Transforms/Scalar/LICM.cpp
+@@ -574,12 +574,11 @@ void LICM::hoist(Instruction &I) {
+   DEBUG(dbgs() << "LICM hoisting to " << Preheader->getName() << ": "
+         << I << "\n");
+ 
+-  // Remove the instruction from its current basic block... but don't delete the
+-  // instruction.
+-  I.removeFromParent();
+-
+-  // Insert the new node in Preheader, before the terminator.
+-  Preheader->getInstList().insert(Preheader->getTerminator(), &I);
++  // The instruction is no longer in this loop.
++  CurAST->deleteValue(&I);
++  
++  // Move the new node to the Preheader, before its terminator.
++  I.moveBefore(Preheader->getTerminator());
+ 
+   if (isa<LoadInst>(I)) ++NumMovedLoads;
+   else if (isa<CallInst>(I)) ++NumMovedCalls;

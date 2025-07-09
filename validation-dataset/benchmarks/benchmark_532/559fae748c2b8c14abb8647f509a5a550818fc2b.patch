@@ -1,0 +1,31 @@
+From 559fae748c2b8c14abb8647f509a5a550818fc2b Mon Sep 17 00:00:00 2001
+From: Evan Cheng <evan.cheng@apple.com>
+Date: Wed, 25 Apr 2007 07:24:13 +0000
+Subject: [PATCH] Minor speed tweak.
+
+llvm-svn: 36432
+---
+ llvm/include/llvm/CodeGen/MachineInstr.h | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/llvm/include/llvm/CodeGen/MachineInstr.h b/llvm/include/llvm/CodeGen/MachineInstr.h
+index f6eaac07581..4f252673e77 100644
+--- a/llvm/include/llvm/CodeGen/MachineInstr.h
++++ b/llvm/include/llvm/CodeGen/MachineInstr.h
+@@ -517,13 +517,12 @@ class MachineInstr {
+   MachineOperand &AddNewOperand(bool IsImp = false) {
+     assert((IsImp || !OperandsComplete()) &&
+            "Trying to add an operand to a machine instr that is already done!");
+-    if (NumImplicitOps == 0) { // This is true most of the time.
++    if (IsImp || NumImplicitOps == 0) { // This is true most of the time.
+       Operands.push_back(MachineOperand());
+       return Operands.back();
+-    } else {
+-      return *Operands.insert(Operands.begin()+Operands.size()-NumImplicitOps,
+-                              MachineOperand());
+     }
++    return *Operands.insert(Operands.begin()+Operands.size()-NumImplicitOps,
++                            MachineOperand());
+   }
+ 
+   /// addImplicitDefUseOperands - Add all implicit def and use operands to

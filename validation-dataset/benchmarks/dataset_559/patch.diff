@@ -1,0 +1,53 @@
+From 4990f04ac09a68db70f8114ebb9d40e684db5d00 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@duempel.org>
+Date: Thu, 9 Oct 2008 15:48:07 +0200
+Subject: [PATCH] update: make addDirectoryPathToDB() non-recursive
+
+This recursive function is very dangerous because it allocates a large
+buffer on the stack in every iteration.  That may be misused to
+generate a stack overflow.
+---
+ src/update.c | 26 +++++++++++++++-----------
+ 1 file changed, 15 insertions(+), 11 deletions(-)
+
+diff --git a/src/update.c b/src/update.c
+index 104f734001..d8bbc02d02 100644
+--- a/src/update.c
++++ b/src/update.c
+@@ -354,21 +354,25 @@ directory_make_child_checked(struct directory *parent, const char *path)
+ static struct directory *
+ addDirectoryPathToDB(const char *utf8path)
+ {
+-	char path_max_tmp[MPD_PATH_MAX];
+-	char *parent;
+-	struct directory *parentDirectory;
++	struct directory *directory = db_get_root();
++	char *duplicated = xstrdup(utf8path);
++	char *slash = duplicated;
+ 
+-	parent = parent_path(path_max_tmp, utf8path);
++	while (true) {
++		slash = strchr(slash, '/');
++		if (slash != NULL)
++			*slash = 0;
+ 
+-	if (strlen(parent) == 0)
+-		parentDirectory = db_get_root();
+-	else
+-		parentDirectory = addDirectoryPathToDB(parent);
++		directory = directory_make_child_checked(directory,
++							 duplicated);
++		if (directory == NULL || slash == NULL)
++			break;
+ 
+-	if (!parentDirectory)
+-		return NULL;
++		*slash++ = '/';
++	}
+ 
+-	return directory_make_child_checked(parentDirectory, utf8path);
++	free(duplicated);
++	return directory;
+ }
+ 
+ static struct directory *

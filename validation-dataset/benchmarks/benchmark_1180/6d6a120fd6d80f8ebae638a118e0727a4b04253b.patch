@@ -1,0 +1,36 @@
+From 6d6a120fd6d80f8ebae638a118e0727a4b04253b Mon Sep 17 00:00:00 2001
+From: Mark Hahnenberg <mhahnenberg@apple.com>
+Date: Wed, 16 Oct 2013 16:01:27 +0200
+Subject: [PATCH] 32-bit code gen for TypeOf doesn't properly update the
+ AbstractInterpreter state
+
+https://bugs.webkit.org/show_bug.cgi?id=119555
+
+Reviewed by Geoffrey Garen.
+
+It uses a speculationCheck where it should be using a DFG_TYPE_CHECK like the 64-bit backend does.
+This was causing crashes on maps.google.com in 32-bit debug builds.
+
+* dfg/DFGSpeculativeJIT32_64.cpp:
+(JSC::DFG::SpeculativeJIT::compile):
+
+Change-Id: Icdcfe0719d22df7db6dc7ffcee309b75b63914df
+git-svn-id: http://svn.webkit.org/repository/webkit/trunk@153793 268f45cc-cd09-0410-ab3c-d52691b4dbfc
+Reviewed-by: Simon Hausmann <simon.hausmann@digia.com>
+---
+ Source/JavaScriptCore/dfg/DFGSpeculativeJIT32_64.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Source/JavaScriptCore/dfg/DFGSpeculativeJIT32_64.cpp b/Source/JavaScriptCore/dfg/DFGSpeculativeJIT32_64.cpp
+index 1d213c6fec8..de4ca96746a 100644
+--- a/Source/JavaScriptCore/dfg/DFGSpeculativeJIT32_64.cpp
++++ b/Source/JavaScriptCore/dfg/DFGSpeculativeJIT32_64.cpp
+@@ -4399,7 +4399,7 @@ void SpeculativeJIT::compile(Node* node)
+ 
+         JITCompiler::Jump isNotCell = m_jit.branch32(JITCompiler::NotEqual, tagGPR, JITCompiler::TrustedImm32(JSValue::CellTag));
+         if (node->child1().useKind() != UntypedUse)
+-            speculationCheck(BadType, JSValueRegs(tagGPR, payloadGPR), node->child1(), isNotCell);
++            DFG_TYPE_CHECK(JSValueRegs(tagGPR, payloadGPR), node->child1(), SpecCell, isNotCell);
+ 
+         if (!node->child1()->shouldSpeculateObject() || node->child1().useKind() == StringUse) {
+             m_jit.loadPtr(JITCompiler::Address(payloadGPR, JSCell::structureOffset()), tempGPR);

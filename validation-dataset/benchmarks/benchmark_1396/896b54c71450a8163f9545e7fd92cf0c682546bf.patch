@@ -1,0 +1,41 @@
+From 896b54c71450a8163f9545e7fd92cf0c682546bf Mon Sep 17 00:00:00 2001
+From: Baptiste Wicht <baptiste.wicht@gmail.com>
+Date: Wed, 5 Feb 2014 20:11:19 +0100
+Subject: [PATCH] Compute as much as possible as compile-time
+
+---
+ kernel/src/virtual_allocator.cpp | 16 +++++-----------
+ 1 file changed, 5 insertions(+), 11 deletions(-)
+
+diff --git a/kernel/src/virtual_allocator.cpp b/kernel/src/virtual_allocator.cpp
+index 438bf94d..6d37460c 100644
+--- a/kernel/src/virtual_allocator.cpp
++++ b/kernel/src/virtual_allocator.cpp
+@@ -10,22 +10,16 @@
+ 
+ namespace {
+ 
+-size_t next_virtual_address = 0;
+-size_t allocated_pages = 0;
++constexpr const size_t virtual_start = paging::virtual_paging_start + (paging::physical_memory_pages * paging::PAGE_SIZE);
++constexpr const size_t first_virtual_address = virtual_start % 0x100000 == 0 ? virtual_start : (virtual_start / 0x100000 + 1) * 0x100000;
++
++size_t next_virtual_address = first_virtual_address;
++size_t allocated_pages = first_virtual_address / paging::PAGE_SIZE;
+ 
+ } //end of anonymous namespace
+ 
+ void virtual_allocator::init(){
+-    auto start = paging::virtual_paging_start;
+-    start += paging::physical_memory_pages * paging::PAGE_SIZE;
+-
+-    if(start % 0x100000 == 0){
+-        next_virtual_address = start;
+-    } else {
+-        next_virtual_address = (start / 0x100000 + 1) * 0x100000;
+-    }
+ 
+-    allocated_pages = next_virtual_address / paging::PAGE_SIZE;
+ }
+ 
+ size_t virtual_allocator::allocate(size_t pages){

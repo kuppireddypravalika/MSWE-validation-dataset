@@ -1,0 +1,22 @@
+From f84652481616fd7ebd86eb92131fa2de9fecdea2 Mon Sep 17 00:00:00 2001
+From: Simon Spannagel <simon.spannagel@desy.de>
+Date: Sat, 24 Jan 2015 10:37:25 +0100
+Subject: [PATCH] CMSPixel: omit double increment on EORE event number.
+
+---
+ producers/cmspixel/src/CMSPixelProducer.cxx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/producers/cmspixel/src/CMSPixelProducer.cxx b/producers/cmspixel/src/CMSPixelProducer.cxx
+index 9ca99a9792..7d6bd69c31 100644
+--- a/producers/cmspixel/src/CMSPixelProducer.cxx
++++ b/producers/cmspixel/src/CMSPixelProducer.cxx
+@@ -319,7 +319,7 @@ void CMSPixelProducer::OnStopRun() {
+       m_ev++;
+     }
+     // Sending the final end-of-run event:
+-    SendEvent(eudaq::RawDataEvent::EORE(m_event_type, m_run, ++m_ev));
++    SendEvent(eudaq::RawDataEvent::EORE(m_event_type, m_run, m_ev));
+ #else
+     m_fout.close();
+     std::cout << "Trying to run root application and show run summary." << std::endl;

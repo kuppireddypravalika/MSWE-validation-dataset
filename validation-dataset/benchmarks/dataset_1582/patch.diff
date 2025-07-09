@@ -1,0 +1,40 @@
+From ad3fdc540b70bb6dec75775f32bc276e670d0f49 Mon Sep 17 00:00:00 2001
+From: Anthony Tseng <darkdh@gmail.com>
+Date: Tue, 8 Oct 2019 18:08:37 -0700
+Subject: [PATCH] Remove fail-safe WaitableEvent::TimedWait() because
+ BraveProfileSyncServiceImpl::SignalWaitableEvent() will hold invalid memory
+ address after WaitableEvent timed out and goes out of scope.
+ OnConnectionChanged(), Shutdown() and ResetSyncInternal() already handle the
+ cases when we might not have `resolve-sync-records` callback from js sync
+ library
+
+---
+ chromium_src/components/sync/engine_impl/syncer.cc | 8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
+
+diff --git a/chromium_src/components/sync/engine_impl/syncer.cc b/chromium_src/components/sync/engine_impl/syncer.cc
+index c3376cebe..e6a97e0ac 100644
+--- a/chromium_src/components/sync/engine_impl/syncer.cc
++++ b/chromium_src/components/sync/engine_impl/syncer.cc
+@@ -9,7 +9,6 @@
+ #include <utility>
+ 
+ #include "base/bind.h"
+-#include "base/time/time.h"
+ 
+ #include "../../../../../components/sync/engine_impl/syncer.cc"  // NOLINT
+ 
+@@ -29,12 +28,7 @@ void Syncer::DownloadBraveRecords(SyncCycle* cycle) {
+       base::BindOnce(&Syncer::OnGetRecords, base::Unretained(this));
+   base::WaitableEvent wevent;
+   cycle->delegate()->OnPollSyncCycle(std::move(on_get_records), &wevent);
+-  // Make sure OnGetRecords will be the next task on sync thread
+-  // it will timeout in 3 mins to prevent sync thread from being blocked as
+-  // fail-safe
+-  bool result = wevent.TimedWait(base::TimeDelta::FromMinutes(3));
+-  if (!result)
+-    LOG(WARNING) << "WaitableEvent timed out";
++  wevent.Wait();
+ }
+ 
+ }  // namespace syncer

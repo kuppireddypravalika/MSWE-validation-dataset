@@ -1,0 +1,45 @@
+From 79e1c1d018ab4d56bd58bfbd5011adb977df3ea0 Mon Sep 17 00:00:00 2001
+From: Joshua Townsend <jptowns@sandia.gov>
+Date: Wed, 13 Apr 2022 20:39:23 -0600
+Subject: [PATCH] Replaced double -> RealType. Hopefully this fixes sulfer gcc8
+ CPU build error.
+
+---
+ src/QMCWaveFunctions/tests/test_RotatedSPOs.cpp | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/src/QMCWaveFunctions/tests/test_RotatedSPOs.cpp b/src/QMCWaveFunctions/tests/test_RotatedSPOs.cpp
+index 9dd59f4edd..6efdfc25ca 100644
+--- a/src/QMCWaveFunctions/tests/test_RotatedSPOs.cpp
++++ b/src/QMCWaveFunctions/tests/test_RotatedSPOs.cpp
+@@ -11,6 +11,8 @@
+ 
+ #include "catch.hpp"
+ 
++#include "type_traits/template_types.hpp"
++#include "type_traits/ConvertToReal.h"
+ #include "OhmmsData/Libxml2Doc.h"
+ #include "OhmmsPETE/OhmmsMatrix.h"
+ #include "Particle/ParticleSet.h"
+@@ -33,6 +35,8 @@ namespace qmcplusplus
+ */
+ TEST_CASE("RotatedSPOs via SplineR2R", "[wavefunction]")
+ {
++  using RealType = QMCTraits::RealType;
++  
+   /*
+     BEGIN Boilerplate stuff to make a simple SPOSet. Copied from test_einset.cpp
+   */
+@@ -153,10 +157,10 @@ TEST_CASE("RotatedSPOs via SplineR2R", "[wavefunction]")
+   */
+   const auto rot_size = rot_spo->m_act_rot_inds.size();
+   REQUIRE(rot_size == 12); // = Nelec*(Norbs - Nelec) = 2*(8-2) = 12
+-  std::vector<double> param(rot_size);
++  std::vector<RealType> param(rot_size);
+   for (auto i = 0; i < rot_size; i++)
+   {
+-    param[i] = 0.01 * i;
++    param[i] = 0.01 * static_cast<RealType>(i);
+   }
+   rot_spo->apply_rotation(param, false); // Expect this to call SplineR2R::applyRotation()
+ 

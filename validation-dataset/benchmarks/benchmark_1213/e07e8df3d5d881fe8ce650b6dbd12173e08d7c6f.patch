@@ -1,0 +1,43 @@
+From e07e8df3d5d881fe8ce650b6dbd12173e08d7c6f Mon Sep 17 00:00:00 2001
+From: Marius <mpirvu@ca.ibm.com>
+Date: Wed, 24 Jan 2024 07:40:53 -0800
+Subject: [PATCH] Modify default nodeCountThreshold value used by inliner
+
+This commit changes the default value of nodeCountThreshold used
+by the inliner from 16000 to 3000. The change will only be performed
+when the `Options::TR_NotCompileTimeSensitive` flag is set to `false`
+(which is the default value). Note that the OpenJ9 downstream project
+sets this flag to `true` for:
+
+(1) Compilations at hot (and above) opt level
+(2) AOT compilations
+(3) Compilations under -Xtune:throughput mode (OpenJ9 specific)
+(4) Compilations before checkpoint when CRIU is used (OpenJ9 specific)
+
+In all those cases mentioned above, the original (16000) threshold will
+be used.
+
+This change is supposed to reduce the amount of inlining done in very
+large methods and therefore reduce JIT compilation overhead.
+
+To override the value chosen by the JIT you can use the
+TR_NodeCountThreshold=<NNN> environment variable.
+
+Signed-off-by: Marius <mpirvu@ca.ibm.com>
+---
+ compiler/optimizer/Inliner.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/compiler/optimizer/Inliner.cpp b/compiler/optimizer/Inliner.cpp
+index 95c7d0ea7f..1b1014ff65 100644
+--- a/compiler/optimizer/Inliner.cpp
++++ b/compiler/optimizer/Inliner.cpp
+@@ -319,7 +319,7 @@ TR_InlinerBase::setInlineThresholds(TR::ResolvedMethodSymbol *callerSymbol)
+ 
+    _callerWeightLimit -= size;
+ 
+-   _nodeCountThreshold = 16000;
++   _nodeCountThreshold = comp()->getOption(TR_NotCompileTimeSensitive) ? 16000: 3000;
+    _methodInWarmBlockByteCodeSizeThreshold = _methodByteCodeSizeThreshold = 155;
+    _methodInColdBlockByteCodeSizeThreshold = 30;
+    _maxInliningCallSites = 4095;

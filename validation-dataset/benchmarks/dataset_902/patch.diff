@@ -1,0 +1,22 @@
+From b01701df8f5d5189ffa946855996157f2dd1de4e Mon Sep 17 00:00:00 2001
+From: Diavolo <edoardo.sanguineti222@gmail.com>
+Date: Tue, 11 Apr 2023 21:04:05 +0200
+Subject: [PATCH] optimization(bots): remove outdated make_pair
+
+---
+ src/client/component/bots.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/client/component/bots.cpp b/src/client/component/bots.cpp
+index 0d06afd0..56d39d01 100644
+--- a/src/client/component/bots.cpp
++++ b/src/client/component/bots.cpp
+@@ -63,7 +63,7 @@ namespace bots
+ 					entry = entry.substr(0, pos);
+ 				}
+ 
+-				bot_names.emplace_back(std::make_pair(entry, clan_abbrev));
++				bot_names.emplace_back(entry, clan_abbrev);
+ 			}
+ 
+ 			return bot_names;

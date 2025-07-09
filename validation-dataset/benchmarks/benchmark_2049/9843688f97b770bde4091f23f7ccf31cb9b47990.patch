@@ -1,0 +1,27 @@
+From 9843688f97b770bde4091f23f7ccf31cb9b47990 Mon Sep 17 00:00:00 2001
+From: Gabor Greif <ggreif@gmail.com>
+Date: Fri, 23 Jul 2010 10:23:01 +0000
+Subject: [PATCH] do not (implicitly) dereference iterator many times, cache it
+ instead
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@109222 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Target/PIC16/PIC16Passes/PIC16Overlay.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/lib/Target/PIC16/PIC16Passes/PIC16Overlay.cpp b/lib/Target/PIC16/PIC16Passes/PIC16Overlay.cpp
+index 5ecb6aa5515..0f8928a4b5f 100644
+--- a/lib/Target/PIC16/PIC16Passes/PIC16Overlay.cpp
++++ b/lib/Target/PIC16/PIC16Passes/PIC16Overlay.cpp
+@@ -171,8 +171,9 @@ void PIC16Overlay::MarkIndirectlyCalledFunctions(Module &M) {
+   for (Module::iterator MI = M.begin(), E = M.end(); MI != E; ++MI) {
+     for (Value::use_iterator I = MI->use_begin(), E = MI->use_end(); I != E;
+          ++I) {
+-      if ((!isa<CallInst>(I) && !isa<InvokeInst>(I))
+-          || !CallSite(cast<Instruction>(I)).isCallee(I)) {
++      User *U = *I;
++      if ((!isa<CallInst>(U) && !isa<InvokeInst>(U))
++          || !CallSite(cast<Instruction>(U)).isCallee(I)) {
+         setColor(MI, ++IndirectCallColor);
+         break;
+       }

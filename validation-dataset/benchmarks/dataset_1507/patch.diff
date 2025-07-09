@@ -1,0 +1,22 @@
+From 4ac9103521ec6e06960794a102718edec416f10e Mon Sep 17 00:00:00 2001
+From: Julien Pommier <pommier@pianoteq.com>
+Date: Fri, 8 Nov 2002 10:42:40 +0000
+Subject: [PATCH] petite optimisation de operator=()
+
+---
+ src/dal_basic.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/dal_basic.h b/src/dal_basic.h
+index e3c3a4829..4f6d92460 100644
+--- a/src/dal_basic.h
++++ b/src/dal_basic.h
+@@ -302,7 +302,7 @@ namespace dal
+   template<class T, unsigned char pks> dynamic_array<T,pks>
+   &dynamic_array<T,pks>::operator = (const dynamic_array<T,pks> &da) {
+     clear(); /* evitable ... ? */
+-    array = da.array;
++    array.resize(da.array.size());
+     last_ind = da.last_ind;
+     last_accessed = da.last_accessed;
+     ppks = da.ppks; m_ppks = da.m_ppks;

@@ -1,0 +1,25 @@
+From d1515d6fedc458322080459ce8c91d8206e0dbf0 Mon Sep 17 00:00:00 2001
+From: Jeff Muizelaar <jmuizelaar@mozilla.com>
+Date: Mon, 27 Feb 2012 01:05:10 -0500
+Subject: [PATCH] Bug 730508. Clip canvas invalidations to the content area of
+ the canvas. r=roc
+
+Previously, operations like drawImage() could invalidate areas outside of the
+canvas. This hurt performance of runfield on maple.
+---
+ content/html/content/src/nsHTMLCanvasElement.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/content/html/content/src/nsHTMLCanvasElement.cpp b/content/html/content/src/nsHTMLCanvasElement.cpp
+index 21fa160d99b..15637bf5d18 100644
+--- a/content/html/content/src/nsHTMLCanvasElement.cpp
++++ b/content/html/content/src/nsHTMLCanvasElement.cpp
+@@ -709,6 +709,8 @@ nsHTMLCanvasElement::InvalidateCanvasContent(const gfxRect* damageRect)
+       // then make it a nsRect
+       invalRect = nsRect(realRect.X(), realRect.Y(),
+                          realRect.Width(), realRect.Height());
++
++      invalRect = invalRect.Intersect(nsRect(nsPoint(0,0), contentArea.Size()));
+     }
+   } else {
+     invalRect = nsRect(nsPoint(0, 0), contentArea.Size());

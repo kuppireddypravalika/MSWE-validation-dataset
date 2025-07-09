@@ -1,0 +1,36 @@
+From 965891232bad35f412853fc8070392e8119ce56f Mon Sep 17 00:00:00 2001
+From: Fons Rademakers <Fons.Rademakers@cern.ch>
+Date: Wed, 14 Mar 2007 18:28:17 +0000
+Subject: [PATCH] in NextTimeOut() don't use TIter since that calls indirectly
+ malloc(). Because NextTimeOut() can be called, in case of a SIGALRM, while
+ the process is in a free() the malloc() would wait forever in a spin-lock.
+
+git-svn-id: http://root.cern.ch/svn/root/trunk@18270 27541ba8-7e3a-0410-8455-c3a389f83636
+---
+ base/src/TSystem.cxx | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/base/src/TSystem.cxx b/base/src/TSystem.cxx
+index 5d61e5f4aede6..cf982f7aa21b3 100644
+--- a/base/src/TSystem.cxx
++++ b/base/src/TSystem.cxx
+@@ -1,4 +1,4 @@
+-// @(#)root/base:$Name:  $:$Id: TSystem.cxx,v 1.162 2007/03/13 17:49:45 pcanal Exp $
++// @(#)root/base:$Name:  $:$Id: TSystem.cxx,v 1.163 2007/03/14 13:28:22 brun Exp $
+ // Author: Fons Rademakers   15/09/95
+ 
+ /*************************************************************************
+@@ -437,11 +437,11 @@ Long_t TSystem::NextTimeOut(Bool_t mode)
+ 
+    if (!fTimers) return -1;
+ 
+-   TIter next(fTimers);
++   TOrdCollectionIter it((TOrdCollection*)fTimers);
+    TTimer *t, *to = 0;
+    Long_t  tt, timeout = -1, tnow = Now();
+ 
+-   while ((t = (TTimer *)next())) {
++   while ((t = (TTimer *) it.Next())) {
+       if (t->IsSync() == mode) {
+          tt = (long)t->GetAbsTime() - tnow;
+          if (tt < 0) tt = 0;

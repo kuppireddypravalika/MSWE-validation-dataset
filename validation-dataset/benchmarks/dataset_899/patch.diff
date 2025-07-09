@@ -1,0 +1,23 @@
+From c197c5dfb1a03c16843ed54f6a682a4604710cfc Mon Sep 17 00:00:00 2001
+From: earonesty <earonesty@f1db881f-09c6-4a82-8334-ae7ceabc6398>
+Date: Fri, 13 Jun 2014 13:34:54 +0000
+Subject: [PATCH] speed up compression a lot (double), at the expense of only
+ 3% space
+
+---
+ clipper/fastq-lib.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/clipper/fastq-lib.cpp b/clipper/fastq-lib.cpp
+index 82d6038..aa56360 100644
+--- a/clipper/fastq-lib.cpp
++++ b/clipper/fastq-lib.cpp
+@@ -103,7 +103,7 @@ FILE *gzopen(const char *f, const char *m, bool*isgz) {
+         if (!strcmp(ext,".gz")) {
+             char *tmp=(char *)malloc(strlen(f)+100);
+             if (strchr(m,'w')) {
+-                    strcpy(tmp, "gzip --rsyncable > '");
++                    strcpy(tmp, "gzip -3 --rsyncable > '");
+                     strcat(tmp, f);
+                     strcat(tmp, "'");
+             } else {

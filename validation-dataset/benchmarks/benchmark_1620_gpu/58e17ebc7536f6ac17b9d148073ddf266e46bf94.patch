@@ -1,0 +1,38 @@
+From 58e17ebc7536f6ac17b9d148073ddf266e46bf94 Mon Sep 17 00:00:00 2001
+From: Attila Afra <attila.t.afra@intel.com>
+Date: Mon, 11 Jul 2022 16:55:14 +0300
+Subject: [PATCH] SYCLConvDPAS: added fast store path
+
+---
+ core/sycl/sycl_conv_dpas.cpp | 17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
+
+diff --git a/core/sycl/sycl_conv_dpas.cpp b/core/sycl/sycl_conv_dpas.cpp
+index def5ca04b..aacf644f6 100644
+--- a/core/sycl/sycl_conv_dpas.cpp
++++ b/core/sycl/sycl_conv_dpas.cpp
+@@ -128,12 +128,19 @@ namespace oidn {
+         dstVec = max(dstVec, simd<T, owBlock*cBlock>(0));
+ 
+         // Store output row
+-        #pragma unroll
+-        for (int i = 0; i < owBlock; ++i)
++        if (ow + owBlock <= dst.W)
++        {
++          dstVec.copy_to(dstPtr, overaligned<32>);
++        }
++        else
+         {
+-          if (ow + i < dst.W)
+-            block_store<T, cBlock>(dstPtr, dstVec.template select<cBlock, 1>(i * cBlock));
+-          dstPtr += cBlock;
++          #pragma unroll
++          for (int i = 0; i < owBlock; ++i)
++          {
++            if (ow + i < dst.W)
++              block_store<T, cBlock>(dstPtr, dstVec.template select<cBlock, 1>(i * cBlock));
++            dstPtr += cBlock;
++          }
+         }
+       }
+     }

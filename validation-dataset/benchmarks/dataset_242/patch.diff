@@ -1,0 +1,24 @@
+From 4f22c06e041aea3ab239a0052ae3aad26f1e8fbb Mon Sep 17 00:00:00 2001
+From: NotCompsky <adammarkgray@gmail.com>
+Date: Fri, 5 Jun 2020 23:10:56 +0100
+Subject: [PATCH] Performance		Order qry by NULL by default.
+
+---
+ wangle-server/src/qry.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/wangle-server/src/qry.cpp b/wangle-server/src/qry.cpp
+index a2ace19d..c65ff638 100644
+--- a/wangle-server/src/qry.cpp
++++ b/wangle-server/src/qry.cpp
+@@ -649,8 +649,8 @@ successness::ReturnType parse_into(char* itr,  const char* qry){
+ 			"X.id\n"
+ 		"FROM ", tbl_full_name(which_tbl), " X\n",
+ 		join.c_str(),
+-		"WHERE TRUE", where.c_str(),
+-		(order_by.empty())?"":"\nORDER BY ", order_by.c_str(), "\n"
++		"WHERE TRUE", where.c_str(), "\n"
++		"ORDER BY ", ((order_by.empty()) ? "NULL" : order_by.c_str()), "\n"
+ 		"OFFSET ", offset, " "
+ 		"LIMIT ", limit,
+ 		'\0'

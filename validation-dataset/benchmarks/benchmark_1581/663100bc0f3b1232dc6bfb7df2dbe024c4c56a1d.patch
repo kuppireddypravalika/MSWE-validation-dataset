@@ -1,0 +1,23 @@
+From 663100bc0f3b1232dc6bfb7df2dbe024c4c56a1d Mon Sep 17 00:00:00 2001
+From: Sam Creasey <sam.creasey@tri.global>
+Date: Fri, 18 May 2018 13:27:49 -0400
+Subject: [PATCH] Use completeOrthogonalDecomposition instead of jacobiSvd when
+ solving with position constraints
+
+---
+ multibody/rigid_body_plant/rigid_body_plant.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/multibody/rigid_body_plant/rigid_body_plant.cc b/multibody/rigid_body_plant/rigid_body_plant.cc
+index 7b47217b2c4b..9852e047d88c 100644
+--- a/multibody/rigid_body_plant/rigid_body_plant.cc
++++ b/multibody/rigid_body_plant/rigid_body_plant.cc
+@@ -961,7 +961,7 @@ void RigidBodyPlant<T>::DoCalcTimeDerivatives(
+          -(Jdotv + 2 * alpha * J * v + alpha * alpha * phi);
+     // clang-format on
+     const VectorX<T> vdot_f =
+-        A.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
++        A.completeOrthogonalDecomposition().solve(b);
+     vdot = vdot_f.head(get_num_velocities());
+   } else {
+     // Solve M*vdot = right_hand_side.

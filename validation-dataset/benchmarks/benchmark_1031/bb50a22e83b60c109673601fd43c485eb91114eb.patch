@@ -1,0 +1,45 @@
+From bb50a22e83b60c109673601fd43c485eb91114eb Mon Sep 17 00:00:00 2001
+From: SebastianMestre <mestresebastianunr@gmail.com>
+Date: Tue, 28 Apr 2020 20:40:12 -0300
+Subject: [PATCH] Parser: don't use `require` failure on valid declarations
+
+Instead of requiring a token type, and branching on success,
+we can just check the token type and act accordingly.
+
+This saves us from having to generate error messages in the
+successful path of `parse_declaration`, which leads to a 4.5%
+decrase in execution time.
+---
+ src/parser.cpp | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/src/parser.cpp b/src/parser.cpp
+index cca0e3e4..1179dba8 100644
+--- a/src/parser.cpp
++++ b/src/parser.cpp
+@@ -108,10 +108,12 @@ Writer<std::unique_ptr<AST>> Parser::parse_declaration() {
+ 
+ 	Writer<Token const*> type;
+ 
+-	if (handle_error(result, require(token_type::DECLARE_ASSIGN))) {
++	auto p0 = peek();
+ 
+-		if (handle_error(result, require(token_type::DECLARE)))
+-			return result;
++	if (p0->m_type == token_type::DECLARE_ASSIGN) {
++		m_lexer->advance();
++	} else if (p0->m_type == token_type::DECLARE) {
++		m_lexer->advance();
+ 
+ 		type = require(token_type::IDENTIFIER);
+ 		if (handle_error(result, type))
+@@ -119,6 +121,9 @@ Writer<std::unique_ptr<AST>> Parser::parse_declaration() {
+ 
+ 		if (handle_error(result, require(token_type::ASSIGN)))
+ 			return result;
++	} else {
++		result.m_error.m_sub_errors.push_back(
++		    make_expected_error("':' or ':='", p0));
+ 	}
+ 
+ 	auto value = parse_expression();

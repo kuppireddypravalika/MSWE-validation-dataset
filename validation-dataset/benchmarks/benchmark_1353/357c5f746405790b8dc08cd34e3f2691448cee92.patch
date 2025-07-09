@@ -1,0 +1,30 @@
+From 357c5f746405790b8dc08cd34e3f2691448cee92 Mon Sep 17 00:00:00 2001
+From: Alexey Botchkov <holyfoot@askmonty.org>
+Date: Fri, 6 Apr 2012 13:31:33 +0500
+Subject: [PATCH] MDEV-80 Memory engine table full at much less than
+ max_heap_table_size with btree index.         RB-tree index in the MEMORY
+ table fails if it grews over 4G.         That happened because the
+ old_allocated variable in hp_rb_write_key()         had the uint type.
+ Changed with the 'size_t' type to be same as the         'rb_tree.allocated'.
+
+per-file comments:
+  storage/heap/hp_write.c
+MDEV-80 Memory engine table full at much less than max_heap_table_size with btree index.
+        uint->size_t for the 'old_allocated'.
+---
+ storage/heap/hp_write.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/storage/heap/hp_write.c b/storage/heap/hp_write.c
+index 5996d9b2682..d67b55b6481 100644
+--- a/storage/heap/hp_write.c
++++ b/storage/heap/hp_write.c
+@@ -106,7 +106,7 @@ int hp_rb_write_key(HP_INFO *info, HP_KEYDEF *keyinfo, const uchar *record,
+ 		    uchar *recpos)
+ {
+   heap_rb_param custom_arg;
+-  uint old_allocated;
++  size_t old_allocated;
+ 
+   custom_arg.keyseg= keyinfo->seg;
+   custom_arg.key_length= hp_rb_make_key(keyinfo, info->recbuf, record, recpos);

@@ -1,0 +1,38 @@
+From ec86c4c069baf7bf763aaed7b667066d8057b52d Mon Sep 17 00:00:00 2001
+From: Cyril Bouvier <cyril.bouvier@lirmm.fr>
+Date: Wed, 6 Feb 2019 18:05:03 +0100
+Subject: [PATCH] polynomial fft: use dom_power to compute modular
+ exponentiation
+
+---
+ .../algorithms/polynomial-matrix/polynomial-fft-init.h   | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/linbox/algorithms/polynomial-matrix/polynomial-fft-init.h b/linbox/algorithms/polynomial-matrix/polynomial-fft-init.h
+index 5b8a2500b..a9a431f14 100644
+--- a/linbox/algorithms/polynomial-matrix/polynomial-fft-init.h
++++ b/linbox/algorithms/polynomial-matrix/polynomial-fft-init.h
+@@ -32,6 +32,7 @@
+ #include "linbox/linbox-config.h"
+ #include "linbox/util/debug.h"
+ #include "givaro/givinteger.h"
++#include "givaro/givpower.h"
+ #include <fflas-ffpack/fflas/fflas_simd.h>
+ 
+ #ifndef ROUND_DOWN
+@@ -126,12 +127,10 @@ namespace LinBox {
+ 			uint64_t j;
+ 			Element _gen;
+ 			for (Element t = 2; ; t++) {
+-				_gen = t;
+-				fld->init(z, 1);
+-				for (Residu_t i=0; i < _m; ++i) fld->mulin(z,_gen); // z = z*_gen;
+-				if (z == 1) continue;
++				Givaro::dom_power (_gen, t, _m, *fld); /* _gen <- t^_m */
++				if (_gen == 1) continue;
+ 				// _gen^i =/ 1 pour 0 <= i < m
+-				_gen = z;
++				z = _gen;
+ 				j = 0;
+ 				do {
+ 					y = z;

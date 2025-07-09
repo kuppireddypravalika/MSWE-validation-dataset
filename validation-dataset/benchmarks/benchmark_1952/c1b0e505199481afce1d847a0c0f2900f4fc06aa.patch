@@ -1,0 +1,42 @@
+From c1b0e505199481afce1d847a0c0f2900f4fc06aa Mon Sep 17 00:00:00 2001
+From: Quentin Colombet <qcolombet@apple.com>
+Date: Fri, 13 Oct 2017 21:16:05 +0000
+Subject: [PATCH] [Legalizer] Only allocate the SetVectors once per function.
+
+Prior to this patch we used to create SetVectors in temporaries that
+were created and destroyed for each instruction. Now, instead we create
+and destroyed them only once, but clear the content for each
+instruction.
+This speeds up the pass by ~25%.
+
+NFC.
+---
+ llvm/lib/CodeGen/GlobalISel/Legalizer.cpp | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/llvm/lib/CodeGen/GlobalISel/Legalizer.cpp b/llvm/lib/CodeGen/GlobalISel/Legalizer.cpp
+index 1c474b998460..a9847dea3cee 100644
+--- a/llvm/lib/CodeGen/GlobalISel/Legalizer.cpp
++++ b/llvm/lib/CodeGen/GlobalISel/Legalizer.cpp
+@@ -70,6 +70,9 @@ bool Legalizer::runOnMachineFunction(MachineFunction &MF) {
+   // convergence for performance reasons.
+   bool Changed = false;
+   MachineBasicBlock::iterator NextMI;
++  using VecType = SetVector<MachineInstr *, SmallVector<MachineInstr *, 8>>;
++  VecType WorkList;
++  VecType CombineList;
+   for (auto &MBB : MF) {
+     for (auto MI = MBB.begin(); MI != MBB.end(); MI = NextMI) {
+       // Get the next Instruction before we try to legalize, because there's a
+@@ -81,9 +84,8 @@ bool Legalizer::runOnMachineFunction(MachineFunction &MF) {
+       if (!isPreISelGenericOpcode(MI->getOpcode()))
+         continue;
+       unsigned NumNewInsns = 0;
+-      using VecType = SetVector<MachineInstr *, SmallVector<MachineInstr *, 8>>;
+-      VecType WorkList;
+-      VecType CombineList;
++      WorkList.clear();
++      CombineList.clear();
+       Helper.MIRBuilder.recordInsertions([&](MachineInstr *MI) {
+         // Only legalize pre-isel generic instructions.
+         // Legalization process could generate Target specific pseudo

@@ -1,0 +1,32 @@
+From 1f08f5715427375090c6549b2422752106cbcdd5 Mon Sep 17 00:00:00 2001
+From: James Yonan <james@openvpn.net>
+Date: Fri, 16 Jan 2015 18:47:39 -0700
+Subject: [PATCH] Make the stats store volatile to improve the accuracy of
+ lockless multi-threaded access.
+
+---
+ openvpn/log/sessionstats.hpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/openvpn/log/sessionstats.hpp b/openvpn/log/sessionstats.hpp
+index e75d702aa..195e73c1b 100644
+--- a/openvpn/log/sessionstats.hpp
++++ b/openvpn/log/sessionstats.hpp
+@@ -54,7 +54,7 @@ namespace openvpn {
+     SessionStats()
+       : verbose_(false)
+     {
+-      std::memset(stats_, 0, sizeof(stats_));
++      std::memset((void *)stats_, 0, sizeof(stats_));
+     }
+ 
+     virtual void error(const size_t type, const std::string* text=NULL) {}
+@@ -114,7 +114,7 @@ namespace openvpn {
+   private:
+     bool verbose_;
+     Time last_packet_received_;
+-    count_t stats_[N_STATS];
++    volatile count_t stats_[N_STATS];
+   };
+ 
+ } // namespace openvpn

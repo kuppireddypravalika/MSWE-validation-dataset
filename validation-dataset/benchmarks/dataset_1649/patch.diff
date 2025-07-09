@@ -1,0 +1,43 @@
+From c8d31833f02bb2206095dd55caad9f59fc73c11c Mon Sep 17 00:00:00 2001
+From: Thiago Macieira <thiago.macieira@intel.com>
+Date: Wed, 20 Sep 2023 21:02:08 -0700
+Subject: [PATCH] QStorageInfo/Linux: remove unnecessary isSymlink() call
+
+symlinkTarget() suffices, because if the candidate is not a symlink, it
+will return an empty string. Plus, /dev/disks/by-label is a udev-managed
+directory, so everything should be a symlink.
+
+This doesn't change the number of statx() calls because QDirIterator
+needs some information on file types to decide how to filter and,
+unfortunately, that information is missing for symlinks (we know it's a
+symlink, but we don't know what it points to). Moreover, due to
+QDirIterator's design, we always statx() one entry past the one we
+wanted.
+
+Pick-to: 6.6
+Change-Id: I9d43e5b91eb142d6945cfffd1786ce1bd3398d1b
+Reviewed-by: Ahmad Samir <a.samirh78@gmail.com>
+Reviewed-by: Thiago Macieira <thiago.macieira@intel.com>
+---
+ src/corelib/io/qstorageinfo_linux.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/corelib/io/qstorageinfo_linux.cpp b/src/corelib/io/qstorageinfo_linux.cpp
+index fbad091a2416..5b034bf4c218 100644
+--- a/src/corelib/io/qstorageinfo_linux.cpp
++++ b/src/corelib/io/qstorageinfo_linux.cpp
+@@ -65,11 +65,13 @@ static inline QString retrieveLabel(const QByteArray &device)
+ 
+     QFileInfo devinfo(QFile::decodeName(device));
+     QString devicePath = devinfo.canonicalFilePath();
++    if (devicePath.isEmpty())
++        return QString();
+ 
+     QDirIterator it(QLatin1StringView(pathDiskByLabel), QDir::NoDotAndDotDot);
+     while (it.hasNext()) {
+         QFileInfo fileInfo = it.nextFileInfo();
+-        if (fileInfo.isSymLink() && fileInfo.symLinkTarget() == devicePath)
++        if (fileInfo.symLinkTarget() == devicePath)
+             return decodeFsEncString(fileInfo.fileName());
+     }
+     return QString();

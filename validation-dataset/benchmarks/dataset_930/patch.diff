@@ -1,0 +1,22 @@
+From 08b0db3b08fd0ff66d6b34e7b3c4a1ad4c02b2d3 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Luk=C3=A1=C5=A1=20Karas?= <lukas.karas@centrum.cz>
+Date: Mon, 29 Apr 2019 10:31:51 +0200
+Subject: [PATCH] use shorter buffer for calculating speed
+
+---
+ libosmscout/src/osmscout/navigation/SpeedAgent.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libosmscout/src/osmscout/navigation/SpeedAgent.cpp b/libosmscout/src/osmscout/navigation/SpeedAgent.cpp
+index af8a95c89..f588d5247 100644
+--- a/libosmscout/src/osmscout/navigation/SpeedAgent.cpp
++++ b/libosmscout/src/osmscout/navigation/SpeedAgent.cpp
+@@ -66,7 +66,7 @@ std::list<NavigationMessageRef> SpeedAgent::Process(const NavigationMessageRef &
+         result.push_back(std::make_shared<CurrentSpeedMessage>(gpsUpdateMsg->timestamp,speed));
+       }
+       // pop fifo
+-      while (!segmentFifo.empty() && fifoDuration>seconds(5)){
++      while (!segmentFifo.empty() && fifoDuration>seconds(3)){
+         fifoDuration-=segmentFifo.front().duration;
+         segmentFifo.pop_front();
+       }

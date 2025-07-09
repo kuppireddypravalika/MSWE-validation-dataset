@@ -1,0 +1,44 @@
+From 5e6bcc9733f3b87cac01e1093faa242e74009cc2 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@spatialys.com>
+Date: Sun, 21 Jul 2024 19:36:32 +0200
+Subject: [PATCH] OGRCurveCollection::addCurveDirectly(): avoid int overflow if
+ adding to a already huge collection
+
+---
+ ogr/ogrcurvecollection.cpp | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+diff --git a/ogr/ogrcurvecollection.cpp b/ogr/ogrcurvecollection.cpp
+index e17429c45d6a..36d6466dd4da 100644
+--- a/ogr/ogrcurvecollection.cpp
++++ b/ogr/ogrcurvecollection.cpp
+@@ -31,6 +31,7 @@
+ 
+ #include <cstddef>
+ #include <cstring>
++#include <limits>
+ #include <new>
+ 
+ #include "ogr_core.h"
+@@ -155,6 +156,21 @@ OGRErr OGRCurveCollection::addCurveDirectly(OGRGeometry *poGeom,
+ 
+     if (bNeedRealloc)
+     {
++#if SIZEOF_VOIDP < 8
++        if (nCurveCount == std::numeric_limits<int>::max() /
++                               static_cast<int>(sizeof(OGRCurve *)))
++        {
++            CPLError(CE_Failure, CPLE_OutOfMemory, "Too many subgeometries");
++            return OGRERR_FAILURE;
++        }
++#else
++        if (nCurveCount == std::numeric_limits<int>::max())
++        {
++            CPLError(CE_Failure, CPLE_AppDefined, "Too many subgeometries");
++            return OGRERR_FAILURE;
++        }
++#endif
++
+         OGRCurve **papoNewCurves = static_cast<OGRCurve **>(VSI_REALLOC_VERBOSE(
+             papoCurves, sizeof(OGRCurve *) * (nCurveCount + 1)));
+         if (papoNewCurves == nullptr)

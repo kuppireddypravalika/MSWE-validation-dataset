@@ -1,0 +1,28 @@
+From ac8fcaf545a43ba666abee725409a48a65b23953 Mon Sep 17 00:00:00 2001
+From: Nil Geisweiller <ngeiswei@gmail.com>
+Date: Fri, 11 Oct 2013 19:54:53 +0300
+Subject: [PATCH] Replace boost transform construct by C++11 range loop (more
+ compact)
+
+---
+ opencog/learning/moses/scoring/scoring.cc | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/opencog/learning/moses/scoring/scoring.cc b/opencog/learning/moses/scoring/scoring.cc
+index e3ed8bbd9c..4ddee7d1b2 100644
+--- a/opencog/learning/moses/scoring/scoring.cc
++++ b/opencog/learning/moses/scoring/scoring.cc
+@@ -972,8 +972,11 @@ penalized_bscore precision_bscore::operator()(const combo_tree& tr) const
+         if (active > 0) {
+             // normalize all components by active
+             score_t iac = 1.0 / active; // inverse of activity to be faster
+-            boost::transform(pbs.first, pbs.first.begin(), arg1 * iac);
+-
++            for (auto& v : pbs.first) v *= iac;
++            
++            // tp = true positive
++            // fp = false positive
++            //
+             // By using (tp-fp)/2 the sum of all the per-row contributions
+             // is offset by -1/2 from the precision, as proved below
+             //

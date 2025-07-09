@@ -1,0 +1,27 @@
+From 8cafaa84c16c43428c5be37a736041bf84262c14 Mon Sep 17 00:00:00 2001
+From: Sven Woop <sven.woop@intel.com>
+Date: Wed, 12 Oct 2016 13:52:09 +0200
+Subject: [PATCH] no longer spin-waiting when starting TBB threads
+
+---
+ common/tasking/taskschedulertbb.cpp | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/common/tasking/taskschedulertbb.cpp b/common/tasking/taskschedulertbb.cpp
+index 84751047c..4aa725140 100644
+--- a/common/tasking/taskschedulertbb.cpp
++++ b/common/tasking/taskschedulertbb.cpp
+@@ -67,10 +67,9 @@ namespace embree
+ 
+     /* also start worker threads in affinity mode */
+     if (set_affinity) {
+-      tbb::parallel_for(size_t(0), size_t(g_numThreads), size_t(1), [] ( size_t i ) {
+-          while (tbb_affinity.threadCount != g_numThreads) {
+-            yield();
+-          };
++      BarrierSys barrier(g_numThreads);
++      tbb::parallel_for(size_t(0), size_t(g_numThreads), size_t(1), [&] ( size_t i ) {
++          barrier.wait();
+         });
+     }
+   }

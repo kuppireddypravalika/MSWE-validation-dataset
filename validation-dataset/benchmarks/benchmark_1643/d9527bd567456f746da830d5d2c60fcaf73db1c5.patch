@@ -1,0 +1,22 @@
+From d9527bd567456f746da830d5d2c60fcaf73db1c5 Mon Sep 17 00:00:00 2001
+From: Jonathan Behrens <fintelia@gmail.com>
+Date: Wed, 1 Apr 2020 16:25:53 -0400
+Subject: [PATCH] Start mmap allocations at 16GB to leave space for sbrk
+
+---
+ kernel/vm.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/kernel/vm.cc b/kernel/vm.cc
+index a4f3950e8..76e8eaba4 100644
+--- a/kernel/vm.cc
++++ b/kernel/vm.cc
+@@ -724,7 +724,7 @@ vmap::sbrk_update(ssize_t n)
+ uptr
+ vmap::unmapped_area(size_t npages)
+ {
+-  uptr start = std::max(myproc()->unmapped_hint, 16UL * 1024 * 1024 / PGSIZE);
++  uptr start = std::max(myproc()->unmapped_hint, (uptr)0x400000000ull / PGSIZE); // 16 GB
+   auto it = vpfs_.find(start), end = vpfs_.find(USERTOP / PGSIZE);
+ 
+   for (; it < end; it += it.span()) {

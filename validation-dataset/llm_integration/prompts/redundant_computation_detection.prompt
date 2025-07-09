@@ -1,0 +1,23 @@
+Prompt for LLM to Identify Commits Eliminating Redundant Computation:
+You are given a software commit patch (diff). Your task is to carefully analyze the patch and determine if the commit primarily focuses on eliminating redundant or unnecessary computations.
+
+Redundant or unnecessary computations include scenarios such as:
+
+- **RF** – repeated function or method calls with the same inputs
+- **RC** – redundant calculation or recomputation of values that do not change across different parts of the code
+- **LI** – computations within loops that yield invariant results and can safely be moved outside the loop
+- **DB** – repeated database or API calls that could be batched or cached
+- **UE** – unnecessary recalculation of expensive operations across different function calls
+- **CE** – removing duplicated conditional checks or unnecessary evaluations
+
+Return a JSON object with exactly three keys. ``redundancy_type`` must be the
+two-letter code from the list above (e.g. ``RF`` or ``RC``):
+```
+{
+  "eliminates_redundant_computation": <true|false>,
+  "reason": "<brief one or two line explanation>",
+  "redundancy_type": "<two-letter redundancy code>"
+}
+```
+<Diff – unified "git show --patch" output>
+

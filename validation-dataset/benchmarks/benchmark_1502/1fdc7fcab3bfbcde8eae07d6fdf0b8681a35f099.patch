@@ -1,0 +1,33 @@
+From 1fdc7fcab3bfbcde8eae07d6fdf0b8681a35f099 Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@gmail.com>
+Date: Tue, 18 Apr 2017 05:02:21 +0000
+Subject: [PATCH] [APInt] Cleanup the reverseBits slow case a little.
+
+Use lshrInPlace. Use single bit extract and operator|=(uint64_t) to avoid a few temporary APInts.
+---
+ llvm/lib/Support/APInt.cpp | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
+
+diff --git a/llvm/lib/Support/APInt.cpp b/llvm/lib/Support/APInt.cpp
+index 1094a61cf1cb..5ac98e1c127f 100644
+--- a/llvm/lib/Support/APInt.cpp
++++ b/llvm/lib/Support/APInt.cpp
+@@ -774,14 +774,12 @@ APInt APInt::reverseBits() const {
+   }
+ 
+   APInt Val(*this);
+-  APInt Reversed(*this);
+-  int S = BitWidth - 1;
++  APInt Reversed(BitWidth, 0);
++  unsigned S = BitWidth;
+ 
+-  const APInt One(BitWidth, 1);
+-
+-  for ((Val = Val.lshr(1)); Val != 0; (Val = Val.lshr(1))) {
++  for (; Val != 0; Val.lshrInPlace(1)) {
+     Reversed <<= 1;
+-    Reversed |= (Val & One);
++    Reversed |= Val[0];
+     --S;
+   }
+ 

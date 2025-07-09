@@ -1,0 +1,37 @@
+From 925911ee7d59166d83bf16b7813ef88a7df6bde7 Mon Sep 17 00:00:00 2001
+From: Christian Hergert <chergert@redhat.com>
+Date: Wed, 5 Jun 2019 18:27:04 -0700
+Subject: [PATCH] profiler: avoid clearing 512 bytes of stack
+
+If {0,} is used, the whole array will be zeroed on each iteration of the
+loop. That is not ideal as we could be deep in the stack here.
+---
+ gjs/profiler.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/gjs/profiler.cpp b/gjs/profiler.cpp
+index 6f37eaca5..d7ee03b5a 100644
+--- a/gjs/profiler.cpp
++++ b/gjs/profiler.cpp
+@@ -317,7 +317,7 @@ gjs_profiler_sigprof(int        signum,
+          * 512 is an arbitrarily large size, very likely to be enough to
+          * hold the final string.
+          */
+-        char final_string[512] = { 0, };
++        char final_string[512];
+         char *position = final_string;
+         size_t available_length = sizeof (final_string) - 1;
+ 
+@@ -348,9 +348,12 @@ gjs_profiler_sigprof(int        signum,
+             if (dynamic_string_length > 0) {
+                 size_t remaining_length = MIN(available_length, dynamic_string_length);
+                 memcpy(position, dynamic_string, remaining_length);
++                position += remaining_length;
+             }
+         }
+ 
++        *position = 0;
++
+         /*
+          * GeckoProfiler will put "js::RunScript" on the stack, but it has
+          * a stack address of "this", which is not terribly useful since

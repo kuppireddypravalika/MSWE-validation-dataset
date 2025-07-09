@@ -1,0 +1,23 @@
+From 90499bde4632adb2fa7d5a6618f0850d4f706665 Mon Sep 17 00:00:00 2001
+From: acitrain <60715545+acitrain@users.noreply.github.com>
+Date: Tue, 10 Jan 2023 07:39:33 +0100
+Subject: [PATCH] Removed hardcoded number of degrees of freedom in
+ ElasticWaveEquationSEM, replaced by automatic computation instead (#2234)
+
+---
+ .../physicsSolvers/wavePropagation/ElasticWaveEquationSEM.cpp   | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/coreComponents/physicsSolvers/wavePropagation/ElasticWaveEquationSEM.cpp b/src/coreComponents/physicsSolvers/wavePropagation/ElasticWaveEquationSEM.cpp
+index f9bb296f42a..ce5b97a6ea3 100644
+--- a/src/coreComponents/physicsSolvers/wavePropagation/ElasticWaveEquationSEM.cpp
++++ b/src/coreComponents/physicsSolvers/wavePropagation/ElasticWaveEquationSEM.cpp
+@@ -261,7 +261,7 @@ void ElasticWaveEquationSEM::postProcessInput()
+   }
+   localIndex const nsamples = int(maxTime/dt) + 1;
+ 
+-  localIndex numNodesPerElem = 8;
++  localIndex numNodesPerElem = getNumNodesPerElem();
+ 
+   localIndex const numSourcesGlobal = m_sourceCoordinates.size( 0 );
+   m_sourceNodeIds.resize( numSourcesGlobal, numNodesPerElem );

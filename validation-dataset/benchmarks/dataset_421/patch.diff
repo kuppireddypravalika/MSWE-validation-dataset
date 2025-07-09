@@ -1,0 +1,37 @@
+From 4e67329c0ad4a560fc5c956f3c0ae805a347d378 Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Mon, 15 Nov 2021 01:53:43 -0700
+Subject: [PATCH] Optimize `NotificationArea::notificationIndex`
+
+Instead of looping and checking every `Rectangle`, try computing the
+possible `Rectangle` based on the `y` offset, and then check just that
+one `Rectangle`.
+
+Note that there is padding, and the padding area is not clickable, so we
+still need to check the hit is real.
+---
+ OPHD/UI/NotificationArea.cpp | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
+
+diff --git a/OPHD/UI/NotificationArea.cpp b/OPHD/UI/NotificationArea.cpp
+index 82550da97..a9dd53c53 100644
+--- a/OPHD/UI/NotificationArea.cpp
++++ b/OPHD/UI/NotificationArea.cpp
+@@ -107,13 +107,11 @@ NAS2D::Rectangle<int> NotificationArea::notificationRect(std::size_t index)
+ 
+ std::size_t NotificationArea::notificationIndex(NAS2D::Point<int> pixelPosition)
+ {
+-	for (size_t count = 0; count < mNotificationList.size(); ++count)
++	const auto estimatedIndex = static_cast<std::size_t>((mRect.endPoint().y - pixelPosition.y) / IconPaddedSize.y);
++	// Icon is clickable, but padding area around icon is not clickable
++	if (notificationRect(estimatedIndex).contains(pixelPosition))
+ 	{
+-		const auto& rect = notificationRect(count);
+-		if (rect.contains(pixelPosition))
+-		{
+-			return count;
+-		}
++		return estimatedIndex;
+ 	}
+ 	return NoSelection;
+ }

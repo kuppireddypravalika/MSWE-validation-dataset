@@ -1,0 +1,32 @@
+From a182897f77eca0f2d4fd7a91145fb805b89e4aa8 Mon Sep 17 00:00:00 2001
+From: Ulf Hermann <ulf.hermann@qt.io>
+Date: Sat, 16 Oct 2021 10:14:04 +0200
+Subject: [PATCH] Help the compiler avoid duplicate TLS lookups
+
+Most compilers are clever enough to optimize this out. Yet, even with
+optimizations disabled, we don't want to do two TLS lookups here.
+
+Change-Id: I822954c7cec591084d6c27c916818dab7e000ea9
+Reviewed-by: Fabian Kosmale <fabian.kosmale@qt.io>
+Reviewed-by: Thiago Macieira <thiago.macieira@intel.com>
+---
+ src/corelib/kernel/qproperty.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/corelib/kernel/qproperty.cpp b/src/corelib/kernel/qproperty.cpp
+index 9ca290d8793..6a129daa7a9 100644
+--- a/src/corelib/kernel/qproperty.cpp
++++ b/src/corelib/kernel/qproperty.cpp
+@@ -2318,8 +2318,10 @@ bool isAnyBindingEvaluating()
+ 
+ bool isPropertyInBindingWrapper(const QUntypedPropertyData *property)
+ {
+-    return bindingStatus.currentCompatProperty &&
+-           bindingStatus.currentCompatProperty->property == property;
++    // Accessing bindingStatus is expensive because it's thread-local. Do it only once.
++    if (const auto current = bindingStatus.currentCompatProperty)
++        return current->property == property;
++    return false;
+ }
+ 
+ namespace BindableWarnings {

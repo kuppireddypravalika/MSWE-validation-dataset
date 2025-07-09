@@ -1,0 +1,25 @@
+From 56bbcca0690785aa09b58a9142138d5ee5e6b911 Mon Sep 17 00:00:00 2001
+From: Philip Chimento <philip.chimento@gmail.com>
+Date: Tue, 5 Feb 2019 23:01:13 -0800
+Subject: [PATCH] atoms: Make destructor explicit to prevent inlining
+
+The GjsAtoms destructor is giant because it calls a JS::Heap destructor
+for every atom. If it is generated implicitly, then GCC complains about
+it being too big to inline. Providing an explicit destructor seems to
+prevent this warning.
+---
+ gjs/atoms.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/gjs/atoms.h b/gjs/atoms.h
+index ed8e4fe7e..9005e5ef9 100644
+--- a/gjs/atoms.h
++++ b/gjs/atoms.h
+@@ -101,6 +101,7 @@ struct GjsSymbolAtom : GjsAtom {
+ class GjsAtoms {
+  public:
+     explicit GjsAtoms(JSContext* cx) {}
++    ~GjsAtoms(void) {}  // prevents giant destructor from being inlined
+     GJS_JSAPI_RETURN_CONVENTION bool init_atoms(JSContext* cx);
+ 
+     void trace(JSTracer* trc);

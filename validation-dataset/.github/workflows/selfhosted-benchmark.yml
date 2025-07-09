@@ -1,0 +1,116 @@
+name: Self-Hosted Benchmark
+
+on:
+  workflow_dispatch:  # Manual trigger
+    inputs:
+      benchmark:
+        description: "Benchmark directory to run (optional)"
+        required: false
+        default: ""
+
+jobs:
+  run-benchmarks:
+    runs-on: self-hosted
+
+    outputs:
+      benchmarks_changed: ${{ steps.changed_benchmarks.outputs.benchmarks }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect Changed Benchmark Directories
+        id: changed_benchmarks
+        run: |
+          INPUT_BENCH="${{ github.event.inputs.benchmark }}"
+          if [ -n "$INPUT_BENCH" ]; then
+            CHANGED="$INPUT_BENCH"
+          elif git rev-parse HEAD^ >/dev/null 2>&1; then
+            CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E 'benchmarks/(benchmark_|dataset_)' | awk -F'/' '{print $1"/"$2}' | sort | uniq)
+          else
+            CHANGED=$(git ls-files 'benchmarks/benchmark_*' 'benchmarks/dataset_*')
+          fi
+
+          EXISTING=""
+          for DIR in $CHANGED; do
+            if [ -d "$DIR" ]; then
+              EXISTING+=" $DIR"
+            fi
+          done
+
+          CHANGED=$(echo $EXISTING | xargs)
+          if [ -z "$CHANGED" ]; then
+            echo "No benchmarks changed. Skipping benchmark tests."
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "Benchmarks changed:"
+            echo "$CHANGED"
+            echo "benchmarks=$CHANGED" >> $GITHUB_OUTPUT
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Make Script Executable
+        if: steps.changed_benchmarks.outputs.changed == 'true'
+        run: chmod +x run_benchmarks.sh
+
+      - name: Run Changed Benchmarks Locally
+        if: steps.changed_benchmarks.outputs.changed == 'true'
+        run: ./run_benchmarks.sh ${{ steps.changed_benchmarks.outputs.benchmarks }}
+
+      - name: No Benchmarks Changed
+        if: steps.changed_benchmarks.outputs.changed == 'false'
+        run: echo "✅ No changed benchmarks to run."
+
+  notify:
+    needs: run-benchmarks
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Map GitHub User to Slack ID
+        id: map_user
+        run: |
+          declare -A USER_MAP=(
+            ["LikhithaKolluru23"]="U08QWAX3XR6"
+            ["kuppireddypravalika"]="U08PSEE7WJK"
+            ["proywm"]="U029HQL35C6"
+          )
+
+          SLACK_ID=${USER_MAP["${{ github.actor }}"]}
+
+          if [ -z "$SLACK_ID" ]; then
+            echo "Slack user ID not found for user ${{ github.actor }}."
+            SLACK_ID="UNKNOWN"
+          fi
+
+          echo "slack_id=$SLACK_ID" >> $GITHUB_OUTPUT
+
+      - name: Send Slack Notification
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
+          payload: |
+            {
+              "text": "${{ needs.run-benchmarks.result == 'success' && ':white_check_mark: Self-hosted benchmarks ran successfully!' || ':x: Self-hosted benchmarks failed!' }}",
+              "attachments": [
+                {
+                  "color": "${{ needs.run-benchmarks.result == 'success' && 'good' || 'danger' }}",
+                  "fields": [
+                    {"title": "Repository", "value": "${{ github.repository }}", "short": true},
+                    {"title": "Branch", "value": "${{ github.ref_name }}", "short": true},
+                    {"title": "Contributor", "value": "<@${{ steps.map_user.outputs.slack_id }}>", "short": true},
+                    {"title": "Benchmark Changes Detected", "value": "${{ needs.run-benchmarks.outputs.benchmarks_changed }}", "short": true},
+                    {"title": "Action URL", "value": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}", "short": false}
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+

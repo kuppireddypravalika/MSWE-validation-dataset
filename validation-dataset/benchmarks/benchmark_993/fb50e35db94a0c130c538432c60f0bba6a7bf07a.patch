@@ -1,0 +1,33 @@
+From fb50e35db94a0c130c538432c60f0bba6a7bf07a Mon Sep 17 00:00:00 2001
+From: Jarek Kobus <jaroslaw.kobus@qt.io>
+Date: Thu, 4 May 2023 21:12:22 +0200
+Subject: [PATCH] FilePath: Fix hash function
+
+For better performance, include also the scheme and host in qHash
+calculation.
+
+Change-Id: I2a69a128597429b88a71943d248ce038b49285f2
+Reviewed-by: Qt CI Bot <qt_ci_bot@qt-project.org>
+Reviewed-by: hjk <hjk@qt.io>
+---
+ src/libs/utils/filepath.cpp | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/src/libs/utils/filepath.cpp b/src/libs/utils/filepath.cpp
+index 0fce0a9e4c4..de70d4bf9bc 100644
+--- a/src/libs/utils/filepath.cpp
++++ b/src/libs/utils/filepath.cpp
+@@ -2072,9 +2072,10 @@ QTCREATOR_UTILS_EXPORT bool operator>=(const FilePath &first, const FilePath &se
+ 
+ QTCREATOR_UTILS_EXPORT size_t qHash(const FilePath &filePath, uint seed)
+ {
+-    if (filePath.caseSensitivity() == Qt::CaseInsensitive)
+-        return qHash(filePath.path().toCaseFolded(), seed);
+-    return qHash(filePath.path(), seed);
++    if (filePath.caseSensitivity() == Qt::CaseSensitive)
++        return qHash(QStringView(filePath.m_data), seed);
++    const size_t schemeHostHash = qHash(QStringView(filePath.m_data).mid(filePath.m_pathLen), seed);
++    return qHash(filePath.path().toCaseFolded(), seed) ^ schemeHostHash;
+ }
+ 
+ QTCREATOR_UTILS_EXPORT size_t qHash(const FilePath &filePath)

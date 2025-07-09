@@ -1,0 +1,28 @@
+From 7f9242afc6105c0a422ed3d2b50823f4d4e4cd94 Mon Sep 17 00:00:00 2001
+From: Rosen Penev <rosenp@gmail.com>
+Date: Sat, 2 Jul 2022 12:34:29 -0700
+Subject: [PATCH] clang-tidy: replace + with append()
+
+Silences clang-tidy performance warning
+
+Signed-off-by: Rosen Penev <rosenp@gmail.com>
+---
+ src/nikonmn_int.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/nikonmn_int.cpp b/src/nikonmn_int.cpp
+index 15236e6f21..047beba93b 100644
+--- a/src/nikonmn_int.cpp
++++ b/src/nikonmn_int.cpp
+@@ -3233,9 +3233,9 @@ std::ostream& Nikon3MakerNote::print0x009e(std::ostream& os, const Value& value,
+     std::string d = s.empty() ? "" : "; ";
+     const TagDetails* td = find(nikonRetouchHistory, l);
+     if (td) {
+-      s = std::string(exvGettext(td->label_)) + d + s;
++      s = std::string(exvGettext(td->label_)).append(d).append(s);
+     } else {
+-      s = std::string(_("Unknown")) + std::string(" (") + toString(l) + std::string(")") + d + s;
++      s = std::string(_("Unknown")).append(" (").append(toString(l)).append(")").append(d).append(s);
+     }
+   }
+   return os << s;

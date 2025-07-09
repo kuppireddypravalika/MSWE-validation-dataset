@@ -1,0 +1,32 @@
+From 63965339501e50dd7f3e711ebe3250ea1c0bc9c3 Mon Sep 17 00:00:00 2001
+From: Mark Dewing <markdewing@gmail.com>
+Date: Tue, 9 Apr 2019 13:50:04 -0500
+Subject: [PATCH] Expand minimum bracket search for cusp correction
+
+This addresses a case where the starting function value is around 1e18,
+and is very sharply peaked near the starting value. The step size is not
+large enough to reach the minimum in 1000 iterations.
+The algorithm succeeds if another step size increment is added at 1000 iterations
+and the max iteration count raised to 10000.
+---
+ src/Numerics/MinimizeOneDim.h | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/Numerics/MinimizeOneDim.h b/src/Numerics/MinimizeOneDim.h
+index f6635fd0e2..bc8c6c7c6d 100644
+--- a/src/Numerics/MinimizeOneDim.h
++++ b/src/Numerics/MinimizeOneDim.h
+@@ -93,8 +93,12 @@ Bracket_min_t<T> bracket_minimum(const F& f, T initial_value, T bound_max = -1.0
+     {
+       delx *= 5;
+     }
+-    cnt++;
+     if (cnt == 1000)
++    {
++      delx *= 5;
++    }
++    cnt++;
++    if (cnt == 10000)
+     {
+       throw std::runtime_error("Failed to bracket minimum");
+     }

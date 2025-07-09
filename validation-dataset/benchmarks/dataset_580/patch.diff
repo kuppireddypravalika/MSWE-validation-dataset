@@ -1,0 +1,34 @@
+From de349f7a0f40453d7ac953f86b8b30619c46031b Mon Sep 17 00:00:00 2001
+From: Tobias Doerffel <tobias.doerffel@gmail.com>
+Date: Mon, 29 Nov 2010 11:39:19 +0100
+Subject: [PATCH] ItalcCore/ItalcVncConnection: do not use ZRLE encoding for
+ demo clients
+
+The ZRLE encoding is very CPU intensive and thus not suitable for the
+demo mode at all as this will bring down the master computer when
+broadcasting to many clients. Instead enable tight encoding with zlib
+and jpeg compression.
+---
+ lib/src/ItalcVncConnection.cpp | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/lib/src/ItalcVncConnection.cpp b/lib/src/ItalcVncConnection.cpp
+index fcff0fbb5..f043c407f 100644
+--- a/lib/src/ItalcVncConnection.cpp
++++ b/lib/src/ItalcVncConnection.cpp
+@@ -159,8 +159,14 @@ rfbBool ItalcVncConnection::hookNewClient( rfbClient *cl )
+ 			cl->appData.qualityLevel = 5;
+ 			cl->appData.enableJPEG = true;
+ 			break;
+-		default:
+ 		case DemoQuality:
++			cl->appData.encodingsString = "tight ultra copyrect "
++							"hextile zlib corre rre raw";
++			cl->appData.compressLevel = 9;
++			cl->appData.qualityLevel = 9;
++			cl->appData.enableJPEG = true;
++			break;
++		default:
+ 			cl->appData.encodingsString = "zrle ultra copyrect "
+ 							"hextile zlib corre rre raw";
+ 			break;

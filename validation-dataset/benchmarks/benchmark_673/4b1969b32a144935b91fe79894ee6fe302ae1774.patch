@@ -1,0 +1,28 @@
+From 4b1969b32a144935b91fe79894ee6fe302ae1774 Mon Sep 17 00:00:00 2001
+From: Jiajie Chen <jiegec@qq.com>
+Date: Thu, 30 Jul 2020 23:06:56 +0800
+Subject: [PATCH] Use another way to avoid libsysy begin optimized
+
+---
+ src/machine_code.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/machine_code.cpp b/src/machine_code.cpp
+index b5d8123..ef7c0e5 100644
+--- a/src/machine_code.cpp
++++ b/src/machine_code.cpp
+@@ -247,12 +247,12 @@ std::ostream &operator<<(std::ostream &os, const MachineProgram &p) {
+       }
+     }
+   }
++  // reference to libsysy to avoid optimization
++  os << "\tblx getint" << endl;
+ 
+   // data section
+   os << endl << endl << ".section .data" << endl;
+   os << ".align 4" << endl;
+-  // reference to libsysy to avoid optimization
+-  //os << ".word getint" << endl;
+   for (auto &decl : p.glob_decl) {
+     os << endl << ".global " << decl->name << endl;
+     os << "\t"

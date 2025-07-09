@@ -1,0 +1,42 @@
+From 80dce30fd6744ee52489caf1d766626e6d74f3cb Mon Sep 17 00:00:00 2001
+From: Kris Thielemans <k.thielemans@ucl.ac.uk>
+Date: Sat, 21 Jan 2017 08:05:47 +0000
+Subject: [PATCH] Use explit boost:uint64_t in definition of
+ CListTimeDataSAFIR.
+
+Previous code used unsigned, which can be 32bit
+---
+ src/include/stir/listmode/CListRecordSAFIR.h | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/src/include/stir/listmode/CListRecordSAFIR.h b/src/include/stir/listmode/CListRecordSAFIR.h
+index 1e98fde41c..fd51c6048f 100644
+--- a/src/include/stir/listmode/CListRecordSAFIR.h
++++ b/src/include/stir/listmode/CListRecordSAFIR.h
+@@ -143,19 +143,19 @@ class CListTimeDataSAFIR
+ 	{ return static_cast<unsigned long>(time);  }
+ 	inline Succeeded set_time_in_millisecs(const unsigned long time_in_millisecs)
+ 	{
+-		time = ((1UL<<49)-1) & static_cast<unsigned long>(time_in_millisecs);
++		time = ((boost::uint64_t(1)<<49)-1) & static_cast<boost::uint64_t>(time_in_millisecs);
+ 		return Succeeded::yes;
+ 	}
+ private:
+ 	friend class CListRecordSAFIR;
+ #if STIRIsNativeByteOrderBigEndian
+-	unsigned type : 1;
+-	unsigned reserved : 15;
+-	unsigned long time : 48;
++	boost::uint64_t type : 1;
++	boost::uint64_t reserved : 15;
++	boost::uint64_t time : 48;
+ #else
+-	unsigned long time : 48;
+-	unsigned reserved : 15;
+-	unsigned type : 1;
++	boost::uint64_t time : 48;
++	boost::uint64_t reserved : 15;
++	boost::uint64_t type : 1;
+ #endif
+ };
+ 

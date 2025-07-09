@@ -1,0 +1,32 @@
+From bb782f64ba8667a3d03d0e15c7473a150380c686 Mon Sep 17 00:00:00 2001
+From: Ivan Donchevskii <ivan.donchevskii@qt.io>
+Date: Thu, 18 Jan 2018 09:44:54 +0100
+Subject: [PATCH] Clang: Add clazy argument to ignore included files
+
+ignore-include-files flag  does not improve performance
+currently. But if we decide to use -I for some of our
+include paths than this parameter will continue to skip
+them for clazy diagnostics.
+
+Change-Id: I8ff02edf224f680f88f1b178098787c0e2a629cb
+Reviewed-by: Nikolai Kosjar <nikolai.kosjar@qt.io>
+---
+ src/plugins/clangcodemodel/clangeditordocumentprocessor.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/src/plugins/clangcodemodel/clangeditordocumentprocessor.cpp b/src/plugins/clangcodemodel/clangeditordocumentprocessor.cpp
+index a282350f246..924257cc632 100644
+--- a/src/plugins/clangcodemodel/clangeditordocumentprocessor.cpp
++++ b/src/plugins/clangcodemodel/clangeditordocumentprocessor.cpp
+@@ -579,6 +579,11 @@ static QStringList clazyCommandLine()
+     QStringList result;
+     addXclangArg(result, "-add-plugin", "clang-lazy");
+     addXclangArg(result, "-plugin-arg-clang-lazy", clazyChecks);
++
++    // NOTE: we already use -isystem for all include paths to make libclang skip diagnostics for
++    // all of them. That means that ignore-included-files will not change anything unless we decide
++    // to return the original -I prefix for some include paths.
++    addXclangArg(result, "-plugin-arg-clang-lazy", "ignore-included-files");
+     return result;
+ }
+ 

@@ -1,0 +1,42 @@
+From b43e20886fe770abf0d54c67d4856409a3224d67 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Marco=20Trevisan=20=28Trevi=C3=B1o=29?= <mail@3v1n0.net>
+Date: Wed, 29 Jun 2022 15:55:03 +0200
+Subject: [PATCH] function: Use GjsAutoCppPointer to handle the GIArgument's
+ arrays
+
+Use automatic free support we have for them, with all constexpr
+operations and zero-memory overhead.
+---
+ gi/function.h | 12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
+
+diff --git a/gi/function.h b/gi/function.h
+index 80dbaeff6..9adca568b 100644
+--- a/gi/function.h
++++ b/gi/function.h
+@@ -95,9 +95,9 @@ struct GjsCallbackTrampoline : public Gjs::Closure {
+ 
+ // Stack allocation only!
+ class GjsFunctionCallState {
+-    GIArgument* m_in_cvalues;
+-    GIArgument* m_out_cvalues;
+-    GIArgument* m_inout_original_cvalues;
++    GjsAutoCppPointer<GIArgument[]> m_in_cvalues;
++    GjsAutoCppPointer<GIArgument[]> m_out_cvalues;
++    GjsAutoCppPointer<GIArgument[]> m_inout_original_cvalues;
+ 
+  public:
+     std::unordered_set<GIArgument*> ignore_release;
+@@ -125,12 +125,6 @@ class GjsFunctionCallState {
+         m_inout_original_cvalues = new GIArgument[size];
+     }
+ 
+-    ~GjsFunctionCallState() {
+-        delete[] m_in_cvalues;
+-        delete[] m_out_cvalues;
+-        delete[] m_inout_original_cvalues;
+-    }
+-
+     GjsFunctionCallState(const GjsFunctionCallState&) = delete;
+     GjsFunctionCallState& operator=(const GjsFunctionCallState&) = delete;
+ 

@@ -1,0 +1,27 @@
+From 75d61050c0608d9ad50821c1a0afad3a07365e37 Mon Sep 17 00:00:00 2001
+From: Alexandre Courbot <gnurou@gmail.com>
+Date: Wed, 15 Feb 2012 09:16:25 +0900
+Subject: [PATCH] Optimize DB query lifetime
+
+---
+ src/core/Entry.cc | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/core/Entry.cc b/src/core/Entry.cc
+index 3200446e..d9dee5e2 100644
+--- a/src/core/Entry.cc
++++ b/src/core/Entry.cc
+@@ -45,11 +45,11 @@ static QString dateToString(const QDateTime &date)
+ 
+ void Entry::updateTrainingData()
+ {
+-	SQLite::Query query(Database::connection());
+-
+ 	QString qString;
+ 	if (!trained()) removeFromTraining();
+ 	else {
++                SQLite::Query query(Database::connection());
++
+ 		qString = "insert or replace into training values(" + QString::number(type()) + ", " + QString::number(id()) + ", " + QString::number(score()) + ", " + dateToString(dateAdded()) + ", " + dateToString(dateLastTrain()) + ", " + QString::number(nbTrained()) + ", " + QString::number(nbSuccess()) + ", " + dateToString(dateLastMistake()) + ")";
+ 		if (!query.exec(qString)) qCritical() << "Error executing query: " << query.lastError().message();
+ 		emit entryChanged(this);

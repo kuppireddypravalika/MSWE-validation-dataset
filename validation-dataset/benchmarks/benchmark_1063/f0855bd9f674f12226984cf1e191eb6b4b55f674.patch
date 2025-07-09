@@ -1,0 +1,40 @@
+From f0855bd9f674f12226984cf1e191eb6b4b55f674 Mon Sep 17 00:00:00 2001
+From: Austin Clements <amdragon@mit.edu>
+Date: Thu, 31 Jan 2013 21:02:10 -0500
+Subject: [PATCH] x2apic: Unmask performance counter LVT after enabling x2APIC
+
+This fixes profiling on ben.
+
+Previously, we unmasked the performance counter LVT before setting the
+software APIC enable bit in the spurious vector register.  On ben,
+core 0's APIC was already enabled, so this was fine, but the other
+cores weren't, so the unmasking didn't have an effect and this LVT
+remained masked after we enabled the APIC.
+---
+ kernel/x2apic.cc | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/kernel/x2apic.cc b/kernel/x2apic.cc
+index a4372945f..2ebb99689 100644
+--- a/kernel/x2apic.cc
++++ b/kernel/x2apic.cc
+@@ -213,9 +213,6 @@ x2apic_lapic::cpu_init()
+ 
+   verbose.println("x2apic: Initializing LAPIC (CPU ", myid(), ")");
+ 
+-  // Enable performance counter overflow interrupts for sampler.cc
+-  mask_pc(false);
+-
+   // Enable interrupts on the APIC (but not on the processor).
+   value = readmsr(TPR);
+   value &= ~0xffU;
+@@ -245,6 +242,9 @@ x2apic_lapic::cpu_init()
+   value = T_IRQ0 + IRQ_ERROR;
+   writemsr(ERROR, value);
+ 
++  // Enable performance counter overflow interrupts for sampler.cc
++  mask_pc(false);
++
+   if (maxlvt > 3)
+     writemsr(ESR, 0);
+   readmsr(ESR);

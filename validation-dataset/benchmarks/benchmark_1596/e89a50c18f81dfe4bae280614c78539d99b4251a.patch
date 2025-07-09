@@ -1,0 +1,22 @@
+From e89a50c18f81dfe4bae280614c78539d99b4251a Mon Sep 17 00:00:00 2001
+From: Yiqun Liu <Xreki@users.noreply.github.com>
+Date: Thu, 8 Dec 2022 09:42:09 +0800
+Subject: [PATCH] Try add eval() to speedup the eigen performance. (#48855)
+
+---
+ paddle/phi/kernels/impl/logsumexp_kernel_impl.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/paddle/phi/kernels/impl/logsumexp_kernel_impl.h b/paddle/phi/kernels/impl/logsumexp_kernel_impl.h
+index cc5057396265c4..9c4ee034b74095 100644
+--- a/paddle/phi/kernels/impl/logsumexp_kernel_impl.h
++++ b/paddle/phi/kernels/impl/logsumexp_kernel_impl.h
+@@ -51,7 +51,7 @@ struct LogsumexpFunctor {
+ 
+     auto x_mt = (*x).template cast<MT>();
+     auto y_dim = y->dimensions();
+-    auto x_max = x_mt.maximum(dim);
++    auto x_max = x_mt.maximum(dim).eval();
+     y->device(place) =
+         (x_max +
+          (x_mt - x_max.reshape(t_dim).broadcast(r_dim)).exp().sum(dim).log())

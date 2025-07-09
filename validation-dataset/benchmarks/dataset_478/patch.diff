@@ -1,0 +1,33 @@
+From e280eb2083dc96e936706a27f69460b72b28ed85 Mon Sep 17 00:00:00 2001
+From: Silent <zdanio95@gmail.com>
+Date: Fri, 21 May 2021 18:51:00 +0200
+Subject: [PATCH] FileStream::Read: Throw the exception basing on fread return
+ value
+
+This change removes ftell/GetPosition() from hot spots during the startup,
+"optimizing" the function for success cases - reading past EOF should
+never/rarely happen so it seems fine to let it try to read before checking
+---
+ src/openrct2/core/FileStream.cpp | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/src/openrct2/core/FileStream.cpp b/src/openrct2/core/FileStream.cpp
+index 3eb85d8987a8..68c0b5269215 100644
+--- a/src/openrct2/core/FileStream.cpp
++++ b/src/openrct2/core/FileStream.cpp
+@@ -165,13 +165,9 @@ namespace OpenRCT2
+ 
+     void FileStream::Read(void* buffer, uint64_t length)
+     {
+-        uint64_t remainingBytes = GetLength() - GetPosition();
+-        if (length <= remainingBytes)
++        if (fread(buffer, 1, static_cast<size_t>(length), _file) == length)
+         {
+-            if (fread(buffer, static_cast<size_t>(length), 1, _file) == 1)
+-            {
+-                return;
+-            }
++            return;
+         }
+         throw IOException("Attempted to read past end of file.");
+     }

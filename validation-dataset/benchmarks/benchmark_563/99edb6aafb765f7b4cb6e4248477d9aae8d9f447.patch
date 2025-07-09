@@ -1,0 +1,22 @@
+From 99edb6aafb765f7b4cb6e4248477d9aae8d9f447 Mon Sep 17 00:00:00 2001
+From: Anand Tripathi <shadarsh23@gmail.com>
+Date: Tue, 11 Jan 2022 10:38:35 +0530
+Subject: [PATCH] Time: 3 ms (88.98%), Space: 16.7 MB (43.41%) - LeetHub
+
+---
+ .../1022-sum-of-root-to-leaf-binary-numbers.cpp                 | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/1022-sum-of-root-to-leaf-binary-numbers/1022-sum-of-root-to-leaf-binary-numbers.cpp b/1022-sum-of-root-to-leaf-binary-numbers/1022-sum-of-root-to-leaf-binary-numbers.cpp
+index 69b6694..d8948c1 100644
+--- a/1022-sum-of-root-to-leaf-binary-numbers/1022-sum-of-root-to-leaf-binary-numbers.cpp
++++ b/1022-sum-of-root-to-leaf-binary-numbers/1022-sum-of-root-to-leaf-binary-numbers.cpp
+@@ -3,7 +3,7 @@ class Solution {
+     int sumRootToLeafHelper(TreeNode* rt, int cur_val) {
+         if(! rt) return 0;
+         
+-        cur_val = (cur_val << 1) | rt->val;
++        cur_val = cur_val*2+rt->val;
+         
+         if(!rt->left && !rt->right)
+ 			return cur_val;

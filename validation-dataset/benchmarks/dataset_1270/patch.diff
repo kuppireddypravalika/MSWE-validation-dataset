@@ -1,0 +1,30 @@
+From ad854e9867e245046df95df1f5c4c1da754a7b89 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max.kellermann@gmail.com>
+Date: Wed, 6 Sep 2023 14:16:28 +0200
+Subject: [PATCH] db/simple/Save: initialize array without memset()
+
+---
+ src/db/plugins/simple/DatabaseSave.cxx | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/src/db/plugins/simple/DatabaseSave.cxx b/src/db/plugins/simple/DatabaseSave.cxx
+index d4004b8cf1..dfac8997ae 100644
+--- a/src/db/plugins/simple/DatabaseSave.cxx
++++ b/src/db/plugins/simple/DatabaseSave.cxx
+@@ -57,15 +57,13 @@ db_load_internal(LineReader &file, Directory &music_root)
+ 	char *line;
+ 	unsigned format = 0;
+ 	bool found_charset = false, found_version = false;
+-	bool tags[TAG_NUM_OF_ITEM_TYPES];
++	bool tags[TAG_NUM_OF_ITEM_TYPES]{};
+ 
+ 	/* get initial info */
+ 	line = file.ReadLine();
+ 	if (line == nullptr || strcmp(DIRECTORY_INFO_BEGIN, line) != 0)
+ 		throw std::runtime_error("Database corrupted");
+ 
+-	memset(tags, false, sizeof(tags));
+-
+ 	while ((line = file.ReadLine()) != nullptr &&
+ 	       strcmp(line, DIRECTORY_INFO_END) != 0) {
+ 		const char *p;

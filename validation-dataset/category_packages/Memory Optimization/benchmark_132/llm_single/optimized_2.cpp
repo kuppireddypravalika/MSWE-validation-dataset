@@ -1,0 +1,17 @@
+#include <cstdint>
+#include <vector>
+
+// Optimized byte swap using compiler intrinsics for better performance.
+static inline uint32_t optimized_bswap_32(uint32_t x) {
+    return (x << 24) | ((x & 0x00ff0000u) >> 8) | ((x & 0x0000ff00u) << 8) | (x >> 24);
+}
+
+uint64_t process(const std::vector<uint32_t>& data) {
+    uint64_t sum = 0;
+    for (auto v : data) {
+        sum += optimized_bswap_32(v);
+    }
+    return sum;
+}
+
+// Explicit template instantiation statements if applicable (none given in the original code)

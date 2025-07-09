@@ -1,0 +1,27 @@
+From 0f6074dac822756a03b3669b714147a762fcb925 Mon Sep 17 00:00:00 2001
+From: Hedayat Vatankhah <hedayat.fwd@gmail.com>
+Date: Wed, 4 Oct 2017 11:21:53 +0330
+Subject: [PATCH] Run objcopy only when there is really something to change
+
+---
+ bind_fakes.cpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/bind_fakes.cpp b/bind_fakes.cpp
+index 02a1841..e3358e8 100644
+--- a/bind_fakes.cpp
++++ b/bind_fakes.cpp
+@@ -147,8 +147,11 @@ int main(int argc, char **argv)
+                                 + syms.second;
+                     }
+                 }
+-            string cmd = "objcopy" + objcopy_params + ' ' + objfile;
+-            system(cmd.c_str());
++            if (!objcopy_params.empty())
++            {
++                string cmd = "objcopy" + objcopy_params + ' ' + objfile;
++                system(cmd.c_str());
++            }
+             // todo: check return value
+         }
+     }

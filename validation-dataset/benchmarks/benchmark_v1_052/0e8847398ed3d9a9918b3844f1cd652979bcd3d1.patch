@@ -1,0 +1,38 @@
+From 0e8847398ed3d9a9918b3844f1cd652979bcd3d1 Mon Sep 17 00:00:00 2001
+From: Mandeep Singh Grang <mgrang@codeaurora.org>
+Date: Tue, 13 Mar 2018 05:25:23 +0000
+Subject: [PATCH] [polly] Change std::sort to llvm::sort in response to r327219
+
+Summary:
+r327219 added wrappers to std::sort which randomly shuffle the container before sorting.
+This will help in uncovering non-determinism caused due to undefined sorting
+order of objects having the same key.
+
+To make use of that infrastructure we need to invoke llvm::sort instead of std::sort.
+
+Reviewers: grosser, efriedma, jdoerfert, bollu, sebpop
+
+Reviewed By: sebpop
+
+Subscribers: sebpop, mehdi_amini, llvm-commits, pollydev
+
+Tags: #polly
+
+Differential Revision: https://reviews.llvm.org/D44361
+---
+ polly/lib/Support/ISLTools.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/polly/lib/Support/ISLTools.cpp b/polly/lib/Support/ISLTools.cpp
+index 41f9d4672bf8..46f9085d4bbe 100644
+--- a/polly/lib/Support/ISLTools.cpp
++++ b/polly/lib/Support/ISLTools.cpp
+@@ -744,7 +744,7 @@ static void printSortedPolyhedra(isl::union_set USet, llvm::raw_ostream &OS,
+   }
+ 
+   // Sort the polyhedra.
+-  std::sort(BSets.begin(), BSets.end(), orderComparer);
++  llvm::sort(BSets.begin(), BSets.end(), orderComparer);
+ 
+   // Print the polyhedra.
+   bool First = true;

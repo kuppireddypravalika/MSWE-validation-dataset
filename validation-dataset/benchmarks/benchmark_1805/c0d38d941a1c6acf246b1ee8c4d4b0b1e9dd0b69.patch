@@ -1,0 +1,41 @@
+From c0d38d941a1c6acf246b1ee8c4d4b0b1e9dd0b69 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max.kellermann@gmail.com>
+Date: Mon, 13 Mar 2023 13:31:46 +0100
+Subject: [PATCH] pcm/Normalizer: split the normalization loop
+
+Performance improvement because the ramp code is now moved out of the
+hot code path, allowing the compiler to vectorize.
+---
+ src/pcm/Normalizer.cxx | 16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
+
+diff --git a/src/pcm/Normalizer.cxx b/src/pcm/Normalizer.cxx
+index 164d0fef98..982e52a69a 100644
+--- a/src/pcm/Normalizer.cxx
++++ b/src/pcm/Normalizer.cxx
+@@ -71,15 +71,19 @@ PcmNormalizer::ProcessS16(int16_t *gcc_restrict dest,
+                 curGain = 1 << 10;
+ 	const int delta = (newGain - curGain) / (int)ramp;
+ 
+-	for (std::size_t i = 0; i < src.size(); i++) {
++	for (const auto sample : src.first(ramp)) {
+ 		//! Amplify the sample
+-		*dest++ = PcmClamp<format>(src[i] * curGain >> 10);
++		*dest++ = PcmClamp<format>(sample * curGain >> 10);
+ 
+                 //! Adjust the gain
+-                if (i < ramp)
+-                        curGain += delta;
+-                else
+-                        curGain = newGain;
++		curGain += delta;
++	}
++
++	curGain = newGain;
++
++	for (const auto sample : src.subspan(ramp)) {
++		//! Amplify the sample
++		*dest++ = PcmClamp<format>(sample * curGain >> 10);
+ 	}
+ 
+         pos = slot;

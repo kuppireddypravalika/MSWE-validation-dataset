@@ -1,0 +1,32 @@
+From e6b7adb311f2ad1df450dadd4c2b68c20ccb7e68 Mon Sep 17 00:00:00 2001
+From: Mikko Partio <mikko.partio@fmi.fi>
+Date: Thu, 4 Jan 2018 14:17:37 +0200
+Subject: [PATCH] Split info before putting it to cache, but avoid copying
+ memory
+
+---
+ himan-plugins/source/cache.cpp | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/himan-plugins/source/cache.cpp b/himan-plugins/source/cache.cpp
+index ffdde09f4..3c40107f7 100644
+--- a/himan-plugins/source/cache.cpp
++++ b/himan-plugins/source/cache.cpp
+@@ -90,6 +90,17 @@ void cache::SplitToPool(info_t anInfo, bool pin)
+ 
+ 	ASSERT(!localInfo->Grid()->IsPackedData());
+ 
++	// localInfo might contain multiple grids. When adding data to cache, we need
++	// to make sure that single info contains only single grid.
++
++	if (localInfo->DimensionSize() > 1)
++	{
++		auto newInfo = make_shared<info>(localInfo->ForecastType(), localInfo->Time(), localInfo->Level(), localInfo->Param());
++		newInfo->Grid(localInfo->SharedGrid());
++		localInfo = newInfo;
++	}
++
++	ASSERT(localInfo->DimensionSize() == 1);
+ 	cache_pool::Instance()->Insert(uniqueName, localInfo, pin);
+ }
+ 

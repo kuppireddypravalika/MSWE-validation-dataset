@@ -1,0 +1,35 @@
+From 3ca6276820c5d0ef1d601a037c685f51e6350380 Mon Sep 17 00:00:00 2001
+From: Teresa Johnson <tejohnson@google.com>
+Date: Thu, 19 Apr 2018 16:55:13 +0000
+Subject: [PATCH] [gold/ThinLTO] Invoke llvm_shutdown when exiting after
+ ThinLTO indexing
+
+Summary:
+Instead of manually invoking PrintStatistics, simply invoke
+llvm_shutdown which will take care of destroying managed statics, and as
+a side effect will destroy the StatisticInfo ManagedStatic, invoking
+PrintStatistics when needed.
+
+Reviewers: fhahn
+
+Subscribers: inglorion, llvm-commits
+
+Differential Revision: https://reviews.llvm.org/D45820
+---
+ llvm/tools/gold/gold-plugin.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/llvm/tools/gold/gold-plugin.cpp b/llvm/tools/gold/gold-plugin.cpp
+index 607f3f516b0c..e39abe6c81e9 100644
+--- a/llvm/tools/gold/gold-plugin.cpp
++++ b/llvm/tools/gold/gold-plugin.cpp
+@@ -1061,8 +1061,7 @@ static ld_plugin_status allSymbolsReadHook() {
+     return LDPS_OK;
+ 
+   if (options::thinlto_index_only) {
+-    if (llvm::AreStatisticsEnabled())
+-      llvm::PrintStatistics();
++    llvm_shutdown();
+     cleanup_hook();
+     exit(0);
+   }

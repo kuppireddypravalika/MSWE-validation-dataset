@@ -1,0 +1,22 @@
+From 4f2d6d6a961d65bc1ac7e001047dffbcd5432842 Mon Sep 17 00:00:00 2001
+From: aph <unknown>
+Date: Wed, 10 Sep 2014 10:42:58 -0400
+Subject: [PATCH] array load must only read 32 bits
+
+---
+ src/cpu/aarch64/vm/macroAssembler_aarch64.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/cpu/aarch64/vm/macroAssembler_aarch64.cpp b/src/cpu/aarch64/vm/macroAssembler_aarch64.cpp
+index f4d4110b0..10b3b12f5 100644
+--- a/src/cpu/aarch64/vm/macroAssembler_aarch64.cpp
++++ b/src/cpu/aarch64/vm/macroAssembler_aarch64.cpp
+@@ -1061,7 +1061,7 @@ void MacroAssembler::check_klass_subtype_slow_path(Register sub_klass,
+   // We will consult the secondary-super array.
+   ldr(r5, secondary_supers_addr);
+   // Load the array length.  (Positive movl does right thing on LP64.)
+-  ldr(r2, Address(r5, Array<Klass*>::length_offset_in_bytes()));
++  ldrw(r2, Address(r5, Array<Klass*>::length_offset_in_bytes()));
+   // Skip to start of data.
+   add(r5, r5, Array<Klass*>::base_offset_in_bytes());
+ 

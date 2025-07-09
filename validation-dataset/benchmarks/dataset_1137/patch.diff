@@ -1,0 +1,37 @@
+From ae992d0e37a867063393da7918403a8b9f317dbc Mon Sep 17 00:00:00 2001
+From: Frank Warmerdam <warmerdam@pobox.com>
+Date: Wed, 14 Jan 2004 23:06:09 +0000
+Subject: [PATCH] Improve calculation of 16bit color table values.
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@5685 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ frmts/gtiff/geotiff.cpp | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/frmts/gtiff/geotiff.cpp b/frmts/gtiff/geotiff.cpp
+index 46998dcc1385..0699c0817be0 100644
+--- a/frmts/gtiff/geotiff.cpp
++++ b/frmts/gtiff/geotiff.cpp
+@@ -28,6 +28,9 @@
+  ******************************************************************************
+  *
+  * $Log$
++ * Revision 1.103  2004/01/14 23:06:09  warmerda
++ * Improve calculation of 16bit color table values.
++ *
+  * Revision 1.102  2004/01/07 20:51:22  warmerda
+  * Added Float64 to supported data types.
+  *
+@@ -670,9 +673,9 @@ CPLErr GTiffRasterBand::SetColorTable( GDALColorTable * poCT )
+             
+             poCT->GetColorEntryAsRGB( iColor, &sRGB );
+             
+-            anTRed[iColor] = (unsigned short) (256 * sRGB.c1);
+-            anTGreen[iColor] = (unsigned short) (256 * sRGB.c2);
+-            anTBlue[iColor] = (unsigned short) (256 * sRGB.c3);
++            anTRed[iColor] = (unsigned short) (257 * sRGB.c1);
++            anTGreen[iColor] = (unsigned short) (257 * sRGB.c2);
++            anTBlue[iColor] = (unsigned short) (257 * sRGB.c3);
+         }
+         else
+         {

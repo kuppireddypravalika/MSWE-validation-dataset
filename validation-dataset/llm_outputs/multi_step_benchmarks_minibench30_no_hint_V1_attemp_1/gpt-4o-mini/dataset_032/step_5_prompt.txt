@@ -1,0 +1,397 @@
+You are an expert C++ performance engineer. Optimize the provided code for high compute and resource performance while preserving behavior. The optimized function must keep the exact same signature as the hand-written implementation. If the original file contains explicit template instantiations, reproduce them unchanged at the end of the optimized file. This prompt may include compilation errors, runtime errors or timing data from the previous step. Use it to refine the code. If it is empty, produce an initial optimization based solely on the original source. When refining the code, explore potentially high-reward optimization paths that have not yet been tried and that could yield superior computational performance. Respond only with a JSON object using the keys "optimized_code" and "analysis". The "analysis" field should briefly explain the intent behind your modifications. Additional source files may be provided for context. Here are the files:
+
+// original.cpp
+#include "streamer.hpp"
+
+int Streamer::tick_send(uint32_t timeout)
+{
+    std::lock_guard<std::mutex> stack(mStreamerMtx);
+
+    /* short circuit everything if bio isn't active */
+    if (!(mBio->isactive()))
+    {
+        free_pend();
+        return 0;
+    }
+
+    if (mBio->cansend(timeout))
+    {
+        handleoutgoing_locked();
+    }
+
+    return 1;
+}
+
+
+// streamer.hpp
+#pragma once
+#include <chrono>
+#include <thread>
+#include <mutex>
+
+class MockBio {
+public:
+    explicit MockBio(bool active = true) : active_(active) {}
+    bool isactive() const { return active_; }
+    bool cansend(uint32_t timeout_us) {
+        std::this_thread::sleep_for(std::chrono::microseconds(timeout_us));
+        return true;
+    }
+private:
+    bool active_;
+};
+
+class Streamer {
+public:
+    explicit Streamer(MockBio* bio) : mBio(bio), sent(0) {}
+
+    int tick_send(uint32_t timeout);
+
+    void free_pend() {}
+    void handleoutgoing_locked() { ++sent; }
+
+    std::size_t sent;
+private:
+    std::mutex mStreamerMtx;
+    MockBio* mBio;
+};
+
+
+The following files are provided for context. Do NOT modify them. Only update code in original.cpp.
+
+// harness.cpp
+#include "streamer.hpp"
+#include <chrono>
+#include <iostream>
+#include <string>
+#include <thread>
+#include <vector>
+
+int main(int argc, char* argv[])
+{
+    std::string mode = "perf";
+    int threads = 6;
+    int iters = 6000;
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "--mode=correct") mode = "correct";
+        else if (arg == "--mode=perf") mode = "perf";
+        else if (arg.rfind("--threads=",0)==0) threads = std::stoi(arg.substr(10));
+        else if (arg.rfind("--iters=",0)==0) iters = std::stoi(arg.substr(8));
+    }
+
+    MockBio bio(true);
+    Streamer streamer(&bio);
+    const uint32_t timeout = 300; // microseconds for cansend simulation
+
+    if (mode == "correct") {
+        for (int i = 0; i < iters; ++i) {
+            streamer.tick_send(timeout);
+        }
+        std::cout << streamer.sent << "\n";
+        return 0;
+    }
+
+    using clock = std::chrono::high_resolution_clock;
+    auto start = clock::now();
+    std::vector<std::thread> workers;
+    for (int t = 0; t < threads; ++t) {
+        workers.emplace_back([&, timeout]() {
+            for (int i = 0; i < iters; ++i) {
+                streamer.tick_send(timeout);
+            }
+        });
+    }
+    for (auto& th : workers) th.join();
+    auto end = clock::now();
+
+    std::cout << "Time: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
+              << " ms\n";
+    return 0;
+}
+
+
+// streamer.hpp
+#pragma once
+#include <chrono>
+#include <thread>
+#include <mutex>
+
+class MockBio {
+public:
+    explicit MockBio(bool active = true) : active_(active) {}
+    bool isactive() const { return active_; }
+    bool cansend(uint32_t timeout_us) {
+        std::this_thread::sleep_for(std::chrono::microseconds(timeout_us));
+        return true;
+    }
+private:
+    bool active_;
+};
+
+class Streamer {
+public:
+    explicit Streamer(MockBio* bio) : mBio(bio), sent(0) {}
+
+    int tick_send(uint32_t timeout);
+
+    void free_pend() {}
+    void handleoutgoing_locked() { ++sent; }
+
+    std::size_t sent;
+private:
+    std::mutex mStreamerMtx;
+    MockBio* mBio;
+};
+
+
+Previous attempt info:
+Original execution time: mean = 12849.60 ms, std = 10.69 ms
+Diff from original code:
+--- original
++++ step_1
+@@ -3,14 +3,13 @@
+ 
+ int Streamer::tick_send(uint32_t timeout)
+ {
+-    std::lock_guard<std::mutex> stack(mStreamerMtx);
+-
+-    /* short circuit everything if bio isn't active */
+-    if (!(mBio->isactive()))
++    if (!mBio->isactive()) // Check if bio is active without locking
+     {
+         free_pend();
+         return 0;
+     }
++
++    std::lock_guard<std::mutex> stack(mStreamerMtx); // Lock only when necessary
+ 
+     if (mBio->cansend(timeout))
+     {
+@@ -20,36 +19,3 @@
+     return 1;
+ }
+ 
+-
+-// streamer.hpp
+-#pragma once
+-#include <chrono>
+-#include <thread>
+-#include <mutex>
+-
+-class MockBio {
+-public:
+-    explicit MockBio(bool active = true) : active_(active) {}
+-    bool isactive() const { return active_; }
+-    bool cansend(uint32_t timeout_us) {
+-        std::this_thread::sleep_for(std::chrono::microseconds(timeout_us));
+-        return true;
+-    }
+-private:
+-    bool active_;
+-};
+-
+-class Streamer {
+-public:
+-    explicit Streamer(MockBio* bio) : mBio(bio), sent(0) {}
+-
+-    int tick_send(uint32_t timeout);
+-
+-    void free_pend() {}
+-    void handleoutgoing_locked() { ++sent; }
+-
+-    std::size_t sent;
+-private:
+-    std::mutex mStreamerMtx;
+-    MockBio* mBio;
+-};
+Compilation succeeded. Execution time: mean = 12852.00 ms, std = 15.44 ms. Original execution time: mean = 12849.60 ms, std = 10.69 ms
+LLM analysis: The optimization focuses on reducing the scope of the mutex lock to the critical section only, which is where the handler for outgoing messages is called. This change eliminates the overhead of locking when checking if the bio is active or not. By doing this, we reduce contention on the mutex, potentially increasing performance in a multi-threaded environment, while still maintaining the same functionality.
+Diff from original code:
+--- original
++++ step_2
+@@ -1,16 +1,15 @@
+-// original.cpp
+ #include "streamer.hpp"
+ 
+ int Streamer::tick_send(uint32_t timeout)
+ {
+-    std::lock_guard<std::mutex> stack(mStreamerMtx);
+-
+     /* short circuit everything if bio isn't active */
+-    if (!(mBio->isactive()))
++    if (!mBio->isactive())
+     {
+         free_pend();
+         return 0;
+     }
++
++    std::lock_guard<std::mutex> stack(mStreamerMtx); // Lock only when necessary
+ 
+     if (mBio->cansend(timeout))
+     {
+@@ -20,36 +19,4 @@
+     return 1;
+ }
+ 
+-
+-// streamer.hpp
+-#pragma once
+-#include <chrono>
+-#include <thread>
+-#include <mutex>
+-
+-class MockBio {
+-public:
+-    explicit MockBio(bool active = true) : active_(active) {}
+-    bool isactive() const { return active_; }
+-    bool cansend(uint32_t timeout_us) {
+-        std::this_thread::sleep_for(std::chrono::microseconds(timeout_us));
+-        return true;
+-    }
+-private:
+-    bool active_;
+-};
+-
+-class Streamer {
+-public:
+-    explicit Streamer(MockBio* bio) : mBio(bio), sent(0) {}
+-
+-    int tick_send(uint32_t timeout);
+-
+-    void free_pend() {}
+-    void handleoutgoing_locked() { ++sent; }
+-
+-    std::size_t sent;
+-private:
+-    std::mutex mStreamerMtx;
+-    MockBio* mBio;
+-};
++// Explicit template instantiations
+Compilation succeeded. Execution time: mean = 12855.40 ms, std = 22.43 ms. Original execution time: mean = 12849.60 ms, std = 10.69 ms
+LLM analysis: The optimization focuses on the scope of the mutex lock, which is reduced to only the critical section where the outgoing messages are handled. The check for the activity of 'mBio' is done outside the lock, thus reducing potential contention in multi-threaded scenarios and possibly improving performance without altering the functionality.
+Diff from original code:
+--- original
++++ step_3
+@@ -3,15 +3,13 @@
+ 
+ int Streamer::tick_send(uint32_t timeout)
+ {
+-    std::lock_guard<std::mutex> stack(mStreamerMtx);
+-
+-    /* short circuit everything if bio isn't active */
+-    if (!(mBio->isactive()))
++    if (!mBio->isactive())
+     {
+         free_pend();
+         return 0;
+     }
+ 
++    std::lock_guard<std::mutex> stack(mStreamerMtx); // Lock only when necessary
+     if (mBio->cansend(timeout))
+     {
+         handleoutgoing_locked();
+@@ -20,36 +18,4 @@
+     return 1;
+ }
+ 
+-
+-// streamer.hpp
+-#pragma once
+-#include <chrono>
+-#include <thread>
+-#include <mutex>
+-
+-class MockBio {
+-public:
+-    explicit MockBio(bool active = true) : active_(active) {}
+-    bool isactive() const { return active_; }
+-    bool cansend(uint32_t timeout_us) {
+-        std::this_thread::sleep_for(std::chrono::microseconds(timeout_us));
+-        return true;
+-    }
+-private:
+-    bool active_;
+-};
+-
+-class Streamer {
+-public:
+-    explicit Streamer(MockBio* bio) : mBio(bio), sent(0) {}
+-
+-    int tick_send(uint32_t timeout);
+-
+-    void free_pend() {}
+-    void handleoutgoing_locked() { ++sent; }
+-
+-    std::size_t sent;
+-private:
+-    std::mutex mStreamerMtx;
+-    MockBio* mBio;
+-};
++// Explicit template instantiations
+Compilation succeeded. Execution time: mean = 12829.20 ms, std = 16.22 ms. Original execution time: mean = 12849.60 ms, std = 10.69 ms
+LLM analysis: The optimized code reduces the scope of the mutex lock to just the critical section where the outgoing messages are handled. The check for the activity of 'mBio' is executed outside the lock, thereby minimizing contention in multi-threaded environments and enhancing performance while maintaining the same behavior.
+Diff from original code:
+--- original
++++ step_4
+@@ -3,14 +3,14 @@
+ 
+ int Streamer::tick_send(uint32_t timeout)
+ {
+-    std::lock_guard<std::mutex> stack(mStreamerMtx);
+-
+-    /* short circuit everything if bio isn't active */
+-    if (!(mBio->isactive()))
++    // Check if bio is active without locking
++    if (!mBio->isactive())
+     {
+         free_pend();
+         return 0;
+     }
++
++    std::lock_guard<std::mutex> stack(mStreamerMtx); // Lock only when necessary
+ 
+     if (mBio->cansend(timeout))
+     {
+@@ -20,36 +20,5 @@
+     return 1;
+ }
+ 
++// Explicit template instantiations
+ 
+-// streamer.hpp
+-#pragma once
+-#include <chrono>
+-#include <thread>
+-#include <mutex>
+-
+-class MockBio {
+-public:
+-    explicit MockBio(bool active = true) : active_(active) {}
+-    bool isactive() const { return active_; }
+-    bool cansend(uint32_t timeout_us) {
+-        std::this_thread::sleep_for(std::chrono::microseconds(timeout_us));
+-        return true;
+-    }
+-private:
+-    bool active_;
+-};
+-
+-class Streamer {
+-public:
+-    explicit Streamer(MockBio* bio) : mBio(bio), sent(0) {}
+-
+-    int tick_send(uint32_t timeout);
+-
+-    void free_pend() {}
+-    void handleoutgoing_locked() { ++sent; }
+-
+-    std::size_t sent;
+-private:
+-    std::mutex mStreamerMtx;
+-    MockBio* mBio;
+-};
+Compilation succeeded. Execution time: mean = 12843.00 ms, std = 15.73 ms. Original execution time: mean = 12849.60 ms, std = 10.69 ms
+LLM analysis: The optimized function reduces the critical section protected by the mutex, only locking when absolutely necessary. This change allows the 'isactive()' check to occur outside of the lock, reducing contention and potential bottlenecks in a multithreaded environment, while maintaining the original behavior. Despite not yielding significant performance gains compared to previous attempts, it aims for clearer code practices and maintainability.

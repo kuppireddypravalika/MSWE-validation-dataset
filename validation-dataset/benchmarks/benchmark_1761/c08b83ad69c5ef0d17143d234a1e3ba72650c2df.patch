@@ -1,0 +1,27 @@
+From c08b83ad69c5ef0d17143d234a1e3ba72650c2df Mon Sep 17 00:00:00 2001
+From: Morwenn <morwenn29@hotmail.fr>
+Date: Tue, 1 Sep 2015 13:25:44 +0200
+Subject: [PATCH] Save one call to std::distance per quicksort call.
+
+---
+ include/cpp-sort/detail/quicksort.h | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/include/cpp-sort/detail/quicksort.h b/include/cpp-sort/detail/quicksort.h
+index 66989e05..3f0b178f 100644
+--- a/include/cpp-sort/detail/quicksort.h
++++ b/include/cpp-sort/detail/quicksort.h
+@@ -66,9 +66,10 @@ namespace detail
+         std::iter_swap(pivot, left);
+ 
+       // subdivide
+-      quicksort(first,  left, lessThan, std::distance(first, left));
+-      ++left; // *left itself is already sorted
+-      quicksort(left, last, lessThan, std::distance(left, last));
++      std::size_t size_left = std::distance(first, left);
++      quicksort(first,  left, lessThan, size_left);
++      // *left itself is already sorted
++      quicksort(++left, last, lessThan, size - size_left - 1);
+     }
+ }}
+ 

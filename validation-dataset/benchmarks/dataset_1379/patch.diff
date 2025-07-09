@@ -1,0 +1,24 @@
+From 74c758c273e3f28a88b7a2be11e60cc0eed7cb91 Mon Sep 17 00:00:00 2001
+From: Eddy L O Jansson <eddy@klopper.net>
+Date: Sun, 9 Dec 2018 00:55:14 +0100
+Subject: [PATCH] Don't allocate 2x memory for no reason.
+
+This was part of a dual-allocation that we're
+no longer using.
+---
+ radix_experiment.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/radix_experiment.cpp b/radix_experiment.cpp
+index 9be4034..9f54ad6 100644
+--- a/radix_experiment.cpp
++++ b/radix_experiment.cpp
+@@ -129,7 +129,7 @@ static void* read_file(const char *filename, size_t *limit, int use_mmap) {
+ 		} else {
+ #endif
+ 		printf("Allocating and reading %zu bytes.\n", bytes);
+-		keys = malloc(bytes * 2);
++		keys = malloc(bytes);
+ #if MMAP
+ 		}
+ #endif

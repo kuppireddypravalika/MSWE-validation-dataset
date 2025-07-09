@@ -1,0 +1,32 @@
+From 64df5b09176e0d8cd255357c0f8be6a6f4f2c44e Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@gmail.com>
+Date: Tue, 25 Apr 2017 16:48:14 +0000
+Subject: [PATCH] [ValueTracking] Use APInt::operator|=(uint64_t) instead of
+ creating a temporary APInt. NFC
+
+---
+ llvm/lib/Analysis/ValueTracking.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/llvm/lib/Analysis/ValueTracking.cpp b/llvm/lib/Analysis/ValueTracking.cpp
+index 5067fbc49792..02db651a1f9e 100644
+--- a/llvm/lib/Analysis/ValueTracking.cpp
++++ b/llvm/lib/Analysis/ValueTracking.cpp
+@@ -2239,7 +2239,7 @@ static unsigned ComputeNumSignBitsImpl(const Value *V, unsigned Depth,
+ 
+         // If the input is known to be 0 or 1, the output is 0/-1, which is all
+         // sign bits set.
+-        if ((KnownZero | APInt(TyBits, 1)).isAllOnesValue())
++        if ((KnownZero | 1).isAllOnesValue())
+           return TyBits;
+ 
+         // If we are subtracting one from a positive number, there is no carry
+@@ -2263,7 +2263,7 @@ static unsigned ComputeNumSignBitsImpl(const Value *V, unsigned Depth,
+         computeKnownBits(U->getOperand(1), KnownZero, KnownOne, Depth + 1, Q);
+         // If the input is known to be 0 or 1, the output is 0/-1, which is all
+         // sign bits set.
+-        if ((KnownZero | APInt(TyBits, 1)).isAllOnesValue())
++        if ((KnownZero | 1).isAllOnesValue())
+           return TyBits;
+ 
+         // If the input is known to be positive (the sign bit is known clear),

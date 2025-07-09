@@ -1,0 +1,22 @@
+From eff25e526f23d86077819211898f0fcae3153dc8 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Tue, 16 Nov 2021 08:46:48 +0100
+Subject: [PATCH] [metacling] Switch default cling optimization for ROOT to
+ -O1.
+
+---
+ core/metacling/src/TCling.cxx | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/core/metacling/src/TCling.cxx b/core/metacling/src/TCling.cxx
+index 05fb268641def..aba6347f8b12d 100644
+--- a/core/metacling/src/TCling.cxx
++++ b/core/metacling/src/TCling.cxx
+@@ -1424,6 +1424,7 @@ TCling::TCling(const char *name, const char *title, const char* const argv[])
+ 
+       clingArgsStorage.push_back("-Wno-undefined-inline");
+       clingArgsStorage.push_back("-fsigned-char");
++      clingArgsStorage.push_back("-O1");
+    }
+ 
+    // Process externally passed arguments if present.

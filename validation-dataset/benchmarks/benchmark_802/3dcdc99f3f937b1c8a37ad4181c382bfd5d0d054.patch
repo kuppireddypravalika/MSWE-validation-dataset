@@ -1,0 +1,24 @@
+From 3dcdc99f3f937b1c8a37ad4181c382bfd5d0d054 Mon Sep 17 00:00:00 2001
+From: Jeroen Keiren <j.j.a.keiren@tue.nl>
+Date: Wed, 12 Oct 2022 15:17:15 +0200
+Subject: [PATCH] After every unfolding step, apply the rewriter in
+ lpsparunfold.
+
+This helps in avoiding the exponential blow-up of the size of (nested) case function applications
+---
+ tools/release/lpsparunfold/lpsparunfold.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/tools/release/lpsparunfold/lpsparunfold.cpp b/tools/release/lpsparunfold/lpsparunfold.cpp
+index 4678df5927..1de6d71086 100644
+--- a/tools/release/lpsparunfold/lpsparunfold.cpp
++++ b/tools/release/lpsparunfold/lpsparunfold.cpp
+@@ -209,6 +209,8 @@ class lpsparunfold_tool: public  rewriter_tool<input_output_tool>
+           lps::lpsparunfold lpsparunfold(spec, unfold_cache, m_add_distribution_laws, m_alt_case_placement, m_possibly_inconsistent, m_globvars);
+           std::size_t index = *(max_element(h_set_index.begin(), h_set_index.end()));
+           lpsparunfold.algorithm(index);
++          rewriter R = create_rewriter(spec.data());
++          lps::rewrite(spec, R);
+           h_set_index.erase(index);
+         }
+       }

@@ -1,0 +1,25 @@
+From acefcba34626933080dd5a83864c75d24c24dbce Mon Sep 17 00:00:00 2001
+From: Matt Spraggs <matthew.spraggs@gmail.com>
+Date: Wed, 5 Sep 2018 21:28:23 +0100
+Subject: [PATCH] Compiler: Modified visit_while_stmt to use Loop instruction
+
+---
+ src/Compiler.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/Compiler.cpp b/src/Compiler.cpp
+index 3708383..3286f17 100644
+--- a/src/Compiler.cpp
++++ b/src/Compiler.cpp
+@@ -212,9 +212,9 @@ namespace loxx
+     // automatically increments the instruction pointer when reading arguments.
+ 
+     // Jump back to the start of the loop to check the condition again.
+-    func_->add_instruction(Instruction::Jump);
++    func_->add_instruction(Instruction::Loop);
+     std::make_signed_t<std::size_t> jump_size =
+-        first_label_pos - func_->current_bytecode_size() - sizeof(InstrArgSByte);
++        func_->current_bytecode_size() + sizeof(InstrArgSByte) - first_label_pos;
+ 
+     if (jump_size >= std::numeric_limits<InstrArgSByte>::max() or
+         jump_size <= std::numeric_limits<InstrArgSByte>::min()) {

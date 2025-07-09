@@ -1,0 +1,23 @@
+From 30f1b0666f4e20752348d976ad5b0820222d661d Mon Sep 17 00:00:00 2001
+From: Dean Roddey <droddey@charmedquark.com>
+Date: Fri, 4 Oct 2019 17:30:26 -0400
+Subject: [PATCH] Recent optimization work caused SMTP msgs added via placement
+ to pass the 'to' address as the subject line
+
+---
+ Source/AllProjects/CommUtils/CIDNet/CIDNet_SMTPClient.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Source/AllProjects/CommUtils/CIDNet/CIDNet_SMTPClient.cpp b/Source/AllProjects/CommUtils/CIDNet/CIDNet_SMTPClient.cpp
+index 9d1fa2fa..c2140741 100644
+--- a/Source/AllProjects/CommUtils/CIDNet/CIDNet_SMTPClient.cpp
++++ b/Source/AllProjects/CommUtils/CIDNet/CIDNet_SMTPClient.cpp
+@@ -579,7 +579,7 @@ TSMTPClient::AddMsgToQueue(const    TString&    strFrom
+     if (!m_pcolQueue)
+         m_pcolQueue = new TQueue<TEmailMsg>();
+ 
+-    m_pcolQueue->objPlace(strFrom, strTo, strTo, strMsg);
++    m_pcolQueue->objPlace(strFrom, strTo, strTopic, strMsg);
+ }
+ 
+ // Get/set the column width that we are to use to format outgoing body text

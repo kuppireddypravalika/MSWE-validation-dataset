@@ -1,0 +1,22 @@
+From f932211fad5e26cbc4d27c2f62dfe18ac46f91ca Mon Sep 17 00:00:00 2001
+From: Thomas Geijtenbeek <Thomas.Geijtenbeek@MotekMedical.com>
+Date: Wed, 1 Apr 2015 16:54:16 +0200
+Subject: [PATCH] Use new unused parameter reporting also in optimization
+
+---
+ scone/opt/opt.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/scone/opt/opt.cpp b/scone/opt/opt.cpp
+index 402adbe3d..984d83a63 100644
+--- a/scone/opt/opt.cpp
++++ b/scone/opt/opt.cpp
+@@ -27,7 +27,7 @@ namespace scone
+ 
+ 			// create optimizer and report unused parameters
+ 			opt::OptimizerUP o = opt::CreateOptimizer( p.GetChild( "Optimizer" ) );
+-			p.ToStream( std::cout, "!UNUSED!: ", true );
++			LogUntouched( p );
+ 
+ 			// copy config and model file
+ 			path outdir( o->GetOutputFolder() );

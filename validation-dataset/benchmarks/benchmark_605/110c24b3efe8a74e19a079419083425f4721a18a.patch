@@ -1,0 +1,23 @@
+From 110c24b3efe8a74e19a079419083425f4721a18a Mon Sep 17 00:00:00 2001
+From: Sean Callanan <scallanan@apple.com>
+Date: Mon, 14 Jan 2013 21:45:38 +0000
+Subject: [PATCH] Once a function has been JIT-compiled once, don't JIT it
+ again.
+
+---
+ lldb/source/Expression/ClangFunction.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/lldb/source/Expression/ClangFunction.cpp b/lldb/source/Expression/ClangFunction.cpp
+index fe4cca1fab47..49e09c4e7d29 100644
+--- a/lldb/source/Expression/ClangFunction.cpp
++++ b/lldb/source/Expression/ClangFunction.cpp
+@@ -277,6 +277,8 @@ ClangFunction::WriteFunctionWrapper (ExecutionContext &exe_ctx, Stream &errors)
+         return false;
+     if (process && m_jit_alloc != LLDB_INVALID_ADDRESS)
+         m_jit_process_wp = lldb::ProcessWP(process->shared_from_this());
++    
++    m_JITted = true;
+ 
+     return true;
+ }

@@ -1,0 +1,32 @@
+From 5c142f386ca76794c85a7b8c7033d72197162189 Mon Sep 17 00:00:00 2001
+From: Erik Garrison <erik.garrison@gmail.com>
+Date: Sat, 26 Feb 2022 12:01:04 +0100
+Subject: [PATCH] compute the window size with an exponential of identity and a
+ size
+
+---
+ src/yeet/include/parse_args.hpp | 11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
+
+diff --git a/src/yeet/include/parse_args.hpp b/src/yeet/include/parse_args.hpp
+index 863311c5..ce3acc81 100644
+--- a/src/yeet/include/parse_args.hpp
++++ b/src/yeet/include/parse_args.hpp
+@@ -497,15 +497,8 @@ void parse_args(int argc,
+         if (ws > 0) {
+             map_parameters.windowSize = ws;
+         } else {
+-            // If the input window size is <= 0, compute the best window size using `skch::fixed::pval_cutoff` as p-value cutoff
+-            const int64_t windowSize = skch::Stat::recommendedWindowSize(
+-                    skch::fixed::pval_cutoff,
+-                    skch::fixed::confidence_interval,
+-                    map_parameters.kmerSize,
+-                    map_parameters.alphabetSize,
+-                    map_parameters.percentageIdentity,
+-                    map_parameters.segLength,
+-                    map_parameters.referenceSize);
++            // Compute the window size with a heuristic function
++            int64_t windowSize = 256 * std::pow(map_parameters.percentageIdentity, 7);
+ 
+             // Avoid tiny windows to improve runtime
+             map_parameters.windowSize = std::max((int64_t)map_parameters.kmerSize, windowSize);

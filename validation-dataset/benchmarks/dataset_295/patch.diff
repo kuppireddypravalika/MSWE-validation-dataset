@@ -1,0 +1,32 @@
+From 1f6fdcede229b92aef539eee68638462d2a8b8e3 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Fri, 16 Mar 2018 14:55:43 +0000
+Subject: [PATCH] VRTRaw: avoid excessive memory allocation attempt. Fixes
+ https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=6969. Credit to OSS
+ Fuzz
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@41825 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/frmts/vrt/vrtrawrasterband.cpp | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/gdal/frmts/vrt/vrtrawrasterband.cpp b/gdal/frmts/vrt/vrtrawrasterband.cpp
+index 966b5f1e6ab4..9c959f4b09cb 100644
+--- a/gdal/frmts/vrt/vrtrawrasterband.cpp
++++ b/gdal/frmts/vrt/vrtrawrasterband.cpp
+@@ -241,6 +241,15 @@ CPLErr VRTRawRasterBand::SetRawLink( const char *pszFilename,
+ 
+     CPLFree( pszExpandedFilename );
+ 
++    if( !RAWDatasetCheckMemoryUsage(
++                        nRasterXSize, nRasterYSize, 1,
++                        nPixelOffset, nLineOffset, nImageOffset, 0,
++                        reinterpret_cast<VSILFILE*>(fp)) )
++    {
++        VSIFCloseL(reinterpret_cast<VSILFILE*>(fp));
++        return CE_Failure;
++    }
++
+     m_pszSourceFilename = CPLStrdup(pszFilename);
+     m_bRelativeToVRT = bRelativeToVRTIn;
+ 

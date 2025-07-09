@@ -1,0 +1,37 @@
+From 3f88150581e0a187e19dac8f96dfd15e441e5c5a Mon Sep 17 00:00:00 2001
+From: Lioncash <mathew1800@gmail.com>
+Date: Wed, 9 Jun 2021 20:17:09 -0400
+Subject: [PATCH] SignalDelegator: Make std::vector into a constexpr array
+
+Minor change, but gets rid of some heap usage.
+---
+ Source/Tests/LinuxSyscalls/SignalDelegator.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/Source/Tests/LinuxSyscalls/SignalDelegator.cpp b/Source/Tests/LinuxSyscalls/SignalDelegator.cpp
+index 9dcc181709..78c9f71bfa 100644
+--- a/Source/Tests/LinuxSyscalls/SignalDelegator.cpp
++++ b/Source/Tests/LinuxSyscalls/SignalDelegator.cpp
+@@ -300,7 +300,7 @@ namespace FEX::HLE {
+ 
+     // Most signals default to termination
+     // These ones are slightly different
+-    const std::vector<std::pair<int, SignalDelegator::DefaultBehaviour>> SignalDefaultBehaviours = {
++    static constexpr std::array<std::pair<int, SignalDelegator::DefaultBehaviour>, 14> SignalDefaultBehaviours = {{
+       {SIGQUIT,   DEFAULT_COREDUMP},
+       {SIGILL,    DEFAULT_COREDUMP},
+       {SIGTRAP,   DEFAULT_COREDUMP},
+@@ -315,10 +315,10 @@ namespace FEX::HLE {
+       {SIGXFSZ,   DEFAULT_COREDUMP},
+       {SIGSYS,    DEFAULT_COREDUMP},
+       {SIGWINCH,  DEFAULT_IGNORE},
+-    };
++    }};
+ 
+-    for (auto Behaviour : SignalDefaultBehaviours) {
+-      HostHandlers[Behaviour.first].DefaultBehaviour = Behaviour.second;
++    for (const auto [Signal, Behaviour] : SignalDefaultBehaviours) {
++      HostHandlers[Signal].DefaultBehaviour = Behaviour;
+     }
+   }
+ 

@@ -1,0 +1,27 @@
+From 79cf540afbffc6b9563fb30efbad3dd4576b34f2 Mon Sep 17 00:00:00 2001
+From: Tolis Chalkis <tolis.chal@gmail.com>
+Date: Sat, 2 May 2020 09:51:07 +0300
+Subject: [PATCH] Improvements in rounding and rotating R functions (#76)
+
+* add seed in rotate_polytope and update Rd files
+
+* update R rounding function to return the linear map
+
+* fix rounding in V-poly
+---
+ R-proj/src/rotating.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/R-proj/src/rotating.cpp b/R-proj/src/rotating.cpp
+index 9025844d8..5e4c65094 100644
+--- a/R-proj/src/rotating.cpp
++++ b/R-proj/src/rotating.cpp
+@@ -50,6 +50,8 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P, Rcpp::Nullable<Rcpp::NumericMat
+ 
+     int seed2 = (!seed.isNotNull()) ? std::chrono::system_clock::now().time_since_epoch().count() : Rcpp::as<int>(seed);
+ 
++    int seed2 = (!seed.isNotNull()) ? std::chrono::system_clock::now().time_since_epoch().count() : Rcpp::as<int>(seed);
++
+     switch (type) {
+         case 1: {
+             // Hpolytope

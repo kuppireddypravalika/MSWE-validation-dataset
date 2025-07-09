@@ -1,0 +1,36 @@
+From f8b4632fd03b84f651b0b722d565caa68dc95b42 Mon Sep 17 00:00:00 2001
+From: Hendrik Leppkes <h.leppkes@gmail.com>
+Date: Sun, 5 Apr 2015 11:43:57 +0200
+Subject: [PATCH] Use std::remove_if instead of a manual loop
+
+---
+ common/DSUtilLite/DSMResourceBag.cpp | 9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
+
+diff --git a/common/DSUtilLite/DSMResourceBag.cpp b/common/DSUtilLite/DSMResourceBag.cpp
+index 94e97d786..82f82c18b 100644
+--- a/common/DSUtilLite/DSMResourceBag.cpp
++++ b/common/DSUtilLite/DSMResourceBag.cpp
+@@ -1,6 +1,7 @@
+ #include "stdafx.h"
+ #include "DSMResourceBag.h"
+ 
++#include <algorithm>
+ 
+ CDSMResource::CDSMResource()
+   : mime(L"application/octet-stream")
+@@ -137,13 +138,7 @@ STDMETHODIMP CDSMResourceBag::ResRemoveAll(DWORD_PTR tag)
+   CAutoLock lock(&m_csResources);
+ 
+   if (tag) {
+-    auto crit = m_resources.begin();
+-    while (crit != m_resources.end()) {
+-      if (crit->tag == tag)
+-        crit = m_resources.erase(crit);
+-      else
+-        ++crit;
+-    }
++    m_resources.erase(std::remove_if(m_resources.begin(), m_resources.end(), [&](const CDSMResource &r) { return r.tag == tag; }), m_resources.end());
+   } else {
+     m_resources.clear();
+   }

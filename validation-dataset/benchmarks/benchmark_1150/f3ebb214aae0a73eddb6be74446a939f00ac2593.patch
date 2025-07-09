@@ -1,0 +1,39 @@
+From f3ebb214aae0a73eddb6be74446a939f00ac2593 Mon Sep 17 00:00:00 2001
+From: lioncash <mai.iam2048@gmail.com>
+Date: Wed, 16 Nov 2022 17:39:53 +0000
+Subject: [PATCH] x86_64/VectorOps: Separate 128-bit VAnd path
+
+---
+ .../Interface/Core/JIT/x86_64/VectorOps.cpp     | 17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
+
+diff --git a/External/FEXCore/Source/Interface/Core/JIT/x86_64/VectorOps.cpp b/External/FEXCore/Source/Interface/Core/JIT/x86_64/VectorOps.cpp
+index 09836a5723..9e8a399f83 100644
+--- a/External/FEXCore/Source/Interface/Core/JIT/x86_64/VectorOps.cpp
++++ b/External/FEXCore/Source/Interface/Core/JIT/x86_64/VectorOps.cpp
+@@ -121,13 +121,20 @@ DEF_OP(VMov) {
+ }
+ 
+ DEF_OP(VAnd) {
+-  auto Op = IROp->C<IR::IROp_VAnd>();
++  const auto Op = IROp->C<IR::IROp_VAnd>();
++  const auto OpSize = IROp->Size;
+ 
+-  const auto Dst = ToYMM(GetDst(Node));
+-  const auto Vector1 = ToYMM(GetSrc(Op->Vector1.ID()));
+-  const auto Vector2 = ToYMM(GetSrc(Op->Vector2.ID()));
++  const auto Is256Bit = OpSize == Core::CPUState::XMM_AVX_REG_SIZE;
++
++  const auto Dst = GetDst(Node);
++  const auto Vector1 = GetSrc(Op->Vector1.ID());
++  const auto Vector2 = GetSrc(Op->Vector2.ID());
+ 
+-  vpand(Dst, Vector1, Vector2);
++  if (Is256Bit) {
++    vpand(ToYMM(Dst), ToYMM(Vector1), ToYMM(Vector2));
++  } else {
++    vpand(Dst, Vector1, Vector2);
++  }
+ }
+ 
+ DEF_OP(VBic) {

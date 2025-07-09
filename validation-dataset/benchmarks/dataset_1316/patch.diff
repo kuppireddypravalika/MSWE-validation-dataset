@@ -1,0 +1,26 @@
+From 2a0501853c106bd9a6031379456d9871b0040c0d Mon Sep 17 00:00:00 2001
+From: Benjamin Berkels <torr.samaho@quantentunnel.de>
+Date: Sun, 27 May 2012 09:45:59 +0200
+Subject: [PATCH] reduced net traffic needed if SERVERCOMMANDS_SetThingFrame is
+ used to set the pain state
+
+---
+ src/sv_commands.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/src/sv_commands.cpp b/src/sv_commands.cpp
+index c7230d5a2..b7bc7680d 100644
+--- a/src/sv_commands.cpp
++++ b/src/sv_commands.cpp
+@@ -2629,6 +2629,11 @@ void SERVERCOMMANDS_SetThingFrame( AActor *pActor, FState *pState, ULONG ulPlaye
+ 			SERVERCOMMANDS_SetThingState( pActor, STATE_WOUND );
+ 			return;
+ 		}
++		else if ( pState == pActor->FindState( NAME_Pain ))
++		{
++			SERVERCOMMANDS_SetThingState( pActor, STATE_PAIN );
++			return;
++		}
+ 	}
+ 
+ 	// [BB] Try to find the state label and the correspoding offset belonging to the target state.

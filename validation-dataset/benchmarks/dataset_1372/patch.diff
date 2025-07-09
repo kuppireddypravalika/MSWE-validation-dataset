@@ -1,0 +1,23 @@
+From 46ea3237a05e14a0803bbef1fc89e4857675a5a0 Mon Sep 17 00:00:00 2001
+From: Edwig Huisman <edwig.huisman@hetnet.nl>
+Date: Tue, 28 Sep 2021 16:28:51 +0200
+Subject: [PATCH] Performance: Do not print '/' as a '\/' in a string
+
+---
+ Marlin/XMLParser.cpp | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/Marlin/XMLParser.cpp b/Marlin/XMLParser.cpp
+index fef08c03..9952c93a 100644
+--- a/Marlin/XMLParser.cpp
++++ b/Marlin/XMLParser.cpp
+@@ -119,9 +119,6 @@ XMLParser::PrintJsonString(const CString& p_string,JsonEncoding p_encoding)
+         case '\\': *pointer++ = '\\';
+                    *pointer++ = '\\';
+                    break;
+-        case '/':  *pointer++ = '\\';
+-                   *pointer++ = '/';
+-                   break;
+         case '\b': *pointer++ = '\\';
+                    *pointer++ = 'b';
+                    break;

@@ -1,0 +1,42 @@
+From 5fa4ce03f0b687b310a97063d151a98aaf63100e Mon Sep 17 00:00:00 2001
+From: Anton Kudryavtsev <anton.kudryavtsev@vk.team>
+Date: Tue, 29 Aug 2023 11:43:23 +0300
+Subject: [PATCH] qDecodeDataUrl: use QL1S more
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Avoid tmp QBA creation, just wrap QBAV to QL1S for QSB expression
+
+Change-Id: I8395bd2db2aab29a6b4965071b022c0487bddcb6
+Reviewed-by: Edward Welbourne <edward.welbourne@qt.io>
+Reviewed-by: Mårten Nordheim <marten.nordheim@qt.io>
+---
+ src/corelib/io/qdataurl.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/corelib/io/qdataurl.cpp b/src/corelib/io/qdataurl.cpp
+index 7ba3311f0df..bb29af54acd 100644
+--- a/src/corelib/io/qdataurl.cpp
++++ b/src/corelib/io/qdataurl.cpp
+@@ -43,17 +43,17 @@ Q_CORE_EXPORT bool qDecodeDataUrl(const QUrl &uri, QString &mimeType, QByteArray
+             data.chop(7);
+         }
+ 
+-        QByteArrayView textPlain;
++        QLatin1StringView textPlain;
+         if (QLatin1StringView{data}.startsWith("charset"_L1, Qt::CaseInsensitive)) {
+             qsizetype i = 7;      // strlen("charset")
+             while (data.at(i) == ' ')
+                 ++i;
+             if (data.at(i) == '=')
+-                textPlain = "text/plain;";
++                textPlain = "text/plain;"_L1;
+         }
+ 
+         if (!data.isEmpty())
+-            mimeType = QString::fromLatin1(textPlain + data.trimmed());
++            mimeType = textPlain + QLatin1StringView(data.trimmed());
+     }
+ 
+     return true;

@@ -1,0 +1,33 @@
+From b391daac6d956f68d13f90ed01434aaeeb1d2929 Mon Sep 17 00:00:00 2001
+From: Dennis Luxen <info@project-osrm.org>
+Date: Tue, 25 Nov 2014 14:49:33 +0100
+Subject: [PATCH] use C++11's std::round from <numeric> instead of C-style
+ round from cstdlib
+
+---
+ Descriptors/DescriptionFactory.h | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/Descriptors/DescriptionFactory.h b/Descriptors/DescriptionFactory.h
+index 151802de8d9..e04551e0db4 100644
+--- a/Descriptors/DescriptionFactory.h
++++ b/Descriptors/DescriptionFactory.h
+@@ -40,6 +40,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ #include <osrm/Coordinate.h>
+ 
+ #include <limits>
++#include <numeric>
+ #include <vector>
+ 
+ struct PathData;
+@@ -70,8 +71,8 @@ class DescriptionFactory
+         void BuildDurationAndLengthStrings(const double raw_distance, const unsigned raw_duration)
+         {
+             // compute distance/duration for route summary
+-            distance = static_cast<unsigned>(round(raw_distance));
+-            duration = static_cast<unsigned>(round(raw_duration / 10.));
++            distance = static_cast<unsigned>(std::round(raw_distance));
++            duration = static_cast<unsigned>(std::round(raw_duration / 10.));
+         }
+     } summary;
+ 

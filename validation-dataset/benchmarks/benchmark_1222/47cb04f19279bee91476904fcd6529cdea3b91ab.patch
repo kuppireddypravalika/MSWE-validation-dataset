@@ -1,0 +1,22 @@
+From 47cb04f19279bee91476904fcd6529cdea3b91ab Mon Sep 17 00:00:00 2001
+From: Pilow <pierre.laupretre@gmail.com>
+Date: Sun, 28 May 2017 22:53:58 +0200
+Subject: [PATCH] [function-call] Use max for argument count
+
+---
+ src/compiler/value/FunctionCall.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/compiler/value/FunctionCall.cpp b/src/compiler/value/FunctionCall.cpp
+index abcfd811..beae504d 100644
+--- a/src/compiler/value/FunctionCall.cpp
++++ b/src/compiler/value/FunctionCall.cpp
+@@ -433,7 +433,7 @@ Compiler::value FunctionCall::compile(Compiler& c) const {
+ 
+ 	/** Arguments */
+ 	size_t offset = 1;
+-	size_t arg_count = arg_types.size() + offset;
++	size_t arg_count = std::max(arg_types.size(), arguments.size()) + offset;
+ 	vector<Compiler::value> args;
+ 	vector<jit_type_t> args_types;
+ 	vector<LSValueType> lsvalue_types;

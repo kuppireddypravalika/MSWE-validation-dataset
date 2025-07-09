@@ -1,0 +1,29 @@
+From 29090f45b8b4ab5a740afecc56a911f53be9053b Mon Sep 17 00:00:00 2001
+From: Baptiste Wicht <baptiste.wicht@gmail.com>
+Date: Wed, 25 May 2016 07:36:09 +0200
+Subject: [PATCH] Faster compilation of conv1_full
+
+Cut back on the types
+---
+ include/etl/impl/reduc/conv_mmul.hpp | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/include/etl/impl/reduc/conv_mmul.hpp b/include/etl/impl/reduc/conv_mmul.hpp
+index 618d949c1..718e06573 100644
+--- a/include/etl/impl/reduc/conv_mmul.hpp
++++ b/include/etl/impl/reduc/conv_mmul.hpp
+@@ -21,11 +21,9 @@ namespace reduc {
+  */
+ template <typename I, typename K, typename C>
+ void conv1_full(const I& input, const K& kernel, C&& conv) {
+-    conv = row(
+-        mul(
+-            reshape(kernel, 1, dim<0>(kernel)),
+-            convmtx(input, dim<0>(kernel))),
+-        0);
++    decltype(auto) input_mtx = etl::force_temporary(convmtx(input, dim<0>(kernel)));
++    decltype(auto) t = etl::force_temporary(mul(reshape(kernel, 1, dim<0>(kernel)), input_mtx));
++    conv = t(0);
+ }
+ 
+ /*!

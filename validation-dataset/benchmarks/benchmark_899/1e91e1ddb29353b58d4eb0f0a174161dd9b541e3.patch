@@ -1,0 +1,33 @@
+From 1e91e1ddb29353b58d4eb0f0a174161dd9b541e3 Mon Sep 17 00:00:00 2001
+From: Julian Valentin <julian.valentin@ipvs.uni-stuttgart.de>
+Date: Mon, 25 Jan 2016 15:32:18 +0000
+Subject: [PATCH] trunk: Fix SP build (broke in r5442). [optimization]
+
+git-svn-id: https://ipvs.informatik.uni-stuttgart.de/SGpp/repos/trunk@5443 4eea3252-f0fb-4393-894d-40516dce545b
+---
+ optimization/tests/testTestProblems.cpp | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/optimization/tests/testTestProblems.cpp b/optimization/tests/testTestProblems.cpp
+index ddd6d1421d..449fa47bdc 100644
+--- a/optimization/tests/testTestProblems.cpp
++++ b/optimization/tests/testTestProblems.cpp
+@@ -165,12 +165,12 @@ BOOST_AUTO_TEST_CASE(TestUnconstrainedTestProblem) {
+       BOOST_CHECK_LE(xOpt[t], 1.0);
+     }
+ 
+-    if (use_double_precision) {
+-      BOOST_CHECK_SMALL(fOpt - f.eval(xOpt), 1e-12);
+-    } else {
+-      BOOST_CHECK_SMALL(fOpt - f.eval(xOpt),
+-                        static_cast<SGPP::float_t>(1e-6));
+-    }
++#if USE_DOUBLE_PRECISION
++    BOOST_CHECK_SMALL(fOpt - f.eval(xOpt), 1e-12);
++#else
++    BOOST_CHECK_SMALL(fOpt - f.eval(xOpt),
++                      static_cast<SGPP::float_t>(1e-6));
++#endif
+ 
+     // test if xopt is minimal point for a sample of random points
+     for (size_t i = 0; i < 1000; i++) {

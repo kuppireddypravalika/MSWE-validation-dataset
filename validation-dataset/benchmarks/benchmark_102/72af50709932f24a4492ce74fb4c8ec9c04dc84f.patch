@@ -1,0 +1,23 @@
+From 72af50709932f24a4492ce74fb4c8ec9c04dc84f Mon Sep 17 00:00:00 2001
+From: aph <unknown>
+Date: Fri, 19 Dec 2014 06:31:51 -0500
+Subject: [PATCH] Remove insanely large stack allocation in entry frame.
+
+---
+ src/cpu/aarch64/vm/stubGenerator_aarch64.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/cpu/aarch64/vm/stubGenerator_aarch64.cpp b/src/cpu/aarch64/vm/stubGenerator_aarch64.cpp
+index 059c5be29..2bda1c257 100644
+--- a/src/cpu/aarch64/vm/stubGenerator_aarch64.cpp
++++ b/src/cpu/aarch64/vm/stubGenerator_aarch64.cpp
+@@ -305,7 +305,8 @@ class StubGenerator: public StubCodeGenerator {
+ #endif
+     // pass parameters if any
+     __ mov(esp, sp);
+-    __ sub(sp, sp, os::vm_page_size()); // Move SP out of the way
++    __ sub(rscratch1, sp, c_rarg6, ext::uxtw, LogBytesPerWord); // Move SP out of the way
++    __ andr(sp, rscratch1, -2 * wordSize);
+ 
+     BLOCK_COMMENT("pass parameters if any");
+     Label parameters_done;

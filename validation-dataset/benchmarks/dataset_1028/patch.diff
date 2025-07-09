@@ -1,0 +1,27 @@
+From 2a03e4eaddf2d7ca518b8eaa2d00f9004071be54 Mon Sep 17 00:00:00 2001
+From: Chris Richardson <chris@bpi.cam.ac.uk>
+Date: Wed, 16 Sep 2015 10:41:39 +0100
+Subject: [PATCH] Take vector allocation out of loop
+
+---
+ dolfin/mesh/MeshTransformation.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/dolfin/mesh/MeshTransformation.cpp b/dolfin/mesh/MeshTransformation.cpp
+index a9740e08a9d..eb5da538bac 100644
+--- a/dolfin/mesh/MeshTransformation.cpp
++++ b/dolfin/mesh/MeshTransformation.cpp
+@@ -37,11 +37,11 @@ void MeshTransformation::translate(Mesh& mesh, const Point& point)
+   const double* dx = point.coordinates();
+ 
+   // Displace all points
++  std::vector<double> x0(gdim);
+   for (std::size_t i = 0; i < geometry.size(); i++)
+   {
+-    std::vector<double> x0(geometry.x(i), geometry.x(i) + gdim);
+     for (std::size_t j = 0; j < gdim; j++)
+-      x0[j] += dx[j];
++      x0[j] = geometry.x(i, j) + dx[j];
+     geometry.set(i, x0.data());
+   }
+ }

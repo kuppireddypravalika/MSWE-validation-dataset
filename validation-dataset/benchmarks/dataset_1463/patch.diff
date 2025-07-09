@@ -1,0 +1,24 @@
+From 790263389cb0813cfd5f0e97cfc6d102d57e960f Mon Sep 17 00:00:00 2001
+From: Benoit Bovy <benbovy@gmail.com>
+Date: Wed, 13 Dec 2017 12:53:50 +0100
+Subject: [PATCH] use std::fill instead of a for loop
+
+---
+ include/fastscape/flow_routing.hpp | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/include/fastscape/flow_routing.hpp b/include/fastscape/flow_routing.hpp
+index 64d70629..64d6025e 100644
+--- a/include/fastscape/flow_routing.hpp
++++ b/include/fastscape/flow_routing.hpp
+@@ -110,9 +110,7 @@ namespace fastscape {
+ 
+         //TODO: insert shape/size assertions here
+ 
+-        for(index_t inode=0; inode<nnodes; ++inode) {
+-            ndonors(inode) = 0;
+-        }
++        std::fill(ndonors.begin(), ndonors.end(), 0);
+ 
+         for(index_t inode=0; inode<nnodes; ++inode) {
+             if(receivers(inode) != inode) {

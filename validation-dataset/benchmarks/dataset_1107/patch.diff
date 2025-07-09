@@ -1,0 +1,22 @@
+From a7a57dcbfe998e6dd69ad02977660ea1ef6e8326 Mon Sep 17 00:00:00 2001
+From: Damien Barker <damien.barker@acadia.inc>
+Date: Mon, 11 Dec 2023 16:34:58 +0000
+Subject: [PATCH] QPR-12100 more speed up
+
+---
+ QuantExt/test/deltagammavar.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/QuantExt/test/deltagammavar.cpp b/QuantExt/test/deltagammavar.cpp
+index 610a799c36..62a4181ff0 100644
+--- a/QuantExt/test/deltagammavar.cpp
++++ b/QuantExt/test/deltagammavar.cpp
+@@ -146,7 +146,7 @@ BOOST_AUTO_TEST_CASE(testDeltaGammaVar) {
+     // TODO test Daniel's approx. explicitly (khat < 1E-5)
+     // TODO add more test cases (negative gammas, higher dimensions)
+ 
+-    Size n = (Size)1E6;
++    Size n = (Size)400000;
+ 
+     test(1, true, false, 42, 42, n);
+     test(1, false, true, 42, 42, n);

@@ -1,0 +1,24 @@
+From e4cab224033dc014cd84173cfe51f10cad26fdd0 Mon Sep 17 00:00:00 2001
+From: Oleksandr Tkachenko <tkachenko@encrypto.cs.tu-darmstadt.de>
+Date: Sat, 21 Dec 2019 16:16:29 +0100
+Subject: [PATCH] Narrow circuit type specification
+
+Use primitive operation in SecureUnsignedInteger::operator+ if the
+circuit type is arithmetic rather than if it is not Boolean.
+---
+ src/motioncore/secure_type/secure_unsigned_integer.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/motioncore/secure_type/secure_unsigned_integer.cpp b/src/motioncore/secure_type/secure_unsigned_integer.cpp
+index 144d89f0a..ea70d4b8a 100644
+--- a/src/motioncore/secure_type/secure_unsigned_integer.cpp
++++ b/src/motioncore/secure_type/secure_unsigned_integer.cpp
+@@ -42,7 +42,7 @@ SecureUnsignedInteger::SecureUnsignedInteger(Shares::SharePtr&& other)
+       logger_(share_.get()->Get()->GetRegister()->GetLogger()) {}
+ 
+ SecureUnsignedInteger SecureUnsignedInteger::operator+(const SecureUnsignedInteger& other) const {
+-  if (share_->Get()->GetCircuitType() != CircuitType::Boolean) {
++  if (share_->Get()->GetCircuitType() == CircuitType::Arithmetic) {
+     // use primitive operation in arithmetic GMW
+     return *share_ + *other.share_;
+   } else {  // BooleanCircuitType

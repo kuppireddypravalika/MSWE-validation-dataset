@@ -1,0 +1,34 @@
+From 925fcafaaae2d8da63c9afcfe8ae4099f3bf2c76 Mon Sep 17 00:00:00 2001
+From: Mikko Partio <mikko.partio@fmi.fi>
+Date: Fri, 18 Aug 2017 09:10:56 +0300
+Subject: [PATCH] Remove neons plugin.
+
+Neons is no longer needed, remove neons plugin and HPDatabaseType.kNeons
+and HPDatabaseType.kNeonsAndRadon. enum values kRadon and kNoDatabase
+remain.
+
+Further streamlining of radon access: parameter information was previously
+fetched from many different plugins. Now it is centered to two places:
+compiled_plugin_base::SetParams and luatool::SetParam. These two functions
+fetch all necessary parameter id information etc from database, so it's no
+longer necessary to re-fetch them later (like when writing file to disk).
+---
+ himan-plugins/source/fetcher.cpp | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/himan-plugins/source/fetcher.cpp b/himan-plugins/source/fetcher.cpp
+index 2238e49ad..b43324d24 100644
+--- a/himan-plugins/source/fetcher.cpp
++++ b/himan-plugins/source/fetcher.cpp
+@@ -192,11 +192,7 @@ shared_ptr<himan::info> fetcher::FetchFromProducer(search_options& opts, bool re
+ 
+ 	ASSERT((theInfos[0]->Time()) == opts.time);
+ 
+-<<<<<<< HEAD
+ 	ASSERT((theInfos[0]->Param()) == opts.param);
+-=======
+-	assert((theInfos[0]->Param().Name()) == opts.param.Name());
+->>>>>>> 04859e7... Remove neons plugin.
+ 
+ 	return theInfos[0];
+ }

@@ -1,0 +1,32 @@
+From 6c64d9e57d1f0d03bb7c1b605b0db36303e6025f Mon Sep 17 00:00:00 2001
+From: Ricardo Martins <rasm@lsts.pt>
+Date: Sun, 8 Jun 2014 01:57:26 +0100
+Subject: [PATCH] Programs: video-client: Replaced dynamic_cast with
+ static_cast.
+
+---
+ programs/video-client/GraphicsScene.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/programs/video-client/GraphicsScene.cpp b/programs/video-client/GraphicsScene.cpp
+index afb1790bfd..de4f755791 100644
+--- a/programs/video-client/GraphicsScene.cpp
++++ b/programs/video-client/GraphicsScene.cpp
+@@ -263,7 +263,7 @@ GraphicsScene::handleInputData(void)
+     {
+       ++m_fps;
+ 
+-      IMC::CompressedImage* img = dynamic_cast<IMC::CompressedImage*>(msg);
++      IMC::CompressedImage* img = static_cast<IMC::CompressedImage*>(msg);
+ 
+       QPixmap pix;
+       pix.loadFromData((uchar*)img->data.data(), img->data.size(), "JPEG");
+@@ -283,7 +283,7 @@ GraphicsScene::handleInputData(void)
+     }
+     else if (msg->getId() == DUNE_IMC_EULERANGLES)
+     {
+-      IMC::EulerAngles* ang = dynamic_cast<IMC::EulerAngles*>(msg);
++      IMC::EulerAngles* ang = static_cast<IMC::EulerAngles*>(msg);
+       // QString str("Roll: %0.2f | Pitch: %0.2f");
+       // m_text.setText(str.arg(Angles::degrees(ang->roll), Angles::degrees(ang->pitch)));
+     }

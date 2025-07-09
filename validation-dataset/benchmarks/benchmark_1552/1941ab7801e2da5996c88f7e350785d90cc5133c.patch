@@ -1,0 +1,24 @@
+From 1941ab7801e2da5996c88f7e350785d90cc5133c Mon Sep 17 00:00:00 2001
+From: "Lewis G. Pringle, Jr" <lewis@RecordsForLiving.com>
+Date: Mon, 17 Feb 2014 21:31:30 -0500
+Subject: [PATCH] try using volatile on regtests to help make sure gcc
+ optimizaer not cheating (so much faster)
+
+---
+ Tests/45/Test.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/Tests/45/Test.cpp b/Tests/45/Test.cpp
+index e2ca29b53a..de1b7732fd 100644
+--- a/Tests/45/Test.cpp
++++ b/Tests/45/Test.cpp
+@@ -107,7 +107,8 @@ namespace {
+     DurationSecondsType RunTest_(function<void()> t, unsigned int runCount)
+     {
+         DurationSecondsType start = Time::GetTickCount ();
+-        for (unsigned int i = 0; i < runCount; ++i) {
++        // volatile attempt to avoid this being optimized away on gcc --LGP 2014-02-17
++        for (volatile unsigned int i = 0; i < runCount; ++i) {
+             t();
+         }
+         return Time::GetTickCount () - start;

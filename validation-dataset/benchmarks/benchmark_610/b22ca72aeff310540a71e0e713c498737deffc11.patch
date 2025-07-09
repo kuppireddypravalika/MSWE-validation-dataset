@@ -1,0 +1,34 @@
+From b22ca72aeff310540a71e0e713c498737deffc11 Mon Sep 17 00:00:00 2001
+From: Leonardo Banderali <leonardo2718@protonmail.com>
+Date: Wed, 15 Jul 2020 14:39:08 -0400
+Subject: [PATCH] Ensure that newvalue compresses refs to fields when needed
+
+When newvalue is lowered to new, it can generate stores to fields of
+reference type. When using compressed references, these refs need to be
+compressed before they can be stored to the field. This commit ensures
+that any such stores are anchored under a compressedRefs node.
+
+Signed-off-by: Leonardo Banderali <leonardo2718@protonmail.com>
+---
+ compiler/codegen/CodeGenPrep.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/compiler/codegen/CodeGenPrep.cpp b/compiler/codegen/CodeGenPrep.cpp
+index 109b99ed7d..3be5354fd6 100644
+--- a/compiler/codegen/CodeGenPrep.cpp
++++ b/compiler/codegen/CodeGenPrep.cpp
+@@ -196,6 +196,14 @@ lowerNewValue(TR::Compilation *comp, TR::Node *node, TR::TreeTop *tt)
+       storeNode->setAndIncChild(1, fieldValueNode);
+       fieldStoreTreeTopCursor->join(TR::TreeTop::create(comp, storeNode));
+       fieldStoreTreeTopCursor = fieldStoreTreeTopCursor->getNextTreeTop();
++
++      // if storing a ref, make sure it is compressed
++      if (comp->useCompressedPointers() && fieldValueNode->getDataType() == TR::Address)
++         {
++         auto* compressNode = TR::Node::createCompressedRefsAnchor(storeNode);
++         fieldStoreTreeTopCursor->join(TR::TreeTop::create(comp, compressNode));
++         fieldStoreTreeTopCursor = fieldStoreTreeTopCursor->getNextTreeTop();
++         }
+       }
+    node->setNumChildren(1);
+ 

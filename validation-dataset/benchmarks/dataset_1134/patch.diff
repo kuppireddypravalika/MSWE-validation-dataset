@@ -1,0 +1,23 @@
+From f23dc11ccb5e2d2fe0913dfabf32922ad7e7ffe5 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Fri, 1 Jan 2016 15:03:40 +0000
+Subject: [PATCH] SHPOpenLL(): avoid int32 overflow
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@32637 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/ogr/ogrsf_frmts/shape/shpopen.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gdal/ogr/ogrsf_frmts/shape/shpopen.c b/gdal/ogr/ogrsf_frmts/shape/shpopen.c
+index ab90f4a2cf44..0c8b4651e5c0 100644
+--- a/gdal/ogr/ogrsf_frmts/shape/shpopen.c
++++ b/gdal/ogr/ogrsf_frmts/shape/shpopen.c
+@@ -645,7 +645,7 @@ SHPOpenLL( const char * pszLayer, const char * pszAccess, SAHooks *psHooks )
+ 
+     psSHP->nRecords = pabyBuf[27] + pabyBuf[26] * 256
+         + pabyBuf[25] * 256 * 256 + (pabyBuf[24] & 0x7F) * 256 * 256 * 256;
+-    psSHP->nRecords = (psSHP->nRecords*2 - 100) / 8;
++    psSHP->nRecords = (psSHP->nRecords - 50) / 4;
+ 
+     psSHP->nShapeType = pabyBuf[32];
+ 

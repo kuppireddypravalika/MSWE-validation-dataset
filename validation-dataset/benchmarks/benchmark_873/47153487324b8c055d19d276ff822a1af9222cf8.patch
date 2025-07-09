@@ -1,0 +1,42 @@
+From 47153487324b8c055d19d276ff822a1af9222cf8 Mon Sep 17 00:00:00 2001
+From: Andrew Adams <andrew.b.adams@gmail.com>
+Date: Tue, 7 Jan 2014 17:57:20 -0800
+Subject: [PATCH] Reduced size of sort test because it seems to cripple llvm
+
+bitonic sort stalls inside of llvm jitting.
+
+
+Former-commit-id: a4b0c0bb978f7384298c7235f02da2cde44d81b4
+---
+ test/performance/sort.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/test/performance/sort.cpp b/test/performance/sort.cpp
+index e89e2f5378..3503602c87 100644
+--- a/test/performance/sort.cpp
++++ b/test/performance/sort.cpp
+@@ -141,7 +141,7 @@ Func merge_sort(Func input, int total_size) {
+ 
+ int main(int argc, char **argv) {
+ 
+-    const int N = 1 << 15;
++    const int N = 1 << 10;
+ 
+     Image<int> data(N);
+     for (int i = 0; i < N; i++) {
+@@ -153,6 +153,7 @@ int main(int argc, char **argv) {
+     Func f = bitonic_sort(input, N);
+     f.bound(x, 0, N);
+     f.compile_jit();
++    printf("Running...\n");
+     Image<int> bitonic_sorted(N);
+     f.realize(bitonic_sorted);
+     double t1 = currentTime();
+@@ -165,6 +166,7 @@ int main(int argc, char **argv) {
+     f = merge_sort(input, N);
+     f.bound(x, 0, N);
+     f.compile_jit();
++    printf("Running...\n");
+     Image<int> merge_sorted(N);
+     f.realize(merge_sorted);
+     double t3 = currentTime();

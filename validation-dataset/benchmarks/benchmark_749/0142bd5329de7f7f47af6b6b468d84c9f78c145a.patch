@@ -1,0 +1,45 @@
+From 0142bd5329de7f7f47af6b6b468d84c9f78c145a Mon Sep 17 00:00:00 2001
+From: Vitaly Bogdanov <vsbogd@gmail.com>
+Date: Thu, 26 Apr 2018 17:15:06 +0300
+Subject: [PATCH] Use const auto& in loops to prevent copying
+
+Originally it was introduced to improve performance of
+getIncomingSetSize() method. I have visited all such places in code
+then.
+
+Benchmark results:
+$ ./atomspace/atomspace/atomspace_bm -m getIncomingSetSize -n 10000000
+
+Before optimization:
+Benchmarking AtomSpace's getIncomingSetSize method 10000000 times ..........
+Sum clock() time for all requests: 1873069 (1.87307 seconds, 5.33883e+06 requests per second)
+
+After optimization:
+Benchmarking AtomSpace's getIncomingSetSize method 10000000 times ..........
+Sum clock() time for all requests: 1062651 (1.06265 seconds, 9.41043e+06 requests per second)
+---
+ opencog/attentionbank/AttentionBank.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/opencog/attentionbank/AttentionBank.h b/opencog/attentionbank/AttentionBank.h
+index 31c4223dfa..09331a75f4 100644
+--- a/opencog/attentionbank/AttentionBank.h
++++ b/opencog/attentionbank/AttentionBank.h
+@@ -68,7 +68,7 @@ class AttentionBank
+ 
+     void updateAttentionalFocus(const Handle&, const AttentionValuePtr&,
+                                 const AttentionValuePtr&);
+-    
++
+     /** AV changes */
+     void AVChanged(const Handle&, const AttentionValuePtr&, const AttentionValuePtr&);
+ 
+@@ -248,7 +248,7 @@ class AttentionBank
+     get_handle_set_in_attentional_focus(OutputIterator result)
+     {
+          std::lock_guard<std::mutex> lock(AFMutex);
+-         for (const auto p : attentionalFocus) {
++         for (const auto& p : attentionalFocus) {
+              *result++ = p.first;
+          }
+          return result;

@@ -1,0 +1,28 @@
+From b8b10dc5742faf4a3c2c579822c79d783f519d8b Mon Sep 17 00:00:00 2001
+From: William F Godoy <williamfgc@yahoo.com>
+Date: Wed, 28 Jul 2021 17:44:22 -0400
+Subject: [PATCH] Deallocate xmlNode from xmlCopyNode in m_qmcaction
+
+---
+ src/QMCApp/QMCMain.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/src/QMCApp/QMCMain.cpp b/src/QMCApp/QMCMain.cpp
+index cf0f2818ee..e0ac27abaa 100644
+--- a/src/QMCApp/QMCMain.cpp
++++ b/src/QMCApp/QMCMain.cpp
+@@ -260,6 +260,14 @@ bool QMCMain::execute()
+       break;
+     }
+   }
++  // free if m_qmcation owns the memory of xmlNodePtr before clearing
++  for (auto& qmcactionPair : m_qmcaction)
++  {
++    if (!qmcactionPair.second)
++    {
++      xmlFreeNode(qmcactionPair.first);
++    }
++  }
+   m_qmcaction.clear();
+   t2->stop();
+   app_log() << "  Total Execution time = " << std::setprecision(4) << t1.elapsed() << " secs" << std::endl;

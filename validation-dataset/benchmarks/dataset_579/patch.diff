@@ -1,0 +1,34 @@
+From 6b1d0fc761c68a1cd48f4090743790fe21f19c2e Mon Sep 17 00:00:00 2001
+From: Tobias Doerffel <tobias.doerffel@gmail.com>
+Date: Tue, 2 Nov 2010 11:14:13 +0100
+Subject: [PATCH] ICA/Win32/VNC: do not enable HTTP connections
+
+We do not make use of HTTP connections, therefore disable them for the
+time being in order to save some resources.
+---
+ ica/win32/winvnc/winvnc/vncserver.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/ica/win32/winvnc/winvnc/vncserver.cpp b/ica/win32/winvnc/winvnc/vncserver.cpp
+index 9935e1975..a47cbe9d6 100644
+--- a/ica/win32/winvnc/winvnc/vncserver.cpp
++++ b/ica/win32/winvnc/winvnc/vncserver.cpp
+@@ -1654,6 +1654,9 @@ vncServer::SockConnected()
+ BOOL
+ vncServer::EnableHTTPConnect(BOOL enable)
+ {
++#ifdef ULTRAVNC_ITALC_SUPPORT
++	m_enableHttpConn = FALSE;
++#else
+ 	m_enableHttpConn = enable;
+ 	if (enable && m_socketConn)
+ 	{
+@@ -1685,7 +1688,7 @@ vncServer::EnableHTTPConnect(BOOL enable)
+ 			m_httpConn = NULL;
+ 		}
+ 	}
+-
++#endif
+ 	return TRUE;
+ }
+ 

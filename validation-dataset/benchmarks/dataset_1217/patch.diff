@@ -1,0 +1,30 @@
+From 81dd8eeca0b94b0ee0ebef37363590fd09364215 Mon Sep 17 00:00:00 2001
+From: Ryan Pavlik <ryan@sensics.com>
+Date: Thu, 9 Apr 2015 16:43:28 -0500
+Subject: [PATCH] Let the interface tree clear its own handlers - it can do it
+ more efficiently.
+
+---
+ src/osvr/Client/PureClientContext.cpp | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/src/osvr/Client/PureClientContext.cpp b/src/osvr/Client/PureClientContext.cpp
+index 089f41740..f0027a1de 100644
+--- a/src/osvr/Client/PureClientContext.cpp
++++ b/src/osvr/Client/PureClientContext.cpp
+@@ -172,12 +172,10 @@ namespace client {
+     void PureClientContext::m_handleReplaceTree(Json::Value const &nodes) {
+         OSVR_DEV_VERBOSE(
+             "PureClientContext::m_handleConfigAddNodes - clearing tree");
++        // reset path tree
+         m_pathTree.reset();
+-        for (auto const &iface : getInterfaces()) {
+-            /// @todo slightly overkill, but it works - tree traversal would be
+-            /// better.
+-            m_removeCallbacksOnPath(iface->getPath());
+-        }
++        // wipe out handlers in the interface tree
++        m_interfaces.clearHandlers();
+ 
+         OSVR_DEV_VERBOSE("PureClientContext::m_handleConfigAddNodes - "
+                          "repopulating and connecting tree");

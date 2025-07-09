@@ -1,0 +1,34 @@
+From 5c085fc5844fc785e30ed92331956b08c8d14705 Mon Sep 17 00:00:00 2001
+From: DragonJoker <dragonjoker59@hotmail.com>
+Date: Thu, 18 Nov 2021 19:28:09 +0100
+Subject: [PATCH] Casto3D: Reduced frame begin/end scope to prevent holding out
+ shutdown.
+
+---
+ source/Core/Castor3D/Render/RenderLoopAsync.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/source/Core/Castor3D/Render/RenderLoopAsync.cpp b/source/Core/Castor3D/Render/RenderLoopAsync.cpp
+index 4d872d0e18..567b7c2d64 100644
+--- a/source/Core/Castor3D/Render/RenderLoopAsync.cpp
++++ b/source/Core/Castor3D/Render/RenderLoopAsync.cpp
+@@ -154,17 +154,17 @@ namespace castor3d
+ 				// Le rendu est en cours
+ 				while ( !isInterrupted() && isRendering() )
+ 				{
+-					m_frameEnded = false;
+ 					timer.getElapsed();
+ 
+ 					if ( !isPaused() )
+ 					{
++						m_frameEnded = false;
+ 						doRenderFrame();
++						m_frameEnded = true;
+ 					}
+ 
+ 					auto endTime = std::chrono::duration_cast< Milliseconds >( timer.getElapsed() );
+ 					std::this_thread::sleep_for( std::max( 0_ms, getFrameTime() - endTime ) );
+-					m_frameEnded = true;
+ 				}
+ 
+ 				m_ended = true;

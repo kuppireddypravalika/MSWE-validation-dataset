@@ -1,0 +1,34 @@
+From 998ea35e9f1bfee99dba88619fe53cc838afeddc Mon Sep 17 00:00:00 2001
+From: Pavel Labath <labath@google.com>
+Date: Thu, 11 Jan 2018 10:43:45 +0000
+Subject: [PATCH] [Lex] Use WritableMemoryBuffer in ScratchBuffer.cpp
+
+This avoids the need to const_cast the buffer contents to write to it.
+
+NFCI.
+
+git-svn-id: https://llvm.org/svn/llvm-project/cfe/trunk@322268 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Lex/ScratchBuffer.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/lib/Lex/ScratchBuffer.cpp b/lib/Lex/ScratchBuffer.cpp
+index e0f3966fce..dc03e16daa 100644
+--- a/lib/Lex/ScratchBuffer.cpp
++++ b/lib/Lex/ScratchBuffer.cpp
+@@ -74,11 +74,11 @@ void ScratchBuffer::AllocScratchBuffer(unsigned RequestLen) {
+ 
+   // Get scratch buffer. Zero-initialize it so it can be dumped into a PCH file
+   // deterministically.
+-  std::unique_ptr<llvm::MemoryBuffer> OwnBuf =
+-      llvm::MemoryBuffer::getNewMemBuffer(RequestLen, "<scratch space>");
+-  llvm::MemoryBuffer &Buf = *OwnBuf;
++  std::unique_ptr<llvm::WritableMemoryBuffer> OwnBuf =
++      llvm::WritableMemoryBuffer::getNewMemBuffer(RequestLen,
++                                                  "<scratch space>");
++  CurBuffer = OwnBuf->getBufferStart();
+   FileID FID = SourceMgr.createFileID(std::move(OwnBuf));
+   BufferStartLoc = SourceMgr.getLocForStartOfFile(FID);
+-  CurBuffer = const_cast<char*>(Buf.getBufferStart());
+   BytesUsed = 0;
+ }

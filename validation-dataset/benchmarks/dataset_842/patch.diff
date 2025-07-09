@@ -1,0 +1,21 @@
+From 2c97d98963dc1cd902ecac77e878d0e72146f123 Mon Sep 17 00:00:00 2001
+From: "Michael Cook (mackal)" <mcook@mackal.net>
+Date: Sun, 11 Jan 2015 23:34:00 -0500
+Subject: [PATCH] Remove unnecessary and incorrect memset
+
+---
+ zone/command.cpp | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/zone/command.cpp b/zone/command.cpp
+index 30a60f9f60..1a190cc285 100644
+--- a/zone/command.cpp
++++ b/zone/command.cpp
+@@ -10279,7 +10279,6 @@ void command_camerashake(Client *c, const Seperator *sep)
+ 		if(sep->arg[1][0] && sep->arg[2][0])
+ 		{
+ 			ServerPacket *pack = new ServerPacket(ServerOP_CameraShake, sizeof(ServerCameraShake_Struct));
+-			memset(pack->pBuffer, 0, sizeof(pack->pBuffer));
+ 			ServerCameraShake_Struct* scss = (ServerCameraShake_Struct*) pack->pBuffer;
+ 			scss->duration = atoi(sep->arg[1]);
+ 			scss->intensity = atoi(sep->arg[2]);

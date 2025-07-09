@@ -1,0 +1,22 @@
+From 9a514a23837b2b030e4b48204713918bcb603089 Mon Sep 17 00:00:00 2001
+From: thesupremecommander <thesupremecmdr@gmail.com>
+Date: Thu, 26 Jun 2014 12:47:06 -0400
+Subject: [PATCH] Use integer arithmetic instead of floating-point arithmetic.
+
+---
+ src/modules/playeroutlines.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/modules/playeroutlines.cpp b/src/modules/playeroutlines.cpp
+index 3231cab..9d7e390 100644
+--- a/src/modules/playeroutlines.cpp
++++ b/src/modules/playeroutlines.cpp
+@@ -104,7 +104,7 @@ bool PlayerOutlines::GetGlowEffectColorOverride(C_TFPlayer *tfPlayer, float *r,
+ 					int maxHealth = *MAKE_PTR(int*, playerResource, Entities::pCTFPlayerResource__m_iMaxHealth[basePlayer->entindex()]);
+ 
+ 					// CTFPlayerResource isn't giving us proper values so let's calculate it manually
+-					int maxBuffedHealth = floor((float(maxHealth) / 5.0f) * 1.5f) * 5;
++					int maxBuffedHealth = ((maxHealth / 5) * 3 / 2) * 5;
+ 
+ 					// calculate this once instead of several times
+ 					float halfHealth = float(maxHealth) / 2.0f;

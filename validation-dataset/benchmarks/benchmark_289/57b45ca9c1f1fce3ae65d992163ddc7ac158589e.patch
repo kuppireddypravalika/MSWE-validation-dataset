@@ -1,0 +1,27 @@
+From 57b45ca9c1f1fce3ae65d992163ddc7ac158589e Mon Sep 17 00:00:00 2001
+From: LADSoft <touchstone222@runbox.com>
+Date: Fri, 14 Dec 2018 00:25:29 -0500
+Subject: [PATCH] speed up compiles a little
+
+---
+ src/occ/parse/declcons.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/occ/parse/declcons.c b/src/occ/parse/declcons.c
+index e6e1f2844..b9600e211 100644
+--- a/src/occ/parse/declcons.c
++++ b/src/occ/parse/declcons.c
+@@ -3085,9 +3085,11 @@ void PromoteConstructorArgs(SYMBOL *cons1, FUNCTIONCALL *params)
+     while (hr && args)
+     {
+         SYMBOL *sp = (SYMBOL *)hr->p;
+-        if (isarithmetic(sp->tp) && isarithmetic(args->tp))
++        TYPE *tps = basetype(sp->tp);
++        TYPE *tpa = basetype(args->tp);
++        if (isarithmetic(tps) && isarithmetic(tpa))
+         {
+-            if (basetype(sp->tp)->type != basetype(args->tp)->type && basetype(sp->tp)->type > bt_int)
++            if (tps->type > bt_int && tps->type != tpa->type)
+                 cast(sp->tp, &args->exp);
+         }
+         hr = hr->next;

@@ -1,0 +1,33 @@
+From 1e6c00c468f8f1134215ac041d535eeec6a0ee86 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@spatialys.com>
+Date: Mon, 2 Sep 2024 20:21:59 +0200
+Subject: [PATCH] OGRCoordinateTransformation::TransformWithErrorCodes():
+ optimize when nCount == 1
+
+---
+ ogr/ogrct.cpp | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/ogr/ogrct.cpp b/ogr/ogrct.cpp
+index 49b83af8b096..4c62b1dc091b 100644
+--- a/ogr/ogrct.cpp
++++ b/ogr/ogrct.cpp
+@@ -2232,6 +2232,18 @@ int OGRCoordinateTransformation::TransformWithErrorCodes(size_t nCount,
+                                                          int *panErrorCodes)
+ 
+ {
++    if (nCount == 1)
++    {
++        int nSuccess = 0;
++        const bool bOverallSuccess =
++            CPL_TO_BOOL(Transform(nCount, x, y, z, t, &nSuccess));
++        if (panErrorCodes)
++        {
++            panErrorCodes[0] = nSuccess ? 0 : -1;
++        }
++        return bOverallSuccess;
++    }
++
+     std::vector<int> abSuccess;
+     try
+     {

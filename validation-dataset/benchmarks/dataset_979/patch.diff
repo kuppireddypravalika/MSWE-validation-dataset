@@ -1,0 +1,38 @@
+From e6fb266d225cb3ef180a785578d2be0dd8deb870 Mon Sep 17 00:00:00 2001
+From: doronofek <doron.ofek@amd.com>
+Date: Mon, 13 Jun 2016 18:59:40 +0300
+Subject: [PATCH] Improve http communication performance by reducing the number
+ of tcp write operations when using the HTTP GET method.
+
+---
+ .../Src/AMDTOSWrappers/src/common/osHTTPClient.cpp  | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
+
+diff --git a/Common/Src/AMDTOSWrappers/src/common/osHTTPClient.cpp b/Common/Src/AMDTOSWrappers/src/common/osHTTPClient.cpp
+index 0cef81f9c..3a2627ecd 100755
+--- a/Common/Src/AMDTOSWrappers/src/common/osHTTPClient.cpp
++++ b/Common/Src/AMDTOSWrappers/src/common/osHTTPClient.cpp
+@@ -243,17 +243,16 @@ bool osHTTPClient::requestPage(const gtASCIIString& pageRelativeURL, gtASCIIStri
+         }
+ 
+         header1.append("\r\n");
+-        gtASCIIString header2 = "User-Agent: amdAgent\r\n";
++        gtASCIIString header2 = "User-Agent: amdAgent\r\n\r\n";
++
++
++        requestString.append(header1);
++        requestString.append(header2);
+ 
+         int stringLength = requestString.length();
+         bool rc10 = _tcpClient.write((gtByte*)requestString.asCharArray(), stringLength);
+-        stringLength = header1.length();
+-        bool rc11 = _tcpClient.write((gtByte*)header1.asCharArray(), stringLength);
+-        stringLength = header2.length();
+-        bool rc12 = _tcpClient.write((gtByte*)header2.asCharArray(), stringLength);
+-        bool rc13 = _tcpClient.write((gtByte*)"\r\n", 2);
+ 
+-        if (rc10 && rc11 && rc12 && rc13)
++        if (rc10)
+         {
+             if (!isGraphicsServer)
+             {

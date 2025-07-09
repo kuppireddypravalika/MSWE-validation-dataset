@@ -1,0 +1,33 @@
+From a9a030575825f70909b36ff21fa50dbc6705d43a Mon Sep 17 00:00:00 2001
+From: oneeyeman1 <ikorot01@gmail.com>
+Date: Sun, 24 Mar 2019 22:56:37 -0500
+Subject: [PATCH] Do nothing in wxGrid::SetCellValue() if value doesn't change
+
+This is a minor optimization and can significantly reduce flicker in a
+not uncommon case when SetCellValue() is used to refresh all or many of
+the grid cells if only few of them actually change.
+
+See #9717.
+
+Closes https://github.com/wxWidgets/wxWidgets/pull/1276
+---
+ src/generic/grid.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/src/generic/grid.cpp b/src/generic/grid.cpp
+index a193972da343..306dd35ec974 100644
+--- a/src/generic/grid.cpp
++++ b/src/generic/grid.cpp
+@@ -8818,6 +8818,12 @@ wxPen& wxGrid::GetDividerPen() const
+ 
+ void wxGrid::SetCellValue( int row, int col, const wxString& s )
+ {
++    if ( s == GetCellValue(row, col) )
++    {
++        // Avoid flicker by not doing anything in this case.
++        return;
++    }
++
+     if ( m_table )
+     {
+         m_table->SetValue( row, col, s );

@@ -1,0 +1,27 @@
+From 9f0acb5971a3419751556c8156f0c0f9279b9f24 Mon Sep 17 00:00:00 2001
+From: Philip Chimento <philip.chimento@gmail.com>
+Date: Wed, 7 Aug 2024 16:45:18 -0700
+Subject: [PATCH] jsapi-util-string: Allocate UTF8 buffer in malloc arena
+
+This pointer is supposed to be freeable by js_free(). According to a
+comment in js_free(), that means it is supposed to be allocated in the
+malloc arena, even though that is currently not enforced.
+
+Previously, it was allocated in the string buffer arena.
+---
+ gjs/jsapi-util-string.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gjs/jsapi-util-string.cpp b/gjs/jsapi-util-string.cpp
+index 9395e34e7..2fd6b7563 100644
+--- a/gjs/jsapi-util-string.cpp
++++ b/gjs/jsapi-util-string.cpp
+@@ -116,7 +116,7 @@ bool gjs_string_to_utf8_n(JSContext* cx, JS::HandleString str, JS::UniqueChars*
+         return false;
+ 
+     size_t length = JS::GetDeflatedUTF8StringLength(linear);
+-    char* bytes = js_pod_arena_malloc<char>(js::StringBufferArena, length + 1);
++    char* bytes = js_pod_malloc<char>(length + 1);
+     if (!bytes)
+         return false;
+ 

@@ -1,0 +1,31 @@
+From a90cf8727fbf84d29151d297ba90bfd5a3f8b0a0 Mon Sep 17 00:00:00 2001
+From: Simon Frasch <simon.frasch@cscs.ch>
+Date: Sun, 4 Oct 2020 19:09:20 +0200
+Subject: [PATCH] removed omp statement from addition of tiles due to
+ performance issue with small sizes
+
+---
+ src/pgemm_ssb/tile_host.cpp | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/src/pgemm_ssb/tile_host.cpp b/src/pgemm_ssb/tile_host.cpp
+index f77daf5..92d4e3f 100644
+--- a/src/pgemm_ssb/tile_host.cpp
++++ b/src/pgemm_ssb/tile_host.cpp
+@@ -170,16 +170,12 @@ template <typename T> auto TileHost<T>::extract() -> void {
+         info.globalSubColIdx - blockInfos_.front().globalSubColIdx;
+     if (info.mpiRank == comm_.rank() || info.mpiRank < 0) {
+       if (this->beta_ == ValueType(0.0) || this->beta_ == ValueType(-0.0)) {
+-        SPLA_OMP_PRAGMA(
+-            "omp parallel for schedule(static) num_threads(numThreads_)")
+         for (IntType col = 0; col < info.numCols; ++col) {
+           std::memcpy(&(this->C_(info.localColIdx + col, info.localRowIdx)),
+                       &(this->tile_(col + tileColOffset, tileRowOffset)),
+                       info.numRows * sizeof(T));
+         }
+       } else {
+-        SPLA_OMP_PRAGMA(
+-            "omp parallel for schedule(static) num_threads(numThreads_)")
+         for (IntType col = 0; col < info.numCols; ++col) {
+           for (IntType row = 0; row < info.numRows; ++row) {
+             this->C_(info.localColIdx + col, info.localRowIdx + row) =

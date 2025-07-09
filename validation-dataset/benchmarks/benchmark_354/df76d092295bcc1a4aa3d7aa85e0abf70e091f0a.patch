@@ -1,0 +1,40 @@
+From df76d092295bcc1a4aa3d7aa85e0abf70e091f0a Mon Sep 17 00:00:00 2001
+From: jimmyk <jimmyk@ca.ibm.com>
+Date: Thu, 4 Jan 2018 16:05:11 -0500
+Subject: [PATCH] 64 bit builds should assume a 64 bit processor
+
+This is a change targeting Power. The runtime check is64BitProcessor now
+checks to see if it is a 64 build build. If so, it just returns true since
+a 64 bit build must be running on a 64 bit processor. If not, the function
+will check the CPU properties as before.
+
+Issue: #2232
+Signed-off-by: jimmyk <jimmyk@ca.ibm.com>
+---
+ compiler/p/codegen/OMRCodeGenerator.cpp | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/compiler/p/codegen/OMRCodeGenerator.cpp b/compiler/p/codegen/OMRCodeGenerator.cpp
+index 8efaf010e4..093bea0201 100644
+--- a/compiler/p/codegen/OMRCodeGenerator.cpp
++++ b/compiler/p/codegen/OMRCodeGenerator.cpp
+@@ -3926,7 +3926,18 @@ bool OMR::Power::CodeGenerator::supportsTransientPrefetch()
+ 
+ bool OMR::Power::CodeGenerator::is64BitProcessor()
+    {
+-   return TR::Compiler->target.cpu.getPPCis64bit();
++   /*
++    * If the target is 64 bit, the CPU must also be 64 bit (even if we don't specifically know which Power CPU it is) so this can just return true.
++    * If the target is not 64 bit, we need to check the CPU properties to try and find out if the CPU is 64 bit or not.
++    */
++   if (TR::Compiler->target.is64Bit())
++      {
++      return true;
++      }
++   else
++      {
++      return TR::Compiler->target.cpu.getPPCis64bit();
++      }
+    }
+ 
+ bool OMR::Power::CodeGenerator::getSupportsIbyteswap()

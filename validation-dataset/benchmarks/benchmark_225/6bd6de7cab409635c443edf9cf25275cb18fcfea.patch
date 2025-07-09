@@ -1,0 +1,29 @@
+From 6bd6de7cab409635c443edf9cf25275cb18fcfea Mon Sep 17 00:00:00 2001
+From: Cyrille Berger <cyb@lepi.org>
+Date: Wed, 3 Mar 2010 22:28:24 +0000
+Subject: [PATCH] use const&, speed up the kostopgradient
+
+svn path=/trunk/koffice/; revision=1098557
+---
+ libs/pigment/resources/KoStopGradient.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/libs/pigment/resources/KoStopGradient.cpp b/libs/pigment/resources/KoStopGradient.cpp
+index 19c98a44760..9efe5a91f6f 100644
+--- a/libs/pigment/resources/KoStopGradient.cpp
++++ b/libs/pigment/resources/KoStopGradient.cpp
+@@ -169,11 +169,12 @@ void KoStopGradient::colorAt(KoColor& dst, qreal t) const
+         }
+ 
+         if ( !(*buffer.colorSpace() == *colorSpace())) {
++            qDebug() << buffer.colorSpace()->id() << " " << colorSpace()->id();
+             buffer = KoColor(colorSpace());
+         }
+ 
+-        KoGradientStop leftStop = *(stop - 1);
+-        KoGradientStop rightStop = *(stop);
++        const KoGradientStop& leftStop = *(stop - 1);
++        const KoGradientStop& rightStop = *(stop);
+ 
+         const quint8 *colors[2];
+         colors[0] = leftStop.second.data();

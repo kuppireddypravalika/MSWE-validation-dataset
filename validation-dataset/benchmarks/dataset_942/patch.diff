@@ -1,0 +1,27 @@
+From aa818bbdc5cb39a9251eace55e4a8f00da29ab8b Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Tue, 26 Jul 2016 21:09:43 -0400
+Subject: [PATCH] [libromdata] ascii_to_rp_string(): Don't allocate len+1.
+
+std::basic_string<> automatically allocates a NULL byte, so this
+simply added a NULL byte to the actual string. Interestingly, this
+only showed up on my ThinkPad T60p running KDE 4.x (not on KDE 5.x
+in a VM), and only in an RFT_LISTDATA widget, where it showed a "NUL"
+box at the end of the string.
+---
+ src/libromdata/TextFuncs.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/libromdata/TextFuncs.cpp b/src/libromdata/TextFuncs.cpp
+index e103205e26..77d06442f5 100644
+--- a/src/libromdata/TextFuncs.cpp
++++ b/src/libromdata/TextFuncs.cpp
+@@ -334,7 +334,7 @@ rp_string ascii_to_rp_string(const char *str, size_t len)
+ 	// Direct copy from ASCII to UTF-16.
+ 	// TODO: More efficient to work on rp_string directly,
+ 	// even though it initializes the string to all 0?
+-	rp_string rps(len+1, 0);
++	rp_string rps(len, 0);
+ 	for (rp_char *ptr = &rps[0]; len > 0; len--) {
+ 		// To make sure no one incorrectly uses this
+ 		// function for Latin-1, mask with 0x7F.

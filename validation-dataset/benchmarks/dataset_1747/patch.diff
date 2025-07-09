@@ -1,0 +1,34 @@
+From f9e4c0bd58e11f2092e9672814610d75253b8fec Mon Sep 17 00:00:00 2001
+From: Christian Kandeler <christian.kandeler@theqtcompany.com>
+Date: Wed, 22 Jun 2016 10:30:46 +0200
+Subject: [PATCH] ModuleMerger: Save unnecessary value copy.
+
+We already clone the values when the prototype is cloned; no need to do
+it again.
+
+Change-Id: I4fc83e0065311ee6a517da5b0d0f3fdba5d9e3ef
+Reviewed-by: Joerg Bornemann <joerg.bornemann@qt.io>
+---
+ src/lib/corelib/language/modulemerger.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/src/lib/corelib/language/modulemerger.cpp b/src/lib/corelib/language/modulemerger.cpp
+index 8dbc984b1f..6779f01242 100644
+--- a/src/lib/corelib/language/modulemerger.cpp
++++ b/src/lib/corelib/language/modulemerger.cpp
+@@ -216,13 +216,12 @@ void ModuleMerger::appendPrototypeValueToNextChain(Item *moduleProto, const QStr
+     const PropertyDeclaration pd = m_mergedModule.item->propertyDeclaration(propertyName);
+     if (pd.isScalar())
+         return;
+-    ValuePtr protoValue = moduleProto->property(propertyName);
+-    QBS_CHECK(protoValue);
+     if (!m_clonedModulePrototype) {
+         m_clonedModulePrototype = moduleProto->clone();
+         m_clonedModulePrototype->setScope(m_mergedModule.item->scope());
+     }
+-    const ValuePtr clonedValue = protoValue->clone();
++    const ValuePtr clonedValue = m_clonedModulePrototype->property(propertyName);
++    QBS_CHECK(clonedValue);
+     clonedValue->setDefiningItem(m_clonedModulePrototype);
+     lastInNextChain(sv)->setNext(clonedValue);
+ }

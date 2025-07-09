@@ -1,0 +1,35 @@
+From 32cfe70a443c870ea40238aeef40693c6ee1652e Mon Sep 17 00:00:00 2001
+From: Peter Barker <pbarker@barker.dropbear.id.au>
+Date: Fri, 4 Mar 2022 14:29:49 +1100
+Subject: [PATCH] ArduCopter: stop libraries including AP_Logger.h in .h files
+
+AP_Logger.h is a nexus of includes; while this is being improved over
+time, there's no reason for the library headers to include AP_Logger.h
+as the logger itself is access by singleton and the structures are in
+LogStructure.h
+
+This necessitated moving The PID_Info structure out of AP_Logger's
+namespace.  This cleans up a pretty nasty bit - that structure is
+definitely not simply used for logging, but also used to pass pid
+information around to controllers!
+
+There are a lot of patches in here because AP_Logger.h, acting as a
+nexus, was providing transitive header file inclusion in many (some
+unlikely!) places.
+---
+ ArduCopter/GCS_Mavlink.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ArduCopter/GCS_Mavlink.cpp b/ArduCopter/GCS_Mavlink.cpp
+index 205dd127743be1..1078f34e22eade 100644
+--- a/ArduCopter/GCS_Mavlink.cpp
++++ b/ArduCopter/GCS_Mavlink.cpp
+@@ -263,7 +263,7 @@ void GCS_MAVLINK_Copter::send_pid_tuning()
+         if (!HAVE_PAYLOAD_SPACE(chan, PID_TUNING)) {
+             return;
+         }
+-        const AP_Logger::PID_Info *pid_info = nullptr;
++        const AP_PIDInfo *pid_info = nullptr;
+         switch (axes[i]) {
+         case PID_TUNING_ROLL:
+             pid_info = &copter.attitude_control->get_rate_roll_pid().get_pid_info();

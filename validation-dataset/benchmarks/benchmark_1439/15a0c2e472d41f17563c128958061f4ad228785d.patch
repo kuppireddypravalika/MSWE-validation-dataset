@@ -1,0 +1,28 @@
+From 15a0c2e472d41f17563c128958061f4ad228785d Mon Sep 17 00:00:00 2001
+From: Nickolai Zeldovich <nickolai@csail.mit.edu>
+Date: Wed, 16 Jan 2013 14:56:36 -0500
+Subject: [PATCH] kmalloc: allocate memory at different offsets across pages
+
+Reduces associativity conflictcs between many copies of the same
+kmalloc'ed data structure.
+---
+ kernel/kmalloc.cc | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/kernel/kmalloc.cc b/kernel/kmalloc.cc
+index 1bb69ecd4..ea1d3a4aa 100644
+--- a/kernel/kmalloc.cc
++++ b/kernel/kmalloc.cc
+@@ -46,9 +46,11 @@ morecore(int c, int b)
+   if (ALLOC_MEMSET)
+     memset(p, 3, PGSIZE);
+ 
++  u8 rnd = rdtsc() % 11;
++
+   int sz = 1 << b;
+   assert(sz >= sizeof(header));
+-  for(char *q = p; q + sz <= p + PGSIZE; q += sz){
++  for(char *q = p + CACHELINE * rnd; q + sz <= p + PGSIZE; q += sz){
+     struct header *h = (struct header *) q;
+     for (;;) {
+       auto headptr = freelists[c].buckets[b].load();

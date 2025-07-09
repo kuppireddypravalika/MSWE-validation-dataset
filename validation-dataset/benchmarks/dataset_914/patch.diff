@@ -1,0 +1,36 @@
+From b40c93ee52601076fe48eee07116a85d5d77739e Mon Sep 17 00:00:00 2001
+From: Ben Gotow <ben@foundry376.com>
+Date: Mon, 6 Nov 2017 20:24:41 +0100
+Subject: [PATCH] =?UTF-8?q?Don=E2=80=99t=20emit=20performRemote=20message?=
+ =?UTF-8?q?=20save=20since=20all=20changes=20are=20remote?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ MailSync/TaskProcessor.cpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/MailSync/TaskProcessor.cpp b/MailSync/TaskProcessor.cpp
+index e3c85ac8..11ee3af7 100644
+--- a/MailSync/TaskProcessor.cpp
++++ b/MailSync/TaskProcessor.cpp
+@@ -515,13 +515,16 @@ void TaskProcessor::performRemoteChangeOnMessages(Task * task, void (*applyInFol
+             safe->setRemoteUID(unsafe->remoteUID());
+             safe->setRemoteFolder(unsafe->remoteFolder());
+             safe->setRemoteXGMLabels(unsafe->remoteXGMLabels());
+-
+             int suc = safe->syncUnsavedChanges() - 1;
+             safe->setSyncUnsavedChanges(suc);
+             if (suc == 0) {
+                 safe->setSyncedAt(time(0));
+             }
+-            store->save(safe.get());
++            
++            // We know we do not need to `emit` this change, because it's all internal fields and
++            // remote values, not things reflected in the client. This is good for perf because
++            // the client does silly things like refresh MessageItems when new versions arrive.
++            store->save(safe.get(), false);
+         }
+         transaction.commit();
+     }

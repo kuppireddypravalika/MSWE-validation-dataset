@@ -1,0 +1,35 @@
+From ff2c0a1014767e9a5bae8598065e8667367e8465 Mon Sep 17 00:00:00 2001
+From: Jonas Hahnfeld <jonas.hahnfeld@cern.ch>
+Date: Mon, 20 Dec 2021 13:35:49 +0100
+Subject: [PATCH] Disable Cling optimizations in TCanvas::SaveSource (#9467)
+
+As discussed in https://github.com/root-project/root/issues/9312,
+long generated functions triggers edge cases in the optimizer passes
+and takes very long to compile for little to no gain in runtime.
+
+* Use C++ raw string for code
+
+Co-authored-by: Axel Naumann <Axel.Naumann@cern.ch>
+---
+ graf2d/gpad/src/TCanvas.cxx | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/graf2d/gpad/src/TCanvas.cxx b/graf2d/gpad/src/TCanvas.cxx
+index 7912d86b4678d..3061701d25c1a 100644
+--- a/graf2d/gpad/src/TCanvas.cxx
++++ b/graf2d/gpad/src/TCanvas.cxx
+@@ -1888,10 +1888,10 @@ void TCanvas::SaveSource(const char *filename, Option_t *option)
+    }
+ 
+    TString mname(fname);
+-//    out <<"#ifdef __CLING__"<<std::endl;
+-//    out <<"#pragma cling optimize(0)"<<std::endl;
+-//    out <<"#endif"<<std::endl;
+-//    out <<""<<std::endl;
++   out << R"CODE(#ifdef __CLING__
++#pragma cling optimize(0)
++#endif
++)CODE";
+    Int_t p = mname.Last('.');
+    Int_t s = mname.Last('/')+1;
+ 

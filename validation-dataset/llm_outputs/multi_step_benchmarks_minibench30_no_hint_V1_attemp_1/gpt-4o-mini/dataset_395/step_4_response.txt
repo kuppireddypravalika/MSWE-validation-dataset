@@ -1,0 +1,6 @@
+```json
+{
+  "optimized_code": "// original.cpp\n#include \"shared.hpp\"\n\nbool RifColumnBasedUserData::values(const int& resultAddress, std::vector<double>* values) const {\n    auto search = m_map.find(resultAddress);\n    if (search != m_map.end()) {\n        auto tableColIndices = search->second;\n        const ColumnInfo* ci = m_parser->columnInfo(tableColIndices.first, tableColIndices.second);\n        if (!ci) return false;\n\n        // Efficiently copy values without repeated allocations\n        values->clear(); // Clear existing values to avoid accumulation\n        values->reserve(ci->values.size()); // Reserve needed space\n        values->insert(values->end(), ci->values.begin(), ci->values.end()); // Use range insert for optimized performance\n    }\n    return true;\n}\n\n// explicit instantiation helper if needed",
+  "analysis": "The optimized code maintains the original structure while improving performance by using 'values->insert' for range insertion of data, which efficiently handles the copying of elements without the overhead of multiple push_back calls. Additionally, pre-reserving the vector size ensures minimal memory reallocations, thus enhancing overall execution speed."
+}
+```

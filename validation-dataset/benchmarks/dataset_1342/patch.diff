@@ -1,0 +1,32 @@
+From a23ab5c2d336d9d6565e6638e112f66c9763be26 Mon Sep 17 00:00:00 2001
+From: Jon Spock <jonspock@protonmail.com>
+Date: Wed, 1 May 2019 07:45:25 -0700
+Subject: [PATCH] Change nBlocksPerYear to 2400 instead to speed up
+ budget/coldrewards for testnet
+
+---
+ src/chainparams.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/chainparams.cpp b/src/chainparams.cpp
+index 0a3ec569d..e680aefc4 100644
+--- a/src/chainparams.cpp
++++ b/src/chainparams.cpp
+@@ -201,7 +201,7 @@ class CTestNetParams : public CChainParams {
+             "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+         consensus.nPowTargetTimespan = 6 * 60 * 60; // 6 hours
+         consensus.nPowTargetSpacing = 1 * 1; // 1 second
+-        consensus.nBlocksPerYear = 30 * 24 * 365.25;
++        consensus.nBlocksPerYear = 2400; // 30 * 24 * 365.25;
+         consensus.nInitialMiningRewardInCoins = 500;
+         consensus.fPowAllowMinDifficultyBlocks = true;
+         consensus.fPowNoRetargeting = false;
+@@ -264,7 +264,7 @@ class CTestNetParams : public CChainParams {
+ 
+         // Rewards
+         consensus.nPerCentPerYear = {1500,12,9,7,5};
+-        consensus.nMinRewardBlocks = 2000; // consensus.nBlocksPerYear/12; // every month
++        consensus.nMinRewardBlocks = consensus.nBlocksPerYear/12; // every month
+         consensus.nMinRewardBalance = 1000 * COIN;
+         consensus.nMinReward =  50 * COIN;
+         consensus.nMaxReward = 62500 * COIN;

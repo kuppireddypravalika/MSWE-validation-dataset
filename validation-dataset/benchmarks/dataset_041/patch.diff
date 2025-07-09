@@ -1,0 +1,33 @@
+From a8a2634a026be71d78ce6b716d7c6a5578a0b094 Mon Sep 17 00:00:00 2001
+From: Flamefire <git@grundis.de>
+Date: Sat, 28 Oct 2017 12:49:23 +0200
+Subject: [PATCH] Optimize EventManager (no need for a search for the current
+ GF)
+
+---
+ src/EventManager.cpp | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/src/EventManager.cpp b/src/EventManager.cpp
+index 8adf3af38f..afe51ab6e4 100644
+--- a/src/EventManager.cpp
++++ b/src/EventManager.cpp
+@@ -95,11 +95,14 @@ void EventManager::DestroyCurrentObjects()
+ 
+ void EventManager::ExecuteCurrentEvents()
+ {
+-    RTTR_Assert(events.empty() || events.begin()->first >= currentGF);
++    if(events.empty())
++        return;
++    // Get list of events to be executed next
++    EventMap::iterator itCurEvents = events.begin();
++
++    RTTR_Assert(itCurEvents->first >= currentGF);
+ 
+-    // Get list of events for current GF
+-    EventMap::iterator itCurEvents = events.find(currentGF);
+-    if(itCurEvents != events.end())
++    if(itCurEvents->first == currentGF)
+         ExecuteEvents(itCurEvents);
+ }
+ 

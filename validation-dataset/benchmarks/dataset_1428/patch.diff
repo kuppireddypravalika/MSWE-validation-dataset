@@ -1,0 +1,24 @@
+From bec19731d6f21d95e940bd40bb944375e8a39275 Mon Sep 17 00:00:00 2001
+From: "Eric T. Dawson" <eric.t.dawson@gmail.com>
+Date: Fri, 27 Apr 2018 08:04:18 -0500
+Subject: [PATCH] Reduce the number of calls to HTC->get() by caching depth
+ value.
+
+---
+ mkmh.hpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/mkmh.hpp b/mkmh.hpp
+index 3389fb1..12559cb 100644
+--- a/mkmh.hpp
++++ b/mkmh.hpp
+@@ -562,7 +562,8 @@ namespace mkmh{
+         int maxlen = min(num_hashes, sketch_size);
+         int start = 0;
+         while (retsize < sketch_size && start < num_hashes){
+-            if (hashes[start] != 0 && htc->get(hashes[start]) <= max_occ && htc->get(hashes[start]) >= min_occ){
++            int freq = htc->get(hashes[start]);
++            if (hashes[start] != 0 && freq <= max_occ && freq >= min_occ){
+                 ret[retsize] = hashes[start];
+                 ++retsize;
+             }

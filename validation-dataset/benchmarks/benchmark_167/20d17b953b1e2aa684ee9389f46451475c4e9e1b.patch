@@ -1,0 +1,24 @@
+From 20d17b953b1e2aa684ee9389f46451475c4e9e1b Mon Sep 17 00:00:00 2001
+From: Lioncash <mathew1800@gmail.com>
+Date: Tue, 23 Jun 2020 06:00:08 -0400
+Subject: [PATCH] spu: Make use of logical AND within
+ IsPitchModulationEnabled()
+
+It seems awfully suspect to use a bitwise AND here.
+---
+ src/core/spu.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/core/spu.h b/src/core/spu.h
+index 591cb1377..7b435f091 100644
+--- a/src/core/spu.h
++++ b/src/core/spu.h
+@@ -350,7 +350,7 @@ class SPU
+   }
+   ALWAYS_INLINE bool IsPitchModulationEnabled(u32 i) const
+   {
+-    return ((i > 0) & ConvertToBoolUnchecked((m_pitch_modulation_enable_register >> i) & u32(1)));
++    return ((i > 0) && ConvertToBoolUnchecked((m_pitch_modulation_enable_register >> i) & u32(1)));
+   }
+   ALWAYS_INLINE s16 GetVoiceNoiseLevel() const { return static_cast<s16>(static_cast<u16>(m_noise_level)); }
+ 

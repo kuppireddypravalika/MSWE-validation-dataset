@@ -1,0 +1,39 @@
+From 244799f4800fd23527a7942d9af8ef42afc691ca Mon Sep 17 00:00:00 2001
+From: Kevin Backhouse <kevinbackhouse@github.com>
+Date: Sat, 11 Mar 2023 23:17:49 +0000
+Subject: [PATCH] Convert tail-recursion to loop to avoid stack exhaustion.
+
+---
+ src/riffvideo.cpp | 19 ++++++++-----------
+ 1 file changed, 8 insertions(+), 11 deletions(-)
+
+diff --git a/src/riffvideo.cpp b/src/riffvideo.cpp
+index 86c2873446..e3a8b88f6c 100644
+--- a/src/riffvideo.cpp
++++ b/src/riffvideo.cpp
+@@ -456,17 +456,14 @@ void RiffVideo::readChunk(HeaderReader& header_) {
+ }
+ 
+ void RiffVideo::decodeBlocks() {
+-  HeaderReader header(io_);
+-  if (equal(header.getId(), CHUNK_ID_LIST)) {
+-    readList(header);
+-  } else {
+-    readChunk(header);
+-  }
+-
+-  if (!io_->eof() && io_->tell() < io_->size()) {
+-    decodeBlocks();
+-  }
+-
++  do {
++    HeaderReader header(io_);
++    if (equal(header.getId(), CHUNK_ID_LIST)) {
++      readList(header);
++    } else {
++      readChunk(header);
++    }
++  } while (!io_->eof() && io_->tell() < io_->size());
+ }  // RiffVideo::decodeBlock
+ 
+ void RiffVideo::readAviHeader() {

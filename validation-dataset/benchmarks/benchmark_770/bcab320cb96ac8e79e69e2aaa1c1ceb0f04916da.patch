@@ -1,0 +1,47 @@
+From bcab320cb96ac8e79e69e2aaa1c1ceb0f04916da Mon Sep 17 00:00:00 2001
+From: Erik Verbruggen <erik.verbruggen@digia.com>
+Date: Thu, 15 Oct 2015 10:21:23 +0200
+Subject: [PATCH] V4: do not run optimizer for functions of >300 statements.
+
+The time it takes to run the optimizer depends on both the number of
+IR statements, and the number of basic-blocks. Many functions that have
+more than 300 statements are either the %entry point, or methods that
+set a large number of member variables. Both are not performance
+sensitive, so skipping them won't hurt execution speed. Actually,
+not optimizing them does improve startup speed.
+
+Basic blocks need to contain at least one statement (the terminator),
+so a large number basic blocks always results in at least an equal
+number of IR statements. Therefore they do not need to be taken into
+account. (An example of an excessive amount of basic blocks is a
+switch with 9000 cases: this will generate ~27000 basic blocks.)
+
+Change-Id: Iabf809d8ad293f4f27ece06d136aa281991a1b0f
+Reviewed-by: Frank Meerkoetter <frank.meerkoetter@basyskom.com>
+Reviewed-by: Lars Knoll <lars.knoll@theqtcompany.com>
+---
+ src/qml/compiler/qv4ssa.cpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/src/qml/compiler/qv4ssa.cpp b/src/qml/compiler/qv4ssa.cpp
+index 449caeebb57..89101ad7561 100644
+--- a/src/qml/compiler/qv4ssa.cpp
++++ b/src/qml/compiler/qv4ssa.cpp
+@@ -5195,12 +5195,15 @@ void Optimizer::run(QQmlEnginePrivate *qmlEngine, bool doTypeInference, bool pee
+     cleanupBasicBlocks(function);
+ 
+     function->removeSharedExpressions();
+-
++    int statementCount = 0;
++    foreach (BasicBlock *bb, function->basicBlocks())
++        if (!bb->isRemoved())
++            statementCount += bb->statementCount();
+ //    showMeTheCode(function);
+ 
+     static bool doSSA = qEnvironmentVariableIsEmpty("QV4_NO_SSA");
+ 
+-    if (!function->hasTry && !function->hasWith && !function->module->debugMode && doSSA) {
++    if (!function->hasTry && !function->hasWith && !function->module->debugMode && doSSA && statementCount <= 300) {
+ //        qout << "SSA for " << (function->name ? qPrintable(*function->name) : "<anonymous>") << endl;
+ 
+         ConvertArgLocals(function).toTemps();

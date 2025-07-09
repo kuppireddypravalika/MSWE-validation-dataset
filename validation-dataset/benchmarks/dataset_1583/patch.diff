@@ -1,0 +1,35 @@
+From 021b3c7687af5e3aa90cbed6ba7968f70f4bbe30 Mon Sep 17 00:00:00 2001
+From: bartoszukm <bartoszuk@rexamine.com>
+Date: Thu, 23 Jul 2015 18:26:52 +0200
+Subject: [PATCH] improvement with updating maxR in searching in the middle of
+ a tree. It is slighty slighty better.
+
+---
+ src/hclust2_single.cpp | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/src/hclust2_single.cpp b/src/hclust2_single.cpp
+index a38b48f..767b441 100644
+--- a/src/hclust2_single.cpp
++++ b/src/hclust2_single.cpp
+@@ -32,7 +32,7 @@ using namespace std;
+ using namespace boost;
+ 
+ #define VANTAGE_POINT_SELECT_SCHEME 2
+-//#define MB_IMPROVEMENT
++#define MB_IMPROVEMENT
+ 
+ namespace DataStructures{
+ namespace HClustSingleBiVpTree{
+@@ -395,6 +395,11 @@ class HClustSingleBiVpTree
+       }
+       // else // not a leaf
+       double dist = (*_distance)(node->vpindex, index);
++      if (dist < maxR && dist > minR && index < node->vpindex && ds.find_set(node->vpindex) != clusterIndex) {
++
++         heap.push( HeapNeighborItem(node->vpindex, dist) );
++         maxR = heap.top().dist;
++      }
+       if ( dist < node->radius ) {
+          if ( dist - maxR <= node->radius && dist + node->radius > minR ) {
+ 

@@ -1,0 +1,28 @@
+From d6c0c0a0618296a5f55de8c6ccec755e27214afc Mon Sep 17 00:00:00 2001
+From: "Brian R. Bondy" <netzen@gmail.com>
+Date: Sun, 2 Dec 2018 09:05:19 -0800
+Subject: [PATCH] Use faster loading page for can-load-chrome-url-test
+
+---
+ browser/brave_content_browser_client_browsertest.cc | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/browser/brave_content_browser_client_browsertest.cc b/browser/brave_content_browser_client_browsertest.cc
+index 6a6fe6034..365141039 100644
+--- a/browser/brave_content_browser_client_browsertest.cc
++++ b/browser/brave_content_browser_client_browsertest.cc
+@@ -81,11 +81,11 @@ class BraveContentBrowserClientTest : public InProcessBrowserTest {
+ };
+ 
+ IN_PROC_BROWSER_TEST_F(BraveContentBrowserClientTest, CanLoadChromeURL) {
+-  GURL chrome_settings_url("chrome://settings/");
++  GURL chrome_settings_url("chrome://about/");
+   std::vector<GURL> urls {
+     chrome_settings_url,
+-    GURL("about:settings/"),
+-    GURL("brave://settings/")
++    GURL("about:about/"),
++    GURL("brave://about/")
+   };
+   std::for_each(urls.begin(), urls.end(), [this, &chrome_settings_url](const GURL& url) {
+     content::WebContents* contents = browser()->tab_strip_model()->GetActiveWebContents();

@@ -1,0 +1,26 @@
+From 0b618aa346a91ebd4e94b3e16a9d38a0825901ef Mon Sep 17 00:00:00 2001
+From: Guido Tack <guido.tack@monash.edu>
+Date: Thu, 30 Mar 2017 11:37:18 +1100
+Subject: [PATCH] Restrict computation of par array bounds to arrays of int and
+ float, and add GC lock during bounds computation.
+
+---
+ lib/flatten.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/lib/flatten.cpp b/lib/flatten.cpp
+index d6e2b7ea0..2af8c63a4 100644
+--- a/lib/flatten.cpp
++++ b/lib/flatten.cpp
+@@ -5307,8 +5307,10 @@ namespace MiniZinc {
+           if (v->e()->type().isvar() && v->e()->type().dim() > 0 && v->e()->e() == NULL) {
+             (void) flat_exp(env,Ctx(),v->e()->id(),NULL,constants().var_true);
+           }
+-          if (v->e()->type().ispar() && v->e()->type().dim() > 0 && v->e()->ti()->domain()==NULL) {
++          if (v->e()->type().ispar() && v->e()->type().dim() > 0 && v->e()->ti()->domain()==NULL
++              && (v->e()->type().bt()==Type::BT_INT || v->e()->type().bt()==Type::BT_FLOAT)) {
+             // Compute bounds for array literals
++            GCLock lock;
+             ArrayLit* al = eval_array_lit(env, v->e()->e());
+             if (v->e()->type().bt()==Type::BT_INT && v->e()->type().st()==Type::ST_PLAIN) {
+               IntVal lb = IntVal::infinity();

@@ -1,0 +1,27 @@
+From 71c4144076d35bd45f8a5103357532f958de6757 Mon Sep 17 00:00:00 2001
+From: Dan Gohman <gohman@apple.com>
+Date: Fri, 13 Aug 2010 20:11:39 +0000
+Subject: [PATCH] An add recurrence is loop-invariant in any loop inside of its
+ associated loop. This avoids potentially expensive traversals of the add
+ recurrence's operands.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@111034 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Analysis/ScalarEvolution.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/lib/Analysis/ScalarEvolution.cpp b/lib/Analysis/ScalarEvolution.cpp
+index 394e0159db8..dee7a1f8d93 100644
+--- a/lib/Analysis/ScalarEvolution.cpp
++++ b/lib/Analysis/ScalarEvolution.cpp
+@@ -303,6 +303,10 @@ bool SCEVAddRecExpr::isLoopInvariant(const Loop *QueryLoop) const {
+   if (QueryLoop->contains(L))
+     return false;
+ 
++  // This recurrence is invariant w.r.t. QueryLoop if L contains QueryLoop.
++  if (L->contains(QueryLoop))
++    return true;
++
+   // This recurrence is variant w.r.t. QueryLoop if any of its operands
+   // are variant.
+   for (unsigned i = 0, e = getNumOperands(); i != e; ++i)

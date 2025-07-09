@@ -1,0 +1,23 @@
+From fb68b99a358598987bf29a4a377958a962cb18c6 Mon Sep 17 00:00:00 2001
+From: Alexandre Courbot <gnurou@gmail.com>
+Date: Tue, 19 Jan 2010 22:37:20 +0900
+Subject: [PATCH] Analyze kanji DB for hopefully better performance
+
+---
+ src/core/kanjidic2/BuildKanjiDB.cc | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/core/kanjidic2/BuildKanjiDB.cc b/src/core/kanjidic2/BuildKanjiDB.cc
+index dd09dcb9..c9eb55d2 100644
+--- a/src/core/kanjidic2/BuildKanjiDB.cc
++++ b/src/core/kanjidic2/BuildKanjiDB.cc
+@@ -281,6 +281,9 @@ int main(int argc, char *argv[])
+ 	// Create indexes
+ 	create_indexes();
+ 	
++	// Analyze for hopefully better performance
++	database.exec("analyze");
++	
+ 	// Commit everything
+ 	database.commit();
+ 	qDebug() << "Commited\n";

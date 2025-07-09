@@ -1,0 +1,28 @@
+From 3cd7537456029c5d175e74a13e9a5037e807dec7 Mon Sep 17 00:00:00 2001
+From: MrKepzie <alexandre230@msn.com>
+Date: Sat, 7 Dec 2013 15:07:21 +0100
+Subject: [PATCH] Booleans paremeters are now interpolable and ints
+ interpolation now doesn't cast away the double to integer but does
+ std::floor(v + 0.5) instead
+
+---
+ Engine/Curve.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/Engine/Curve.cpp b/Engine/Curve.cpp
+index a626826911..2fed647a8f 100644
+--- a/Engine/Curve.cpp
++++ b/Engine/Curve.cpp
+@@ -346,9 +346,11 @@ Variant Curve::getValueAt(double t) const {
+     const Variant& firstKeyValue = _imp->_keyFrames.front()->getValue();
+     switch(firstKeyValue.type()){
+     case QVariant::Int :
+-        return Variant((int)v);
++        return Variant((int)std::floor(v+0.5));
+     case QVariant::Double :
+         return Variant(v);
++    case QVariant::Bool:
++        return Variant((bool)std::floor(v+0.5));
+     default:
+         std::string exc("The type requested ( ");
+         exc.append(firstKeyValue.typeName());

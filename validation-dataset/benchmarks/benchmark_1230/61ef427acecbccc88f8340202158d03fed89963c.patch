@@ -1,0 +1,24 @@
+From 61ef427acecbccc88f8340202158d03fed89963c Mon Sep 17 00:00:00 2001
+From: Lyve <lyve2909+github@gmail.com>
+Date: Thu, 20 Jan 2022 22:19:37 +0100
+Subject: [PATCH] remove unneccessary and-ing of SS register
+
+---
+ source/dsp56kEmu/jitops.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/source/dsp56kEmu/jitops.cpp b/source/dsp56kEmu/jitops.cpp
+index 99ebb468..19399a32 100644
+--- a/source/dsp56kEmu/jitops.cpp
++++ b/source/dsp56kEmu/jitops.cpp
+@@ -466,8 +466,8 @@ namespace dsp56k
+ 	{
+ 		// restore previous loop flag
+ 		{
+-			getSSL(r32(r.get()));
+-			m_asm.and_(r, asmjit::Imm(SR_LF));
++			m_dspRegs.getSS(r64(r.get()));
++			m_asm.and_(r64(r), asmjit::Imm(SR_LF));
+ 			m_asm.and_(m_dspRegs.getSR(JitDspRegs::ReadWrite), asmjit::Imm(~SR_LF));
+ 			m_asm.or_(m_dspRegs.getSR(JitDspRegs::ReadWrite), r.get());
+ 		}

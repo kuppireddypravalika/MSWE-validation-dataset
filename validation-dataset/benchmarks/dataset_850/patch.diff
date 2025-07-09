@@ -1,0 +1,29 @@
+From f3abdffabd637be19a7e80fdae4cda705de3d95f Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Wed, 24 May 2017 22:16:28 -0400
+Subject: [PATCH] [libromdata] NCCHReader::read(): Removed an unnecessary seek.
+
+d->readFromROM() does this for us.
+---
+ src/libromdata/disc/NCCHReader.cpp | 8 --------
+ 1 file changed, 8 deletions(-)
+
+diff --git a/src/libromdata/disc/NCCHReader.cpp b/src/libromdata/disc/NCCHReader.cpp
+index 608203cbd5..54a6ea31a3 100644
+--- a/src/libromdata/disc/NCCHReader.cpp
++++ b/src/libromdata/disc/NCCHReader.cpp
+@@ -663,14 +663,6 @@ size_t NCCHReader::read(void *ptr, size_t size)
+ 		return 0;
+ 	}
+ 
+-	// Seek to the starting position.
+-	int ret = d->file->seek(d->ncch_offset + d->pos);
+-	if (ret != 0) {
+-		// Seek error.
+-		m_lastError = d->file->lastError();
+-		return 0;
+-	}
+-
+ 	uint8_t *ptr8 = static_cast<uint8_t*>(ptr);
+ 	size_t sz_total_read = 0;
+ 	while (size > 0) {

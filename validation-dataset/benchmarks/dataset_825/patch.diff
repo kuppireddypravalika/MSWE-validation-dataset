@@ -1,0 +1,25 @@
+From f6654147a0cc416ce3a8c1451f729bc7399881eb Mon Sep 17 00:00:00 2001
+From: Giles Bathgate <gilesbathgate@gmail.com>
+Date: Tue, 22 Feb 2022 18:22:32 +0000
+Subject: [PATCH] Improve order of operations in ValueFactory cleanup
+
+---
+ src/valuefactory.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/valuefactory.cpp b/src/valuefactory.cpp
+index b5f3b6f9..23573db8 100644
+--- a/src/valuefactory.cpp
++++ b/src/valuefactory.cpp
+@@ -76,8 +76,10 @@ ComplexValue& ValueFactory::createComplex(Value& r,const QList<Value*>& i)
+ 
+ void ValueFactory::cleanupValues()
+ {
+-	qDeleteAll(values);
++	//Optimisation call clear before delete
++	QList<Value*> deleteLater(values);
+ 	values.clear();
++	qDeleteAll(deleteLater);
+ }
+ 
+ void ValueFactory::deleteValue(Value* v)

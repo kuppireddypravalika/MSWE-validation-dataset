@@ -1,0 +1,35 @@
+From 9a1f22e5c2a238202bb90aa47267d8c9b0e0323a Mon Sep 17 00:00:00 2001
+From: Tobias Grosser <tobias@grosser.es>
+Date: Thu, 4 May 2017 10:16:20 +0000
+Subject: [PATCH] [ScopDetection] Check for already known required-invariant
+ loads [NFC]
+
+For certain test cases we spent over 50% of the scop detection time in
+checking if a load is likely invariant. We can avoid most of these checks by
+testing early on if a load is expected to be invariant. Doing this reduces
+scop-detection time on a large benchmark from 52 seconds to just 25 seconds.
+
+No functional change is expected.
+---
+ polly/lib/Analysis/ScopDetection.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/polly/lib/Analysis/ScopDetection.cpp b/polly/lib/Analysis/ScopDetection.cpp
+index 31ee882d0ce5..0e8e0efbeafd 100644
+--- a/polly/lib/Analysis/ScopDetection.cpp
++++ b/polly/lib/Analysis/ScopDetection.cpp
+@@ -350,6 +350,14 @@ bool ScopDetection::onlyValidRequiredInvariantLoads(
+     return false;
+ 
+   for (LoadInst *Load : RequiredILS) {
++    // If we already know a load has been accepted as required invariant, we
++    // already run the validation below once and consequently don't need to
++    // run it again. Hence, we return early. For certain test cases (e.g.,
++    // COSMO this avoids us spending 50% of scop-detection time in this
++    // very function (and its children).
++    if (Context.RequiredILS.count(Load))
++      continue;
++
+     if (!isHoistableLoad(Load, CurRegion, *LI, *SE, *DT))
+       return false;
+ 

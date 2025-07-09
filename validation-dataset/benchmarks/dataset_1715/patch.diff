@@ -1,0 +1,44 @@
+From 24c0ba13fd7973a5a9007d4bb651efe714a3c518 Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Sun, 19 Jul 2015 11:23:15 +0200
+Subject: [PATCH] QStandardItemModel: avoid premature pessimization
+
+- don't re-evaluate QMap::end() all the time
+- don't copy QVariant more than needed
+- pass temporary to QVector::append (enabling moves)
+- swap instead of copy-assign a vector into place
+
+Change-Id: I7549812dfbb2dbc9a919fa9565397d50141fc2ca
+Reviewed-by: Olivier Goffart (Woboq GmbH) <ogoffart@woboq.com>
+---
+ src/gui/itemmodels/qstandarditemmodel.cpp | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
+
+diff --git a/src/gui/itemmodels/qstandarditemmodel.cpp b/src/gui/itemmodels/qstandarditemmodel.cpp
+index a09a1d7b1dab..e4442bb82feb 100644
+--- a/src/gui/itemmodels/qstandarditemmodel.cpp
++++ b/src/gui/itemmodels/qstandarditemmodel.cpp
+@@ -198,19 +198,17 @@ void QStandardItemPrivate::setItemData(const QMap<int, QVariant> &roles)
+ 
+     //let's build the vector of new values
+     QVector<QStandardItemData> newValues;
+-    QMap<int, QVariant>::const_iterator it;
+-    for (it = roles.begin(); it != roles.end(); ++it) {
+-        QVariant value = it.value();
++    for (auto it = roles.begin(), end = roles.end(); it != end; ++it) {
++        const QVariant &value = it.value();
+         if (value.isValid()) {
+             int role = it.key();
+             role = (role == Qt::EditRole) ? Qt::DisplayRole : role;
+-            QStandardItemData wid(role,it.value());
+-            newValues.append(wid);
++            newValues.append(QStandardItemData(role, value));
+         }
+     }
+ 
+     if (values!=newValues) {
+-        values=newValues;
++        values.swap(newValues);
+         if (model)
+             model->d_func()->itemChanged(q);
+     }

@@ -1,0 +1,36 @@
+From 1efc15da409b9ead35feaa329e467910d22835ec Mon Sep 17 00:00:00 2001
+From: davidsminor <davidm@image-engine.com>
+Date: Fri, 13 Sep 2013 15:31:38 -0700
+Subject: [PATCH] IECoreGL renderer now uses new
+ MeshPrimitive::setTopologyUnchecked() method to save a bit of work
+
+---
+ src/IECoreGL/Renderer.cpp | 15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/src/IECoreGL/Renderer.cpp b/src/IECoreGL/Renderer.cpp
+index dbabd33834..227432d73f 100644
+--- a/src/IECoreGL/Renderer.cpp
++++ b/src/IECoreGL/Renderer.cpp
+@@ -1720,7 +1720,20 @@ void IECoreGL::Renderer::mesh( IECore::ConstIntVectorDataPtr vertsPerFace, IECor
+ {
+ 	try
+ 	{
+-		IECore::MeshPrimitivePtr m = new IECore::MeshPrimitive( vertsPerFace, vertIds, interpolation );
++		IECore::MeshPrimitivePtr m = new IECore::MeshPrimitive;
++		IECore::PrimitiveVariableMap::const_iterator it = primVars.find( "P" );
++		if( it == primVars.end() )
++		{
++			throw IECore::Exception( "Trying to render a mesh without \"P\"" );
++		}
++		
++		IECore::V3fVectorDataPtr pData = runTimeCast< IECore::V3fVectorData >( it->second.data );
++		if( !pData )
++		{
++			throw IECore::Exception( "Mesh \"P\" variable has incorrect type" );
++		}
++		
++		m->setTopologyUnchecked( vertsPerFace, vertIds, pData->readable().size(), interpolation );
+ 		m->variables = primVars;
+ 		m_data->addPrimitive( m.get() );
+ 	}

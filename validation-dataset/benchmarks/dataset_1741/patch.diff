@@ -1,0 +1,23 @@
+From 6e70707ac6b93eef70647297094e993b04293655 Mon Sep 17 00:00:00 2001
+From: Maarten van Gompel <proycon@anaproy.nl>
+Date: Tue, 19 Apr 2016 11:55:11 +0200
+Subject: [PATCH] attempted performance fix for processing very long lines
+
+---
+ include/patternmodel.h | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/include/patternmodel.h b/include/patternmodel.h
+index efb5d84e..43a8c175 100644
+--- a/include/patternmodel.h
++++ b/include/patternmodel.h
+@@ -976,6 +976,9 @@ class PatternModel: public MapType, public PatternModelInterface {
+ 
+ 
+                     ngrams.clear();
++                    ngrams.reserve(linesize);
++                    if (options.DEBUG) std::cerr << "   (container ready)" << std::endl;
++
+                     if (options.DOPATTERNPERLINE) {
+                         if (linesize > (unsigned int) options.MAXLENGTH) continue;
+                         ngrams.push_back(std::pair<PatternPointer,int>(line,0));

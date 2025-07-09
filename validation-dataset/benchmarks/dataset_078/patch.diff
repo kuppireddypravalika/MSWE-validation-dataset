@@ -1,0 +1,23 @@
+From 7e4e4ea270cb6e911db7b75dee1deeff714274e2 Mon Sep 17 00:00:00 2001
+From: Alexander Block <ablock84@gmail.com>
+Date: Fri, 26 Jan 2018 17:31:20 +0100
+Subject: [PATCH] Give 1000 bytes instead of 4000 bytes before the block is
+ full
+
+---
+ src/miner.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/miner.cpp b/src/miner.cpp
+index 9fba729dd3..fcb03eae3a 100644
+--- a/src/miner.cpp
++++ b/src/miner.cpp
+@@ -452,7 +452,7 @@ void BlockAssembler::addPackageTxs(int &nPackagesSelected, int &nDescendantsUpda
+ 
+             ++nConsecutiveFailed;
+ 
+-            if (nConsecutiveFailed > MAX_CONSECUTIVE_FAILURES && nBlockSize > nBlockMaxSize - 4000) {
++            if (nConsecutiveFailed > MAX_CONSECUTIVE_FAILURES && nBlockSize > nBlockMaxSize - 1000) {
+                 // Give up if we're close to full and haven't succeeded in a while
+                 break;
+             }

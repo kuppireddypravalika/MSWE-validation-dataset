@@ -1,0 +1,42 @@
+From f97c71621f7ef79e5071d334d0eff8da16dda1b2 Mon Sep 17 00:00:00 2001
+From: Pavel Nakonechnyi <pavel@gremwell.com>
+Date: Mon, 23 Sep 2019 11:38:58 +0200
+Subject: [PATCH] sslcheck: slightly improve SslCheckNoData
+
+---
+ src/libqsslcaudit/sslcheck.cpp | 15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/src/libqsslcaudit/sslcheck.cpp b/src/libqsslcaudit/sslcheck.cpp
+index 420e541..1147ac7 100644
+--- a/src/libqsslcaudit/sslcheck.cpp
++++ b/src/libqsslcaudit/sslcheck.cpp
+@@ -60,9 +60,6 @@ const SslCheckReport SslCheckNoData::doCheck(const ClientInfo &client) const
+ {
+     SslCheckReport rep;
+ 
+-    rep.suggestedTestResult = SslTestResult::Success;
+-    rep.isPassed = true;
+-
+     if ((client.rawDataRecv().size() == 0)
+             && !client.socketErrors().contains(QAbstractSocket::RemoteHostClosedError)
+             && client.socketErrors().contains(QAbstractSocket::SocketTimeoutError)) {
+@@ -83,6 +80,18 @@ const SslCheckReport SslCheckNoData::doCheck(const ClientInfo &client) const
+         return rep;
+     }
+ 
++    if (client.rawDataRecv().size() > 0) {
++        rep.report = QString("");
++        rep.suggestedTestResult = SslTestResult::Undefined;
++        rep.comment = QString("");
++        rep.isPassed = true;
++        return rep;
++    }
++
++    rep.report = QString("no data received with socket in incorrect state");
++    rep.suggestedTestResult = SslTestResult::Undefined;
++    rep.comment = QString("report this case to developers");
++    rep.isPassed = false;
+     return rep;
+ }
+ 

@@ -1,0 +1,38 @@
+From 463ae131aeb2ec3d25cff7556719c57d8e69bbc4 Mon Sep 17 00:00:00 2001
+From: Dimitrij Kotrev <dimitrij.kotrev@googlemail.com>
+Date: Thu, 11 Feb 2021 22:08:02 +0100
+Subject: [PATCH] use ranges for_each algorithms
+
+---
+ .../piejam/audio/alsa/get_set_hw_params.cpp    | 18 +++++++-----------
+ 1 file changed, 7 insertions(+), 11 deletions(-)
+
+diff --git a/piejam_libs/audio/src/piejam/audio/alsa/get_set_hw_params.cpp b/piejam_libs/audio/src/piejam/audio/alsa/get_set_hw_params.cpp
+index cabb8907..3ed7b5a4 100644
+--- a/piejam_libs/audio/src/piejam/audio/alsa/get_set_hw_params.cpp
++++ b/piejam_libs/audio/src/piejam/audio/alsa/get_set_hw_params.cpp
+@@ -132,17 +132,13 @@ make_snd_pcm_hw_params_for_refine_any() -> snd_pcm_hw_params
+     snd_pcm_hw_params hw_params{};
+ 
+     hw_params.rmask = ~0u;
+-    std::for_each(
+-            std::begin(hw_params.masks),
+-            std::end(hw_params.masks),
+-            [](snd_mask& m) { std::ranges::fill(m.bits, ~0u); });
+-    std::for_each(
+-            std::begin(hw_params.intervals),
+-            std::end(hw_params.intervals),
+-            [](snd_interval& i) {
+-                i.min = 0;
+-                i.max = ~0u;
+-            });
++    std::ranges::for_each(hw_params.masks, [](snd_mask& m) {
++        std::ranges::fill(m.bits, ~0u);
++    });
++    std::ranges::for_each(hw_params.intervals, [](snd_interval& i) {
++        i.min = 0;
++        i.max = ~0u;
++    });
+ 
+     return hw_params;
+ }

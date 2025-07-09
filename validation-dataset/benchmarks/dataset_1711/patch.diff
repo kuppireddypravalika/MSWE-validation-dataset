@@ -1,0 +1,50 @@
+From 587c183608f13dd77407bcbcc3012e7520ce9006 Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Thu, 3 Apr 2014 09:22:24 +0200
+Subject: [PATCH] QFontComboBox: optimize handling of icons for delegate
+
+Instead of move-assigning a new QIcon to the default-
+constructed members, initialize them directly in the
+ctor-init-list. Do this for the other data member, too,
+for consistency.
+
+Also use QStringLiteral instead of QLatin1String as
+the argument to the QIcon ctor. This is correct, since
+the string will never be modified, and saves two memory
+allocations.
+
+Change-Id: I9398bbe9d0fd63db9b6cf856dd240ab334364518
+Reviewed-by: Friedemann Kleint <Friedemann.Kleint@theqtcompany.com>
+Reviewed-by: Konstantin Ritt <ritt.ks@gmail.com>
+---
+ src/widgets/widgets/qfontcombobox.cpp | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/src/widgets/widgets/qfontcombobox.cpp b/src/widgets/widgets/qfontcombobox.cpp
+index bb802aba8909..1d736c8e9650 100644
+--- a/src/widgets/widgets/qfontcombobox.cpp
++++ b/src/widgets/widgets/qfontcombobox.cpp
+@@ -195,17 +195,17 @@ class QFontFamilyDelegate : public QAbstractItemDelegate
+     QSize sizeHint(const QStyleOptionViewItem &option,
+                    const QModelIndex &index) const Q_DECL_OVERRIDE;
+ 
+-    QIcon truetype;
+-    QIcon bitmap;
++    const QIcon truetype;
++    const QIcon bitmap;
+     QFontDatabase::WritingSystem writingSystem;
+ };
+ 
+ QFontFamilyDelegate::QFontFamilyDelegate(QObject *parent)
+-    : QAbstractItemDelegate(parent)
++    : QAbstractItemDelegate(parent),
++      truetype(QStringLiteral(":/qt-project.org/styles/commonstyle/images/fonttruetype-16.png")),
++      bitmap(QStringLiteral(":/qt-project.org/styles/commonstyle/images/fontbitmap-16.png")),
++      writingSystem(QFontDatabase::Any)
+ {
+-    truetype = QIcon(QLatin1String(":/qt-project.org/styles/commonstyle/images/fonttruetype-16.png"));
+-    bitmap = QIcon(QLatin1String(":/qt-project.org/styles/commonstyle/images/fontbitmap-16.png"));
+-    writingSystem = QFontDatabase::Any;
+ }
+ 
+ void QFontFamilyDelegate::paint(QPainter *painter,

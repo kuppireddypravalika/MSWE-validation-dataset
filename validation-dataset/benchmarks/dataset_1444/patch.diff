@@ -1,0 +1,33 @@
+From c2e6904a6b522a86a9ff7bf9317d2728ce947b46 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Lasse=20=C3=96=C3=B6rni?= <loorni@gmail.com>
+Date: Sun, 16 Feb 2014 15:30:02 +0200
+Subject: [PATCH] Reduce kNet worker thread wait time for potentially less
+ network latency.
+
+---
+ Source/ThirdParty/kNet/src/NetworkWorkerThread.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/Source/ThirdParty/kNet/src/NetworkWorkerThread.cpp b/Source/ThirdParty/kNet/src/NetworkWorkerThread.cpp
+index ba6548e23b..dcd8ba3434 100644
+--- a/Source/ThirdParty/kNet/src/NetworkWorkerThread.cpp
++++ b/Source/ThirdParty/kNet/src/NetworkWorkerThread.cpp
+@@ -15,6 +15,8 @@
+ /** @file NetworkWorkerThread.cpp
+ 	@brief */
+ 
++// Modified by Lasse Oorni for Urho3D
++
+ #include <utility>
+ 
+ #ifdef KNET_USE_BOOST
+@@ -171,7 +173,8 @@ void NetworkWorkerThread::MainLoop()
+ 		// which does not support aborting from the wait if the thread is signalled to interrupt and quit/join. To fix
+ 		// this, should add a custom "interrupt Event" into the WaitArray to wake the thread up when it is supposed to be killed.
+ 		// For now, just sleep only small periods of time at once to make this issue not a problem at application exit time.
+-		const int maxWaitTime = 50; // msecs. ///\todo Make this a lot larger, like, 2000msecs, once the thread interrupts are handled in Sleep and EventArray::Wait.
++        // Urho3D: changed smaller for potentially less network latency
++		const int maxWaitTime = 10; // msecs. ///\todo Make this a lot larger, like, 2000msecs, once the thread interrupts are handled in Sleep and EventArray::Wait.
+ 		int waitTime = maxWaitTime;
+ 
+ 		waitEvents.Clear();

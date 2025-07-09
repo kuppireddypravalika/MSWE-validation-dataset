@@ -1,0 +1,42 @@
+From 2d466f45a79050ce979d8a42d645f2a54b55429d Mon Sep 17 00:00:00 2001
+From: Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+Date: Thu, 3 Dec 2015 23:57:17 +0100
+Subject: [PATCH] Improved RNEA performance by avoiding some branching
+
+---
+ src/Dynamics.cc | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
+
+diff --git a/src/Dynamics.cc b/src/Dynamics.cc
+index 89a7e8c5..5d08d4bb 100644
+--- a/src/Dynamics.cc
++++ b/src/Dynamics.cc
+@@ -302,12 +302,6 @@ void InverseDynamics (
+ 
+ 		jcalc (model, i, Q, QDot);
+ 
+-		if (lambda != 0) {
+-			model.X_base[i] = model.X_lambda[i] * model.X_base[lambda];
+-		} else {
+-			model.X_base[i] = model.X_lambda[i];
+-		}
+-
+ 		model.v[i] = model.X_lambda[i].apply(model.v[lambda]) + model.v_J[i];
+ 		model.c[i] = model.c_J[i] + crossm(model.v[i],model.v_J[i]);
+ 
+@@ -322,9 +316,14 @@ void InverseDynamics (
+ 		} else {
+ 			model.f[i].setZero();
+ 		}
++	}
+ 
+-		if (f_ext != NULL && (*f_ext)[i] != SpatialVectorZero)
++	if (f_ext != NULL) {
++		for (unsigned int i = 1; i < model.mBodies.size(); i++) {
++			unsigned int lambda = model.lambda[i];
++			model.X_base[i] = model.X_lambda[i] * model.X_base[lambda];
+ 			model.f[i] -= model.X_base[i].toMatrixAdjoint() * (*f_ext)[i];
++		}
+ 	}
+ 
+ 	for (unsigned int i = model.mBodies.size() - 1; i > 0; i--) {

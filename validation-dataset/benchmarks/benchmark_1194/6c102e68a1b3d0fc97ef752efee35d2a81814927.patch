@@ -1,0 +1,38 @@
+From 6c102e68a1b3d0fc97ef752efee35d2a81814927 Mon Sep 17 00:00:00 2001
+From: Yulie <yzamora@lanl.gov>
+Date: Fri, 15 Jul 2016 11:57:46 -0600
+Subject: [PATCH] Put OMP start over master thread
+
+---
+ mesh/mesh.cpp | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/mesh/mesh.cpp b/mesh/mesh.cpp
+index 5a0ad2e2..f858afdf 100644
+--- a/mesh/mesh.cpp
++++ b/mesh/mesh.cpp
+@@ -1627,6 +1627,13 @@ size_t Mesh::refine_smooth(vector<int> &mpot, int &icount, int &jcount)
+          newcount=0;
+ 
+          mpot.swap(mpot_old);
++
++#ifdef _OPENMP
++#pragma omp parallel
++{
++#endif
++
++
+ #ifdef _OPENMP
+ #pragma omp master
+ {//START MASTER THREAD
+@@ -1642,10 +1649,6 @@ size_t Mesh::refine_smooth(vector<int> &mpot, int &icount, int &jcount)
+ }//END MASTER THREAD
+ #endif
+ 
+-#ifdef _OPENMP
+-#pragma omp parallel
+-{
+-#endif
+   //       int upperBound, lowerBound;
+          //set_bounds(ncells);
+ //         get_bounds(upperBound, lowerBound);

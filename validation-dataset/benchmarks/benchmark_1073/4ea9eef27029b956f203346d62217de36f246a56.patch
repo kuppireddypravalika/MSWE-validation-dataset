@@ -1,0 +1,49 @@
+From 4ea9eef27029b956f203346d62217de36f246a56 Mon Sep 17 00:00:00 2001
+From: Chandler Carruth <chandlerc@gmail.com>
+Date: Tue, 17 Jan 2017 22:28:52 +0000
+Subject: [PATCH] [LoopDeletion] (cleanup, NFC) Use the dedicated helper to get
+ a single unique exit block if available rather than rolling it ourselves.
+
+This is a little disappointing because that helper doesn't do anything
+clever to short-circuit the (surprisingly expensive) computation of all
+exit blocks. What's worse is that the way we compute this is hopelessly,
+hilariously inefficient. We're literally computing the same information
+two different ways and multiple times each way:
+- hasDedicatedExits computes the exit block set and then looks at the
+  predecessors of each
+- getExitingBlocks computes the set of loop blocks which have exiting
+  successors
+- getUniqueExitBlock(s) computes the set of non-loop blocks reached from
+  loop blocks (sound familiar?)
+
+Anyways, at some point we should clean all of this up in the LoopInfo
+API, but for now just simplifying the user I'm about to touch.
+---
+ llvm/lib/Transforms/Scalar/LoopDeletion.cpp | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/llvm/lib/Transforms/Scalar/LoopDeletion.cpp b/llvm/lib/Transforms/Scalar/LoopDeletion.cpp
+index 80b660d975cc..62702dacca5b 100644
+--- a/llvm/lib/Transforms/Scalar/LoopDeletion.cpp
++++ b/llvm/lib/Transforms/Scalar/LoopDeletion.cpp
+@@ -126,18 +126,14 @@ static bool deleteLoopIfDead(Loop *L, DominatorTree &DT, ScalarEvolution &SE,
+   SmallVector<BasicBlock *, 4> ExitingBlocks;
+   L->getExitingBlocks(ExitingBlocks);
+ 
+-  SmallVector<BasicBlock *, 4> ExitBlocks;
+-  L->getUniqueExitBlocks(ExitBlocks);
+-
+   // We require that the loop only have a single exit block.  Otherwise, we'd
+   // be in the situation of needing to be able to solve statically which exit
+   // block will be branched to, or trying to preserve the branching logic in
+   // a loop invariant manner.
+-  if (ExitBlocks.size() != 1)
++  BasicBlock *ExitBlock = L->getUniqueExitBlock();
++  if (!ExitBlock)
+     return false;
+ 
+-  BasicBlock *ExitBlock = ExitBlocks[0];
+-
+   // Finally, we have to check that the loop really is dead.
+   bool Changed = false;
+   if (!isLoopDead(L, SE, ExitingBlocks, ExitBlock, Changed, Preheader))

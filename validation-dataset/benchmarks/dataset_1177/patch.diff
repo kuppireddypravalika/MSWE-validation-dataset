@@ -1,0 +1,24 @@
+From 6228b1da4bf2691280ae112ce8963b08a79ff449 Mon Sep 17 00:00:00 2001
+From: Alexandre Gauthier <alexandre230@msn.com>
+Date: Fri, 17 Feb 2017 18:33:14 +0100
+Subject: [PATCH] Hash64: use process_bytes for crc64
+
+---
+ Engine/Hash64.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Engine/Hash64.cpp b/Engine/Hash64.cpp
+index 30db7c6df2..d9667335e8 100644
+--- a/Engine/Hash64.cpp
++++ b/Engine/Hash64.cpp
+@@ -50,8 +50,8 @@ Hash64::computeHash()
+ 
+     const unsigned char* data = reinterpret_cast<const unsigned char*>( &node_values.front() );
+     boost::crc_optimal<64, 0x42F0E1EBA9EA3693ULL, 0, 0, false, false> crc_64;
+-    crc_64 = std::for_each( data, data + node_values.size() * sizeof(node_values[0]), crc_64 );
+-    hash = crc_64();
++    crc_64.process_bytes(data, node_values.size() * sizeof(node_values[0]));
++    hash = crc_64.checksum();
+     hashValid = true;
+ }
+ 

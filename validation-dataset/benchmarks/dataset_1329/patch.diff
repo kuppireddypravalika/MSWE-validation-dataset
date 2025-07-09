@@ -1,0 +1,22 @@
+From 3d1f834b86194208e1a34b4168ceee57eddb804a Mon Sep 17 00:00:00 2001
+From: Ryan Rhodes Newton <newton@fb.com>
+Date: Thu, 9 Apr 2020 14:47:52 -0700
+Subject: [PATCH] Tweak nanosleep test to take 5s instead of 100s
+
+---
+ test/samplePrograms/nanosleep.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/test/samplePrograms/nanosleep.c b/test/samplePrograms/nanosleep.c
+index 26744068..40ab8590 100644
+--- a/test/samplePrograms/nanosleep.c
++++ b/test/samplePrograms/nanosleep.c
+@@ -4,7 +4,7 @@
+ int main(){
+   // Big number, dettrace will turn it to zero. So if it's takes any amount of time,
+   // or times out in our tests, dettrace did something wrong...
+-  const struct timespec req = { 100, 1};
++  const struct timespec req = { 5, 1};
+   struct timespec rem = {0};
+   int ret = nanosleep(& req, & rem);
+   printf("nanosleep ret %d\n", ret);

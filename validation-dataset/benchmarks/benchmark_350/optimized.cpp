@@ -1,0 +1,47 @@
+#include <vector>
+
+struct Function {
+    bool isDecl;
+    bool mayBeOverridden;
+    std::vector<int> uses; // 0 = slow call, 1 = fast call
+};
+
+static inline void slow_op(int& acc) {
+    volatile int tmp = 0;
+    for (int i = 0; i < 1000; ++i) {
+        tmp += i % 3;
+    }
+    acc += 1;
+}
+
+static inline void fast_op(int& acc) { acc += 1; }
+
+int argcast_sim(int numFuncs, int callsPerFunc, int iterations) {
+    std::vector<Function> module(numFuncs);
+    for (int i = 0; i < numFuncs; ++i) {
+        module[i].isDecl = (i % 2 == 0); // half are declarations
+        module[i].mayBeOverridden = false;
+        module[i].uses.assign(callsPerFunc, 0);
+    }
+
+    // Optimized pass: handle declared functions as well
+    for (auto& F : module) {
+        if (F.mayBeOverridden)
+            continue;
+        for (int& u : F.uses)
+            u = 1;
+    }
+
+    int acc = 0;
+    for (int it = 0; it < iterations; ++it) {
+        for (const auto& F : module) {
+            for (int u : F.uses) {
+                if (u)
+                    fast_op(acc);
+                else
+                    slow_op(acc);
+            }
+        }
+    }
+    return acc;
+}

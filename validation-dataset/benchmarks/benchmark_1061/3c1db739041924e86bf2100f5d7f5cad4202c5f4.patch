@@ -1,0 +1,25 @@
+From 3c1db739041924e86bf2100f5d7f5cad4202c5f4 Mon Sep 17 00:00:00 2001
+From: Jens Kroeger <kroeger@physi.uni-heidelberg.de>
+Date: Tue, 14 Jan 2020 18:48:42 +0100
+Subject: [PATCH] Timepix3Event2StdEventConverter: TDC timestamp divide by 12.
+ instead of 12 (double-division instead of integer division)
+
+---
+ user/timepix3/module/src/Timepix3Event2StdEventConverter.cc | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/user/timepix3/module/src/Timepix3Event2StdEventConverter.cc b/user/timepix3/module/src/Timepix3Event2StdEventConverter.cc
+index e50b5c7489..44992b5c0f 100644
+--- a/user/timepix3/module/src/Timepix3Event2StdEventConverter.cc
++++ b/user/timepix3/module/src/Timepix3Event2StdEventConverter.cc
+@@ -68,8 +68,8 @@ bool Timepix3TrigEvent2StdEventConverter::Converting(eudaq::EventSPC ev, eudaq::
+   timestamp = timestamp_raw + (static_cast<long long int>(m_TDCoverflowCounter) << 35);
+ 
+   // Calculate timestamp in picoseconds assuming 320 MHz clock:
+-  uint64_t triggerTime = (timestamp + static_cast<long long int>(stamp) / 12) * 3125;
+-
++  uint64_t triggerTime = (timestamp + static_cast<long long int>(stamp) / 12.) * 3125;
++  
+   // Set timestamps for StdEvent in nanoseconds (timestamps are picoseconds):
+   d2->SetTimeBegin(triggerTime);
+   d2->SetTimeEnd(triggerTime);

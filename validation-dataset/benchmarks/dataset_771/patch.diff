@@ -1,0 +1,34 @@
+From 70e180a1e2238c2051ce217196bc98f3bb41770c Mon Sep 17 00:00:00 2001
+From: fuzzelhjb <chschmidt9@gmail.com>
+Date: Mon, 24 Nov 2014 14:49:56 +0000
+Subject: [PATCH] reduce hit radius to not create hit events when touching the
+ outer ring
+
+git-svn-id: https://svn.code.sf.net/p/vpinball/code/trunk@1397 14438d79-0ffd-4333-8ae7-ea2bdd901387
+---
+ kicker.cpp | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/kicker.cpp b/kicker.cpp
+index ffae721ad0..cae84c4323 100644
+--- a/kicker.cpp
++++ b/kicker.cpp
+@@ -151,12 +151,16 @@ void Kicker::GetHitShapes(Vector<HitObject> * const pvho)
+ 
+    phitcircle->center.x = m_d.m_vCenter.x;
+    phitcircle->center.y = m_d.m_vCenter.y;
+-   phitcircle->radius = m_d.m_radius;
++   phitcircle->radius = m_d.m_radius*0.6f; // reduce the hit circle radius because only the inner circle of the 
++                                           // kicker should start a hit event
+    phitcircle->zlow = height;
+ 
+    phitcircle->zhigh = height + m_d.m_hit_height;	// height of kicker hit cylinder  
+ 
+-   phitcircle->m_zheight = height;		//height for Kicker locked ball + ball->m_radius
++   if ( m_d.m_kickertype == KickerHole )
++      phitcircle->m_zheight = height-40.0f;		//holes are deeper
++   else
++      phitcircle->m_zheight = height;		//height for Kicker locked ball + ball->m_radius
+ 
+    phitcircle->m_fEnabled = m_d.m_fEnabled;
+ 

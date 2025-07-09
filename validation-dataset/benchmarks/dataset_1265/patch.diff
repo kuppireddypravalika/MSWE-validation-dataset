@@ -1,0 +1,31 @@
+From 96875921b72949592ce4fa07a5618df80b668443 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@musicpd.org>
+Date: Thu, 5 Aug 2021 14:27:30 +0200
+Subject: [PATCH] tag/Builder: use std::swap() in move operator
+
+This way, we save the overhead for acquiring the tag_pool_lock.
+---
+ src/tag/Builder.cxx | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/src/tag/Builder.cxx b/src/tag/Builder.cxx
+index 76b4044998..e5e380399e 100644
+--- a/src/tag/Builder.cxx
++++ b/src/tag/Builder.cxx
+@@ -78,11 +78,14 @@ TagBuilder::operator=(const TagBuilder &other) noexcept
+ TagBuilder &
+ TagBuilder::operator=(TagBuilder &&other) noexcept
+ {
++	using std::swap;
++
+ 	duration = other.duration;
+ 	has_playlist = other.has_playlist;
+ 
+-	RemoveAll();
+-	items = std::move(other.items);
++	/* swap the two TagItem lists so we don't need to touch the
++	   tag pool just yet */
++	swap(items, other.items);
+ 
+ 	return *this;
+ }

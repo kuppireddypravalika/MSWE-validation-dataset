@@ -1,0 +1,39 @@
+From 1953b056ababdd916aa7ab4e74a39f94a6dfb36b Mon Sep 17 00:00:00 2001
+From: Ye Luo <yeluo@anl.gov>
+Date: Tue, 31 Jan 2017 22:10:00 -0600
+Subject: [PATCH] Minor change in J2OrbitalSoA.
+
+---
+ src/QMCWaveFunctions/Jastrow/J2OrbitalSoA.h | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/src/QMCWaveFunctions/Jastrow/J2OrbitalSoA.h b/src/QMCWaveFunctions/Jastrow/J2OrbitalSoA.h
+index 644ca880fc..fc23b8bb66 100644
+--- a/src/QMCWaveFunctions/Jastrow/J2OrbitalSoA.h
++++ b/src/QMCWaveFunctions/Jastrow/J2OrbitalSoA.h
+@@ -41,7 +41,7 @@ namespace qmcplusplus
+  * - support simd function
+  * - double the loop counts
+  * - UseBuffer is introduced. Default is false.
+- * - Memory use is 3*N*N+3N. 
++ * - Memory use is O(N). 
+  */
+ template<class FT>
+ struct  J2OrbitalSoA : public OrbitalBase
+@@ -57,8 +57,6 @@ struct  J2OrbitalSoA : public OrbitalBase
+ 
+   ///number of particles
+   int N;
+-  ///number of particles for alignment
+-  int N_padded;
+   ///number of groups of the target particleset
+   int NumGroups;
+   ///task id
+@@ -306,7 +304,6 @@ void J2OrbitalSoA<FT>::init(ParticleSet& p)
+ {
+   N=p.getTotalNum();
+   NumGroups=p.groups();
+-  N_padded=getAlignedSize<valT>(N);
+ 
+   Uat.resize(N); 
+   dUat.resize(N);

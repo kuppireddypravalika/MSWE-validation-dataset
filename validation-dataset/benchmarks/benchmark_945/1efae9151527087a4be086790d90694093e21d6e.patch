@@ -1,0 +1,34 @@
+From 1efae9151527087a4be086790d90694093e21d6e Mon Sep 17 00:00:00 2001
+From: Andrew Adams <abadams@calculon.(none)>
+Date: Wed, 2 Jan 2013 17:48:38 -0500
+Subject: [PATCH] Better schedule for local laplacian
+
+Former-commit-id: 2e9dbe3aaba184cea38dd0bfc28329c115794fc3
+---
+ cpp/apps/local_laplacian/local_laplacian.cpp | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/cpp/apps/local_laplacian/local_laplacian.cpp b/cpp/apps/local_laplacian/local_laplacian.cpp
+index 8d5d18800a..aa64d4bddd 100644
+--- a/cpp/apps/local_laplacian/local_laplacian.cpp
++++ b/cpp/apps/local_laplacian/local_laplacian.cpp
+@@ -116,12 +116,17 @@ int main(int argc, char **argv) {
+     remap.compute_root();
+ 
+     Var yi;
+-    output.split(y, y, yi, 32).parallel(y).vectorize(x, 4);
+-    for (int j = 0; j < J; j++) {
++    output.split(y, y, yi, 4).parallel(y).vectorize(x, 4);
++    for (int j = 0; j < 4; j++) {
+         inGPyramid[j].compute_root().split(y, y, yi, 4).parallel(y).vectorize(x, 4);
+         if (j > 0) gPyramid[j].compute_root().parallel(k).vectorize(x, 4);
+         outGPyramid[j].compute_root().split(y, y, yi, 4).parallel(y).vectorize(x, 4);
+     }
++    for (int j = 4; j < J; j++) {
++        inGPyramid[j].compute_root().parallel(y);
++        gPyramid[j].compute_root().parallel(k);
++        outGPyramid[j].compute_root().parallel(y);
++    }
+ 
+     std::vector<Argument> args(4);
+     args[0] = levels;

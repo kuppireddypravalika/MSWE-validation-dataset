@@ -1,0 +1,48 @@
+From 0d34b861e4d2a9fa3bc911f19dede6d04db64915 Mon Sep 17 00:00:00 2001
+From: Robert Lougher <rob.lougher@gmail.com>
+Date: Wed, 14 Dec 2016 16:14:17 +0000
+Subject: [PATCH] New API for merging debug locations. NFC.
+
+Given two debug locations the function getMergedLocation combines the
+locations into a single location (which may be an empty location).
+Please see https://reviews.llvm.org/D26256 for the discussion leading
+up to this API.
+
+Note the function is currently a stub.  This allows optimisations to
+use the API although no location will actually be used.
+
+This is patch 1 out of 8 for D26256.  As suggested by David Blaikie,
+each change in D26256 has been broken out into a separate patch.
+---
+ llvm/include/llvm/IR/DebugInfoMetadata.h | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/llvm/include/llvm/IR/DebugInfoMetadata.h b/llvm/include/llvm/IR/DebugInfoMetadata.h
+index bda66ae9952b..aec6601efc4e 100644
+--- a/llvm/include/llvm/IR/DebugInfoMetadata.h
++++ b/llvm/include/llvm/IR/DebugInfoMetadata.h
+@@ -1291,6 +1291,24 @@ class DILocation : public MDNode {
+   /// Returns a new DILocation with updated \p Discriminator.
+   inline DILocation *cloneWithDiscriminator(unsigned Discriminator) const;
+ 
++  /// When two instructions are combined into a single instruction we also
++  /// need to combine the original locations into a single location.
++  ///
++  /// When the locations are the same we can use either location. When they
++  /// differ, we need a third location which is distinct from either. If
++  /// they have the same file/line but have a different discriminator we
++  /// could create a location with a new discriminator. If they are from
++  /// different files/lines the location is ambiguous and can't be
++  /// represented in a single line entry.  In this case, no location
++  /// should be set.
++  ///
++  /// Currently this function is simply a stub, and no location will be
++  /// used for all cases.
++  static DILocation *getMergedLocation(const DILocation *LocA,
++                                       const DILocation *LocB) {
++    return nullptr;
++  }
++
+   Metadata *getRawScope() const { return getOperand(0); }
+   Metadata *getRawInlinedAt() const {
+     if (getNumOperands() == 2)

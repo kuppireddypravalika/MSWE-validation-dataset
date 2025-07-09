@@ -1,0 +1,25 @@
+From d4844703d95a28dda91c236e96d2db8c0e3b852c Mon Sep 17 00:00:00 2001
+From: Scott Mansell <phiren@gmail.com>
+Date: Fri, 11 Sep 2020 16:30:04 +1200
+Subject: [PATCH] ReplaceAllUses: Early exit optimization
+
+---
+ External/FEXCore/Source/Interface/IR/IREmitter.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/External/FEXCore/Source/Interface/IR/IREmitter.cpp b/External/FEXCore/Source/Interface/IR/IREmitter.cpp
+index ee746e2fa7..7d2996c3a5 100644
+--- a/External/FEXCore/Source/Interface/IR/IREmitter.cpp
++++ b/External/FEXCore/Source/Interface/IR/IREmitter.cpp
+@@ -24,6 +24,11 @@ void IREmitter::ReplaceAllUsesWithRange(OrderedNode *Node, OrderedNode *NewNode,
+         Node->RemoveUse();
+         NewNode->AddUse();
+         IROp->Args[i].NodeOffset = NewNode->Wrapped(ListBegin).NodeOffset;
++
++        // We can stop searching once all uses of the node are gone.
++        if (Node->NumUses == 0) {
++          return;
++        }
+       }
+     }
+ 

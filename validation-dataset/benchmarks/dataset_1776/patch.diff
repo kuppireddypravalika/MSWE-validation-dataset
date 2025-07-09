@@ -1,0 +1,53 @@
+From b6cfc8c755a70f2e1b98fe0b991c7599d25a5679 Mon Sep 17 00:00:00 2001
+From: joshua <Joshua@qelectrotech.org>
+Date: Sun, 18 Apr 2021 20:03:13 +0200
+Subject: [PATCH] Improve element collection loading time
+
+According to Qt creator flame graph, call QSettings take lot of time.
+When loading the element collection, each items of the collection get
+the current language by calling the function QString
+QETApp::langFromSetting().
+This function instantiate a QSettings object each time and take a lot of
+time.
+Now the QSettings is instantiate only at the first call, and the value
+is stored in memory, then all other call of the function don't
+instantiate a QSettings, but just return the value in memory.
+---
+ sources/qetapp.cpp | 16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
+
+diff --git a/sources/qetapp.cpp b/sources/qetapp.cpp
+index 504563a2e..217066f56 100644
+--- a/sources/qetapp.cpp
++++ b/sources/qetapp.cpp
+@@ -71,6 +71,9 @@ QString QETApp::m_user_custom_elements_dir = QString();
+ QString QETApp::m_user_custom_tbt_dir = QString();
+ QETApp *QETApp::m_qetapp = nullptr;
+ 
++bool lang_is_set = false;
++QString system_language = QString();
++
+ 
+ /**
+ 	@brief QETApp::QETApp
+@@ -227,11 +230,16 @@ void QETApp::setLanguage(const QString &desired_language) {
+ */
+ QString QETApp::langFromSetting()
+ {
+-	QSettings settings;
+-	QString system_language = settings.value("lang", "system").toString();
+-	if(system_language == "system") {
+-		system_language = QLocale::system().name().left(2);
++	if (!lang_is_set)
++	{
++		QSettings settings;
++		system_language = settings.value("lang", "system").toString();
++		if(system_language == "system") {
++			system_language = QLocale::system().name().left(2);
++		}
++		lang_is_set = true;
+ 	}
++
+ 	return system_language;
+ }
+ /**

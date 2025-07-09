@@ -1,0 +1,24 @@
+From 8892f4fee3abf1b866ea20ae4f64e34e2bb885de Mon Sep 17 00:00:00 2001
+From: Alexandre Avenel <avenel.alexandre@gmail.com>
+Date: Sun, 27 Oct 2013 17:40:22 +0100
+Subject: [PATCH] small fix for mortonEncode_for
+
+We can iterate in (sizeof(uint64_t)* CHAR_BIT)/3 = 21 steps instead of
+32.
+---
+ mortoncode_tests/morton.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/mortoncode_tests/morton.h b/mortoncode_tests/morton.h
+index a21f1f2..7f6a654 100644
+--- a/mortoncode_tests/morton.h
++++ b/mortoncode_tests/morton.h
+@@ -17,7 +17,7 @@ void mortonDecode(uint64_t morton, int& x, int& y, int& z);
+ // ---------------------
+ inline uint64_t mortonEncode_for(unsigned int x, unsigned int y, unsigned int z){
+ 	uint64_t answer = 0;
+-	for (uint64_t i = 0; i < (sizeof(int) * CHAR_BIT); ++i) {
++	for (uint64_t i = 0; i < (sizeof(uint64_t)* CHAR_BIT)/3; ++i) {
+ 		answer |= ((x & ((uint64_t)1 << i)) << 2*i) | ((y & ((uint64_t)1 << i)) << (2*i + 1)) | ((z & ((uint64_t)1 << i)) << (2*i + 2));
+ 	}
+ 	return answer;

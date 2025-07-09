@@ -1,0 +1,31 @@
+From cdeecf1521e95a8ad250bc18a398b32fd2886c36 Mon Sep 17 00:00:00 2001
+From: Willem Jan Palenstijn <wjp@usecode.org>
+Date: Tue, 28 Aug 2012 22:47:10 +0200
+Subject: [PATCH] TONY: Replace overlapping memcpy with memmove
+
+---
+ engines/tony/mpal/expr.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/engines/tony/mpal/expr.cpp b/engines/tony/mpal/expr.cpp
+index eb6b485ef671..772d3da075d1 100644
+--- a/engines/tony/mpal/expr.cpp
++++ b/engines/tony/mpal/expr.cpp
+@@ -191,7 +191,7 @@ static void solve(LPEXPRESSION one, int num) {
+ 		two = one + 1;
+ 		if ((two->symbol == 0) || (one->symbol & 0xF0) <= (two->symbol & 0xF0)) {
+ 			two->val.num = Compute(one->val.num, two->val.num, one->symbol);
+-			memcpy(one, two, (num - 1) * sizeof(EXPRESSION));
++			memmove(one, two, (num - 1) * sizeof(EXPRESSION));
+ 			--num;
+ 		} else {
+ 			j = 1;
+@@ -203,7 +203,7 @@ static void solve(LPEXPRESSION one, int num) {
+ 			}
+ 
+ 			three->val.num = Compute(two->val.num, three->val.num, two->symbol);
+-			memcpy(two, three, (num - j - 1) * sizeof(EXPRESSION));
++			memmove(two, three, (num - j - 1) * sizeof(EXPRESSION));
+ 			--num;
+ 		}
+ 	}

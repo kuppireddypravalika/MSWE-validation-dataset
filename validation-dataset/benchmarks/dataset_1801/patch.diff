@@ -1,0 +1,26 @@
+From 15062522a38a75e0227b167606ab534e8dd22333 Mon Sep 17 00:00:00 2001
+From: Marco Bubke <marco.bubke@qt.io>
+Date: Fri, 26 May 2023 12:28:32 +0200
+Subject: [PATCH] QmlDesigner: Reduce the allocations by 50%
+
+Change-Id: I4ff7046a57626eb19bf4e0bfef4cc0522015123a
+Reviewed-by: Thomas Hartmann <thomas.hartmann@qt.io>
+---
+ src/plugins/qmldesigner/designercore/model/modelnode.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/plugins/qmldesigner/designercore/model/modelnode.cpp b/src/plugins/qmldesigner/designercore/model/modelnode.cpp
+index 60411163e64..5fcf918f11f 100644
+--- a/src/plugins/qmldesigner/designercore/model/modelnode.cpp
++++ b/src/plugins/qmldesigner/designercore/model/modelnode.cpp
+@@ -74,8 +74,8 @@ ModelNode::ModelNode(const ModelNode &modelNode, AbstractView *view)
+ \return invalid node
+ \see invalid
+ */
+-ModelNode::ModelNode():
+-        m_internalNode(new InternalNode)
++ModelNode::ModelNode()
++    : m_internalNode(std::make_shared<InternalNode>())
+ {
+ }
+ 

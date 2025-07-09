@@ -1,0 +1,46 @@
+From a61097baa3e6a28c320a2b0d89c27277892fcf87 Mon Sep 17 00:00:00 2001
+From: James Golding <james.golding@epicgames.com>
+Date: Fri, 16 May 2014 04:01:15 -0400
+Subject: [PATCH] Optimize FBox::TransformBy() by using the branchless
+ vectorized implementation for matrices
+ https://github.com/EpicGames/UnrealEngine/pull/124 (pzurita) #codereview
+ lina.halper
+
+[CL 2075257 by James Golding in Main branch]
+---
+ .../Source/Runtime/Core/Private/Math/Box.cpp  | 22 +------------------
+ 1 file changed, 1 insertion(+), 21 deletions(-)
+
+diff --git a/Engine/Source/Runtime/Core/Private/Math/Box.cpp b/Engine/Source/Runtime/Core/Private/Math/Box.cpp
+index f54cc0510c1..44356552444 100644
+--- a/Engine/Source/Runtime/Core/Private/Math/Box.cpp
++++ b/Engine/Source/Runtime/Core/Private/Math/Box.cpp
+@@ -125,27 +125,7 @@ FBox FBox::TransformBy(const FMatrix& M) const
+ 
+ FBox FBox::TransformBy(const FTransform & M) const
+ {
+-	FVector Vertices[8] = 
+-	{
+-		FVector(Min),
+-		FVector(Min.X, Min.Y, Max.Z),
+-		FVector(Min.X, Max.Y, Min.Z),
+-		FVector(Max.X, Min.Y, Min.Z),
+-		FVector(Max.X, Max.Y, Min.Z),
+-		FVector(Max.X, Min.Y, Max.Z),
+-		FVector(Min.X, Max.Y, Max.Z),
+-		FVector(Max)
+-	};
+-
+-	FBox NewBox(0);
+-
+-	for (int32 VertexIndex = 0; VertexIndex < ARRAY_COUNT(Vertices); VertexIndex++)
+-	{
+-		FVector4 ProjectedVertex = M.TransformPosition(Vertices[VertexIndex]);
+-		NewBox += ProjectedVertex;
+-	}
+-
+-	return NewBox;
++	return TransformBy(M.ToMatrixWithScale());
+ }
+ 
+ FBox FBox::InverseTransformBy(const FTransform & M) const

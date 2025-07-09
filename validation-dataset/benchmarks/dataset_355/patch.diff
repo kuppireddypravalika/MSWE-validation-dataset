@@ -1,0 +1,51 @@
+From a4203c38d08927ce9648ccadc16fe74b70600adc Mon Sep 17 00:00:00 2001
+From: Kai Pastor <dg0yt@darc.de>
+Date: Thu, 16 Oct 2014 08:08:02 +0200
+Subject: [PATCH] Georeferencing: Minor optimization of updateTransformation()
+
+---
+ src/core/georeferencing.cpp | 19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
+
+diff --git a/src/core/georeferencing.cpp b/src/core/georeferencing.cpp
+index a22453485..e13929613 100644
+--- a/src/core/georeferencing.cpp
++++ b/src/core/georeferencing.cpp
+@@ -507,28 +507,27 @@ void Georeferencing::setGeographicRefPoint(LatLon lat_lon, bool update_grivation
+ 
+ void Georeferencing::updateTransformation()
+ {
+-	const QTransform old(to_projected);
+-	to_projected.reset();
+-	double scale = double(scale_denominator) / 1000.0;
++	QTransform transform;
+ 	if (state != ScaleOnly)
+ 	{
+-		to_projected.translate(projected_ref_point.x(), projected_ref_point.y());
+-		to_projected.rotate(-grivation);
++		transform.translate(projected_ref_point.x(), projected_ref_point.y());
++		transform.rotate(-grivation);
+ 	}
+-	to_projected.scale(scale, -scale);
++	double scale = double(scale_denominator) / 1000.0;
++	transform.scale(scale, -scale);
+ 	if (state != ScaleOnly)
+ 	{
+-		to_projected.translate(-map_ref_point.xd(), -map_ref_point.yd());
++		transform.translate(-map_ref_point.xd(), -map_ref_point.yd());
+ 	}
+ 	
+-	if (old != to_projected)
++	if (to_projected != transform)
+ 	{
+-		from_projected = to_projected.inverted();
++		to_projected   = transform;
++		from_projected = transform.inverted();
+ 		emit transformationChanged();
+ 	}
+ }
+ 
+-
+ void Georeferencing::updateGrivation()
+ {
+ 	setDeclination(declination);

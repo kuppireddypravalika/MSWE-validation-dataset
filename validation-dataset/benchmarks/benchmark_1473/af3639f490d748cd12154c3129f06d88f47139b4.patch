@@ -1,0 +1,32 @@
+From af3639f490d748cd12154c3129f06d88f47139b4 Mon Sep 17 00:00:00 2001
+From: Patrick Steil <np254@stud.uni-heidelberg.de>
+Date: Mon, 5 Dec 2022 12:24:09 +0100
+Subject: [PATCH] Change std::sort to std::stable_sort
+
+I came across this issue when working with Jonas Sauer. There were some optimal journeys not found due to this problem
+---
+ Algorithms/TripBased/Preprocessing/StopEventGraphBuilder.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Algorithms/TripBased/Preprocessing/StopEventGraphBuilder.h b/Algorithms/TripBased/Preprocessing/StopEventGraphBuilder.h
+index f0e642e..7265392 100644
+--- a/Algorithms/TripBased/Preprocessing/StopEventGraphBuilder.h
++++ b/Algorithms/TripBased/Preprocessing/StopEventGraphBuilder.h
+@@ -126,7 +126,7 @@ class StopEventGraphBuilder {
+             for (const Edge edge : generatedTransfers.edgesFrom(fromVertex)) {
+                 transfers.emplace_back(edge);
+             }
+-            std::sort(transfers.begin(), transfers.end(), [&](const Edge a, const Edge b){
++            std::stable_sort(transfers.begin(), transfers.end(), [&](const Edge a, const Edge b){
+                 return data.raptorData.stopEvents[generatedTransfers.get(ToVertex, a)].arrivalTime < data.raptorData.stopEvents[generatedTransfers.get(ToVertex, b)].arrivalTime;
+             });
+ 
+@@ -158,7 +158,7 @@ class StopEventGraphBuilder {
+                 if (keep) keepTransfers.emplace_back(transfer);
+             }
+ 
+-            std::sort(keepTransfers.begin(), keepTransfers.end(), [](const Edge a, const Edge b) {
++            std::stable_sort(keepTransfers.begin(), keepTransfers.end(), [](const Edge a, const Edge b) {
+                 return a > b;
+             });
+             for (const Edge transfer : keepTransfers) {

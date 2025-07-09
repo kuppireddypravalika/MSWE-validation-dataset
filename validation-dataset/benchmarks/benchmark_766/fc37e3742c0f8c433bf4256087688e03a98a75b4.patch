@@ -1,0 +1,22 @@
+From fc37e3742c0f8c433bf4256087688e03a98a75b4 Mon Sep 17 00:00:00 2001
+From: Justin Lebar <justin.lebar@gmail.com>
+Date: Fri, 14 Sep 2012 12:44:30 -0400
+Subject: [PATCH] In killer, use new[] instead of malloc.
+
+---
+ killer.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/killer.cpp b/killer.cpp
+index 6c21205..e3d44df 100644
+--- a/killer.cpp
++++ b/killer.cpp
+@@ -93,7 +93,7 @@ int main(int argc, char** argv)
+    * this out, we can just use malloc.
+    */
+ 
+-  int* pids = (int*) malloc(sizeof(int) * argc);
++  int* pids = new int[argc];
+   int numPids = 0;
+   for (int i = 2; i < argc; i++) {
+     char* endptr = NULL;

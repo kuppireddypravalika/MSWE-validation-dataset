@@ -1,0 +1,22 @@
+From 7017ca1c538ff7514c8ad62aa7bc3ccd3daf5243 Mon Sep 17 00:00:00 2001
+From: Jonas Kulla <Nyocurio@gmail.com>
+Date: Sun, 19 Jul 2015 17:32:13 +0200
+Subject: [PATCH] Use static lifetime for constant array
+
+---
+ src/tileatlasvx.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/tileatlasvx.cpp b/src/tileatlasvx.cpp
+index 2e1c1765..663eca3b 100644
+--- a/src/tileatlasvx.cpp
++++ b/src/tileatlasvx.cpp
+@@ -500,7 +500,7 @@ onTileA4(Reader &reader, int16_t tileID,
+ 	Vec2i orig = blitsA4[0].dst;
+ 	tileID -= 0x1700;
+ 
+-	const int offY[] = { 0, 3, 5, 8, 10, 13 };
++	static const int offY[] = { 0, 3, 5, 8, 10, 13 };
+ 
+ 	int patternID  = tileID % 0x30;
+ 	int autotileID = tileID / 0x30;

@@ -1,0 +1,22 @@
+From 524ec5f016dda9012e7aa6a655a2c43590711eb3 Mon Sep 17 00:00:00 2001
+From: Dmitry Tsarevich <dimhotepus@gmail.com>
+Date: Thu, 24 Sep 2020 20:13:00 +0300
+Subject: [PATCH] [perf] Create pair in container instead of copying
+
+---
+ src/xrCore/xr_shared.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/xrCore/xr_shared.h b/src/xrCore/xr_shared.h
+index 7795a16ee13..54fd257277d 100644
+--- a/src/xrCore/xr_shared.h
++++ b/src/xrCore/xr_shared.h
+@@ -35,7 +35,7 @@ class shared_container
+             result = xr_new<T>();
+             result->m_ref_cnt = 0;
+             if (p(key, result))
+-                container.insert(std::make_pair(key, result));
++                container.emplace(key, result);
+             else
+                 xr_delete(result);
+         }

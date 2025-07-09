@@ -1,0 +1,24 @@
+From 1bcb7f06c043569a18745d264ee195ec4f34c8fd Mon Sep 17 00:00:00 2001
+From: Peter Caspers <peter.caspers@lseg.com>
+Date: Wed, 31 Jan 2024 17:27:16 +0100
+Subject: [PATCH] QPR-11618 add check and optimization if times are equal or
+ rollback amount is deterministic
+
+---
+ QuantExt/qle/models/lgmfdsolver.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/QuantExt/qle/models/lgmfdsolver.cpp b/QuantExt/qle/models/lgmfdsolver.cpp
+index bf63036842..596d6a8dc8 100644
+--- a/QuantExt/qle/models/lgmfdsolver.cpp
++++ b/QuantExt/qle/models/lgmfdsolver.cpp
+@@ -47,6 +47,9 @@ RandomVariable LgmFdSolver::stateGrid(Real) const { return mesherLocations_; }
+ const boost::shared_ptr<LinearGaussMarkovModel>& LgmFdSolver::model() const { return model_; }
+ 
+ RandomVariable LgmFdSolver::rollback(const RandomVariable& v, const Real t1, const Real t0, Size steps) const {
++    if (QuantLib::close_enough(t0, t1) || v.deterministic())
++        return v;
++    QL_REQUIRE(t0 < t1, "LgmCFdSolver::rollback(): t0 (" << t0 << ") < t1 (" << t1 << ") required.");
+     if (steps == Null<Size>())
+         steps = std::max<Size>(1, static_cast<Size>(static_cast<double>(timeStepsPerYear_) * (t1 - t0) + 0.5));
+     Array workingArray(v.size());

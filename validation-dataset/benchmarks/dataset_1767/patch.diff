@@ -1,0 +1,21 @@
+From 98f92a5a275102dfab915b920e2ebf52f43bf091 Mon Sep 17 00:00:00 2001
+From: Andrew Mustun <andrew@qcad.org>
+Date: Tue, 8 Sep 2020 08:45:14 +0200
+Subject: [PATCH] performance: avoid unnecessary bounding box calculations
+
+---
+ src/entity/RDimensionData.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/entity/RDimensionData.cpp b/src/entity/RDimensionData.cpp
+index 9494ece03f..f7bcf2948a 100644
+--- a/src/entity/RDimensionData.cpp
++++ b/src/entity/RDimensionData.cpp
+@@ -107,6 +107,7 @@ RBox RDimensionData::getBoundingBox(bool ignoreEmpty) const {
+         boundingBox = REntityData::getBoundingBox(ignoreEmpty);
+         getTextData();
+         boundingBox.growToInclude(textData.getBoundingBox(ignoreEmpty));
++        dirty = false;
+     }
+ 
+     return boundingBox;

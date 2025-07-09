@@ -1,0 +1,42 @@
+From 3cb7a1b95727c9cfde9d26154bd19df24bccfbb3 Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Sun, 5 Apr 2015 21:10:47 +0200
+Subject: [PATCH] QErrorMessage: add some strategic qMove()s
+
+Saves 56 bytes in text size on my machine.
+
+Change-Id: Ic92943356e0e27620346854e02c129cdfa00f894
+Reviewed-by: Olivier Goffart (Woboq GmbH) <ogoffart@woboq.com>
+Reviewed-by: Friedemann Kleint <Friedemann.Kleint@theqtcompany.com>
+---
+ src/widgets/dialogs/qerrormessage.cpp | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/src/widgets/dialogs/qerrormessage.cpp b/src/widgets/dialogs/qerrormessage.cpp
+index 280ce4f44f5..5c61b58b0f6 100644
+--- a/src/widgets/dialogs/qerrormessage.cpp
++++ b/src/widgets/dialogs/qerrormessage.cpp
+@@ -307,9 +307,9 @@ QErrorMessage * QErrorMessage::qtHandler()
+ bool QErrorMessagePrivate::nextPending()
+ {
+     while (!pending.empty()) {
+-        const QPair<QString,QString> &pendingMessage = pending.front();
+-        QString message = pendingMessage.first;
+-        QString type = pendingMessage.second;
++        QPair<QString,QString> &pendingMessage = pending.front();
++        QString message = qMove(pendingMessage.first);
++        QString type = qMove(pendingMessage.second);
+         pending.pop();
+         if (!message.isEmpty() && ((type.isEmpty() && !doNotShow.contains(message)) || (!type.isEmpty() && !doNotShowType.contains(type)))) {
+ #ifndef QT_NO_TEXTHTMLPARSER
+@@ -317,8 +317,8 @@ bool QErrorMessagePrivate::nextPending()
+ #else
+             errors->setPlainText(message);
+ #endif
+-            currentMessage = message;
+-            currentType = type;
++            currentMessage = qMove(message);
++            currentType = qMove(type);
+             return true;
+         }
+     }

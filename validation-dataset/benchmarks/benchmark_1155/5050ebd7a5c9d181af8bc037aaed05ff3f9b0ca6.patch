@@ -1,0 +1,24 @@
+From 5050ebd7a5c9d181af8bc037aaed05ff3f9b0ca6 Mon Sep 17 00:00:00 2001
+From: Michael Brasser <mbrasser@ford.com>
+Date: Wed, 1 Apr 2020 14:55:33 -0500
+Subject: [PATCH] Fix enum setup optimization
+
+Change-Id: Ibba11705ff26176fe72b14f3bf462b7a12207295
+Reviewed-by: Ulf Hermann <ulf.hermann@qt.io>
+---
+ src/qml/qml/qqmltype.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/qml/qml/qqmltype.cpp b/src/qml/qml/qqmltype.cpp
+index 4a211ffa53c..97fcba5009a 100644
+--- a/src/qml/qml/qqmltype.cpp
++++ b/src/qml/qml/qqmltype.cpp
+@@ -270,7 +270,7 @@ void QQmlTypePrivate::initEnums(QQmlEnginePrivate *engine) const
+             ? compositePropertyCache(engine)
+             : nullptr;
+ 
+-    const QMetaObject *metaObject = !isEnumFromCacheSetup
++    const QMetaObject *metaObject = !isEnumFromBaseSetup
+             ? baseMetaObject // beware: It could be a singleton type without metaobject
+             : nullptr;
+ 

@@ -1,0 +1,46 @@
+From fa9b13f64b321cbfe93e340941f6d7b9c0db95cb Mon Sep 17 00:00:00 2001
+From: Vadim Zeitlin <vadim@wxwidgets.org>
+Date: Thu, 30 Apr 2020 23:32:42 +0200
+Subject: [PATCH] Decrease precision for values using factor with number
+ validator
+
+Using too high precision could result in bogus digits appearing in the
+displayed value, e.g. 0.058 shown in percents (with a factor of 100)
+appeared as 5.800000000000001 before this change.
+---
+ src/common/valnum.cpp | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/src/common/valnum.cpp b/src/common/valnum.cpp
+index ecfb6c5186d1..243108a38854 100644
+--- a/src/common/valnum.cpp
++++ b/src/common/valnum.cpp
+@@ -32,6 +32,8 @@
+ #include "wx/valnum.h"
+ #include "wx/numformatter.h"
+ 
++#include <math.h>
++
+ // ============================================================================
+ // wxNumValidatorBase implementation
+ // ============================================================================
+@@ -261,8 +263,18 @@ wxIntegerValidatorBase::IsCharOk(const wxString& val, int pos, wxChar ch) const
+ 
+ wxString wxFloatingPointValidatorBase::ToString(LongestValueType value) const
+ {
++    // When using factor > 1 we're going to show more digits than are
++    // significant in the real value, so decrease precision to account for it.
++    int precision = m_precision;
++    if ( precision && m_factor > 1 )
++    {
++        precision -= static_cast<int>(log10(static_cast<double>(m_factor)));
++        if ( precision < 0 )
++            precision = 0;
++    }
++
+     return wxNumberFormatter::ToString(value*m_factor,
+-                                       m_precision,
++                                       precision,
+                                        GetFormatFlags());
+ }
+ 

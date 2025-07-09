@@ -1,0 +1,24 @@
+From 57ce39796ab5321de3e11532ce8643558be9530f Mon Sep 17 00:00:00 2001
+From: Stefan Westerfeld <stefan@space.twc.de>
+Date: Thu, 28 Nov 2019 18:18:53 +0100
+Subject: [PATCH] Replace pow() with powf() during watermark generation
+ (performance).
+
+Signed-off-by: Stefan Westerfeld <stefan@space.twc.de>
+---
+ src/audiowmark.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/audiowmark.cc b/src/audiowmark.cc
+index f537833..7cf73b7 100644
+--- a/src/audiowmark.cc
++++ b/src/audiowmark.cc
+@@ -514,7 +514,7 @@ apply_frame_mod (const vector<FrameMod>& frame_mod, const vector<complex<float>>
+       const float mag = abs (fft_out[i]);
+       if (mag > min_mag)
+         {
+-          const float mag_factor = pow (mag, -Params::water_delta * data_bit_sign);
++          const float mag_factor = powf (mag, -Params::water_delta * data_bit_sign);
+ 
+           fft_delta_spect[i] = fft_out[i] * (mag_factor - 1);
+         }

@@ -1,0 +1,22 @@
+From 28952183c291c7927b69eee3d4698689cd28d86e Mon Sep 17 00:00:00 2001
+From: Heiko Thiel <heiko.thiel@hpi.de>
+Date: Sun, 21 Apr 2019 00:50:08 +0200
+Subject: [PATCH] Prefer usage of operator%= instead of using operator%
+
+---
+ recognition/src/cg/hough_3d.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/recognition/src/cg/hough_3d.cpp b/recognition/src/cg/hough_3d.cpp
+index 70bedcf8687..31dfdd647cc 100644
+--- a/recognition/src/cg/hough_3d.cpp
++++ b/recognition/src/cg/hough_3d.cpp
+@@ -242,7 +242,7 @@ pcl::recognition::HoughSpace3D::findMaxima (double min_threshold, std::vector<do
+ 
+     for (int k = 2; k >= 0; --k){
+ 
+-      moduled_index = moduled_index % partial_bin_products_[k+1];
++      moduled_index %= partial_bin_products_[k+1];
+       indexes[k] = moduled_index / partial_bin_products_[k];
+ 
+       if (indexes[k] > 0 && hough_space_[i] < hough_space_[i-partial_bin_products_[k]])

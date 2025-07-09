@@ -1,0 +1,33 @@
+From b395436640282ab13ae8002c0700717274d3a734 Mon Sep 17 00:00:00 2001
+From: NotCompsky <adammarkgray@gmail.com>
+Date: Sun, 28 Jul 2019 23:48:42 +0100
+Subject: [PATCH] Tidy mysql::exec
+
+Increase buffer sizes.
+---
+ utils/src/view-instances.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/utils/src/view-instances.cpp b/utils/src/view-instances.cpp
+index 0c7bdca9..b9e530e8 100644
+--- a/utils/src/view-instances.cpp
++++ b/utils/src/view-instances.cpp
+@@ -102,7 +102,7 @@ int main(int argc,  const char** argv) {
+             Ignore files tagged with the following
+     */
+ 
+-	if(compsky::asciify::alloc(1024))
++	if(compsky::asciify::alloc(4096))
+ 		return 4;
+     
+     bool root_tags = false;
+@@ -136,8 +136,7 @@ int main(int argc,  const char** argv) {
+ 		compsky::mysql::exec_buffer("CALL descendant_tags_id_rooted_from(\"tmp_tagids\", \"'foobar'\")");
+ 		compsky::mysql::exec_buffer("INSERT IGNORE INTO tmp_tagids (node) SELECT id FROM tag");
+ 	} else {
+-		compsky::asciify::asciify("CALL descendant_tags_id_rooted_from(\"tmp_tagids\", \"'", f_start, "','", 3, argv, argc, f_end, "'\")");
+-		compsky::mysql::exec_buffer(compsky::asciify::BUF, compsky::asciify::get_index());
++		compsky::mysql::exec("CALL descendant_tags_id_rooted_from(\"tmp_tagids\", \"'", f_start, "','", 3, argv, argc, f_end, "'\")");
+ 	}
+ 	
+     if (not_subtags.size() != 0){

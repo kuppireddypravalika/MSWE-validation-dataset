@@ -1,0 +1,24 @@
+From 06d94ce5f4d75d6791f9994c46e24d8855119c0e Mon Sep 17 00:00:00 2001
+From: Paul Harrison <pharrison@mythtv.org>
+Date: Mon, 9 Mar 2015 22:48:22 +0000
+Subject: [PATCH] MythMusic: double the size of the probe buffer to 64k
+
+Some mp3 files with their coverart in a mjpeg stream were failing to be probed
+with only a 32k buffer. Refs #12403.
+---
+ mythplugins/mythmusic/mythmusic/remoteavformatcontext.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/mythplugins/mythmusic/mythmusic/remoteavformatcontext.h b/mythplugins/mythmusic/mythmusic/remoteavformatcontext.h
+index 12b65f07cc6..5de48927039 100644
+--- a/mythplugins/mythmusic/mythmusic/remoteavformatcontext.h
++++ b/mythplugins/mythmusic/mythmusic/remoteavformatcontext.h
+@@ -53,7 +53,7 @@ class RemoteAVFormatContext
+             if (!m_rf->isOpen())
+                 return false;
+ 
+-            const int BUFFER_SIZE = 0x8000;
++            const int BUFFER_SIZE = 0x10000;
+             if (!m_buffer)
+             {
+                 m_buffer = (unsigned char*)av_malloc(BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);

@@ -1,0 +1,37 @@
+From d1e62bdbbff361fc8c78e05b2d455f594ff509e5 Mon Sep 17 00:00:00 2001
+From: Andrea Mattavelli <andreamattavelli@gmail.com>
+Date: Sat, 29 Jul 2017 11:40:53 +0100
+Subject: [PATCH] Optimized pass: we now create a load instruction only at the
+ use site, and not after the call site
+
+---
+ lib/Module/ReturnToVoidFunctionPass.cpp | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/lib/Module/ReturnToVoidFunctionPass.cpp b/lib/Module/ReturnToVoidFunctionPass.cpp
+index 44fb58e2..f5aab290 100644
+--- a/lib/Module/ReturnToVoidFunctionPass.cpp
++++ b/lib/Module/ReturnToVoidFunctionPass.cpp
+@@ -1,4 +1,4 @@
+-//===-- PhiCleaner.cpp ----------------------------------------------------===//
++//===-- ReturnToVoidFunctionPass.cpp --------------------------------------===//
+ //
+ //                     The KLEE Symbolic Virtual Machine
+ //
+@@ -144,9 +144,13 @@ void klee::ReturnToVoidFunctionPass::replaceCall(CallInst *origCallInst, Functio
+   if (prevStoreInst) {
+     prevStoreInst->eraseFromParent();
+   } else {
+-    // otherwise, we create a LoadInst for the return value
+-    Value *load = builder.CreateLoad(allocaInst);
+-    origCallInst->replaceAllUsesWith(load);
++    // otherwise, we create a LoadInst for the return value at each use
++    while(origCallInst->hasNUsesOrMore(1)) {
++      llvm::Instruction *II = cast<llvm::Instruction>(*origCallInst->use_begin());
++      IRBuilder<> builder_use(II);
++      Value *load = builder_use.CreateLoad(allocaInst);
++      II->replaceUsesOfWith(origCallInst, load);
++    }
+   }
+ 
+   origCallInst->eraseFromParent();

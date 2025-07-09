@@ -1,0 +1,24 @@
+From 0faa18c4246d8f159ceceae19b1e9c823f2d08c7 Mon Sep 17 00:00:00 2001
+From: Dmitriy Morozov <dmitriy@mrzv.org>
+Date: Tue, 4 Mar 2014 17:42:37 +0000
+Subject: [PATCH] Remove sleep(dwell); it really slows things down
+
+--HG--
+extra : convert_revision : svn%3A51b2a480-81d2-489e-acae-26a3fc869840/trunk%40101
+---
+ lib/tess.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/tess.cpp b/lib/tess.cpp
+index 0e45010..5f61d42 100644
+--- a/lib/tess.cpp
++++ b/lib/tess.cpp
+@@ -3846,7 +3846,7 @@ void get_mem(int breakpoint, int dwell) {
+ 
+   fprintf(stderr, "%d: max memory = %ld MB, current memory in dashboard\n", 
+ 	  breakpoint, r_usage.ru_maxrss / to_mb);
+-  sleep(dwell);
++  //sleep(dwell);
+   fprintf(stderr, "%d: done\n", breakpoint);
+ 
+ }

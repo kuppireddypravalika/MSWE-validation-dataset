@@ -1,0 +1,39 @@
+From cb8e816c233c8082bd89896b5ebf63229efbbf3e Mon Sep 17 00:00:00 2001
+From: David Mandelin <dmandelin@mozilla.com>
+Date: Fri, 3 Feb 2012 15:02:39 -0800
+Subject: [PATCH] Bug 723728: use calloc again in allocateArrayBufferSlots
+ because it's faster, r=jwalden
+
+---
+ js/src/jstypedarray.cpp | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
+
+diff --git a/js/src/jstypedarray.cpp b/js/src/jstypedarray.cpp
+index cae989951e8..7e853f3fecd 100644
+--- a/js/src/jstypedarray.cpp
++++ b/js/src/jstypedarray.cpp
+@@ -227,17 +227,19 @@ JSObject::allocateArrayBufferSlots(JSContext *cx, uint32_t size, uint8_t *conten
+     size_t usableSlots = ARRAYBUFFER_RESERVED_SLOTS - ObjectElements::VALUES_PER_HEADER;
+ 
+     if (size > sizeof(Value) * usableSlots) {
+-        ObjectElements *newheader = (ObjectElements *)cx->malloc_(size + sizeof(ObjectElements));
++        ObjectElements *newheader = (ObjectElements *)cx->calloc_(size + sizeof(ObjectElements));
+         if (!newheader)
+             return false;
+         elements = newheader->elements();
++        if (contents)
++            memcpy(elements, contents, size);
+     } else {
+         elements = fixedElements();
++        if (contents)
++            memcpy(elements, contents, size);
++        else
++            memset(elements, 0, size);
+     }
+-    if (contents)
+-        memcpy(elements, contents, size);
+-    else
+-        memset(elements, 0, size);
+ 
+     ObjectElements *header = getElementsHeader();
+ 

@@ -1,0 +1,35 @@
+From 5dfc5e1bc50a8c69d3dda5a586dc50da43f47ce1 Mon Sep 17 00:00:00 2001
+From: Andreas Nicolai <andreas.nicolai@tu-dresden.de>
+Date: Sat, 10 Apr 2021 15:09:42 +0200
+Subject: [PATCH] Fine tuning FMU export.
+
+---
+ SIM-VICUS/src/SVSimulationExportFMIDialog.cpp | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/SIM-VICUS/src/SVSimulationExportFMIDialog.cpp b/SIM-VICUS/src/SVSimulationExportFMIDialog.cpp
+index 012426da6..81f730e8a 100644
+--- a/SIM-VICUS/src/SVSimulationExportFMIDialog.cpp
++++ b/SIM-VICUS/src/SVSimulationExportFMIDialog.cpp
+@@ -605,6 +605,12 @@ void SVSimulationExportFMIDialog::on_pushButtonGenerate_clicked() {
+ 	// modify reference in project file
+ 	p.m_location.m_climateFilePath = "${Project Directory}/" + targetFName;
+ 
++	// now all referenced files are stored alongside the project
++	// remove not needed Database placeholder from placeholders list (but keep all custom placeholders!)
++	auto it = p.m_placeholders.find("Database");
++	if (it != p.m_placeholders.end())
++		p.m_placeholders.erase(it);
++
+ 	// now write the project into the export directory, it will always be called "project.nandrad"
+ 	p.writeXML(resourcePath / "project.nandrad");
+ 
+@@ -629,7 +635,7 @@ void SVSimulationExportFMIDialog::on_pushButtonGenerate_clicked() {
+ 	modelDesc.replace("${DATETIME}", dt);
+ 
+ 	// ${SIMDURATION} in seconds
+-	modelDesc.replace("${SIMDURATION}", QString("%1").arg(m_localProject.m_simulationParameter.m_interval.endTime()));
++	modelDesc.replace("${SIMDURATION}", QString("%1").arg(m_localProject.m_simulationParameter.m_interval.endTime(), 0, 'g', 10));
+ 
+ 	// generate variable and modelStructure section
+ 

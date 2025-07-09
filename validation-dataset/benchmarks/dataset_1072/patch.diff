@@ -1,0 +1,24 @@
+From c37393551ad16c315a265cfe7b896aea2d34b277 Mon Sep 17 00:00:00 2001
+From: Philip Allgaier <Philip Allgaier@localhost>
+Date: Sat, 12 Jan 2013 19:55:26 +0100
+Subject: [PATCH] Optimized SceneViewTree generation marginely
+
+---
+ Ogitor/src/OgitorsRoot.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/Ogitor/src/OgitorsRoot.cpp b/Ogitor/src/OgitorsRoot.cpp
+index 8a8c6ce7..e6214bef 100644
+--- a/Ogitor/src/OgitorsRoot.cpp
++++ b/Ogitor/src/OgitorsRoot.cpp
+@@ -1242,6 +1242,10 @@ namespace Ogitors
+     void OgitorsRoot::RecurseFillTreeView(CBaseEditor *pEditor)
+     {
+         NameObjectPairList& children = pEditor->getChildren();
++
++        if(children.size() == 0)
++            return;
++
+         NameObjectPairList::iterator i, iend;
+ 
+         iend = children.end();

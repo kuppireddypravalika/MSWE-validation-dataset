@@ -1,0 +1,21 @@
+From e2842c7aec649d9446069cc61d9f05647e26bd94 Mon Sep 17 00:00:00 2001
+From: Moritz Maxeiner <mm@ucw.sh>
+Date: Mon, 20 May 2019 16:10:19 +0200
+Subject: [PATCH] Don't call bgr->rgb conversion twice
+
+---
+ Src/Model/MediaPlayer.cpp | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/Src/Model/MediaPlayer.cpp b/Src/Model/MediaPlayer.cpp
+index f5f24548..fe5fe3ae 100644
+--- a/Src/Model/MediaPlayer.cpp
++++ b/Src/Model/MediaPlayer.cpp
+@@ -277,7 +277,6 @@ void MediaPlayer::receivePlayerParameters(playerParameters* param) {
+             std::shared_ptr<cv::Mat> mat = std::make_shared<cv::Mat>(image.height(), image.width(), CV_8UC(image.depth()/8), (uchar*)image.bits(), image.bytesPerLine()); //1us
+ 
+             cv::cvtColor(*mat, *mat, CV_BGR2RGB); //16898 us
+-            cv::cvtColor(*mat, *mat, CV_BGR2RGB);
+             m_videoc->add(mat,1);
+ 
+             delete pix;

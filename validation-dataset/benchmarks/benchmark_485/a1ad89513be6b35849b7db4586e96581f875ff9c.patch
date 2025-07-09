@@ -1,0 +1,41 @@
+From a1ad89513be6b35849b7db4586e96581f875ff9c Mon Sep 17 00:00:00 2001
+From: Sergio Martins <smartins@kde.org>
+Date: Sat, 24 Feb 2018 16:26:56 +0000
+Subject: [PATCH] copyable-polymorphic: minor performance optimization
+
+Only call Utils::copyAssign() if needed
+---
+ src/checks/level2/copyable-polymorphic.cpp | 15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
+
+diff --git a/src/checks/level2/copyable-polymorphic.cpp b/src/checks/level2/copyable-polymorphic.cpp
+index 96b7b6eb..b9297f82 100644
+--- a/src/checks/level2/copyable-polymorphic.cpp
++++ b/src/checks/level2/copyable-polymorphic.cpp
+@@ -37,19 +37,18 @@ CopyablePolymorphic::CopyablePolymorphic(const std::string &name, ClazyContext *
+ 
+ void CopyablePolymorphic::VisitDecl(clang::Decl *decl)
+ {
+-    CXXRecordDecl *record = dyn_cast<CXXRecordDecl>(decl);
++    auto record = dyn_cast<CXXRecordDecl>(decl);
+     if (!record || !record->hasDefinition() || record->getDefinition() != record || !record->isPolymorphic())
+         return;
+ 
+     CXXConstructorDecl *copyCtor = Utils::copyCtor(record);
+-    CXXMethodDecl *copyAssign = Utils::copyAssign(record);
+-
+     const bool hasCallableCopyCtor = copyCtor && !copyCtor->isDeleted() && copyCtor->getAccess() != clang::AS_private;
+-    const bool hasCallableCopyAssign = copyAssign && !copyAssign->isDeleted() && copyAssign->getAccess() != clang::AS_private;
+-
+-    if (!hasCallableCopyCtor && !hasCallableCopyAssign)
+-        return;
+-
++    if (!hasCallableCopyCtor) {
++        CXXMethodDecl *copyAssign = Utils::copyAssign(record);
++        const bool hasCallableCopyAssign = copyAssign && !copyAssign->isDeleted() && copyAssign->getAccess() != clang::AS_private;
++        if (!hasCallableCopyAssign)
++            return;
++    }
+ 
+     emitWarning(record->getLocStart(), "Polymorphic class is copyable. Potential slicing.");
+ }

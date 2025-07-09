@@ -1,0 +1,31 @@
+From 883aaaef8af1f6659b493060cb75d5f903167a6b Mon Sep 17 00:00:00 2001
+From: Guido Tack <guido.tack@monash.edu>
+Date: Tue, 5 May 2015 20:21:45 +1000
+Subject: [PATCH] Implement simple peephole optimisation: predicates that just
+ return their argument are flattened by directly flattening their argument, in
+ the same context. This enables symmetry_breaking_constraint and
+ redundant_constraint to be flattened more efficiently.
+
+---
+ lib/flatten.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/lib/flatten.cpp b/lib/flatten.cpp
+index 8725b42eb..fbd48a63b 100644
+--- a/lib/flatten.cpp
++++ b/lib/flatten.cpp
+@@ -4014,6 +4014,14 @@ namespace MiniZinc {
+             (void) flat_exp(env,nctx,al->v()[i],r,b);
+           ret.r = bind(env,ctx,r,constants().lit_true);
+         } else {
++          
++          if (decl->e() && decl->params().size()==1 && decl->e()->isa<Id>() &&
++              decl->params()[0]->ti()->domain()==NULL &&
++              decl->e()->cast<Id>()->decl() == decl->params()[0]) {
++            ret = flat_exp(env, ctx, c->args()[0], r, b);
++            break;
++          }
++          
+           std::vector<EE> args_ee(c->args().size());
+           bool mixContext = decl->e()!=NULL ||
+             (cid != constants().ids.forall && cid != constants().ids.exists && cid != constants().ids.bool2int &&

@@ -1,0 +1,37 @@
+From 061706ebd9053f6a5e84ec89ba5c156359697d74 Mon Sep 17 00:00:00 2001
+From: James Yonan <james@openvpn.net>
+Date: Mon, 24 Aug 2015 21:08:35 -0700
+Subject: [PATCH] In process.hpp, use vfork() instead of fork() when possible,
+ such as when execve() can be executed immediately after fork() on the child
+ side.
+
+---
+ openvpn/common/process.hpp | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/openvpn/common/process.hpp b/openvpn/common/process.hpp
+index 3e4dc3c35..010a14d75 100644
+--- a/openvpn/common/process.hpp
++++ b/openvpn/common/process.hpp
+@@ -183,15 +183,16 @@ namespace openvpn {
+     std::unique_ptr<ArgvWrapper> env_wrap;
+     if (env)
+       env_wrap.reset(new ArgvWrapper(*env));
+-    const pid_t pid = ::fork();
++    auto fn = cmd.c_str();
++    auto av = argv_wrap.c_argv();
++    auto ev = env_wrap ? env_wrap->c_argv() : ::environ;
++    const pid_t pid = redir ? ::fork() : ::vfork();
+     if (pid == pid_t(0)) /* child side */
+       {
+ 	if (redir)
+ 	  redir->redirect();
+-	::execve(cmd.c_str(),
+-		 argv_wrap.c_argv(),
+-		 env_wrap ? env_wrap->c_argv() : ::environ);
+-	::exit(127);
++	::execve(fn, av, ev);
++	::_exit(127);
+       }
+     else if (pid < pid_t(0)) /* fork failed */
+       return -1;

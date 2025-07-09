@@ -1,0 +1,24 @@
+From 3bfe47cfed8589a2f7a346f8e3b8e5b162381158 Mon Sep 17 00:00:00 2001
+From: Hosier <ahosier@amd.com>
+Date: Tue, 21 Jun 2016 17:41:39 -0400
+Subject: [PATCH] Use gtString constructor to create gtString, passing in the
+ wchar string directly, rather than call the appendFormattedString function
+
+---
+ CodeXL/Components/Graphics/Server/Common/TraceMetadata.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/CodeXL/Components/Graphics/Server/Common/TraceMetadata.cpp b/CodeXL/Components/Graphics/Server/Common/TraceMetadata.cpp
+index 7bbc2a994..c9835d6d5 100755
+--- a/CodeXL/Components/Graphics/Server/Common/TraceMetadata.cpp
++++ b/CodeXL/Components/Graphics/Server/Common/TraceMetadata.cpp
+@@ -196,8 +196,7 @@ bool ReadMetadataFile(const std::string& inPathToMetadataFile, TraceMetadata* ou
+     // We have a path to a cached trace metadata file. Load the metadata file, and return the trace response text.
+     std::wstring widePathToMetadataFile;
+     widePathToMetadataFile.assign(inPathToMetadataFile.begin(), inPathToMetadataFile.end());
+-    gtString metadataFilepathGTString;
+-    metadataFilepathGTString.appendFormattedString(L"%s", widePathToMetadataFile.c_str());
++    gtString metadataFilepathGTString(widePathToMetadataFile.c_str());
+ 
+     osFilePath metadataFilepath(metadataFilepathGTString);
+     osFile metadataFile;

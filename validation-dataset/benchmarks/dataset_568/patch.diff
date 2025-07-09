@@ -1,0 +1,54 @@
+From 4ce883ecfb19c8b6213ee231f2e685f7e69ad662 Mon Sep 17 00:00:00 2001
+From: Dag Wieers <dag@wieers.com>
+Date: Tue, 12 May 2020 12:38:45 +0200
+Subject: [PATCH] Make IA more resilient on missing subtitle fragments
+
+We found that some streaming software offers a subtitle track, but may
+not offer subtitle fragments (yet). This is usually done for live tv
+where subtitles are not available for all broadcasted programmes, but
+leaving out the subtitle track would require a full reload of the stream
+to get subtitles when they are offered.
+
+IA currently retries 10 times (11 tries) to get these unavailable
+fragments causing an initial delay in playback for 15+ seconds.
+And after the initial failure it does not retry future fragments.
+
+Ideally an error on subtitle fragments should not be fatal to the
+subtitle support and future segments should be retried. However IA would
+need to redownload the manifest to support this.
+
+This is documented in the original issue report which includes a study
+of existing players and how they behave.
+
+We found that the below behaviour works best:
+- THEOplayer does not retry, but moves to the next subtitle fragment on
+  error
+- Shaka Player retries only once, and moves on to the next subtitle
+  fragment
+
+Other players failed out flat, or got stuck on retrying the same
+subtitle fragment indefinitely.
+
+So the next best thing is to drop subtitle support altogether on missing
+subtitle fragments.
+---
+ src/common/AdaptiveStream.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/src/common/AdaptiveStream.cpp b/src/common/AdaptiveStream.cpp
+index 82def685e..857ee22e4 100644
+--- a/src/common/AdaptiveStream.cpp
++++ b/src/common/AdaptiveStream.cpp
+@@ -79,6 +79,12 @@ void AdaptiveStream::worker()
+     bool ret(download_segment());
+     unsigned int retryCount(10);
+ 
++    //Some streaming software offers subtitle tracks with missing fragments, usually live tv
++    //When a programme is broadcasted that has subtitles, subtitles fragments are offered
++    //TODO: Ensure we continue with the next segment after one retry on errors
++    if (type_ == AdaptiveTree::SUBTITLE)
++        retryCount = 1;
++
+     while (!ret && !stopped_ && retryCount-- && tree_.has_timeshift_buffer_)
+     {
+       std::this_thread::sleep_for(std::chrono::seconds(1));

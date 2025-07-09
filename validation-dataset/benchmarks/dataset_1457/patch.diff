@@ -1,0 +1,48 @@
+From 7ab2d6a57d3916c720e84e6e69897b815a37a87a Mon Sep 17 00:00:00 2001
+From: Mark Callaghan <mcallaghan@facebook.com>
+Date: Tue, 23 Nov 2010 16:49:19 -0800
+Subject: [PATCH] Undo some of the changes for buf_flush_LRU_recommendation
+
+Summary:
+This undoes some of the changes while work on something better
+is in progress. It also behaves better when buf_flush_free_margin(N) is
+called for large N
+
+Test Plan:
+mtr
+
+Reviewed By: ryandmack
+---
+ storage/innodb_plugin/buf/buf0flu.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/storage/innodb_plugin/buf/buf0flu.c b/storage/innodb_plugin/buf/buf0flu.c
+index 0007f734..6cf5e540 100644
+--- a/storage/innodb_plugin/buf/buf0flu.c
++++ b/storage/innodb_plugin/buf/buf0flu.c
+@@ -1497,7 +1497,8 @@ buf_flush_LRU_recommendation(
+ 	bpage = UT_LIST_GET_LAST(buf_pool->LRU);
+ 
+ 	while ((bpage != NULL)
+-	       && (n_replaceable < n_needed)
++	       && (n_replaceable < BUF_FLUSH_FREE_BLOCK_MARGIN
++		   + BUF_FLUSH_EXTRA_MARGIN)
+ 	       && (distance < BUF_LRU_FREE_SEARCH_LEN)) {
+ 
+ 		mutex_t* block_mutex = buf_page_get_mutex(bpage);
+@@ -1517,12 +1518,13 @@ buf_flush_LRU_recommendation(
+ 
+ 	buf_pool_mutex_exit();
+ 
+-	if (n_replaceable >= n_needed) {
++	if (n_replaceable >= BUF_FLUSH_FREE_BLOCK_MARGIN) {
+ 
+ 		return(0);
+ 	}
+ 
+-	return(n_needed + BUF_FLUSH_EXTRA_MARGIN - n_replaceable);
++	return(BUF_FLUSH_FREE_BLOCK_MARGIN + BUF_FLUSH_EXTRA_MARGIN
++	       - n_replaceable);
+ }
+ 
+ /*********************************************************************//**

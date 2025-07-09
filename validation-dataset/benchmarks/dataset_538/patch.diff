@@ -1,0 +1,24 @@
+From 8e8fd7f1d7b486281db76c6d48e94a9c3f9e3cf4 Mon Sep 17 00:00:00 2001
+From: "J. Alexander Treuman" <jat@spatialrift.net>
+Date: Mon, 7 Aug 2006 17:53:53 +0000
+Subject: [PATCH] Use memcmp to compare audio formats
+
+git-svn-id: https://svn.musicpd.org/mpd/trunk@4585 09075e82-0dd4-0310-85a5-a0d7c8717e4f
+---
+ src/audio.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/audio.c b/src/audio.c
+index d176799696..203c372469 100644
+--- a/src/audio.c
++++ b/src/audio.c
+@@ -84,8 +84,7 @@ void copyAudioFormat(AudioFormat * dest, AudioFormat * src)
+ 
+ int cmpAudioFormat(AudioFormat * f1, AudioFormat * f2)
+ {
+-	if (f1 && f2 && (f1->sampleRate == f2->sampleRate) &&
+-	    (f1->bits == f2->bits) && (f1->channels == f2->channels))
++	if (f1 && f2 && (0 == memcmp(f1, f2, sizeof(AudioFormat))))
+ 		return 0;
+ 	return 1;
+ }

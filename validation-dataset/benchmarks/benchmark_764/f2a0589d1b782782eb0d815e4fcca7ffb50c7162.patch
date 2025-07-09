@@ -1,0 +1,24 @@
+From f2a0589d1b782782eb0d815e4fcca7ffb50c7162 Mon Sep 17 00:00:00 2001
+From: Peter Vanroose <peter_vanroose@users.sourceforge.net>
+Date: Sun, 25 Mar 2007 09:57:53 -0400
+Subject: [PATCH] explicit conversion to vnl_double_2 was not being used
+
+---
+ contrib/rpl/rgrl/rgrl_trans_homo2d_proj_rad.cxx | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/contrib/rpl/rgrl/rgrl_trans_homo2d_proj_rad.cxx b/contrib/rpl/rgrl/rgrl_trans_homo2d_proj_rad.cxx
+index 4e31e86773f..a7f883927ac 100644
+--- a/contrib/rpl/rgrl/rgrl_trans_homo2d_proj_rad.cxx
++++ b/contrib/rpl/rgrl/rgrl_trans_homo2d_proj_rad.cxx
+@@ -59,9 +59,7 @@ map_loc( vnl_vector<double> const& from,
+   // use vnl_double_2 to reduce memory allocation
+   vnl_double_2 pt = from;
+   vnl_double_2 mapped;
+-
+-  rgrl_est_proj_rad_func<2,2>::map_loc( mapped, H_, rad_k_, from );
+-
++  rgrl_est_proj_rad_func<2,2>::map_loc( mapped, H_, rad_k_, pt );
+   to = mapped;
+ }
+ 

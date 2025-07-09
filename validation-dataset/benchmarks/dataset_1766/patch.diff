@@ -1,0 +1,31 @@
+From e53cdfcef43dc6c573c4e91db6671520a2c3238c Mon Sep 17 00:00:00 2001
+From: Andrew Mustun <andrew@qcad.org>
+Date: Thu, 18 Aug 2016 13:52:18 +0200
+Subject: [PATCH] avoid joining of consecutive arcs if resulting arc is larger
+ than half a circle
+
+---
+ src/core/math/RPolyline.cpp | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/src/core/math/RPolyline.cpp b/src/core/math/RPolyline.cpp
+index e52a964e0d..097a27754f 100644
+--- a/src/core/math/RPolyline.cpp
++++ b/src/core/math/RPolyline.cpp
+@@ -1627,8 +1627,15 @@ bool RPolyline::simplify(double angleTolerance) {
+         if (!arc.isNull()) {
+             // simplify consecutive arcs:
+             if (arc->getCenter().equalsFuzzy(center, 0.001) && RMath::fuzzyCompare(arc->getRadius(), radius, 0.001)) {
++                double a1 = arc->getStartAngle();
+                 arc->setStartAngle(arc->getCenter().getAngleTo(newPolyline.getEndPoint()));
+-                newPolyline.removeLastVertex();
++                if (arc->getSweep()<=M_PI) {
++                    newPolyline.removeLastVertex();
++                }
++                else {
++                    // reverse joining of consecutive arcs (arc would cover more than half a circle):
++                    arc->setStartAngle(a1);
++                }
+             }
+             newPolyline.appendVertex(arc->getStartPoint(), arc->getBulge());
+             angle = RMAXDOUBLE;

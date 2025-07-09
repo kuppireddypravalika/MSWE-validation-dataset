@@ -1,0 +1,35 @@
+From 156066d4753243143970aeb0b740f8f429e7916b Mon Sep 17 00:00:00 2001
+From: Shawn Rutledge <shawn.rutledge@qt.io>
+Date: Mon, 25 Mar 2019 15:18:16 +0100
+Subject: [PATCH] Restore rich Text creation speed
+
+634b59f187c8697f03a606cbacb5f0a69650ea7c caused a significant
+performance regression during layout of any Text item with RichText,
+by calling QQuickTextDocumentWithImageResources::setPageSize() with an
+accurate width in ensureDoc(); but ensureDoc() is called multiple
+times, and doesn't need to calculate actual layout.  The accurate
+width is needed (at least) when doing layout of HTML tables that
+contain percentage-based column widths.  For that purpose it's enough
+to set the correct "page" size in updateSize().
+
+Fixes: QTBUG-74638
+Task-number: QTBUG-72457
+Change-Id: I34ab085316018576eba64a67200c527bb64b9533
+Reviewed-by: Simon Hausmann <simon.hausmann@qt.io>
+---
+ src/quick/items/qquicktext.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/quick/items/qquicktext.cpp b/src/quick/items/qquicktext.cpp
+index 8b6f59497f2..97cc33b95fc 100644
+--- a/src/quick/items/qquicktext.cpp
++++ b/src/quick/items/qquicktext.cpp
+@@ -1247,7 +1247,7 @@ void QQuickTextPrivate::ensureDoc()
+     if (!extra.isAllocated() || !extra->doc) {
+         Q_Q(QQuickText);
+         extra.value().doc = new QQuickTextDocumentWithImageResources(q);
+-        extra->doc->setPageSize(QSizeF(q->width(), -1));
++        extra->doc->setPageSize(QSizeF(0, 0));
+         extra->doc->setDocumentMargin(0);
+         extra->doc->setBaseUrl(q->baseUrl());
+         qmlobject_connect(extra->doc, QQuickTextDocumentWithImageResources, SIGNAL(imagesLoaded()),

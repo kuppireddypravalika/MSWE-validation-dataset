@@ -1,0 +1,32 @@
+From a2356fbe4a655490db4724283929f7d9a4637483 Mon Sep 17 00:00:00 2001
+From: Liam Treacy <liam.treacy@gmail.com>
+Date: Mon, 21 Jan 2019 16:16:17 +0000
+Subject: [PATCH] Made the wxListBox::GetSelection method more efficient
+
+---
+ src/qt/listbox.cpp | 11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
+
+diff --git a/src/qt/listbox.cpp b/src/qt/listbox.cpp
+index de3a45cc2f25..51a1457c4972 100644
+--- a/src/qt/listbox.cpp
++++ b/src/qt/listbox.cpp
+@@ -207,15 +207,10 @@ int wxListBox::GetSelection() const
+         return wxNOT_FOUND;
+     }
+ 
+-    for ( unsigned int i = 0; i < GetCount(); ++i)
+-    {
+-        if( m_qtListWidget->item(i) == m_qtListWidget->selectedItems().first() )
+-        {
+-            return i;
+-        }
+-    }
+ 
+-    return wxNOT_FOUND;
++    QListWidgetItem* item = m_qtListWidget->selectedItems().first();
++
++    return m_qtListWidget->row(item);
+ }
+ 
+ void wxListBox::DoSetFirstItem(int WXUNUSED(n))

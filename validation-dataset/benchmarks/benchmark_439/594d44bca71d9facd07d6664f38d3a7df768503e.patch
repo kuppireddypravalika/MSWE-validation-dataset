@@ -1,0 +1,22 @@
+From 594d44bca71d9facd07d6664f38d3a7df768503e Mon Sep 17 00:00:00 2001
+From: kmp5VT <kmp5@vt.edu>
+Date: Wed, 13 Apr 2022 13:20:46 -0400
+Subject: [PATCH] Use lsolve instead of full solve
+
+---
+ src/TiledArray/cp/cp.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/TiledArray/cp/cp.h b/src/TiledArray/cp/cp.h
+index 2417f6d6e1..98f4c09b3d 100644
+--- a/src/TiledArray/cp/cp.h
++++ b/src/TiledArray/cp/cp.h
+@@ -114,7 +114,7 @@ class CP {
+   /// \param[in] W The grammian matrixed used to determine LS solution.
+   void cholesky_inverse(TiledArray::DistArray<Tile, Policy> & MtKRP,
+                         const TiledArray::DistArray<Tile, Policy> & W){
+-    MtKRP = TiledArray::math::linalg::cholesky_solve(W, MtKRP);
++    MtKRP = TiledArray::math::linalg::cholesky_lsolve(W, MtKRP);
+   }
+ 
+   /// Technically the Least squares problem requires doing a pseudoinverse

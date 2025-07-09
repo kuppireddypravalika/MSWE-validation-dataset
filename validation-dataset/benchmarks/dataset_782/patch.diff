@@ -1,0 +1,22 @@
+From 5abc0ebd0cc57e244da1193a508364fed7e4c6ac Mon Sep 17 00:00:00 2001
+From: Martin Suda <sudam@cs.man.ac.uk>
+Date: Sat, 30 Apr 2016 21:23:24 +0200
+Subject: [PATCH] making fmb more efficient
+
+---
+ FMB/FiniteModelBuilder.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/FMB/FiniteModelBuilder.cpp b/FMB/FiniteModelBuilder.cpp
+index b8896b9f5b..8dc47b187d 100644
+--- a/FMB/FiniteModelBuilder.cpp
++++ b/FMB/FiniteModelBuilder.cpp
+@@ -1351,7 +1351,7 @@ SATLiteral FiniteModelBuilder::getSATLiteral(unsigned f, const DArray<unsigned>&
+   //for(unsigned i=0;i<grounding.size();i++) cout <<  grounding[i] << " "; 
+   //cout << endl;
+ 
+-  DArray<unsigned> signature = isFunction ? 
++  DArray<unsigned>& signature = isFunction ?
+              _sortedSignature->functionSignatures[f] : 
+              _sortedSignature->predicateSignatures[f];
+ 

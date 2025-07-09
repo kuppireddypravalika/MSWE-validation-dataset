@@ -1,0 +1,46 @@
+From cb7ab2eb9b3a669c72f29dabba4f5f60234a1ac7 Mon Sep 17 00:00:00 2001
+From: Ryan Tandy <rtandy@sd63.bc.ca>
+Date: Thu, 26 Feb 2015 19:36:52 +0000
+Subject: [PATCH] discard output from slaves when not in debug mode
+
+The demo slave generates some output via rfbLog. If no one reads the
+output channel, eventually the buffer fills and write() blocks, causing
+the demo server to hang. This fixes that by sending slave output to
+/dev/null when not forwarding it.
+---
+ lib/src/Ipc/QtSlaveLauncher.cpp | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/lib/src/Ipc/QtSlaveLauncher.cpp b/lib/src/Ipc/QtSlaveLauncher.cpp
+index 9010c69bb..f32a11d92 100644
+--- a/lib/src/Ipc/QtSlaveLauncher.cpp
++++ b/lib/src/Ipc/QtSlaveLauncher.cpp
+@@ -36,6 +36,9 @@
+ 
+ #ifdef ITALC_BUILD_WIN32
+ #include <windows.h>
++#define DEV_NULL "NUL"
++#else
++#define DEV_NULL "/dev/null"
+ #endif
+ 
+ namespace Ipc
+@@ -64,11 +67,17 @@ void QtSlaveLauncher::start( const QStringList &arguments )
+ 	m_processMutex.lock();
+ 	m_process = new QProcess;
+ 
+-	// forward stdout from slave to master when in debug mode
+ 	if( ItalcCore::config->logLevel() >= Logger::LogLevelDebug )
+ 	{
++		// forward stdout from slave to master when in debug mode
+ 		m_process->setProcessChannelMode( QProcess::ForwardedChannels );
+ 	}
++	else
++	{
++		// discard output when not in debug mode
++		m_process->setStandardOutputFile( DEV_NULL );
++		m_process->setStandardErrorFile( DEV_NULL );
++	}
+ 
+ #ifndef DEBUG
+ 	m_process->start( applicationFilePath(), arguments );

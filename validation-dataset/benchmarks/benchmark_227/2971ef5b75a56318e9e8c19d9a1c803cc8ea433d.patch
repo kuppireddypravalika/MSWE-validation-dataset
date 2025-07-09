@@ -1,0 +1,31 @@
+From 2971ef5b75a56318e9e8c19d9a1c803cc8ea433d Mon Sep 17 00:00:00 2001
+From: Philippe Canal <pcanal@fnal.gov>
+Date: Tue, 15 Apr 2014 07:43:18 -0500
+Subject: [PATCH] Avoid unnecessary call to TClass::GetClass in CanSplit
+
+---
+ core/meta/src/TClass.cxx | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/core/meta/src/TClass.cxx b/core/meta/src/TClass.cxx
+index b7e0b7910ef03..21fc6f6e5003f 100644
+--- a/core/meta/src/TClass.cxx
++++ b/core/meta/src/TClass.cxx
+@@ -2059,6 +2059,8 @@ Bool_t TClass::CanSplit() const
+          return kFALSE;
+       }
+ 
++      return kTRUE;
++
+    } else if ((GetShowMembersWrapper()==0 && fClassInfo==0) && GetStreamer()!=0) {
+ 
+       // We do NOT have a collection.  The class is true opaque.
+@@ -2075,7 +2077,7 @@ Bool_t TClass::CanSplit() const
+    TIter nextb(ncThis->GetListOfBases());
+    TBaseClass *base;
+    while((base = (TBaseClass*)nextb())) {
+-      if (!TClass::GetClass(base->GetName())) return kFALSE;
++      if (!base->GetClassPointer()) return kFALSE;
+    }
+ 
+    return kTRUE;

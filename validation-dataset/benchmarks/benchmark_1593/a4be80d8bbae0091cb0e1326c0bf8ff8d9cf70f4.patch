@@ -1,0 +1,38 @@
+From a4be80d8bbae0091cb0e1326c0bf8ff8d9cf70f4 Mon Sep 17 00:00:00 2001
+From: David Gobbi <david.gobbi@gmail.com>
+Date: Sat, 13 Jul 2002 16:40:45 -0400
+Subject: [PATCH] ENH: more efficient way of working around IEEE
+ round-to-nearest,even mode in iX86 Floor() macro, courtesy Christopher Volpe
+
+---
+ Rendering/vtkVolumeRayCastMapper.h | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/Rendering/vtkVolumeRayCastMapper.h b/Rendering/vtkVolumeRayCastMapper.h
+index 9807b657632..206f7d7f6f3 100644
+--- a/Rendering/vtkVolumeRayCastMapper.h
++++ b/Rendering/vtkVolumeRayCastMapper.h
+@@ -48,15 +48,15 @@ class vtkTransform;
+ inline int vtkFloorFuncMacro(double x)
+ {
+ #if defined i386 || defined _M_IX86
+-  // use limited precision of double to get FPU to do rounding
+-  //  to the nearest int, the '- 0.5' converts round() to floor()
+   double tempval;
+-  int result;
+-  tempval = (x - 0.5) + 6755399441055744.0; // (2**52)*1.5
+-  result = ((int *)&tempval)[0];
+-  // compensate for IEEE 'round-to-nearest,even' rounding mode
+-  result += (x - result == 1.0); // if off by 1.0, then add 1
+-  return result;
++  // use 52-bit precision of IEEE double to round (x - 0.25) to 
++  // the nearest multiple of 0.5, according to prevailing rounding
++  // mode which is IEEE round-to-nearest,even
++  tempval = (x - 0.25) + 3377699720527872.0; // (2**51)*1.5
++  // extract mantissa, use shift to divide by 2 and hence get rid
++  // of the bit that gets messed up because the FPU uses
++  // round-to-nearest,even mode instead of round-to-nearest,+infinity
++  return ((int*)&tempval)[0] >> 1;
+ #else
+   // quick-and-dirty, assumes x >= 0
+   return (int)(x);

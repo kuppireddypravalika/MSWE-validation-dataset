@@ -1,0 +1,23 @@
+From df6cfa0488c4277d904a621465e5952929afc93a Mon Sep 17 00:00:00 2001
+From: Graham Vincent <grv@users.sourceforge.net>
+Date: Tue, 6 May 2003 09:17:10 -0400
+Subject: [PATCH] replaced calls to vnl_vector::resize() with
+ vnl_vector::set_size()
+
+---
+ contrib/mul/vimt3d/vimt3d_sample_profile_trilin.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/contrib/mul/vimt3d/vimt3d_sample_profile_trilin.h b/contrib/mul/vimt3d/vimt3d_sample_profile_trilin.h
+index be98e726b30..cf5250b83df 100644
+--- a/contrib/mul/vimt3d/vimt3d_sample_profile_trilin.h
++++ b/contrib/mul/vimt3d/vimt3d_sample_profile_trilin.h
+@@ -24,7 +24,7 @@ void vimt3d_sample_profile_trilin(vnl_vector<vecType>& vec,
+   vgl_point_3d<double> im_p0 = image.world2im()(p0);
+   vgl_point_3d<double> im_p1 = image.world2im()(p0+u);
+   int np = image.image().nplanes();
+-  vec.resize(n*np);
++  vec.set_size(n*np);
+   vecType *v = vec.data_block();
+ 
+   // Can do all work in image co-ordinates under an affine transformation

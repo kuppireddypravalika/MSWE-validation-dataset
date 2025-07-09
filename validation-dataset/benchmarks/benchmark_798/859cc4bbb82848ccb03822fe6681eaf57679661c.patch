@@ -1,0 +1,23 @@
+From 859cc4bbb82848ccb03822fe6681eaf57679661c Mon Sep 17 00:00:00 2001
+From: Tobias Grosser <grosser@fim.uni-passau.de>
+Date: Wed, 15 Feb 2012 09:58:42 +0000
+Subject: [PATCH] ScheduleOpt: Only get RAW dependences if we asked for raw
+
+---
+ polly/lib/ScheduleOptimizer.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/polly/lib/ScheduleOptimizer.cpp b/polly/lib/ScheduleOptimizer.cpp
+index c9e7e746976e..7f0f731ddd4d 100644
+--- a/polly/lib/ScheduleOptimizer.cpp
++++ b/polly/lib/ScheduleOptimizer.cpp
+@@ -431,8 +431,7 @@ bool IslScheduleOptimizer::runOnScop(Scop &S) {
+     ProximityKinds = Dependences::TYPE_RAW | Dependences::TYPE_WAR
+                      | Dependences::TYPE_WAW;
+   else if (OptimizeDeps == "raw")
+-    ProximityKinds = Dependences::TYPE_RAW | Dependences::TYPE_WAR
+-                     | Dependences::TYPE_WAW;
++    ProximityKinds = Dependences::TYPE_RAW;
+   else {
+     errs() << "Do not know how to optimize for '" << OptimizeDeps << "'"
+         << " Falling back to optimizing all dependences.\n";

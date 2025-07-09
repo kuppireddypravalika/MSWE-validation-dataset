@@ -1,0 +1,23 @@
+From 60f3355636ade0ed4eb56b39f05c8148a5d68fcd Mon Sep 17 00:00:00 2001
+From: eric schkufza <eric.schkufza@gmail.com>
+Date: Sat, 9 Nov 2019 18:02:36 -0800
+Subject: [PATCH] Removed unnecessary recursive descent from Sync
+
+Signed-off-by: eric schkufza <eric.schkufza@gmail.com>
+---
+ src/target/core/avmm/avmm_logic.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/target/core/avmm/avmm_logic.h b/src/target/core/avmm/avmm_logic.h
+index 24836088..57bf27b0 100644
+--- a/src/target/core/avmm/avmm_logic.h
++++ b/src/target/core/avmm/avmm_logic.h
+@@ -584,7 +584,7 @@ inline AvmmLogic<T>::Sync::Sync(AvmmLogic* de) : Visitor() {
+ 
+ template <typename T>
+ inline void AvmmLogic<T>::Sync::visit(const Identifier* id) {
+-  Visitor::visit(id);
++  id->accept_dim(this);
+   const auto* r = Resolve().get_resolution(id);
+   assert(r != nullptr);
+   assert(de_->table_.find(r) != de_->table_.end());

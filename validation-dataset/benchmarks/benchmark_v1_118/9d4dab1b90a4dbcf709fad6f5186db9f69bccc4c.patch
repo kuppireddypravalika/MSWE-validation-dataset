@@ -1,0 +1,32 @@
+From 9d4dab1b90a4dbcf709fad6f5186db9f69bccc4c Mon Sep 17 00:00:00 2001
+From: Arushi Aggarwal <aggarwa4@illinois.edu>
+Date: Wed, 25 May 2011 23:00:59 +0000
+Subject: [PATCH] This should be a safe optimization for calls to declared
+ functions too.
+
+git-svn-id: https://llvm.org/svn/llvm-project/poolalloc/trunk@132095 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/AssistDS/ArgCast.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/lib/AssistDS/ArgCast.cpp b/lib/AssistDS/ArgCast.cpp
+index 014d164a..b1e1bfc3 100644
+--- a/lib/AssistDS/ArgCast.cpp
++++ b/lib/AssistDS/ArgCast.cpp
+@@ -53,7 +53,7 @@ bool ArgCast::runOnModule(Module& M) {
+ 
+   std::vector<CallInst*> worklist;
+   for (Module::iterator I = M.begin(); I != M.end(); ++I) {
+-    if (I->isDeclaration() || I->mayBeOverridden())
++    if (I->mayBeOverridden())
+       continue;
+     // Find all uses of this function
+     for(Value::use_iterator ui = I->use_begin(), ue = I->use_end(); ui != ue; ) {
+@@ -75,6 +75,7 @@ bool ArgCast::runOnModule(Module& M) {
+       // casting to a varargs funtion
+       // or function with same number of arguments
+       // possibly varying types of arguments
++      
+       if(FTy->getNumParams() != I->arg_size() && !FTy->isVarArg())
+         continue;
+       for(Value::use_iterator uii = CE->use_begin(),

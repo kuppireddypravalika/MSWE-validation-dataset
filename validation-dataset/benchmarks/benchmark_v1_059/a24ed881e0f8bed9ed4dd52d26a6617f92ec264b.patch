@@ -1,0 +1,24 @@
+From a24ed881e0f8bed9ed4dd52d26a6617f92ec264b Mon Sep 17 00:00:00 2001
+From: "bernard.parisse" <bernard.parisse@23ce0884-8a58-47d3-bc5c-ddf1cd5b9f9e>
+Date: Sat, 30 Mar 2024 08:14:39 +0000
+Subject: [PATCH] [giac] optimize pair selection using coeffs degree in
+ Buchberger algorithm (forgot to enable...)
+
+git-svn-id: https://dev.geogebra.org/svn/trunk/geogebra/giac@70270 23ce0884-8a58-47d3-bc5c-ddf1cd5b9f9e
+---
+ src/giac/cpp/cocoa.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/giac/cpp/cocoa.cc b/src/giac/cpp/cocoa.cc
+index 205fcaa8..20240866 100644
+--- a/src/giac/cpp/cocoa.cc
++++ b/src/giac/cpp/cocoa.cc
+@@ -14412,7 +14412,7 @@ Let {f1, ..., fr} be a set of polynomials. The Gebauer-Moller Criteria are as fo
+ 	zpolymod<tdeg_t,modint_t> TMP;
+ 	paire bk;
+         if (coeffsmodptr){
+-#if 0
++#if 1
+           // find smallest coeffs degree sum
+           int sumdegpos=0; double sumdeg=sumdegcoeffs2<tdeg_t,modint_t>(coeffsmodptr,order,B[smallposv.front()]);
+           for (int i=1;i<smallposv.size();++i){

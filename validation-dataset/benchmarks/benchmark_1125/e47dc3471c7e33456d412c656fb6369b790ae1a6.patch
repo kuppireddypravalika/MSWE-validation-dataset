@@ -1,0 +1,37 @@
+From e47dc3471c7e33456d412c656fb6369b790ae1a6 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Fri, 4 Jul 2014 16:22:25 +0200
+Subject: [PATCH] Do not load the lib for a class if its dictionary is
+ available.
+
+Thsi prevents AutoLoad() of libraries that are statically linked.
+---
+ core/meta/src/TCling.cxx | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/core/meta/src/TCling.cxx b/core/meta/src/TCling.cxx
+index 27d42b4b2bca4..58656fca9165f 100644
+--- a/core/meta/src/TCling.cxx
++++ b/core/meta/src/TCling.cxx
+@@ -4426,6 +4426,12 @@ Int_t TCling::AutoLoad(const char* cls)
+ {
+    // Load library containing the specified class. Returns 0 in case of error
+    // and 1 in case if success.
++
++   if (gClassTable->GetDict(cls)) {
++      // The library is alreday loaded as the class's dictionary is known.
++      return 0;
++   }
++
+    if (gDebug > 2) {
+       Info("TCling::AutoLoad",
+            "Trying to autoload for %s", cls);
+@@ -4435,7 +4441,7 @@ Int_t TCling::AutoLoad(const char* cls)
+    if (!gROOT || !gInterpreter || gROOT->TestBit(TObject::kInvalidObject)) {
+       return status;
+    }
+-   if (fClingCallbacks && !fClingCallbacks->IsAutoloadingEnabled ()) {
++   if (fClingCallbacks && !fClingCallbacks->IsAutoloadingEnabled()) {
+       return 0;
+    }
+    // Prevent the recursion when the library dictionary are loaded.

@@ -1,0 +1,47 @@
+From 160b5ac05c10fbeb414618ab934b899f984d4b87 Mon Sep 17 00:00:00 2001
+From: Julian Wang <zlwang@ca.ibm.com>
+Date: Wed, 17 May 2017 14:51:34 -0400
+Subject: [PATCH] Disable markAncestors
+
+in RedundantAsyncCheckRemoval.cpp, that is.
+
+It is found out that 100s of asyncCheck are inserted hurting the performance.
+The motivation to disable this outright was explained in https://github.com/eclipse/omr/pull/1138.
+
+Signed-off-by: Julian Wang <zlwang@ca.ibm.com>
+---
+ compiler/optimizer/RedundantAsyncCheckRemoval.cpp | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/compiler/optimizer/RedundantAsyncCheckRemoval.cpp b/compiler/optimizer/RedundantAsyncCheckRemoval.cpp
+index 8dc778eea4..cec01646ed 100644
+--- a/compiler/optimizer/RedundantAsyncCheckRemoval.cpp
++++ b/compiler/optimizer/RedundantAsyncCheckRemoval.cpp
+@@ -1310,6 +1310,8 @@ void TR_RedundantAsyncCheckRemoval::getNearestAncestors(TR_StructureSubGraphNode
+ 
+ void TR_RedundantAsyncCheckRemoval::markAncestors(TR_StructureSubGraphNode *node, TR_StructureSubGraphNode *entry)
+    {
++   return;  // Disable it for performance. For more details, refer to https://github.com/eclipse/omr/pull/1138
++
+    if (node == entry)
+       return;
+ 
+@@ -1318,6 +1320,8 @@ void TR_RedundantAsyncCheckRemoval::markAncestors(TR_StructureSubGraphNode *node
+ 
+    node->setVisitCount(comp()->getVisitCount());
+ 
++   if (trace())
++      traceMsg(comp(),"<===markAncestors start=== ssg node: %d, ssg entry: %d\n", node->getNumber(), entry->getNumber());
+ 
+    for (auto edge = node->getPredecessors().begin(); edge != node->getPredecessors().end(); ++edge)
+       {
+@@ -1356,6 +1360,9 @@ void TR_RedundantAsyncCheckRemoval::markAncestors(TR_StructureSubGraphNode *node
+ 	    }
+          }
+ 
++      if (trace())
++         traceMsg(comp(),"<===markAncestors recursion=== ssg pred: %d, ssg entry: %d\n", pred->getNumber(), entry->getNumber());
++
+       markAncestors(pred, entry);
+       }
+ 

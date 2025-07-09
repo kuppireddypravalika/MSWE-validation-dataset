@@ -1,0 +1,31 @@
+From aa66812d461a6fda88307d8e018a1f6a22f089be Mon Sep 17 00:00:00 2001
+From: Frank Warmerdam <warmerdam@pobox.com>
+Date: Tue, 28 Jun 2011 13:36:05 +0000
+Subject: [PATCH] decrement cacheused by block nDataFilled
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@22599 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/port/cpl_vsil_cache.cpp | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/gdal/port/cpl_vsil_cache.cpp b/gdal/port/cpl_vsil_cache.cpp
+index 0051887e393c..445a67f3696a 100644
+--- a/gdal/port/cpl_vsil_cache.cpp
++++ b/gdal/port/cpl_vsil_cache.cpp
+@@ -193,12 +193,11 @@ void VSICachedFile::FlushLRU()
+ {
+     CPLAssert( poLRUStart != NULL );
+ 
+-    if (nCacheUsed >= CHUNK_SIZE)
+-        nCacheUsed -= CHUNK_SIZE;
+-    else
+-        nCacheUsed = 0;
+-    
+     VSICacheChunk *poBlock = poLRUStart;
++
++    CPLAssert( nCacheUsed >= poBlock->nDataFilled );
++
++    nCacheUsed -= poBlock->nDataFilled;
+     
+     poLRUStart = poBlock->poLRUNext;
+     if( poLRUEnd == poBlock )

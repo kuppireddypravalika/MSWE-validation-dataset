@@ -1,0 +1,30 @@
+From bc7129f9dbc6651407134e80a4202adc2ef2511c Mon Sep 17 00:00:00 2001
+From: Dan Gohman <gohman@apple.com>
+Date: Sun, 11 Apr 2010 22:12:18 +0000
+Subject: [PATCH] When creating a ConstantRange for [n,UINT_MAX], special case
+ n == 0, because ConstantRange(0, 0) creates an empty range rather than a full
+ one.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@100993 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Analysis/ScalarEvolution.cpp | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/lib/Analysis/ScalarEvolution.cpp b/lib/Analysis/ScalarEvolution.cpp
+index c67cb71b303..44aa5082b1c 100644
+--- a/lib/Analysis/ScalarEvolution.cpp
++++ b/lib/Analysis/ScalarEvolution.cpp
+@@ -2920,9 +2920,10 @@ ScalarEvolution::getUnsignedRange(const SCEV *S) {
+     // initial value.
+     if (AddRec->hasNoUnsignedWrap())
+       if (const SCEVConstant *C = dyn_cast<SCEVConstant>(AddRec->getStart()))
+-        ConservativeResult =
+-          ConstantRange(C->getValue()->getValue(),
+-                        APInt(getTypeSizeInBits(C->getType()), 0));
++        if (!C->isZero())
++          ConservativeResult =
++            ConstantRange(C->getValue()->getValue(),
++                          APInt(getTypeSizeInBits(C->getType()), 0));
+ 
+     // TODO: non-affine addrec
+     if (AddRec->isAffine()) {

@@ -1,0 +1,30 @@
+From 37e2548aec63d8b011115cd042a33ba02266ccb5 Mon Sep 17 00:00:00 2001
+From: ElisaBortoli <elisa.bortoli3@gmail.com>
+Date: Fri, 16 Nov 2018 11:42:57 +0100
+Subject: [PATCH] using the new pow_2(a) in vegetation.cc
+
+---
+ src/geotop/vegetation.cc | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/geotop/vegetation.cc b/src/geotop/vegetation.cc
+index ee899a43b..992d88256 100644
+--- a/src/geotop/vegetation.cc
++++ b/src/geotop/vegetation.cc
+@@ -27,6 +27,7 @@
+ #include "meteo.h"
+ #include "turbulence.h"
+ #include "radiation.h"
++#include "math.optim.h"
+ 
+ extern T_INIT *UV;
+ extern const char *WORKING_DIRECTORY;
+@@ -461,7 +462,7 @@ void shortwave_vegetation(double Sd, double Sb, double x, double fwsn,
+   d=xm*K*wBb;
+   f=w*xm*K*(1.0-wBb/w);
+   h=pow(b*b-c*c,0.5)/xm;
+-  s=pow(xm*K,2.0)+c*c-b*b;
++  s=pow_2(xm*K)+c*c-b*b;
+   u1=b-c/Agd;
+   u2=b-c*Agd;
+   u3=f+c*Agd;

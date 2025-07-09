@@ -1,0 +1,33 @@
+From 9cf9f4235d524268ef73e89b546765d0c8f2e489 Mon Sep 17 00:00:00 2001
+From: Jeffrey Walton <noloader@gmail.com>
+Date: Sat, 6 May 2017 20:14:26 -0400
+Subject: [PATCH] Add timing attack countermeasures to Kalyna (Issue 411) The
+ code at check-in a5c67cfdd6ad7eeb did not include it. Unlike Threefish, it
+ looks like Kalyna could benefit from the cache hardening given how similar
+ Kalyna is to AES. The hardening costs less than 0.1 cpb, which equates to
+ about 199 MB/s vs 201 MB/s on a 6th gen Skylake
+
+---
+ kalyna.cpp | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/kalyna.cpp b/kalyna.cpp
+index ad0ccd417..98de35c90 100644
+--- a/kalyna.cpp
++++ b/kalyna.cpp
+@@ -1227,6 +1227,15 @@ void Kalyna::Base::UncheckedSetKey(const byte *key, unsigned int keylen, const N
+ 
+ void Kalyna::Base::ProcessAndXorBlock(const byte *inBlock, const byte *xorBlock, byte *outBlock) const
+ {
++	// Timing attack countermeasure. see comments in Rijndael for more details
++	const int cacheLineSize = GetCacheLineSize();
++	volatile word32 _u = 0;
++	word32 u = _u;
++
++	for (unsigned int i=0; i<COUNTOF(KalynaTab::S); i+=cacheLineSize)
++		u &= *reinterpret_cast<const word32*>(KalynaTab::S+i);
++	m_wspace[0] = u;
++
+     switch ((m_nb << 8) | m_nk)
+     {
+     case (2 << 8) | 2:

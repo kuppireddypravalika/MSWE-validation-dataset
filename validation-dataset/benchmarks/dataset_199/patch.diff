@@ -1,0 +1,24 @@
+From bcb8852c9970dc03f216d1efa4a31f65ccefde3c Mon Sep 17 00:00:00 2001
+From: Matthew Dailey <dailey.matthew@gmail.com>
+Date: Sun, 29 Oct 2017 16:52:38 +0700
+Subject: [PATCH] Use fabsf instead of fabs for floats
+
+---
+ src/drivers/vmount/vmount.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/drivers/vmount/vmount.cpp b/src/drivers/vmount/vmount.cpp
+index ab82b8490a9c..87b299c2560f 100644
+--- a/src/drivers/vmount/vmount.cpp
++++ b/src/drivers/vmount/vmount.cpp
+@@ -107,8 +107,8 @@ struct Parameters {
+ 		       mnt_mode_out != p.mnt_mode_out ||
+ 		       mnt_mav_sysid != p.mnt_mav_sysid ||
+ 		       mnt_mav_compid != p.mnt_mav_compid ||
+-		       fabs(mnt_ob_lock_mode - p.mnt_ob_lock_mode) > 1e-6 ||
+-		       fabs(mnt_ob_norm_mode - p.mnt_ob_norm_mode) > 1e-6 ||
++		       fabsf(mnt_ob_lock_mode - p.mnt_ob_lock_mode) > 1e-6f ||
++		       fabsf(mnt_ob_norm_mode - p.mnt_ob_norm_mode) > 1e-6f ||
+ 		       mnt_man_pitch != p.mnt_man_pitch ||
+ 		       mnt_man_roll != p.mnt_man_roll ||
+ 		       mnt_man_yaw != p.mnt_man_yaw ||

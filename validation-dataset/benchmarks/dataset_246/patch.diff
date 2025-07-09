@@ -1,0 +1,34 @@
+From feb6b48b5a541b294da4789365971e62dc22c14e Mon Sep 17 00:00:00 2001
+From: NotCompsky <adammarkgray@gmail.com>
+Date: Sat, 1 Aug 2020 14:53:27 +0100
+Subject: [PATCH] Performance		Replace WHERE IN with JOIN
+
+---
+ wangle-server/src/server.cpp | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/wangle-server/src/server.cpp b/wangle-server/src/server.cpp
+index 53d418cf..49bfd2e3 100644
+--- a/wangle-server/src/server.cpp
++++ b/wangle-server/src/server.cpp
+@@ -983,7 +983,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const std::string_view,  co
+ 		this->mysql_query_after_itr(
+ 			"SELECT d.id, d.full_path, d.device "
+ 			"FROM dir d "
+-			"WHERE d.id IN("
++			"JOIN("
+ 				"SELECT dir "
+ 				"FROM file "
+ 				"WHERE id=", id, " "
+@@ -991,8 +991,9 @@ class RTaggerHandler : public wangle::HandlerAdapter<const std::string_view,  co
+ 				"SELECT dir "
+ 				"FROM file_backup "
+ 				"WHERE file=", id,
+-			")"
+-			  "AND d.id NOT IN" USER_DISALLOWED_DIRS(user_id)
++			")A ON A.dir=d.id "
++			"LEFT JOIN" USER_DISALLOWED_DIRS(user_id) "B ON B.id=d.id "
++			"WHERE B.id IS NULL"
+ 		);
+ 		this->init_json_rows(
+ 			this->itr,

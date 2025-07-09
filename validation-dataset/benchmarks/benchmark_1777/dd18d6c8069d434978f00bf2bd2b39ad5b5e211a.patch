@@ -1,0 +1,44 @@
+From dd18d6c8069d434978f00bf2bd2b39ad5b5e211a Mon Sep 17 00:00:00 2001
+From: James Yonan <james@openvpn.net>
+Date: Mon, 29 Apr 2019 15:24:48 -0600
+Subject: [PATCH] crypto::str_neq: use
+ atomic_thread_fence(std::memory_order_acq_rel) instead of
+ OPENVPN_COMPILER_FENCE
+
+Signed-off-by: James Yonan <james@openvpn.net>
+---
+ openvpn/common/strneq.hpp | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/openvpn/common/strneq.hpp b/openvpn/common/strneq.hpp
+index 36de3557b..7c1042ae5 100644
+--- a/openvpn/common/strneq.hpp
++++ b/openvpn/common/strneq.hpp
+@@ -20,8 +20,7 @@
+ //    If not, see <http://www.gnu.org/licenses/>.
+ 
+ #include <string>
+-
+-#include <openvpn/common/memneq.hpp> // for OPENVPN_COMPILER_FENCE
++#include <atomic>
+ 
+ namespace openvpn {
+   namespace crypto {
+@@ -47,14 +46,14 @@ namespace openvpn {
+ 	    break;
+ 	  i++;
+ 
+-	  OPENVPN_COMPILER_FENCE
++	  atomic_thread_fence(std::memory_order_acq_rel);
+ 	  if (s2[j] != '\0')
+ 	    j++;
+-	  OPENVPN_COMPILER_FENCE
++	  atomic_thread_fence(std::memory_order_acq_rel);
+ 	  if (s2[j] == '\0')
+ 	    k++;
+ 	}
+-      OPENVPN_COMPILER_FENCE
++      atomic_thread_fence(std::memory_order_acq_rel);
+       return bool(neq);
+     }
+ 

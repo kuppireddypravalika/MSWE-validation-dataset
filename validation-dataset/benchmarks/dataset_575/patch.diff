@@ -1,0 +1,41 @@
+From 53d7c8c5e6abdef04020d52d01ede7bf3e65fe86 Mon Sep 17 00:00:00 2001
+From: Vic Lee <llyzs@163.com>
+Date: Tue, 9 Feb 2010 22:05:13 +0800
+Subject: [PATCH] Avoid 100% CPU usage when calling ReadFromRFBServer and no
+ available bytes to read
+
+Signed-off-by: Vic Lee <llyzs@163.com>
+Signed-off-by: Christian Beier <dontmind@freeshell.org>
+(cherry picked from commit 6803bfe9d5b9f52215c2aecc25cd9ab9a22c07e3)
+---
+ ica/x11/libvncclient/sockets.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/ica/x11/libvncclient/sockets.c b/ica/x11/libvncclient/sockets.c
+index e9a4b5338..a4caaa5a6 100644
+--- a/ica/x11/libvncclient/sockets.c
++++ b/ica/x11/libvncclient/sockets.c
+@@ -150,6 +150,11 @@ ReadFromRFBServer(rfbClient* client, char *out, unsigned int n)
+ 	  errno=WSAGetLastError();
+ #endif
+ 	  if (errno == EWOULDBLOCK || errno == EAGAIN) {
++#ifndef WIN32
++        usleep (10000);
++#else
++	 Sleep (10);
++#endif
+ 	    /* TODO:
+ 	       ProcessXtEvents();
+ 	    */
+@@ -191,6 +196,11 @@ ReadFromRFBServer(rfbClient* client, char *out, unsigned int n)
+ 	  errno=WSAGetLastError();
+ #endif
+ 	  if (errno == EWOULDBLOCK || errno == EAGAIN) {
++#ifndef WIN32
++        usleep (10000);
++#else
++	 Sleep (10);
++#endif
+ 	    /* TODO:
+ 	       ProcessXtEvents();
+ 	    */

@@ -1,0 +1,28 @@
+From 26aa13e7a9fa9444180dd06376652bf84599e274 Mon Sep 17 00:00:00 2001
+From: Ryan Houdek <Sonicadvance1@gmail.com>
+Date: Fri, 13 Mar 2020 17:52:26 -0700
+Subject: [PATCH] Replaces x86 rsqrtss usage with sqrtss+divss
+
+x86 documentation only claims 1.5 * 2^-12 precision on rsqrtss.
+Which was enough to make rsqrt of 1.0 be off by a significant amount
+This made unit tests fail, so let's just make it more accurate
+---
+ External/FEXCore/Source/Interface/Core/JIT/x86_64/JIT.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/External/FEXCore/Source/Interface/Core/JIT/x86_64/JIT.cpp b/External/FEXCore/Source/Interface/Core/JIT/x86_64/JIT.cpp
+index f06214db1e..1ce5e8ecaf 100644
+--- a/External/FEXCore/Source/Interface/Core/JIT/x86_64/JIT.cpp
++++ b/External/FEXCore/Source/Interface/Core/JIT/x86_64/JIT.cpp
+@@ -2393,7 +2393,10 @@ void *JITCore::CompileCode([[maybe_unused]] FEXCore::IR::IRListView<true> const
+             // Scalar
+             switch (Op->ElementSize) {
+               case 4: {
+-                vrsqrtss(GetDst(Node), GetSrc(Op->Header.Args[0].ID()), GetSrc(Op->Header.Args[0].ID()));
++                mov(eax, 0x3f800000); // 1.0f
++                sqrtss(xmm15, GetSrc(Op->Header.Args[0].ID()));
++                vmovd(GetDst(Node), eax);
++                divss(GetDst(Node), xmm15);
+               break;
+               }
+               default: LogMan::Msg::A("Unknown Element Size: %d", Op->ElementSize); break;

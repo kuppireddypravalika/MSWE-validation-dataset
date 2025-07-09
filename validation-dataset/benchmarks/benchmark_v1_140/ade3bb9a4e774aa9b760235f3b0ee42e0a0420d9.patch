@@ -1,0 +1,32 @@
+From ade3bb9a4e774aa9b760235f3b0ee42e0a0420d9 Mon Sep 17 00:00:00 2001
+From: ajithcj <achajo@yahoo.co.in>
+Date: Fri, 24 Jun 2016 17:10:25 +0000
+Subject: [PATCH] Use staticEval in null prune condition
+
+Don't null prune at depth < 12 if staticEval < beta
+
+STC:
+LLR: 2.96 (-2.94,2.94) [0.00,5.00]
+Total: 62858 W: 12035 L: 11632 D: 39191
+
+LTC:
+LLR: 2.95 (-2.94,2.94) [0.00,5.00]
+Total: 49784 W: 7009 L: 6720 D: 36055
+
+bench: 8054611
+---
+ src/search.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/search.cpp b/src/search.cpp
+index 064df0ca..97ab5918 100644
+--- a/src/search.cpp
++++ b/src/search.cpp
+@@ -731,6 +731,7 @@ namespace {
+     if (   !PvNode
+         &&  depth >= 2 * ONE_PLY
+         &&  eval >= beta
++        && (ss->staticEval >= beta || depth >= 12 * ONE_PLY)
+         &&  pos.non_pawn_material(pos.side_to_move()))
+     {
+         ss->currentMove = MOVE_NULL;

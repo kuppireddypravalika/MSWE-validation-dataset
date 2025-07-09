@@ -1,0 +1,41 @@
+From c5a53ecb243bf6134589d9755c4766bb765843fd Mon Sep 17 00:00:00 2001
+From: David Dawes <davidd@remitly.com>
+Date: Sat, 16 Jun 2018 15:45:01 -0700
+Subject: [PATCH] Use Windows specific __cpuid() for Windows.
+
+---
+ src/crypto/verus_hash.h | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/src/crypto/verus_hash.h b/src/crypto/verus_hash.h
+index 85f3c48308..e68b0b35ed 100644
+--- a/src/crypto/verus_hash.h
++++ b/src/crypto/verus_hash.h
+@@ -11,7 +11,9 @@ This provides the PoW hash function for Verus, enabling CPU mining.
+ #include <cstring>
+ #include <vector>
+ 
++#if !XERCES_HAVE_INTRIN_H
+ #include <cpuid.h>
++#endif
+ 
+ extern "C" 
+ {
+@@ -94,8 +96,16 @@ extern void verus_hash(void *result, const void *data, size_t len);
+ inline bool IsCPUVerusOptimized()
+ {
+     unsigned int eax,ebx,ecx,edx;
+-
++#ifdef _WIN32
++    int CPUInfo[4];
++    CPUInfo[0] = &eax;
++    CPUInfo[1] = &ebx;
++    CPUInfo[2] = &ecx;
++    CPUInfo[3] = &edx;
++    if (!__get_cpuid(CPUInfo, 1))
++#else
+     if (!__get_cpuid(1,&eax,&ebx,&ecx,&edx))
++#endif
+     {
+         return false;
+     }

@@ -1,0 +1,41 @@
+From c99b5a25bb7ea5ed14e242d16dbfd683dba68f4a Mon Sep 17 00:00:00 2001
+From: Chris Lattner <sabre@nondot.org>
+Date: Mon, 1 Mar 2010 02:33:14 +0000
+Subject: [PATCH] pull MarkFlagResult out from between an
+ EmitNode/CompleteMatch pair.  This encourages MorphNodeTo formation, this
+ gets us 200 more MorphNodeTo's on X86 and shrinks the table a bit.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@97434 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ utils/TableGen/DAGISelMatcherOpt.cpp | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/utils/TableGen/DAGISelMatcherOpt.cpp b/utils/TableGen/DAGISelMatcherOpt.cpp
+index f8dfe6d82c5..5fe21f67389 100644
+--- a/utils/TableGen/DAGISelMatcherOpt.cpp
++++ b/utils/TableGen/DAGISelMatcherOpt.cpp
+@@ -67,7 +67,23 @@ static void ContractNodes(OwningPtr<Matcher> &MatcherPtr,
+       return ContractNodes(MatcherPtr, CGP);
+     }
+ 
+-  // FIXME: Handle OPC_MarkFlagResults.
++  // Turn EmitNode->MarkFlagResults->CompleteMatch into
++  // MarkFlagResults->EmitNode->CompleteMatch when we can to encourage
++  // MorphNodeTo formation.  This is safe because MarkFlagResults never refers
++  // to the root of the pattern.
++  if (isa<EmitNodeMatcher>(N) && isa<MarkFlagResultsMatcher>(N->getNext()) &&
++      isa<CompleteMatchMatcher>(N->getNext()->getNext())) {
++    // Unlink the two nodes from the list.
++    Matcher *EmitNode = MatcherPtr.take();
++    Matcher *MFR = EmitNode->takeNext();
++    Matcher *Tail = MFR->takeNext();
++        
++    // Relink them.
++    MatcherPtr.reset(MFR);
++    MFR->setNext(EmitNode);
++    EmitNode->setNext(Tail);
++    return ContractNodes(MatcherPtr, CGP);
++  }
+ 
+   // Turn EmitNode->CompleteMatch into MorphNodeTo if we can.
+   if (EmitNodeMatcher *EN = dyn_cast<EmitNodeMatcher>(N))

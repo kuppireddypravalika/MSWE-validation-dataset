@@ -1,0 +1,23 @@
+From 1e907bc0e6ec3108cdff785880562a063b038092 Mon Sep 17 00:00:00 2001
+From: James Yonan <james@openvpn.net>
+Date: Tue, 8 Mar 2016 12:59:09 -0700
+Subject: [PATCH] In file_exists(), if filename is the empty string, return
+ false before calling stat().
+
+---
+ openvpn/common/stat.hpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/openvpn/common/stat.hpp b/openvpn/common/stat.hpp
+index 04b9d2f8f..6f65c518c 100644
+--- a/openvpn/common/stat.hpp
++++ b/openvpn/common/stat.hpp
+@@ -31,6 +31,8 @@ namespace openvpn {
+   // Return true if file exists
+   inline bool file_exists(const std::string& filename)
+   {
++    if (filename.empty())
++      return false;
+     struct stat buffer;   
+     return stat(filename.c_str(), &buffer) == 0; 
+   }

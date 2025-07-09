@@ -1,0 +1,24 @@
+From 02e7122d0eb923a2059454cdf8918279cd795de1 Mon Sep 17 00:00:00 2001
+From: Pilow <pierre.laupretre@gmail.com>
+Date: Tue, 11 Dec 2018 14:29:46 +0800
+Subject: [PATCH] [foreach] Remove use of must_manage_memory
+
+---
+ src/compiler/instruction/Foreach.cpp | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/src/compiler/instruction/Foreach.cpp b/src/compiler/instruction/Foreach.cpp
+index e3862488..8d2cba04 100644
+--- a/src/compiler/instruction/Foreach.cpp
++++ b/src/compiler/instruction/Foreach.cpp
+@@ -104,9 +104,7 @@ Compiler::value Foreach::compile(Compiler& c) const {
+ 	}
+ 
+ 	auto container_v = container->compile(c);
+-	if (container->type.must_manage_memory()) {
+-		c.insn_inc_refs(container_v);
+-	}
++	c.insn_inc_refs(container_v);
+ 	c.add_var("{array}", container_v);
+ 
+ 	// Create variables

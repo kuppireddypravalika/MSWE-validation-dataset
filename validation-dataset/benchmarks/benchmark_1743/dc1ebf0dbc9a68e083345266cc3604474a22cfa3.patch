@@ -1,0 +1,26 @@
+From dc1ebf0dbc9a68e083345266cc3604474a22cfa3 Mon Sep 17 00:00:00 2001
+From: Lyve <lyve2909+github@gmail.com>
+Date: Sat, 29 Jan 2022 00:53:43 +0100
+Subject: [PATCH] loop end check optimized on ARMv8
+
+---
+ source/dsp56kEmu/jitblock.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/source/dsp56kEmu/jitblock.cpp b/source/dsp56kEmu/jitblock.cpp
+index 43e55984..a1125418 100644
+--- a/source/dsp56kEmu/jitblock.cpp
++++ b/source/dsp56kEmu/jitblock.cpp
+@@ -244,8 +244,12 @@ namespace dsp56k
+ 			{
+ 				const auto& ss = temp;
+ 				m_dspRegs.getSS(ss);	// note: not calling getSSH as it will dec the SP
++#ifdef HAVE_ARM64
++				m_asm.ubfx(ss, ss, asmjit::Imm(24), asmjit::Imm(24));
++#else
+ 				m_asm.shr(ss, asmjit::Imm(24));
+ 				m_asm.and_(ss, asmjit::Imm(0xffffff));
++#endif
+ 				setNextPC(ss);
+ 			}
+ 			m_asm.jmp(skip);

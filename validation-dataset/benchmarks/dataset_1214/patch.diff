@@ -1,0 +1,36 @@
+From a04dfddd39f415b5d8fa17714fa2f435ff388d97 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@spatialys.com>
+Date: Sun, 21 Jul 2024 19:37:20 +0200
+Subject: [PATCH]  OGRGeometryCollection::addGeometryDirectly(): avoid int
+ overflow if adding to a already huge collection
+
+---
+ ogr/ogrgeometrycollection.cpp | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/ogr/ogrgeometrycollection.cpp b/ogr/ogrgeometrycollection.cpp
+index cd0ea336bad5..ab931a04f5eb 100644
+--- a/ogr/ogrgeometrycollection.cpp
++++ b/ogr/ogrgeometrycollection.cpp
+@@ -361,6 +361,21 @@ OGRErr OGRGeometryCollection::addGeometryDirectly(OGRGeometry *poNewGeom)
+     if (!isCompatibleSubType(poNewGeom->getGeometryType()))
+         return OGRERR_UNSUPPORTED_GEOMETRY_TYPE;
+ 
++#if SIZEOF_VOIDP < 8
++    if (nGeomCount == std::numeric_limits<int>::max() /
++                          static_cast<int>(sizeof(OGRGeometry *)))
++    {
++        CPLError(CE_Failure, CPLE_OutOfMemory, "Too many subgeometries");
++        return OGRERR_FAILURE;
++    }
++#else
++    if (nGeomCount == std::numeric_limits<int>::max())
++    {
++        CPLError(CE_Failure, CPLE_AppDefined, "Too many subgeometries");
++        return OGRERR_FAILURE;
++    }
++#endif
++
+     HomogenizeDimensionalityWith(poNewGeom);
+ 
+     OGRGeometry **papoNewGeoms = static_cast<OGRGeometry **>(

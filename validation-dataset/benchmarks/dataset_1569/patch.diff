@@ -1,0 +1,29 @@
+From e32b55bab2c69b8994cf1931b2b41bb153656130 Mon Sep 17 00:00:00 2001
+From: Fred Emmott <git@fredemmott.com>
+Date: Sun, 27 Nov 2022 12:42:54 -0600
+Subject: [PATCH] Don't check for pointctrl data if it's not used
+
+---
+ src/PointCtrlSource.cpp | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/src/PointCtrlSource.cpp b/src/PointCtrlSource.cpp
+index eae0f77..e33f7f4 100644
+--- a/src/PointCtrlSource.cpp
++++ b/src/PointCtrlSource.cpp
+@@ -56,6 +56,15 @@ void PointCtrlSource::ConnectDevice() {
+   if (mDevice) {
+     return;
+   }
++
++  // If we're not going to do anything with it, don't fetch the data.
++  if (
++    Config::PointerSource != PointerSource::PointCtrl
++    && !Config::PointCtrlFCUClicks) {
++    return;
++  }
++
++  // Don't check for device every frame
+   static std::chrono::steady_clock::time_point sLastCheck {};
+   const auto now = std::chrono::steady_clock::now();
+   if (now - sLastCheck < std::chrono::seconds(1)) {

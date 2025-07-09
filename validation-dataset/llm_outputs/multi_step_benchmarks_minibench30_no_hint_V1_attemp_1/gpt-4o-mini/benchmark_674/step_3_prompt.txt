@@ -1,0 +1,301 @@
+You are an expert C++ performance engineer. Optimize the provided code for high compute and resource performance while preserving behavior. The optimized function must keep the exact same signature as the hand-written implementation. If the original file contains explicit template instantiations, reproduce them unchanged at the end of the optimized file. This prompt may include compilation errors, runtime errors or timing data from the previous step. Use it to refine the code. If it is empty, produce an initial optimization based solely on the original source. When refining the code, explore potentially high-reward optimization paths that have not yet been tried and that could yield superior computational performance. Respond only with a JSON object using the keys "optimized_code" and "analysis". The "analysis" field should briefly explain the intent behind your modifications. Additional source files may be provided for context. Here are the files:
+
+// athena_array.hpp
+#pragma once
+#include <vector>
+
+constexpr int IDN=0;
+constexpr int IM1=1;
+constexpr int IM2=2;
+constexpr int IM3=3;
+constexpr int IEN=4;
+constexpr int IVX=5;
+constexpr int IVY=6;
+constexpr int IVZ=7;
+constexpr int NHYDRO=8;
+constexpr double GAMMA=1.4;
+
+template<typename T>
+struct AthenaArray {
+    int nvar, nk, nj, ni;
+    std::vector<T> data;
+    AthenaArray(int nvar,int nk,int nj,int ni)
+        : nvar(nvar), nk(nk), nj(nj), ni(ni), data(nvar*nk*nj*ni) {}
+    T& operator()(int n,int k,int j,int i) {
+        return data[((n*nk + k)*nj + j)*ni + i];
+    }
+    const T& operator()(int n,int k,int j,int i) const {
+        return data[((n*nk + k)*nj + j)*ni + i];
+    }
+};
+
+
+// original.cpp
+#include "athena_array.hpp"
+#include <omp.h>
+
+void PrimitiveToConserved(const AthenaArray<double>& prim, AthenaArray<double>& cons,
+        int is, int ie, int js, int je, int ks, int ke, int nthreads) {
+    double igm1 = 1.0 / (GAMMA - 1.0);
+#pragma omp parallel default(shared) num_threads(nthreads)
+    {
+        for (int k = ks; k <= ke; ++k) {
+#pragma omp for schedule(dynamic)
+            for (int j = js; j <= je; ++j) {
+#pragma simd
+                for (int i = is; i <= ie; ++i) {
+                    double w_d  = prim(IDN,k,j,i);
+                    double w_vx = prim(IVX,k,j,i);
+                    double w_vy = prim(IVY,k,j,i);
+                    double w_vz = prim(IVZ,k,j,i);
+                    double w_p  = prim(IEN,k,j,i);
+                    cons(IDN,k,j,i) = w_d;
+                    cons(IM1,k,j,i) = w_vx * w_d;
+                    cons(IM2,k,j,i) = w_vy * w_d;
+                    cons(IM3,k,j,i) = w_vz * w_d;
+                    cons(IEN,k,j,i) = w_p * igm1 + 0.5 * w_d * (w_vx*w_vx + w_vy*w_vy + w_vz*w_vz);
+                }
+            }
+        }
+    }
+}
+
+
+The following files are provided for context. Do NOT modify them. Only update code in original.cpp.
+
+// harness.cpp
+#include "athena_array.hpp"
+#include <chrono>
+#include <iostream>
+#include <random>
+#include <string>
+#include <omp.h>
+
+void PrimitiveToConserved(const AthenaArray<double>& prim, AthenaArray<double>& cons,
+        int is, int ie, int js, int je, int ks, int ke, int nthreads);
+
+AthenaArray<double> make_array(int size) {
+    AthenaArray<double> arr(NHYDRO, size, size, size);
+    std::mt19937 gen(42);
+    std::uniform_real_distribution<double> dist(0.0, 1.0);
+    for (int n = 0; n < NHYDRO; ++n)
+        for (int k = 0; k < size; ++k)
+            for (int j = 0; j < size; ++j)
+                for (int i = 0; i < size; ++i)
+                    arr(n,k,j,i) = dist(gen);
+    return arr;
+}
+
+int main(int argc, char* argv[]) {
+    std::string mode = "perf";
+    int size = 20;
+    int repeat = 50000;
+    int threads = std::min(4, omp_get_max_threads());
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "--mode=correct") mode = "correct";
+        else if (arg == "--mode=perf") mode = "perf";
+        else if (arg.rfind("--size=",0) == 0) size = std::stoi(arg.substr(7));
+        else if (arg.rfind("--repeat=",0) == 0) repeat = std::stoi(arg.substr(9));
+        else if (arg.rfind("--threads=",0) == 0) threads = std::stoi(arg.substr(10));
+    }
+
+    AthenaArray<double> prim = make_array(size);
+    AthenaArray<double> cons(NHYDRO, size, size, size);
+
+    if (mode == "correct") {
+        PrimitiveToConserved(prim, cons, 0, size-1, 0, size-1, 0, size-1, threads);
+        double sum = 0.0;
+        for (double v : cons.data) sum += v;
+        std::cout << sum << '\n';
+    } else {
+        using clock = std::chrono::high_resolution_clock;
+        auto t1 = clock::now();
+        for (int r = 0; r < repeat; ++r)
+            PrimitiveToConserved(prim, cons, 0, size-1, 0, size-1, 0, size-1, threads);
+        auto t2 = clock::now();
+        std::cout << "Time: "
+                  << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count()
+                  << " ms\n";
+    }
+    return 0;
+}
+
+
+// athena_array.hpp
+#pragma once
+#include <vector>
+
+constexpr int IDN=0;
+constexpr int IM1=1;
+constexpr int IM2=2;
+constexpr int IM3=3;
+constexpr int IEN=4;
+constexpr int IVX=5;
+constexpr int IVY=6;
+constexpr int IVZ=7;
+constexpr int NHYDRO=8;
+constexpr double GAMMA=1.4;
+
+template<typename T>
+struct AthenaArray {
+    int nvar, nk, nj, ni;
+    std::vector<T> data;
+    AthenaArray(int nvar,int nk,int nj,int ni)
+        : nvar(nvar), nk(nk), nj(nj), ni(ni), data(nvar*nk*nj*ni) {}
+    T& operator()(int n,int k,int j,int i) {
+        return data[((n*nk + k)*nj + j)*ni + i];
+    }
+    const T& operator()(int n,int k,int j,int i) const {
+        return data[((n*nk + k)*nj + j)*ni + i];
+    }
+};
+
+
+Previous attempt info:
+Original execution time: mean = 4518.80 ms, std = 51.02 ms
+Diff from original code:
+--- original
++++ step_1
+@@ -1,34 +1,3 @@
+-// athena_array.hpp
+-#pragma once
+-#include <vector>
+-
+-constexpr int IDN=0;
+-constexpr int IM1=1;
+-constexpr int IM2=2;
+-constexpr int IM3=3;
+-constexpr int IEN=4;
+-constexpr int IVX=5;
+-constexpr int IVY=6;
+-constexpr int IVZ=7;
+-constexpr int NHYDRO=8;
+-constexpr double GAMMA=1.4;
+-
+-template<typename T>
+-struct AthenaArray {
+-    int nvar, nk, nj, ni;
+-    std::vector<T> data;
+-    AthenaArray(int nvar,int nk,int nj,int ni)
+-        : nvar(nvar), nk(nk), nj(nj), ni(ni), data(nvar*nk*nj*ni) {}
+-    T& operator()(int n,int k,int j,int i) {
+-        return data[((n*nk + k)*nj + j)*ni + i];
+-    }
+-    const T& operator()(int n,int k,int j,int i) const {
+-        return data[((n*nk + k)*nj + j)*ni + i];
+-    }
+-};
+-
+-
+-// original.cpp
+ #include "athena_array.hpp"
+ #include <omp.h>
+ 
+@@ -38,15 +7,15 @@
+ #pragma omp parallel default(shared) num_threads(nthreads)
+     {
+         for (int k = ks; k <= ke; ++k) {
+-#pragma omp for schedule(dynamic)
++#pragma omp for schedule(static)
+             for (int j = js; j <= je; ++j) {
+-#pragma simd
++                double w_d  = 0.0, w_vx = 0.0, w_vy = 0.0, w_vz = 0.0, w_p = 0.0;
+                 for (int i = is; i <= ie; ++i) {
+-                    double w_d  = prim(IDN,k,j,i);
+-                    double w_vx = prim(IVX,k,j,i);
+-                    double w_vy = prim(IVY,k,j,i);
+-                    double w_vz = prim(IVZ,k,j,i);
+-                    double w_p  = prim(IEN,k,j,i);
++                    w_d  = prim(IDN,k,j,i);
++                    w_vx = prim(IVX,k,j,i);
++                    w_vy = prim(IVY,k,j,i);
++                    w_vz = prim(IVZ,k,j,i);
++                    w_p  = prim(IEN,k,j,i);
+                     cons(IDN,k,j,i) = w_d;
+                     cons(IM1,k,j,i) = w_vx * w_d;
+                     cons(IM2,k,j,i) = w_vy * w_d;
+Compilation succeeded. Execution time: mean = 2042.40 ms, std = 118.28 ms. Original execution time: mean = 4518.80 ms, std = 51.02 ms
+LLM analysis: The optimizations include changing the OpenMP scheduling from dynamic to static. This reduces the overhead of scheduling during runtime, leading to improved performance. Additionally, the intermediary results (w_d, w_vx, w_vy, w_vz, w_p) are computed directly within the innermost loop instead of retrieving them multiple times; this minimizes accesses to the 'prim' array and leverages data locality. The proposed changes are expected to enhance cache utilization and reduce the overall execution time while preserving the original functionality.
+Diff from original code:
+--- original
++++ step_2
+@@ -1,34 +1,3 @@
+-// athena_array.hpp
+-#pragma once
+-#include <vector>
+-
+-constexpr int IDN=0;
+-constexpr int IM1=1;
+-constexpr int IM2=2;
+-constexpr int IM3=3;
+-constexpr int IEN=4;
+-constexpr int IVX=5;
+-constexpr int IVY=6;
+-constexpr int IVZ=7;
+-constexpr int NHYDRO=8;
+-constexpr double GAMMA=1.4;
+-
+-template<typename T>
+-struct AthenaArray {
+-    int nvar, nk, nj, ni;
+-    std::vector<T> data;
+-    AthenaArray(int nvar,int nk,int nj,int ni)
+-        : nvar(nvar), nk(nk), nj(nj), ni(ni), data(nvar*nk*nj*ni) {}
+-    T& operator()(int n,int k,int j,int i) {
+-        return data[((n*nk + k)*nj + j)*ni + i];
+-    }
+-    const T& operator()(int n,int k,int j,int i) const {
+-        return data[((n*nk + k)*nj + j)*ni + i];
+-    }
+-};
+-
+-
+-// original.cpp
+ #include "athena_array.hpp"
+ #include <omp.h>
+ 
+@@ -38,22 +7,28 @@
+ #pragma omp parallel default(shared) num_threads(nthreads)
+     {
+         for (int k = ks; k <= ke; ++k) {
+-#pragma omp for schedule(dynamic)
++#pragma omp for schedule(static)
+             for (int j = js; j <= je; ++j) {
+-#pragma simd
++                // Declare variables at the start of the innermost loop for better cache
++                double w_d, w_vx, w_vy, w_vz, w_p;
+                 for (int i = is; i <= ie; ++i) {
+-                    double w_d  = prim(IDN,k,j,i);
+-                    double w_vx = prim(IVX,k,j,i);
+-                    double w_vy = prim(IVY,k,j,i);
+-                    double w_vz = prim(IVZ,k,j,i);
+-                    double w_p  = prim(IEN,k,j,i);
+-                    cons(IDN,k,j,i) = w_d;
+-                    cons(IM1,k,j,i) = w_vx * w_d;
+-                    cons(IM2,k,j,i) = w_vy * w_d;
+-                    cons(IM3,k,j,i) = w_vz * w_d;
+-                    cons(IEN,k,j,i) = w_p * igm1 + 0.5 * w_d * (w_vx*w_vx + w_vy*w_vy + w_vz*w_vz);
++                    w_d  = prim(IDN, k, j, i);
++                    w_vx = prim(IVX, k, j, i);
++                    w_vy = prim(IVY, k, j, i);
++                    w_vz = prim(IVZ, k, j, i);
++                    w_p  = prim(IEN, k, j, i);
++
++                    // Perform calculations
++                    cons(IDN, k, j, i) = w_d;
++                    cons(IM1, k, j, i) = w_vx * w_d;
++                    cons(IM2, k, j, i) = w_vy * w_d;
++                    cons(IM3, k, j, i) = w_vz * w_d;
++                    cons(IEN, k, j, i) = w_p * igm1 + 0.5 * w_d * (w_vx * w_vx + w_vy * w_vy + w_vz * w_vz);
+                 }
+             }
+         }
+     }
+ }
++
++// Explicit template instantiations
++template struct AthenaArray<double>;
+Compilation succeeded. Execution time: mean = 2064.80 ms, std = 28.93 ms. Original execution time: mean = 4518.80 ms, std = 51.02 ms
+LLM analysis: The optimizations focus on improving data locality and cache usage. Variables are declared at the start of the innermost loop to enhance their locality, allowing better reuse of cached values. Additionally, the OpenMP scheduling is set to static, which minimizes the overhead during runtime scheduling, improving performance. These changes aim to make execution more efficient while keeping the function's behavior unchanged.

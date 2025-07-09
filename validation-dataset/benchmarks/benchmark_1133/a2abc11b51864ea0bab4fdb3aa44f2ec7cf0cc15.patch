@@ -1,0 +1,31 @@
+From a2abc11b51864ea0bab4fdb3aa44f2ec7cf0cc15 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Jo=C3=A3o=20Abecasis?= <joao.abecasis@nokia.com>
+Date: Wed, 1 Feb 2012 17:57:24 +0100
+Subject: [PATCH] Make QStringBuilder use memcpy for QByteArrayLiteral
+
+There is no need to do a bytewise copy looking for the terminating
+nul-character when the size of the data is statically declared and known
+ahead of time.
+
+Change-Id: I787745a58955d1a366624f9ea92e9e701de8c981
+Reviewed-by: Thiago Macieira <thiago.macieira@intel.com>
+---
+ src/corelib/tools/qstringbuilder.h | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/src/corelib/tools/qstringbuilder.h b/src/corelib/tools/qstringbuilder.h
+index 1afdde852c..e524523c36 100644
+--- a/src/corelib/tools/qstringbuilder.h
++++ b/src/corelib/tools/qstringbuilder.h
+@@ -376,9 +376,8 @@ template <int N> struct QConcatenable<QStaticByteArrayDataPtr<N> > : private QAb
+ #endif
+     static inline void appendTo(const type &ba, char *&out)
+     {
+-        const char *a = ba.ptr->data;
+-        while (*a)
+-            *out++ = *a++;
++        ::memcpy(out, ba.ptr->data, N);
++        out += N;
+     }
+ };
+ 

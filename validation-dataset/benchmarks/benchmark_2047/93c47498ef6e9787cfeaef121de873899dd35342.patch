@@ -1,0 +1,23 @@
+From 93c47498ef6e9787cfeaef121de873899dd35342 Mon Sep 17 00:00:00 2001
+From: Andrej730 <azhilenkov@gmail.com>
+Date: Thu, 12 Sep 2024 11:13:59 +0500
+Subject: [PATCH] AbstractKernel::dispatch_conversion - use static cast
+
+Previously it was using taxonomy::cast that was also trying to upgrade current item - due to the strictness of dispatch_conversion (it works only if type matches exactly because of `N == item_kind`) upgrades will never succeed so we may just skip them.
+---
+ src/ifcgeom/AbstractKernel.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/ifcgeom/AbstractKernel.h b/src/ifcgeom/AbstractKernel.h
+index 8c65643e241..d06fe6bf4aa 100644
+--- a/src/ifcgeom/AbstractKernel.h
++++ b/src/ifcgeom/AbstractKernel.h
+@@ -86,7 +86,7 @@ namespace {
+ 	struct dispatch_conversion {
+ 		static bool dispatch(ifcopenshell::geometry::kernels::AbstractKernel* kernel, ifcopenshell::geometry::taxonomy::kinds item_kind, const ifcopenshell::geometry::taxonomy::ptr item, IfcGeom::ConversionResults& results) {
+ 			if (N == item_kind) {
+-				auto concrete_item = ifcopenshell::geometry::taxonomy::template cast<ifcopenshell::geometry::taxonomy::type_by_kind::type<N>>(item);
++				auto concrete_item = std::static_pointer_cast<ifcopenshell::geometry::taxonomy::type_by_kind::type<N>>(item);
+ 				return kernel->convert_impl(concrete_item, results);
+ 			} else {
+ 				return dispatch_conversion<N + 1>::dispatch(kernel, item_kind, item, results);

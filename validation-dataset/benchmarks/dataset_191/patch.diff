@@ -1,0 +1,24 @@
+From 1e493fc40f6e7676f56baa14fbe2a70015f91d14 Mon Sep 17 00:00:00 2001
+From: Kunal Tyagi <tyagi.kunal@live.com>
+Date: Thu, 9 Jan 2020 16:13:51 +0900
+Subject: [PATCH] rsd.hpp: Using algorithms and Eigen functions for better code
+
+---
+ features/include/pcl/features/impl/rsd.hpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/features/include/pcl/features/impl/rsd.hpp b/features/include/pcl/features/impl/rsd.hpp
+index a70d8a324ea..f71470ac066 100644
+--- a/features/include/pcl/features/impl/rsd.hpp
++++ b/features/include/pcl/features/impl/rsd.hpp
+@@ -103,8 +103,8 @@ pcl::computeRSD (const pcl::PointCloud<PointInT> &surface, const pcl::PointCloud
+     }
+ 
+     // update min-max values for distance bins
+-    if (min_max_angle_by_dist[bin_d][0] > angle) min_max_angle_by_dist[bin_d][0] = angle;
+-    if (min_max_angle_by_dist[bin_d][1] < angle) min_max_angle_by_dist[bin_d][1] = angle;
++    min_max_angle_by_dist[bin_d][0] = std::min(angle, min_max_angle_by_dist[bin_d][0]);
++    min_max_angle_by_dist[bin_d][1] = std::max(angle, min_max_angle_by_dist[bin_d][1]);
+   }
+ 
+   // Estimate radius from min and max lines

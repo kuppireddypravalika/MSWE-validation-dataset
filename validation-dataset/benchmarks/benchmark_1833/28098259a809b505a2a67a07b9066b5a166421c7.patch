@@ -1,0 +1,28 @@
+From 28098259a809b505a2a67a07b9066b5a166421c7 Mon Sep 17 00:00:00 2001
+From: Artur Wieczorek <artwik@wp.pl>
+Date: Sun, 19 Jan 2020 09:53:04 +0100
+Subject: [PATCH] Suppress MSVC++ performance warning
+
+MSVC++ doesn't seem to honour implicit int -> bool conversion and raises
+warning C4800: "'int': forcing value to bool 'true' or 'false' (performance
+warning)".
+---
+ src/generic/grid.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/generic/grid.cpp b/src/generic/grid.cpp
+index 68bcc9afc441..c1dbb9654812 100644
+--- a/src/generic/grid.cpp
++++ b/src/generic/grid.cpp
+@@ -4677,9 +4677,9 @@ void wxGrid::ProcessGridCellMouseEvent(wxMouseEvent& event, wxGridWindow *eventG
+             else if ( event.LeftDClick() )
+                 handled = (DoGridCellLeftDClick(event, coords, pos), true);
+             else if ( event.RightDown() )
+-                handled = SendEvent(wxEVT_GRID_CELL_RIGHT_CLICK, coords, event);
++                handled = SendEvent(wxEVT_GRID_CELL_RIGHT_CLICK, coords, event) != 0;
+             else if ( event.RightDClick() )
+-                handled = SendEvent(wxEVT_GRID_CELL_RIGHT_DCLICK, coords, event);
++                handled = SendEvent(wxEVT_GRID_CELL_RIGHT_DCLICK, coords, event) != 0;
+         }
+     }
+     else if ( event.Moving() )

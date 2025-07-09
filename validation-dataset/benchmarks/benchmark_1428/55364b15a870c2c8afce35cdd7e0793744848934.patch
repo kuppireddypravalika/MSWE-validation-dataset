@@ -1,0 +1,22 @@
+From 55364b15a870c2c8afce35cdd7e0793744848934 Mon Sep 17 00:00:00 2001
+From: Steven Johnson <srj@google.com>
+Date: Tue, 4 Sep 2018 12:23:50 -0700
+Subject: [PATCH] Use .empty() instead of .size(), to placate Clang-Tidy
+
+---
+ src/AsyncProducers.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/AsyncProducers.cpp b/src/AsyncProducers.cpp
+index 4690e17cfd..8d07c970d2 100644
+--- a/src/AsyncProducers.cpp
++++ b/src/AsyncProducers.cpp
+@@ -392,7 +392,7 @@ class InitializeSemaphores : public IRMutator2 {
+                 stmt = LetStmt::make(op->name, sema_allocate, stmt);
+ 
+                 // Re-wrap any other lets
+-                while (lets.size()) {
++                while (!lets.empty()) {
+                     stmt = LetStmt::make(lets.back().first, lets.back().second, stmt);
+                 }
+                 return stmt;

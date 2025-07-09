@@ -1,0 +1,221 @@
+name: LLM Output CI
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      model:
+        description: "Model directory under llm_outputs"
+        required: true
+      benchmarks:
+        description: "Space or comma separated benchmark names. If empty, all benchmarks for the model are run"
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.set_changed.outputs.changed }}
+      matrix: ${{ steps.gen_matrix.outputs.matrix }}
+      branch: ${{ steps.set_branch.outputs.branch }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Detect Changed LLM Output Directories
+        if: github.event_name == 'pull_request'
+        id: changed_llm
+        run: |
+          CHANGED=$(git diff --name-only HEAD^ HEAD | grep '^llm_outputs/downstream_task_1_optimized_code/' | awk -F'/' '{print $1"/"$2"/"$3"/"$4}' | sort | uniq)
+          if [ -z "$CHANGED" ]; then
+            echo "No LLM outputs changed. Skipping tests."
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "LLM outputs changed:\n$CHANGED"
+            echo "dirs=$(echo $CHANGED)" >> $GITHUB_OUTPUT
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate Matrix
+        id: gen_matrix
+        if: github.event_name == 'workflow_dispatch' || steps.changed_llm.outputs.changed == 'true'
+        env:
+          MODEL_INPUT: ${{ inputs.model }}
+          BENCH_INPUT: ${{ inputs.benchmarks }}
+          CHANGED_DIRS: ${{ steps.changed_llm.outputs.dirs }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ -n "$BENCH_INPUT" ]; then
+              DIRS=""
+              for B in $BENCH_INPUT; do
+                DIRS="$DIRS llm_outputs/$MODEL_INPUT/$B"
+              done
+            else
+              DIRS=$(find "llm_outputs/$MODEL_INPUT" -mindepth 1 -maxdepth 1 -type d)
+            fi
+          else
+            DIRS=$CHANGED_DIRS
+          fi
+          export DIRS
+          MATRIX_JSON=$(python3 -c 'import os, json; print(json.dumps({"dir": os.environ["DIRS"].split()}))')
+          echo "matrix=$MATRIX_JSON" >> $GITHUB_OUTPUT
+
+      - name: Set changed output
+        id: set_changed
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          elif [ "${{ steps.changed_llm.outputs.changed }}" = "true" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set branch name
+        id: set_branch
+        run: echo "branch=automated/benchmark-report-update-${{ github.run_id }}" >> $GITHUB_OUTPUT
+
+  run-llm-tests:
+    needs: prepare
+    if: needs.prepare.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.prepare.outputs.matrix) }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker Image
+        run: docker build --no-cache -t perf-bench .
+
+      - name: Run LLM Benchmark
+        run: docker run --rm -v "$PWD:/workspace" --entrypoint python3 perf-bench evaluation_scripts/run_llm_outputs.py "${{ matrix.dir }}"
+
+      - name: Commit Benchmark Report
+        id: commit_report
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          BRANCH="automated/benchmark-report-update-${{ github.run_id }}"
+          git fetch origin "$BRANCH" 2>/dev/null || true
+          if git show-ref --verify --quiet refs/remotes/origin/$BRANCH; then
+            git checkout "$BRANCH"
+            git pull origin "$BRANCH"
+          else
+            git checkout -b "$BRANCH"
+          fi
+
+          MODEL=$(basename $(dirname "${{ matrix.dir }}"))
+          BENCH=$(basename "${{ matrix.dir }}")
+
+          REPORT_MD="reports/$MODEL/$BENCH.md"
+          REPORT_JSON="reports/$MODEL/$BENCH.json"
+          FILES=()
+          [[ -f "$REPORT_MD" ]] && FILES+=("$REPORT_MD")
+          [[ -f "$REPORT_JSON" ]] && FILES+=("$REPORT_JSON")
+
+          if [ ${#FILES[@]} -eq 0 ]; then
+            echo "committed=false" >> $GITHUB_OUTPUT
+            echo "No report files found for $MODEL/$BENCH." 
+          else
+            git add "${FILES[@]}"
+            if git diff --cached --quiet; then
+              echo "committed=false" >> $GITHUB_OUTPUT
+              echo "No report changes to commit."
+            else
+              git commit -m "Update benchmark reports for $MODEL/$BENCH"
+              scripts/safe_push.sh "$BRANCH"
+              echo "committed=true" >> $GITHUB_OUTPUT
+            fi
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  aggregate-reports:
+    needs: run-llm-tests
+    if: always() && needs.prepare.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update accumulated CSV report
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          BRANCH="automated/benchmark-report-update-${{ github.run_id }}"
+          git fetch origin "$BRANCH" 2>/dev/null || true
+          if git show-ref --verify --quiet refs/remotes/origin/$BRANCH; then
+            git checkout "$BRANCH"
+            git pull origin "$BRANCH"
+          else
+            git checkout -b "$BRANCH"
+          fi
+
+          python3 evaluation_scripts/accumulate_reports.py --reports-dir reports --output reports/accumulated_report.csv
+          git add reports/accumulated_report.csv
+          if git diff --cached --quiet; then
+            echo "No accumulated report changes to commit"
+          else
+            git commit -m "Update accumulated benchmark report"
+            scripts/safe_push.sh "$BRANCH"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+  create-pr:
+    needs: aggregate-reports
+    if: always() && needs.prepare.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Pull Request
+        run: |
+          BRANCH="automated/benchmark-report-update-${{ github.run_id }}"
+          if git ls-remote --exit-code --heads origin "$BRANCH"; then
+            gh pr create \
+              --repo "${{ github.repository }}" \
+              --head "$BRANCH" \
+              --base main \
+              --title 'Automated Update: LLM Benchmark Reports' \
+              --body 'This PR automatically updates benchmark reports based on recent LLM evaluations.' \
+              --label automated \
+              --label benchmark
+          else
+            echo "No changes were committed. Skipping PR creation."
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  no-changes:
+    needs: prepare
+    if: needs.prepare.outputs.changed == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "No LLM output tests required. ✅"

@@ -1,0 +1,32 @@
+From fdf140dc15f72296a8cf056196c01257d9e5435c Mon Sep 17 00:00:00 2001
+From: Max Yang <yang39@llnl.gov>
+Date: Wed, 2 Dec 2020 15:59:32 -0800
+Subject: [PATCH] Reduce cpu usage on non-X11 window managers
+
+---
+ lib/sdl.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/lib/sdl.cpp b/lib/sdl.cpp
+index 7444d416..125cc326 100644
+--- a/lib/sdl.cpp
++++ b/lib/sdl.cpp
+@@ -11,6 +11,7 @@
+ 
+ #include <iostream>
+ #include <chrono>
++#include <thread>
+ #include "sdl.hpp"
+ #include "visual.hpp"
+ #include "logo.hpp"
+@@ -664,7 +665,9 @@ void SdlWindow::mainIter()
+ #endif
+          else
+          {
+-            SDL_WaitEvent(NULL);
++            if (!SDL_PollEvent(nullptr)) {
++               std::this_thread::sleep_for(std::chrono::milliseconds(8));
++            }
+          }
+       }
+    }

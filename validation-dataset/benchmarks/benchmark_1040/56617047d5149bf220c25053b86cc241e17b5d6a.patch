@@ -1,0 +1,47 @@
+From 56617047d5149bf220c25053b86cc241e17b5d6a Mon Sep 17 00:00:00 2001
+From: Kostya Kortchinsky <kostyak@google.com>
+Date: Wed, 9 May 2018 16:20:52 +0000
+Subject: [PATCH] [sanitizer] Correct 64-bit atomic_store on 32-bit "other"
+ platforms
+
+Summary:
+I think there might be something to optimize in `atomic_store`.
+Currently, if everything goes well (and we have a different new value), we
+always iterate 3 times.
+For example, `with a = 0`, `oldval = a`, `newval = 42`, we get:
+```
+oldval = 0, newval = 42, curval = 0
+oldval = 0, newval = 42, curval = 42
+oldval = 42, newval = 42, curval = 42
+```
+and then it breaks.
+
+Unless I am not seeing something, I don't see a point to the third iteration.
+If the current value is the one we want, we should just break.
+This means that 2 iterations (with a different newval) should be sufficient to
+achieve what we want.
+
+Reviewers: dvyukov, alekseyshl
+
+Reviewed By: dvyukov
+
+Subscribers: kubamracek, delcypher, #sanitizers, llvm-commits
+
+Differential Revision: https://reviews.llvm.org/D46597
+---
+ compiler-rt/lib/sanitizer_common/sanitizer_atomic_clang_other.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/compiler-rt/lib/sanitizer_common/sanitizer_atomic_clang_other.h b/compiler-rt/lib/sanitizer_common/sanitizer_atomic_clang_other.h
+index 35e2d007eda8..2eea549c0fdd 100644
+--- a/compiler-rt/lib/sanitizer_common/sanitizer_atomic_clang_other.h
++++ b/compiler-rt/lib/sanitizer_common/sanitizer_atomic_clang_other.h
+@@ -86,7 +86,7 @@ INLINE void atomic_store(volatile T *a, typename T::Type v, memory_order mo) {
+     typename T::Type cur;
+     for (;;) {
+       cur = __sync_val_compare_and_swap(&a->val_dont_use, cmp, v);
+-      if (cmp == v)
++      if (cur == cmp || cur == v)
+         break;
+       cmp = cur;
+     }

@@ -1,0 +1,32 @@
+From ff194c255c314caaea6f4e9761c73115a9895ea4 Mon Sep 17 00:00:00 2001
+From: Cloud Debugger Team <noreply@google.com>
+Date: Mon, 20 Apr 2020 18:21:29 -0700
+Subject: [PATCH] This CL optimizes C++11 range-based for loops where the
+ variable is copied in each iteration but it would suffice to obtain it by
+ const reference.  This is only applied to loop variables of types that are
+ expensive to copy which means they are not trivially copyable or have a
+ non-trivial copy constructor or destructor.
+
+To ensure that it is safe to replace the copy with a const reference the following heuristic is employed:
+  The loop variable is const qualified.
+  The loop variable is not const, but only const methods or operators are invoked on it, or it is used as const reference or value argument in constructors or function calls.
+
+PiperOrigin-RevId: 307516853
+Change-Id: I2a55cfe4004fd23c421af3ed7cbc05525c24f35e
+---
+ src/agent/jvm_breakpoints_manager.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/agent/jvm_breakpoints_manager.cc b/src/agent/jvm_breakpoints_manager.cc
+index 3861cb0..64120c0 100644
+--- a/src/agent/jvm_breakpoints_manager.cc
++++ b/src/agent/jvm_breakpoints_manager.cc
+@@ -240,7 +240,7 @@ void JvmBreakpointsManager::JvmtiOnBreakpoint(
+   }
+ 
+   // Process the breakpoint hits.
+-  for (std::shared_ptr<Breakpoint> breakpoint : breakpoints) {
++  for (const std::shared_ptr<Breakpoint>& breakpoint : breakpoints) {
+     breakpoint->OnJvmBreakpointHit(
+           thread,
+           method,

@@ -1,0 +1,37 @@
+From 64492fa3aa64e860e778c1cf112cd7caf059974b Mon Sep 17 00:00:00 2001
+From: justusc <justusc@vt.edu>
+Date: Tue, 16 Dec 2014 23:02:13 -0500
+Subject: [PATCH] - Array::wait_for_lazy_cleanup() now uses
+ madness::ThreadPool::await() to wait for cleanup (allows busy waiting). -
+ Array::wait_for_lazy_cleanup() now throws an exception if a timeout occurs.
+
+---
+ src/TiledArray/array.h | 13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
+
+diff --git a/src/TiledArray/array.h b/src/TiledArray/array.h
+index bb18da47bc..f35076e1d5 100644
+--- a/src/TiledArray/array.h
++++ b/src/TiledArray/array.h
+@@ -163,18 +163,11 @@ namespace TiledArray {
+     ~Array() { }
+ 
+     static void wait_for_lazy_cleanup(madness::World& world, const double timeout = 60.0) {
+-      int pending_cleanups = cleanup_counter_;
+       try {
+-        const double start = madness::wall_time();
+-        while(pending_cleanups) {
+-          madness::myusleep(100);
+-          const double wait_time = madness::wall_time() - start;
+-          if(wait_time > timeout)
+-            throw std::runtime_error("Array lazy cleanup wait timeout.");
+-          pending_cleanups = cleanup_counter_;
+-        }
++        madness::ThreadPool::await([&]() { return (cleanup_counter_ == 0); }, true);
+       } catch(std::runtime_error& e) {
+-        printf("%i: Array lazy cleanup timeout with %i pending cleanup(s)\n", world.rank(), pending_cleanups);
++        printf("%i: Array lazy cleanup timeout with %i pending cleanup(s)\n", world.rank(), cleanup_counter_);
++        throw;
+       }
+     }
+ 

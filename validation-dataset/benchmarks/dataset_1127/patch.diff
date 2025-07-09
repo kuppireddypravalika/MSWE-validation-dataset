@@ -1,0 +1,30 @@
+From 114b99324402fc65ec405bdfc0b08ee7d55b4ab4 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Wed, 22 Jul 2015 08:40:26 +0000
+Subject: [PATCH] Very slighly improve performance of
+ GDALDataset::EnterReadWrite()
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@29556 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/gcore/gdaldataset.cpp | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/gdal/gcore/gdaldataset.cpp b/gdal/gcore/gdaldataset.cpp
+index 1dee1aac1499..a417d0cf37f2 100644
+--- a/gdal/gcore/gdaldataset.cpp
++++ b/gdal/gcore/gdaldataset.cpp
+@@ -5772,7 +5772,13 @@ int GDALDataset::EnterReadWrite(GDALRWFlag eRWFlag)
+ {
+     if( eAccess == GA_Update && (eRWFlag == GF_Write || m_hMutex != NULL) )
+     {
+-        CPLCreateOrAcquireMutex(&m_hMutex, 1000.0);
++        // There should be no race related to creating this mutex since
++        // it should be first created through IWriteBlock() / IRasterIO()
++        // and then GDALRasterBlock might call it from another thread
++        if( m_hMutex == NULL )
++            m_hMutex = CPLCreateMutex();
++        else
++            CPLAcquireMutex(m_hMutex, 1000.0);
+         return TRUE;
+     }
+     return FALSE;

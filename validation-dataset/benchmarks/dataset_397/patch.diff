@@ -1,0 +1,26 @@
+From dfa0d158446509b159aa10edbc0c22aadc9cb37d Mon Sep 17 00:00:00 2001
+From: Magne Sjaastad <magne.sjaastad@ceetronsolutions.com>
+Date: Mon, 7 May 2018 12:57:12 +0200
+Subject: [PATCH] #2803 Ensemble Cases Performance : Use
+ loadAllSummaryCaseData()
+
+---
+ ApplicationCode/ProjectDataModel/RimEclipseCase.cpp | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/ApplicationCode/ProjectDataModel/RimEclipseCase.cpp b/ApplicationCode/ProjectDataModel/RimEclipseCase.cpp
+index e266c30df45..5c745998ffe 100644
+--- a/ApplicationCode/ProjectDataModel/RimEclipseCase.cpp
++++ b/ApplicationCode/ProjectDataModel/RimEclipseCase.cpp
+@@ -905,10 +905,7 @@ void RimEclipseCase::reloadDataAndUpdate()
+             RimSummaryCaseMainCollection* sumCaseColl = project->activeOilField() ? project->activeOilField()->summaryCaseMainCollection() : nullptr;
+             if (sumCaseColl)
+             {
+-                for (auto sumCase : sumCaseColl->allSummaryCases())
+-                {
+-                    sumCase->createSummaryReaderInterface();
+-                }
++                sumCaseColl->loadAllSummaryCaseData();
+             }
+ 
+             if (project->mainPlotCollection())

@@ -1,0 +1,41 @@
+From c31572fe2327ceb04e9ed057be491435f692f190 Mon Sep 17 00:00:00 2001
+From: Christopher Jones <cdj@fnal.gov>
+Date: Thu, 13 Feb 2014 18:21:06 +0100
+Subject: [PATCH] TStreamerElement cached strings changed to thread_local
+
+Full name and include name were statics which were set the first time
+called. This was not thread safe. These were changed to thread_local.
+Alternatively, this could be change to use std::call_once.
+---
+ core/meta/src/TStreamerElement.cxx | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/core/meta/src/TStreamerElement.cxx b/core/meta/src/TStreamerElement.cxx
+index 59a13c67e68e1..f808c3cf7328f 100644
+--- a/core/meta/src/TStreamerElement.cxx
++++ b/core/meta/src/TStreamerElement.cxx
+@@ -40,7 +40,12 @@
+ namespace std {} using namespace std;
+ 
+ const Int_t kMaxLen = 1024;
++
++#if __cplusplus > 199711L
++static thread_local TString gIncludeName(kMaxLen);
++#else
+ static TString gIncludeName(kMaxLen);
++#endif
+ 
+ extern void *gMmallocDesc;
+ 
+@@ -296,7 +301,11 @@ const char *TStreamerElement::GetFullName() const
+    // Note that this function stores the name into a static array.
+    // You should copy the result.
+ 
++#if __cplusplus > 199711L
++   static thread_local TString name(kMaxLen);
++#else
+    static TString name(kMaxLen);
++#endif
+    char cdim[20];
+    name = GetName();
+    for (Int_t i=0;i<fArrayDim;i++) {

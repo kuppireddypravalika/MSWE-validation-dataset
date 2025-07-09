@@ -1,0 +1,23 @@
+From cffba0a7cafeed34d6b2a4c5f29e5df1026c6687 Mon Sep 17 00:00:00 2001
+From: David Lindauer <touchstone222@runbox.com>
+Date: Sat, 21 Feb 2015 23:08:00 -0500
+Subject: [PATCH] allow optimization of variables declared in for stmt
+
+---
+ src/occ/middle/iexpr.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/occ/middle/iexpr.c b/src/occ/middle/iexpr.c
+index 88d887d72..47eeb5330 100644
+--- a/src/occ/middle/iexpr.c
++++ b/src/occ/middle/iexpr.c
+@@ -2515,7 +2515,8 @@ IMODE *gen_expr(SYMBOL *funcsp, EXPRESSION *node, int flags, int size)
+ 
+ IMODE *gen_void(EXPRESSION *node, SYMBOL *funcsp)
+ {
+-    gen_expr( funcsp, node, F_NOVALUE, natural_size(node));
++    if (node->type != en_auto)
++        gen_expr( funcsp, node, F_NOVALUE, natural_size(node));
+     /*   gen_code(op_void,0,0);*/
+     return 0;
+ }

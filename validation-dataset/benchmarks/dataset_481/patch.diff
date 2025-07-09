@@ -1,0 +1,24 @@
+From 8c6f10797b509e15866eac561d9d0f2e7bc63bd6 Mon Sep 17 00:00:00 2001
+From: Duncan <duncans_pumpkin@hotmail.co.uk>
+Date: Wed, 29 Sep 2021 18:20:43 +0100
+Subject: [PATCH] Prevent wasting paint time on unviewable entities
+
+---
+ src/openrct2/paint/sprite/Paint.Sprite.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/openrct2/paint/sprite/Paint.Sprite.cpp b/src/openrct2/paint/sprite/Paint.Sprite.cpp
+index 83863d4c0a06..803f297a83fc 100644
+--- a/src/openrct2/paint/sprite/Paint.Sprite.cpp
++++ b/src/openrct2/paint/sprite/Paint.Sprite.cpp
+@@ -34,6 +34,10 @@
+  */
+ void sprite_paint_setup(paint_session* session, const CoordsXY& pos)
+ {
++    if (!map_is_location_valid(pos))
++    {
++        return;
++    }
+     if (gTrackDesignSaveMode || (session->ViewFlags & VIEWPORT_FLAG_INVISIBLE_SPRITES))
+     {
+         return;

@@ -1,0 +1,25 @@
+From 7196ed5c6ad15423530e4ddbc19b2084a3d36a33 Mon Sep 17 00:00:00 2001
+From: Yvonne Chen <yche@synopsys.com>
+Date: Wed, 28 Mar 2018 22:37:48 -0400
+Subject: [PATCH] SmoothL1LossLayerTest: Non Trivial Abs Threshold adjustment
+ for Faster RCNN.
+
+---
+ src/caffe/test/test_smooth_L1_loss_layer.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/caffe/test/test_smooth_L1_loss_layer.cpp b/src/caffe/test/test_smooth_L1_loss_layer.cpp
+index 8dacedae9..99df1c195 100644
+--- a/src/caffe/test/test_smooth_L1_loss_layer.cpp
++++ b/src/caffe/test/test_smooth_L1_loss_layer.cpp
+@@ -89,7 +89,9 @@ class SmoothL1LossLayerTest : public MultiDeviceTest<TypeParam> {
+     const Dtype kErrorMargin = 1e-5;
+     EXPECT_NEAR(loss_weight_1 * kLossWeight, loss_weight_2, kErrorMargin);
+     // Make sure the loss is non-trivial.
+-    const Dtype kNonTrivialAbsThresh = 1e-1;
++    Dtype kNonTrivialAbsThresh = 1e-1;
++    if (!SSD)
++      kNonTrivialAbsThresh = 1e-3; //CUSTOMIZATION
+     EXPECT_GE(fabs(loss_weight_1), kNonTrivialAbsThresh);
+   }
+ 

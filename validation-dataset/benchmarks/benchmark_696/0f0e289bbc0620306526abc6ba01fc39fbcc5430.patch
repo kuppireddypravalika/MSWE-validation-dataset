@@ -1,0 +1,22 @@
+From 0f0e289bbc0620306526abc6ba01fc39fbcc5430 Mon Sep 17 00:00:00 2001
+From: Mathilde Merle <mathilde.merle@ihu-liryc.fr>
+Date: Wed, 29 Apr 2020 14:46:06 +0200
+Subject: [PATCH] [Ubuntu18.04] compilation ceill fabsl log10l -- master
+
+---
+ .../interactors/medVtkViewItkDataImageInteractor.cpp            | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/plugins/legacy/itkDataImage/interactors/medVtkViewItkDataImageInteractor.cpp b/src/plugins/legacy/itkDataImage/interactors/medVtkViewItkDataImageInteractor.cpp
+index 39bd0c01d0..88e0df68fd 100644
+--- a/src/plugins/legacy/itkDataImage/interactors/medVtkViewItkDataImageInteractor.cpp
++++ b/src/plugins/legacy/itkDataImage/interactors/medVtkViewItkDataImageInteractor.cpp
+@@ -338,7 +338,7 @@ void medVtkViewItkDataImageInteractor::initWindowLevelParameters(double *range)
+         int iDecimalCount = 2;
+         if(d->intensityStep<1)
+         {
+-            iDecimalCount = 1 + std::ceill(std::fabsl(std::log10l(d->intensityStep)));
++            iDecimalCount = 1 + std::ceil(std::fabs(std::log10(static_cast<long double>(d->intensityStep))));
+         }
+         d->minIntensityParameter->setDecimals(iDecimalCount);
+         d->maxIntensityParameter->setDecimals(iDecimalCount);

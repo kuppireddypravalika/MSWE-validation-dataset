@@ -1,0 +1,40 @@
+From 5e9e3991418acf1e2a2c8d166e88d5bdc99e5f75 Mon Sep 17 00:00:00 2001
+From: Pavel Kryukov <kryukov@frtk.ru>
+Date: Wed, 19 Apr 2017 11:07:07 +0300
+Subject: [PATCH] Use std::fill_n for LRU initialization
+
+---
+ perf_sim/mem/cache_tag_array.h | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/perf_sim/mem/cache_tag_array.h b/perf_sim/mem/cache_tag_array.h
+index 8c8cddf5e..5abf44de7 100644
+--- a/perf_sim/mem/cache_tag_array.h
++++ b/perf_sim/mem/cache_tag_array.h
+@@ -25,7 +25,7 @@ struct CacheSet
+ };
+ 
+ /* Replacement algorithm modules (LRU). */
+-struct LRUInfo
++class LRUInfo
+ {
+     /*
+      * "lru" contains sequences of using for each set. First number in set list
+@@ -33,14 +33,15 @@ struct LRUInfo
+      */
+     std::vector< std::list< unsigned int> > lru = {};
+ 
+-    LRUInfo( unsigned int ways, unsigned int sets)
++public:
++    LRUInfo( unsigned int ways, unsigned int sets) : lru( sets)
+     {
+         std::list< unsigned int> l;
+         for ( unsigned int i = 0; i < ways; ++i)
+         {
+             l.push_front( i);
+         }
+-        lru = std::vector< std::list< unsigned int> >( sets, l);
++        std::fill_n( lru.begin(), sets, l);
+     }
+     /*
+      * On hit - mark (push front) way that contains the set.

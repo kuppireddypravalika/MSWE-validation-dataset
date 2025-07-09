@@ -1,0 +1,24 @@
+From 02b28096af11fda5b466ddfa3f12a6125340974c Mon Sep 17 00:00:00 2001
+From: drmortalwombat <90205530+drmortalwombat@users.noreply.github.com>
+Date: Wed, 12 Jun 2024 07:36:30 +0200
+Subject: [PATCH] fix pragma optimize inline
+
+---
+ oscar64/Parser.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/oscar64/Parser.cpp b/oscar64/Parser.cpp
+index d054f61..97a94d4 100644
+--- a/oscar64/Parser.cpp
++++ b/oscar64/Parser.cpp
+@@ -12127,8 +12127,8 @@ void Parser::ParsePragma(void)
+ 						mCompilerOptions &= ~COPT_OPTIMIZE_SIZE;
+ 					else if (ConsumeIdentIf("noinline"))
+ 						mCompilerOptions &= ~(COPT_OPTIMIZE_INLINE | COPT_OPTIMIZE_AUTO_INLINE | COPT_OPTIMIZE_AUTO_INLINE_ALL);
+-					else if (ConsumeIdentIf("inline"))
+-						mCompilerOptions |= COPT_OPTIMIZE_AUTO_INLINE;
++					else if (ConsumeTokenIf(TK_INLINE))
++						mCompilerOptions |= COPT_OPTIMIZE_INLINE;
+ 					else if (ConsumeIdentIf("autoinline"))
+ 						mCompilerOptions |= COPT_OPTIMIZE_AUTO_INLINE | COPT_OPTIMIZE_AUTO_INLINE;
+ 					else if (ConsumeIdentIf("maxinline"))

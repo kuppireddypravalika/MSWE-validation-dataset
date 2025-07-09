@@ -1,0 +1,25 @@
+From 36ff7e90af4368890b1148806ba3f307b5a35db7 Mon Sep 17 00:00:00 2001
+From: zaxcav <daveanti@gmail.com>
+Date: Tue, 2 May 2017 20:52:26 +0200
+Subject: [PATCH] Improve ignoring wide flags on patrol zone edges
+
+This is a minor improvement to #5424.
+
+The zone edge detection is expanded to also check the diagonal neighbouring tiles so that the fix in #5242 also works for tiles on an internal corner of a patrol zone.
+---
+ src/openrct2/peep/peep.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/openrct2/peep/peep.c b/src/openrct2/peep/peep.c
+index a8916fafaff9..972b038ea6e6 100644
+--- a/src/openrct2/peep/peep.c
++++ b/src/openrct2/peep/peep.c
+@@ -9110,7 +9110,7 @@ static void peep_pathfind_heuristic_search(sint16 x, sint16 y, uint8 z, rct_peep
+ 					// edge of the mechanic patrol zone.
+ 					bool onZoneEdge = false;
+ 					int neighbourDir = 0;
+-					while (!onZoneEdge && neighbourDir <= 3) {
++					while (!onZoneEdge && neighbourDir <= 7) {
+ 						int neighbourX = x + TileDirectionDelta[neighbourDir].x;
+ 						int neighbourY = y + TileDirectionDelta[neighbourDir].y;
+ 						onZoneEdge = !staff_is_location_in_patrol(peep, neighbourX, neighbourY);

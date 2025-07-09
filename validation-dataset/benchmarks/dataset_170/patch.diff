@@ -1,0 +1,26 @@
+From 79ac8870ec71c99188f6d487ba74922cf90468a5 Mon Sep 17 00:00:00 2001
+From: Aurelius84 <zhangliujie@baidu.com>
+Date: Sat, 23 Apr 2022 13:36:52 +0800
+Subject: [PATCH] [Performance]Set ShapeKernel with ALL_BACKEND and ALL_LAYOUT
+ (#42138)
+
+* [Performance]Set ShapeKernel with ALL_BACKEND and ALL_LAYOUT
+
+* [Performance]Set ShapeKernel with ALL_BACKEND and ALL_LAYOUT
+---
+ paddle/phi/kernels/shape_kernel.cc | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/paddle/phi/kernels/shape_kernel.cc b/paddle/phi/kernels/shape_kernel.cc
+index dd26a7edc9cdd8..f87b5014c12072 100644
+--- a/paddle/phi/kernels/shape_kernel.cc
++++ b/paddle/phi/kernels/shape_kernel.cc
+@@ -63,5 +63,7 @@ PD_REGISTER_KERNEL(shape,
+                    double,
+                    phi::dtype::complex<float>,
+                    phi::dtype::complex<double>,
+-                   phi::dtype::float16) {}
++                   phi::dtype::float16) {
++  kernel->InputAt(0).SetBackend(phi::Backend::ALL_BACKEND);
++}
+ #endif

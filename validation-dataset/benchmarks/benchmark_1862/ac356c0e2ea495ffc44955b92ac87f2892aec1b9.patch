@@ -1,0 +1,38 @@
+From ac356c0e2ea495ffc44955b92ac87f2892aec1b9 Mon Sep 17 00:00:00 2001
+From: Luigi Ballabio <luigi.ballabio@gmail.com>
+Date: Tue, 21 May 2013 09:46:58 +0000
+Subject: [PATCH] Removed another VC++ warning on x64.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Thanks to Johannes Göttker-Schnetmann.
+---
+ ql/pricingengines/vanilla/analytich1hwengine.cpp | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/ql/pricingengines/vanilla/analytich1hwengine.cpp b/ql/pricingengines/vanilla/analytich1hwengine.cpp
+index 808195556..9c252a0a8 100644
+--- a/ql/pricingengines/vanilla/analytich1hwengine.cpp
++++ b/ql/pricingengines/vanilla/analytich1hwengine.cpp
+@@ -85,16 +85,17 @@ namespace QuantLib {
+         const Size maxIter = 1000;
+         const Real lambdaT = lambda(t);
+ 
+-        Size k=0;
++        Size i=0;
+         Real retVal = 0.0, s;
+ 
+         do {
++            Real k = static_cast<Real>(i);
+             s=std::exp(k*std::log(0.5*lambdaT) + g.logValue(0.5*(1+d_)+k)
+                         - g.logValue(k+1) - g.logValue(0.5*d_+k));
+             retVal += s;
+-        } while (s > std::numeric_limits<float>::epsilon() && ++k < maxIter);
++        } while (s > std::numeric_limits<float>::epsilon() && ++i < maxIter);
+ 
+-        QL_REQUIRE(k < maxIter, "can not calculate Lambda");
++        QL_REQUIRE(i < maxIter, "can not calculate Lambda");
+ 
+         retVal *= std::sqrt(2*c(t)) * std::exp(-0.5*lambdaT);
+         return retVal;

@@ -1,0 +1,28 @@
+From a0997821c67aa343113efdddd40e209a28e0c456 Mon Sep 17 00:00:00 2001
+From: Magne Sjaastad <magne.sjaastad@ceetronsolutions.com>
+Date: Mon, 23 Sep 2024 14:03:35 +0200
+Subject: [PATCH] Make sure intersection calculations are done before legend
+ update
+
+The legend categories can be filtered to only visible categories. This requires the geometry generators to do intersection calculations, as the legend is created based on intersected cells.
+---
+ ApplicationLibCode/ProjectDataModel/RimEclipseView.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/ApplicationLibCode/ProjectDataModel/RimEclipseView.cpp b/ApplicationLibCode/ProjectDataModel/RimEclipseView.cpp
+index 96fc88b4bd3..84736cd07c6 100644
+--- a/ApplicationLibCode/ProjectDataModel/RimEclipseView.cpp
++++ b/ApplicationLibCode/ProjectDataModel/RimEclipseView.cpp
+@@ -1632,6 +1632,12 @@ void RimEclipseView::updateLegendRangesTextAndVisibility( RimRegularLegendConfig
+                                                           RimEclipseResultDefinition* eclResultDef,
+                                                           int                         timeStepIndex )
+ {
++    // Call appendIntersectionsForCurrentTimeStep() is required to get the intersected cells. If the legend to update should list visible
++    // categories, the intersection geometry defines the intersected cells. These cells are then used to extract all category values, and
++    // find unique values. appendIntersectionsForCurrentTimeStep() is now called twice, and this could potentially be a performance issue
++    // for very large models.
++    appendIntersectionsForCurrentTimeStep();
++
+     eclResultDef->updateRangesForExplicitLegends( legendConfig, ternaryLegendConfig, timeStepIndex );
+ 
+     if ( eclResultDef->hasResult() && legendConfig->showLegend() )

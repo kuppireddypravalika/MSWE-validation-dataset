@@ -1,0 +1,22 @@
+From 7c1c10fb8875d87dabad7ebf5f8c75a86b724533 Mon Sep 17 00:00:00 2001
+From: ljubobratovicrelja <ljubobratovic.relja@gmail.com>
+Date: Sun, 16 Aug 2015 23:47:30 +0200
+Subject: [PATCH] changed all optimization from lmdif1 to lmdif
+
+---
+ src/optimize.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/optimize.cpp b/src/optimize.cpp
+index 44fd4d9..25cb587 100644
+--- a/src/optimize.cpp
++++ b/src/optimize.cpp
+@@ -258,7 +258,7 @@ int optimize_all(const std::vector<std::vector<cv::vec2r>> &image_points, const
+ 	data[n - 2] = k[0];
+ 	data[n - 1] = k[1];
+ 
+-	if((info = cv::lmdif1(all_reprojection_fcn, m, n, data, tol))) {
++	if((info = cv::lmdif(all_reprojection_fcn, m, n, data, 50, tol, tol, tol))) {
+ 		A = construct_a(data);
+ 		for (unsigned b = 0; b < K.size(); ++b) {
+ 			cv::matrixd K_(3, 4, (data + a_param_count + (b * 12)));

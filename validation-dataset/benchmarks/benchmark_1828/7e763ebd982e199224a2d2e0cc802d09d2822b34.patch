@@ -1,0 +1,32 @@
+From 7e763ebd982e199224a2d2e0cc802d09d2822b34 Mon Sep 17 00:00:00 2001
+From: Chris Lattner <sabre@nondot.org>
+Date: Sun, 26 Jul 2009 17:46:03 +0000
+Subject: [PATCH] Use the RHS length instead of the LHS length.  They are both
+ the same, but this ends up compiling code like this:
+
+int foo(const StringRef &R) {
+  return R == "food";
+}
+
+to use a constant sized memcmp instead of a variable memcmp.
+
+
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@77160 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ include/llvm/ADT/StringRef.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/llvm/ADT/StringRef.h b/include/llvm/ADT/StringRef.h
+index 5f3e5fba372..0b1bfb28c23 100644
+--- a/include/llvm/ADT/StringRef.h
++++ b/include/llvm/ADT/StringRef.h
+@@ -81,7 +81,7 @@ namespace llvm {
+     /// compare() in when the relative ordering of inequal strings isn't needed.
+     bool equals(const StringRef &RHS) const {
+       return (Length == RHS.Length && 
+-              memcmp(Data, RHS.Data, Length) == 0);
++              memcmp(Data, RHS.Data, RHS.Length) == 0);
+     }
+ 
+     /// compare - Compare two strings; the result is -1, 0, or 1 if this string

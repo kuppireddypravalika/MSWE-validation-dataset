@@ -1,0 +1,30 @@
+From 148697a8d8258e493df78ec15c22f59ff17856d3 Mon Sep 17 00:00:00 2001
+From: ElisaBortoli <elisa.bortoli3@gmail.com>
+Date: Thu, 29 Nov 2018 11:03:17 +0100
+Subject: [PATCH] tried with static_cast<long double> for the base in
+ math.optim but performance decreases
+
+---
+ src/geotop/math.optim.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/geotop/math.optim.h b/src/geotop/math.optim.h
+index 2e7538fe2..a24231c08 100644
+--- a/src/geotop/math.optim.h
++++ b/src/geotop/math.optim.h
+@@ -4,7 +4,6 @@
+ #include "config.h"
+ 
+ #include <cmath>
+-#include <fstream>
+ 
+ #define pow_2(a) ((a)*(a))
+ 
+@@ -12,6 +11,7 @@ template <class T>
+ T power(const T a, const T b){
+ #ifdef MATH_OPTIM
+     return std::exp(b*std::log(a));
++//        return std::exp(b*std::log(static_cast<long double>(a)));
+ #else
+     return std::pow(a,b);
+ #endif

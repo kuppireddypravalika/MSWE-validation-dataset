@@ -1,0 +1,39 @@
+From 233bc71db979bca3c494c26d563757f6678d3e60 Mon Sep 17 00:00:00 2001
+From: Ahmed Bhayat <ahmed_bhayat@hotmail.com>
+Date: Mon, 28 Mar 2022 16:03:12 +0100
+Subject: [PATCH] optimisation to avoid double iteration over formula structure
+
+---
+ Kernel/Formula.cpp | 14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
+
+diff --git a/Kernel/Formula.cpp b/Kernel/Formula.cpp
+index b6e0d0dd37..f9ef699f4b 100644
+--- a/Kernel/Formula.cpp
++++ b/Kernel/Formula.cpp
+@@ -780,21 +780,15 @@ Formula* Formula::quantify(Formula* f)
+   DHMap<unsigned,TermList> tMap;
+   SortHelper::collectVariableSorts(f,tMap);
+ 
+-  Set<unsigned> vars;
+-  FormulaVarIterator fvit( f );
+-  while(fvit.hasNext()) {
+-    vars.insert(fvit.next());
+-  }
+-
+   //we have to quantify the formula
+   VList* varLst = VList::empty();
+   VList::FIFO quantifiedVars(varLst);
+ 
+-  Set<unsigned>::Iterator vit(vars);
+-  while(vit.hasNext()) {
+-    unsigned v = vit.next();
++  DHMap<unsigned,TermList>::Iterator tmit(tMap);
++  while(tmit.hasNext()) {
++    unsigned v; 
+     TermList t;
+-    ALWAYS(tMap.find(v,t));
++    tmit.next(v, t);    
+     if(t.isTerm() && t.term()->isSuper()){
+       // type variable must appear at the start of the list
+       quantifiedVars.pushFront(v);

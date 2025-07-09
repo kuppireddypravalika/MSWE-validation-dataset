@@ -1,0 +1,22 @@
+From 3a34bf3ae856999178b46cef35f090663671742d Mon Sep 17 00:00:00 2001
+From: Fuzzbawls <fuzzbawls@gmail.com>
+Date: Tue, 1 May 2018 19:12:18 -0700
+Subject: [PATCH] use c++11 for instead of boost for mnconf count
+
+---
+ src/masternodeconfig.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/masternodeconfig.h b/src/masternodeconfig.h
+index 59df088b5..ddd7d98c1 100644
+--- a/src/masternodeconfig.h
++++ b/src/masternodeconfig.h
+@@ -107,7 +107,7 @@ class CMasternodeConfig
+     int getCount()
+     {
+         int c = -1;
+-        BOOST_FOREACH (CMasternodeEntry e, entries) {
++        for (CMasternodeEntry e : entries) {
+             if (e.getAlias() != "") c++;
+         }
+         return c;

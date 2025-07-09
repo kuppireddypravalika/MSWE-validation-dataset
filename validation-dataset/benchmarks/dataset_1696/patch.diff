@@ -1,0 +1,38 @@
+From 7bda83b96f97d7c9d62b29174f2b6bfc30b49714 Mon Sep 17 00:00:00 2001
+From: polymonster <alexandercdixon@gmail.com>
+Date: Sat, 26 Jan 2019 12:40:18 +0000
+Subject: [PATCH] optimise quat from euler angles
+
+---
+ quat.h | 18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
+
+diff --git a/quat.h b/quat.h
+index 0a09f01..68fa5ec 100644
+--- a/quat.h
++++ b/quat.h
+@@ -131,13 +131,17 @@ inline Quaternion& Quaternion::operator*=(const Quaternion& rhs)
+ 
+ inline void Quaternion::euler_angles(f32 z_theta, f32 y_theta, f32 x_theta)
+ {
+-    f32 cos_z_2 = cosf(0.5f * z_theta);
+-    f32 cos_y_2 = cosf(0.5f * y_theta);
+-    f32 cos_x_2 = cosf(0.5f * x_theta);
+-
+-    f32 sin_z_2 = sinf(0.5f * z_theta);
+-    f32 sin_y_2 = sinf(0.5f * y_theta);
+-    f32 sin_x_2 = sinf(0.5f * x_theta);
++    f32 half_z = 0.5f * z_theta;
++    f32 half_x = 0.5f * z_theta;
++    f32 half_y = 0.5f * z_theta;
++    
++    f32 cos_z_2 = cosf(half_z);
++    f32 cos_y_2 = cosf(half_y);
++    f32 cos_x_2 = cosf(half_x);
++
++    f32 sin_z_2 = sinf(half_z);
++    f32 sin_y_2 = sinf(half_y);
++    f32 sin_x_2 = sinf(half_x);
+ 
+     // compute quaternion
+     w = cos_z_2 * cos_y_2 * cos_x_2 + sin_z_2 * sin_y_2 * sin_x_2;

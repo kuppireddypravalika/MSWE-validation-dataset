@@ -1,0 +1,24 @@
+From 48531785b74d2f6728282937a105595467b94cc7 Mon Sep 17 00:00:00 2001
+From: Jeffrey Walton <noloader@gmail.com>
+Date: Tue, 5 Feb 2019 02:05:36 -0500
+Subject: [PATCH] Use IsPowerOf2 in Integer::Divide
+
+---
+ integer.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/integer.cpp b/integer.cpp
+index 1771b429b..78dd10a10 100644
+--- a/integer.cpp
++++ b/integer.cpp
+@@ -4244,7 +4244,9 @@ void Integer::Divide(word &remainder, Integer &quotient, const Integer &dividend
+ 	if (!divisor)
+ 		throw Integer::DivideByZero();
+ 
+-	if ((divisor & (divisor-1)) == 0)	// divisor is a power of 2
++	// IsPowerOf2 uses BMI on x86 if available. There is a small
++	// but measurable improvement during decryption and signing.
++	if (IsPowerOf2(divisor))
+ 	{
+ 		quotient = dividend >> (BitPrecision(divisor)-1);
+ 		remainder = dividend.reg[0] & (divisor-1);

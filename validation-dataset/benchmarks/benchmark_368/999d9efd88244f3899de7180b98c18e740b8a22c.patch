@@ -1,0 +1,38 @@
+From 999d9efd88244f3899de7180b98c18e740b8a22c Mon Sep 17 00:00:00 2001
+From: Richard Crozier <3159692+crobarcro@users.noreply.github.com>
+Date: Mon, 30 Apr 2018 17:01:14 +0100
+Subject: [PATCH] fmesher.cpp: use MAKE_UNIQUE macro so we can compile in
+ std=c++11
+
+---
+ cfemm/fmesher/fmesher.cpp | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/cfemm/fmesher/fmesher.cpp b/cfemm/fmesher/fmesher.cpp
+index 4735e2e5..373fa4d0 100644
+--- a/cfemm/fmesher/fmesher.cpp
++++ b/cfemm/fmesher/fmesher.cpp
+@@ -30,7 +30,8 @@
+ #include "femmconstants.h"
+ #include "fmesher.h"
+ #include "fparse.h"
+-#include "IntPoint.h"
++#include "IntPoint.h"
++#include "make_unique.h"
+ 
+ #include "triangle_version.h"
+ 
+@@ -330,11 +331,11 @@ bool FMesher::LoadMesh(string PathName)
+ 
+                 if (j != 0)
+                 {
+-                    meshline[nl++] = std::make_unique<femm::IntPoint>(segm);
++                    meshline[nl++] = MAKE_UNIQUE<femm::IntPoint>(segm);
+                 }
+                 else
+                 {
+-                    greymeshline.push_back(std::make_unique<femm::IntPoint>(segm));
++                    greymeshline.push_back(MAKE_UNIQUE<femm::IntPoint>(segm));
+                 }
+             }
+         }

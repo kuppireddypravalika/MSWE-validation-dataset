@@ -1,0 +1,24 @@
+From 1732baab88648aa916fd96311b8f772149abd90f Mon Sep 17 00:00:00 2001
+From: brendanwalker <brendan@millerwalker.net>
+Date: Sun, 22 Nov 2015 15:11:08 -0800
+Subject: [PATCH] Adjusting the main server loop sleep time from 1ms -> 10ms *
+ Experiment to see of this prevents pegging CPU on os x when server is run as
+ daemon
+
+---
+ psmoveservice/PSMoveService.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/psmoveservice/PSMoveService.cpp b/psmoveservice/PSMoveService.cpp
+index c5dda513..4373810b 100644
+--- a/psmoveservice/PSMoveService.cpp
++++ b/psmoveservice/PSMoveService.cpp
+@@ -63,7 +63,7 @@ class PSMoveService
+                         update();
+                     }
+ 
+-                    boost::this_thread::sleep(boost::posix_time::milliseconds(1));
++                    boost::this_thread::sleep(boost::posix_time::milliseconds(10));
+                 }
+             }
+             else

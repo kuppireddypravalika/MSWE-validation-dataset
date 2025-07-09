@@ -1,0 +1,29 @@
+From 49f8b8c39a3af54cc681a877a8cb5743c81ec0a4 Mon Sep 17 00:00:00 2001
+From: Ivan Komissarov <abbapoh@gmail.com>
+Date: Sun, 22 Dec 2019 17:24:38 +0200
+Subject: [PATCH] Use QList::reserve() in Executor::addExecutorJobs
+
+Change-Id: I6680a2a3ea711b8a7fa01fc1edb8ce1040f603b3
+Reviewed-by: Christian Kandeler <christian.kandeler@qt.io>
+---
+ src/lib/corelib/buildgraph/executor.cpp | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/src/lib/corelib/buildgraph/executor.cpp b/src/lib/corelib/buildgraph/executor.cpp
+index 09a552ba79..c29e92361b 100644
+--- a/src/lib/corelib/buildgraph/executor.cpp
++++ b/src/lib/corelib/buildgraph/executor.cpp
+@@ -767,9 +767,10 @@ void Executor::handleError(const ErrorInfo &error)
+ 
+ void Executor::addExecutorJobs()
+ {
+-    qCDebug(lcExec) << "preparing executor for" << m_buildOptions.maxJobCount()
+-                    << "jobs in parallel";
+-    for (int i = 1; i <= m_buildOptions.maxJobCount(); i++) {
++    const int count = m_buildOptions.maxJobCount();
++    qCDebug(lcExec) << "preparing executor for" << count << "jobs in parallel";
++    m_availableJobs.reserve(count);
++    for (int i = 1; i <= count; i++) {
+         const auto job = new ExecutorJob(m_logger, this);
+         job->setMainThreadScriptEngine(m_evalContext->engine());
+         job->setObjectName(QStringLiteral("J%1").arg(i));

@@ -1,0 +1,22 @@
+From acf49f7767e844c9b460da675fc5033ab0b2786c Mon Sep 17 00:00:00 2001
+From: Jeff Setter <setter@stanford.edu>
+Date: Thu, 7 Mar 2019 15:40:30 -0800
+Subject: [PATCH] fix equal test: neq was being optimized out
+
+---
+ apps/hardware_benchmarks/tests/equal/equal_generator.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/apps/hardware_benchmarks/tests/equal/equal_generator.cpp b/apps/hardware_benchmarks/tests/equal/equal_generator.cpp
+index 9a01eb9bfe..958a27530a 100644
+--- a/apps/hardware_benchmarks/tests/equal/equal_generator.cpp
++++ b/apps/hardware_benchmarks/tests/equal/equal_generator.cpp
+@@ -22,7 +22,7 @@ class UnitTestEqual : public Halide::Generator<UnitTestEqual> {
+         ne(x,y) = hw_input(x,y) != 64;
+ 
+         Func hw_output("hw_output");
+-        hw_output(x, y) = cast<uint8_t>(select(eq(x,y) && ne(x,y), 200, 0));
++        hw_output(x, y) = cast<uint8_t>(select(eq(x,y) ^ ne(x,y), 200, 0));
+         output(x, y) = hw_output(x,y);
+ 
+         /* THE SCHEDULE */

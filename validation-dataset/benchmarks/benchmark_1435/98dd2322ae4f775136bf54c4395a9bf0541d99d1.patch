@@ -1,0 +1,26 @@
+From 98dd2322ae4f775136bf54c4395a9bf0541d99d1 Mon Sep 17 00:00:00 2001
+From: rrossi <rrossi@cimne.upc.edu>
+Date: Tue, 26 Nov 2013 18:03:06 +0000
+Subject: [PATCH] enabling compilation with stdc++11 ... and making it faster
+
+---
+ .../structural_application/custom_utilities/sd_math_utils.h     | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/applications/structural_application/custom_utilities/sd_math_utils.h b/applications/structural_application/custom_utilities/sd_math_utils.h
+index 0479f31b561f..c3cf9c8fab48 100644
+--- a/applications/structural_application/custom_utilities/sd_math_utils.h
++++ b/applications/structural_application/custom_utilities/sd_math_utils.h
+@@ -139,10 +139,12 @@ template<class TDataType> class SD_MathUtils
+             -sqrt(-4.0/3.0*p)*cos(1.0/3.0*acos(-q/2.0*sqrt(-27.0/(p*p*p)))-PI/3.0)
+             -b/(3*a);
+ 
++#ifdef _DEBUG
+         if(std::isnan<double>(solution(0)) || std::isnan<double>(solution(1))|| std::isnan<double>(solution(2)))
+         {
+             return false;
+         }
++#endif
+ 
+         return true;
+     }

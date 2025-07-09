@@ -1,0 +1,33 @@
+From 38db560801e28d77ee07f6ee49d390774033bfe2 Mon Sep 17 00:00:00 2001
+From: vitamin-caig <vitamin.caig@gmail.com>
+Date: Fri, 25 Mar 2011 21:24:35 +0000
+Subject: [PATCH] Speedup TRD ahead detection.
+
+git-svn-id: https://zxtune.googlecode.com/svn/trunk@1027 e19a5227-2556-0410-816f-a35683127991
+---
+ src/core/plugins/containers/trd_supp.cpp | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/src/core/plugins/containers/trd_supp.cpp b/src/core/plugins/containers/trd_supp.cpp
+index 0f6a14d86a..30f798c5c3 100644
+--- a/src/core/plugins/containers/trd_supp.cpp
++++ b/src/core/plugins/containers/trd_supp.cpp
+@@ -116,9 +116,6 @@ namespace
+   BOOST_STATIC_ASSERT(sizeof(ServiceSector) == 256);
+ 
+   const std::string TRD_SERVICE_SECTOR_PATTERN = 
+-    "00"    //zero
+-    "+224+" //reserved
+-    "+2+"   //free
+     "16"    //type DS_DD
+     "?"     //files
+     "??"    //free sectors
+@@ -215,7 +212,7 @@ namespace
+       {
+         return size;
+       }
+-      const std::size_t skipBytes = SERVICE_SECTOR_NUM * BYTES_PER_SECTOR;
++      const std::size_t skipBytes = SERVICE_SECTOR_NUM * BYTES_PER_SECTOR + offsetof(ServiceSector, Type);
+       const uint8_t* const begin = static_cast<const uint8_t*>(RawData->Data()) + skipBytes;
+       return LookaheadServiceSector(begin, size - skipBytes);
+     }

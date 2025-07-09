@@ -1,0 +1,21 @@
+From fac42875276ecb8d50e761650df4382dcc3eaf4f Mon Sep 17 00:00:00 2001
+From: Igor Baratta <igorbaratta@gmail.com>
+Date: Wed, 17 Feb 2021 10:23:49 +0000
+Subject: [PATCH] reserve vector size (#1419)
+
+---
+ cpp/dolfinx/fem/utils.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/cpp/dolfinx/fem/utils.h b/cpp/dolfinx/fem/utils.h
+index 6cab670b32c..7d83795efa2 100644
+--- a/cpp/dolfinx/fem/utils.h
++++ b/cpp/dolfinx/fem/utils.h
+@@ -406,6 +406,7 @@ common::array2d<typename U::scalar_type> pack_coefficients(const U& u)
+   std::vector<const fem::DofMap*> dofmaps(coefficients.size());
+   std::vector<int> bs(coefficients.size());
+   std::vector<std::reference_wrapper<const std::vector<T>>> v;
++  v.reserve(coefficients.size());
+   for (std::size_t i = 0; i < coefficients.size(); ++i)
+   {
+     dofmaps[i] = coefficients[i]->function_space()->dofmap().get();

@@ -1,0 +1,24 @@
+From 8ebea3ebbfec374f4845414deb998238ab00f48a Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Sat, 1 Dec 2018 12:26:29 -0500
+Subject: [PATCH] [svrplus] svrplus.c: There's no easy way to optimize out the
+ wcscat_s() calls.
+
+This is basically micro-optimizations and replacing it with swprintf()
+would just bloat up the code.
+---
+ src/svrplus/svrplus.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/src/svrplus/svrplus.c b/src/svrplus/svrplus.c
+index 43ca5dded0..f01ccf0bc2 100644
+--- a/src/svrplus/svrplus.c
++++ b/src/svrplus/svrplus.c
+@@ -498,7 +498,6 @@ static unsigned int WINAPI ThreadProc(LPVOID lpParameter)
+ 				: L"An error occurred while registering the DLL:");
+ 		}
+ 
+-		// TODO: Optimize by not using wcscat_s()?
+ 		if (res32 != ISR_OK) {
+ 			if (g_is64bit) {
+ 				wcscpy_s(msg2, ARRAY_SIZE(msg2), L"\x2022 32-bit: ");

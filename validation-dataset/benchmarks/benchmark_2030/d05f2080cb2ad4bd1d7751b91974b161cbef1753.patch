@@ -1,0 +1,30 @@
+From d05f2080cb2ad4bd1d7751b91974b161cbef1753 Mon Sep 17 00:00:00 2001
+From: Stefan Roiser <Stefan.Roiser@cern.ch>
+Date: Mon, 8 Jan 2007 10:56:41 +0000
+Subject: [PATCH] From Pere: Performance improvement for the PluginSvc
+
+git-svn-id: http://root.cern.ch/svn/root/trunk@17259 27541ba8-7e3a-0410-8455-c3a389f83636
+---
+ reflex/inc/Reflex/PluginService.h | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/reflex/inc/Reflex/PluginService.h b/reflex/inc/Reflex/PluginService.h
+index 2a73058c0de91..3a435dd17e5d8 100644
+--- a/reflex/inc/Reflex/PluginService.h
++++ b/reflex/inc/Reflex/PluginService.h
+@@ -1,4 +1,4 @@
+-// @(#)root/reflex:$Name:  $:$Id: PluginService.h,v 1.1 2006/11/30 08:27:08 roiser Exp $
++// @(#)root/reflex:$Name:  $:$Id: PluginService.h,v 1.2 2006/11/30 14:12:00 roiser Exp $
+ // Author: Pere Mato 2006
+ 
+ // Copyright CERN, CH-1211 Geneva 23, 2004-2006, All rights reserved.
+@@ -146,7 +146,8 @@ namespace ROOT {
+         template < typename T > 
+            static bool CompareId(const Any& id1, 
+                                  const Any& id2 ) {
+-           try { return any_cast<T>(id1) == any_cast<T>(id2); }
++           try { return id1.TypeInfo()   == id2.TypeInfo() && 
++                        any_cast<T>(id1) == any_cast<T>(id2); }
+            catch ( const BadAnyCast& ) { return false; }
+         }
+ 

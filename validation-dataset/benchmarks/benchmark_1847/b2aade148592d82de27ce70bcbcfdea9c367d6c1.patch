@@ -1,0 +1,32 @@
+From b2aade148592d82de27ce70bcbcfdea9c367d6c1 Mon Sep 17 00:00:00 2001
+From: Rafael Espindola <rafael.espindola@gmail.com>
+Date: Wed, 6 Dec 2017 19:02:12 +0000
+Subject: [PATCH] Convert a call to check to checkLazy.
+
+Linking clang goes from 300.82MB to 292.68MB allocated.
+---
+ lld/ELF/InputFiles.cpp | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/lld/ELF/InputFiles.cpp b/lld/ELF/InputFiles.cpp
+index 52b30f722f4b..9bd5a73ddecd 100644
+--- a/lld/ELF/InputFiles.cpp
++++ b/lld/ELF/InputFiles.cpp
+@@ -520,13 +520,14 @@ InputSectionBase *ObjFile<ELFT>::createInputSection(const Elf_Shdr &Sec) {
+ 
+     size_t NumRelocations;
+     if (Sec.sh_type == SHT_RELA) {
+-      ArrayRef<Elf_Rela> Rels =
+-          check(this->getObj().relas(&Sec), toString(this));
++      ArrayRef<Elf_Rela> Rels = checkLazy(this->getObj().relas(&Sec),
++                                          [=]() { return toString(this); });
+       Target->FirstRelocation = Rels.begin();
+       NumRelocations = Rels.size();
+       Target->AreRelocsRela = true;
+     } else {
+-      ArrayRef<Elf_Rel> Rels = check(this->getObj().rels(&Sec), toString(this));
++      ArrayRef<Elf_Rel> Rels = checkLazy(this->getObj().rels(&Sec),
++                                         [=]() { return toString(this); });
+       Target->FirstRelocation = Rels.begin();
+       NumRelocations = Rels.size();
+       Target->AreRelocsRela = false;

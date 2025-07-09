@@ -1,0 +1,38 @@
+From 706b8a1c17c780fb5d28ad2586a8842e45b7f051 Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Tue, 4 Feb 2014 18:33:38 +0100
+Subject: [PATCH] Search the symbol in all available dylibs (ROOT-6015).
+
+During static init the JIT could not find symbols in a library that the currently loaded library depends on.
+This was caused by cling not having updated the list of loaded libraries yet - and only that list was searched for symbols.
+Instead, now the dl handle 0 is searched, using the supposedly optimized symbol lookup tables of the process.
+This leaves symbol priorities / lookup context to be dealt with: a library might not see the same symbols as the process.
+---
+ .../llvm/src/lib/Support/DynamicLibrary.cpp        | 14 +++-----------
+ 1 file changed, 3 insertions(+), 11 deletions(-)
+
+diff --git a/interpreter/llvm/src/lib/Support/DynamicLibrary.cpp b/interpreter/llvm/src/lib/Support/DynamicLibrary.cpp
+index 0cd10bb40e180..a00c712920db8 100644
+--- a/interpreter/llvm/src/lib/Support/DynamicLibrary.cpp
++++ b/interpreter/llvm/src/lib/Support/DynamicLibrary.cpp
+@@ -122,17 +122,9 @@ void* DynamicLibrary::SearchForAddressOfSymbol(const char *symbolName) {
+   }
+ 
+ #if HAVE_DLFCN_H
+-  // Now search the libraries.
+-  if (OpenedHandles) {
+-    for (DenseSet<void *>::iterator I = OpenedHandles->begin(),
+-         E = OpenedHandles->end(); I != E; ++I) {
+-      //lt_ptr ptr = lt_dlsym(*I, symbolName);
+-      void *ptr = dlsym(*I, symbolName);
+-      if (ptr) {
+-        return ptr;
+-      }
+-    }
+-  }
++  // Now search the symbol in all the libraries.
++  if (void *ptr = dlsym(0, symbolName)) {
++    return ptr;
+ #endif
+ 
+   if (void *Result = llvm::SearchForAddressOfSpecialSymbol(symbolName))

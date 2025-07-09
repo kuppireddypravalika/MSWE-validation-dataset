@@ -1,0 +1,37 @@
+From 954849438d371c1fcdccf6d72e3d1ca35e0e29d8 Mon Sep 17 00:00:00 2001
+From: Matt Spraggs <matthew.spraggs@gmail.com>
+Date: Wed, 2 May 2018 08:17:58 +0100
+Subject: [PATCH] Compiler: Removed pushing and popping of upvalues when
+ declaring super variable
+
+---
+ src/Compiler.cpp | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/src/Compiler.cpp b/src/Compiler.cpp
+index ec7cde2..7654816 100644
+--- a/src/Compiler.cpp
++++ b/src/Compiler.cpp
+@@ -52,11 +52,10 @@ namespace loxx
+     class_type_ = stmt.superclass ? ClassType::Subclass : ClassType::Superclass;
+ 
+     // If this class derives from an existing class, we create an additional
+-    // scope containing a reference to the superclass
++    // scope containing a reference to the superclass, which is then captured
++    // as an upvalue if it's used anywhere via the super keyword
+     if (stmt.superclass) {
+       begin_scope();
+-      locals_.push({});
+-      upvalues_.push({});
+ 
+       const auto super_token =
+           Token(TokenType::Super, "super", stmt.name.line());
+@@ -89,8 +88,6 @@ namespace loxx
+     // Close the scope we opened above, if applicable
+     if (stmt.superclass) {
+       end_scope();
+-      locals_.pop();
+-      upvalues_.pop();
+     }
+ 
+     define_variable(name_constant, stmt.name);

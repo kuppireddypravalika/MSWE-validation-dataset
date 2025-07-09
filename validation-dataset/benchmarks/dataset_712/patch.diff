@@ -1,0 +1,27 @@
+From ea2b1288479424cbc19d0aae4143d4866e6878e8 Mon Sep 17 00:00:00 2001
+From: Ivan Vashchaev <vivkin@gmail.com>
+Date: Sat, 9 Nov 2013 07:28:41 +0400
+Subject: [PATCH] more compact pow loop
+
+---
+ gason.cpp | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/gason.cpp b/gason.cpp
+index 54828b6..5a411b3 100644
+--- a/gason.cpp
++++ b/gason.cpp
+@@ -48,12 +48,7 @@ static double str2float(const char *str, char **endptr)
+ 		int exponent = 0;
+ 		while (is_dec(*str)) exponent = (exponent * 10) + (*str++ - '0');
+ 		double power = 1;
+-		while (exponent)
+-		{
+-			if (exponent & 1) power *= base;
+-			exponent >>= 1;
+-			base *= base;
+-		}
++		for (; exponent; exponent >>= 1, base *= base) if (exponent & 1) power *= base;
+ 		result *= power;
+ 	}
+ 	*endptr = (char *)str;

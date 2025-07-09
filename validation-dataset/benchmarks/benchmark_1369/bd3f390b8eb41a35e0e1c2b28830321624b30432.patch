@@ -1,0 +1,44 @@
+From bd3f390b8eb41a35e0e1c2b28830321624b30432 Mon Sep 17 00:00:00 2001
+From: Marcel Smit <marcel303@gmail.com>
+Date: Tue, 23 Apr 2019 22:52:21 +0200
+Subject: [PATCH] vfxGraph: Change AVX check into AVX2 check for cpu downsample
+ node.
+
+---
+ vfxGraph/vfxNodes/vfxNodeImageCpuDownsample.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/vfxGraph/vfxNodes/vfxNodeImageCpuDownsample.cpp b/vfxGraph/vfxNodes/vfxNodeImageCpuDownsample.cpp
+index 9f5f4f78f..47aa6fe27 100644
+--- a/vfxGraph/vfxNodes/vfxNodeImageCpuDownsample.cpp
++++ b/vfxGraph/vfxNodes/vfxNodeImageCpuDownsample.cpp
+@@ -32,9 +32,9 @@
+ #ifdef __SSE2__
+ 	#include <xmmintrin.h>
+ 
+-	#if !__AVX__
++	#if !__AVX2__
+ 		#ifndef WIN32
+-			#warning AVX support disabled. image cpu downsample methods will use slower SSE2 code paths
++			#warning AVX2 support disabled. image cpu downsample methods will use slower SSE2 code paths
+ 		#endif
+ 	#else
+ 		#include <immintrin.h>
+@@ -371,7 +371,7 @@ static int downsampleLine4x4_1channel_SSE(
+ 
+ #endif
+ 
+-#if __AVX__
++#if __AVX2__
+ 
+ static int downsampleLine2x2_1channel_AVX(
+ 	const uint8_t * __restrict _srcLine1,
+@@ -437,7 +437,7 @@ void VfxNodeImageCpuDownsample::downsample(const VfxImageCpu & src, VfxImageCpu
+ 			#ifdef __SSSE3__
+ 				if (((uintptr_t(srcItr1) | uintptr_t(srcItr2) | uintptr_t(dstItr)) & 0xf) == 0)
+ 				{
+-				#if __AVX__
++				#if __AVX2__
+ 					numPixelsProcessed = downsampleLine2x2_1channel_AVX(srcItr1, srcItr2, downsampledSx, dstItr);
+ 				#else
+ 					numPixelsProcessed = downsampleLine2x2_1channel_SSE(srcItr1, srcItr2, downsampledSx, dstItr);

@@ -1,0 +1,22 @@
+From 269e4dacfa3efde02f95e606fce141109f6bbc10 Mon Sep 17 00:00:00 2001
+From: Remi Gacogne <remi.gacogne@powerdns.com>
+Date: Fri, 19 Jan 2024 08:54:37 +0100
+Subject: [PATCH] dnstap: Fix a missed optimization reported by Coverity
+
+---
+ pdns/dnstap.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/pdns/dnstap.cc b/pdns/dnstap.cc
+index beb7ac5e8d4b..b032da987663 100644
+--- a/pdns/dnstap.cc
++++ b/pdns/dnstap.cc
+@@ -63,7 +63,7 @@ std::string&& DnstapMessage::getBuffer()
+ }
+ 
+ DnstapMessage::DnstapMessage(std::string&& buffer, DnstapMessage::MessageType type, const std::string& identity, const ComboAddress* requestor, const ComboAddress* responder, DnstapMessage::ProtocolType protocol, const char* packet, const size_t len, const struct timespec* queryTime, const struct timespec* responseTime, const boost::optional<const DNSName&>& auth) :
+-  d_buffer(buffer)
++  d_buffer(std::move(buffer))
+ {
+   protozero::pbf_writer pbf{d_buffer};
+ 

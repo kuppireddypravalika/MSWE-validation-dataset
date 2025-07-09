@@ -1,0 +1,40 @@
+From 3871a2a598bdd7d41fa18d0c20467655d1ced620 Mon Sep 17 00:00:00 2001
+From: Edgar Velazquez-Armendariz <edgarv@users.noreply.github.com>
+Date: Fri, 13 Apr 2012 15:16:44 -0400
+Subject: [PATCH] Use built-in functions for byte swapping
+
+---
+ ImageIO/PfmIO.cpp | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/ImageIO/PfmIO.cpp b/ImageIO/PfmIO.cpp
+index e5d45e0..da3c762 100644
+--- a/ImageIO/PfmIO.cpp
++++ b/ImageIO/PfmIO.cpp
+@@ -21,6 +21,9 @@
+ #include <ctype.h>
+ #include <iostream>
+ #include <memory>
++#if defined(_MSC_VER)
++#include <cstdlib>
++#endif
+ 
+ using namespace pcg;
+ 
+@@ -139,10 +142,16 @@ void PfmIO_Save_data(const Image<Rgba32F, S>  &img, ostream &os)
+ inline void swapByteOrder(unsigned int *ptr, int count)
+ {
+ 	for (int i = 0; i < count; ++i) {
++#if defined(_MSC_VER)
++		ptr[i] = _byteswap_ulong(ptr[i]);
++#elif defined(__GNUC__)
++		ptr[i] = __builtin_bswap32(ptr[i]);
++#else
+ 		ptr[i] = ((ptr[i] << 24) & 0xFF000000u) |
+                  ((ptr[i] <<  8) & 0xFF0000u) |
+                  ((ptr[i] >>  8) & 0x00FFu) |
+                  ((ptr[i] >> 24) & 0xFFu);
++#endif
+ 	}
+ }
+ 

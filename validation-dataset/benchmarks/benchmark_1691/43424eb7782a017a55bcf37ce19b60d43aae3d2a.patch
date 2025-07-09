@@ -1,0 +1,34 @@
+From 43424eb7782a017a55bcf37ce19b60d43aae3d2a Mon Sep 17 00:00:00 2001
+From: Alan Griffiths <alan@octopull.co.uk>
+Date: Tue, 6 Aug 2019 17:47:28 +0100
+Subject: [PATCH] Prefer lambdas to std::bind()
+
+---
+ src/server/input/surface_input_dispatcher.cpp | 14 +++-----------
+ 1 file changed, 3 insertions(+), 11 deletions(-)
+
+diff --git a/src/server/input/surface_input_dispatcher.cpp b/src/server/input/surface_input_dispatcher.cpp
+index 22d738fa079..e7fe7e81694 100644
+--- a/src/server/input/surface_input_dispatcher.cpp
++++ b/src/server/input/surface_input_dispatcher.cpp
+@@ -152,17 +152,9 @@ mi::SurfaceInputDispatcher::SurfaceInputDispatcher(std::shared_ptr<mi::Scene> co
+       started(false)
+ {
+     scene_observer = std::make_shared<InputDispatcherSceneObserver>(
+-        std::bind(
+-            std::mem_fn(&SurfaceInputDispatcher::surface_removed),
+-            this,
+-            std::placeholders::_1),
+-        std::bind(
+-            std::mem_fn(&SurfaceInputDispatcher::surface_moved),
+-            this,
+-            std::placeholders::_1),
+-        std::bind(
+-            std::mem_fn(&SurfaceInputDispatcher::surface_resized),
+-            this));
++        [this](auto const& s) { surface_removed(s); },
++        [this](auto const& s) { surface_moved(s); },
++        [this] { surface_resized(); });
+     scene->add_observer(scene_observer);
+ }
+ 

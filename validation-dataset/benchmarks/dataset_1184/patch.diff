@@ -1,0 +1,25 @@
+From 1c6a3850410dccd9fef12e4ab0753cf3add90660 Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Mon, 20 Apr 2020 00:24:50 -0600
+Subject: [PATCH] Use packed parameter calls in CheckBox::update
+
+---
+ OPHD/UI/Core/CheckBox.cpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/OPHD/UI/Core/CheckBox.cpp b/OPHD/UI/Core/CheckBox.cpp
+index db7f4e7c6..4aad23cee 100644
+--- a/OPHD/UI/Core/CheckBox.cpp
++++ b/OPHD/UI/Core/CheckBox.cpp
+@@ -122,6 +122,9 @@ void CheckBox::update()
+ {
+ 	Renderer& r = Utility<Renderer>::get();
+ 
+-	r.drawSubImage(mSkin, positionX(), positionY(), mChecked ? 13.0f : 0.0f, 0.0f, 13.0f, 13.0f);
+-	r.drawText(*CBOX_FONT, text(), positionX() + 20.0f, positionY(), 255, 255, 255);
++	const auto uncheckedIconRect = NAS2D::Rectangle{0, 0, 13, 13};
++	const auto checkedIconRect = NAS2D::Rectangle{13, 0, 13, 13};
++
++	r.drawSubImage(mSkin, position(), (mChecked ? checkedIconRect : uncheckedIconRect));
++	r.drawText(*CBOX_FONT, text(), position() + NAS2D::Vector{20, 0}, NAS2D::Color::White);
+ }

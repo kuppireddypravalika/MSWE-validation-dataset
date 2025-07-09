@@ -1,0 +1,24 @@
+From 260ca3256dbb52610a188cba17eb26ca36651212 Mon Sep 17 00:00:00 2001
+From: Tobias Junghans <tobydox@veyon.io>
+Date: Thu, 4 Mar 2021 09:39:50 +0100
+Subject: [PATCH] LinuxServiceCore: drop redundant check
+
+stopAllServers() iterates over m_serverProcesses so it will do nothing
+if it's empty.
+---
+ plugins/platform/linux/LinuxServiceCore.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/plugins/platform/linux/LinuxServiceCore.cpp b/plugins/platform/linux/LinuxServiceCore.cpp
+index dbf81fc24..38babb583 100644
+--- a/plugins/platform/linux/LinuxServiceCore.cpp
++++ b/plugins/platform/linux/LinuxServiceCore.cpp
+@@ -121,7 +121,7 @@ void LinuxServiceCore::startServer( const QString& login1SessionId, const QDBusO
+ 		return;
+ 	}
+ 
+-	if( m_sessionManager.multiSession() == false && m_serverProcesses.isEmpty() == false )
++	if( m_sessionManager.multiSession() == false )
+ 	{
+ 		// make sure no other server is still running
+ 		stopAllServers();

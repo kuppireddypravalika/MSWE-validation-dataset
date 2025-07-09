@@ -1,0 +1,40 @@
+From da57a191f688d74ad5ea2ffdafcb14a95b626e81 Mon Sep 17 00:00:00 2001
+From: Montel Laurent <montel@kde.org>
+Date: Mon, 17 Aug 2015 09:41:22 +0200
+Subject: [PATCH] Avoid heap allocations due to fromLatin1()
+
+---
+ src/articlematcher.cpp | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/src/articlematcher.cpp b/src/articlematcher.cpp
+index 2842f1cb6..f12cc05bb 100644
+--- a/src/articlematcher.cpp
++++ b/src/articlematcher.cpp
+@@ -49,19 +49,19 @@ QString Criterion::subjectToString(Subject subj)
+ {
+     switch (subj) {
+     case Title:
+-        return QString::fromLatin1("Title");
++        return QStringLiteral("Title");
+     case Link:
+-        return QString::fromLatin1("Link");
++        return QStringLiteral("Link");
+     case Description:
+-        return QString::fromLatin1("Description");
++        return QStringLiteral("Description");
+     case Status:
+-        return QString::fromLatin1("Status");
++        return QStringLiteral("Status");
+     case KeepFlag:
+-        return QString::fromLatin1("KeepFlag");
++        return QStringLiteral("KeepFlag");
+     case Author:
+-        return QString::fromLatin1("Author");
++        return QStringLiteral("Author");
+     default: // should never happen (TM)
+-        return QString::fromLatin1("Description");
++        return QStringLiteral("Description");
+     }
+ }
+ 

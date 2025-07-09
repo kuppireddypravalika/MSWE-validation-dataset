@@ -1,0 +1,37 @@
+From 2de31f90821f857f4a9328839c2ab1a157750602 Mon Sep 17 00:00:00 2001
+From: "Dirk O. Kaar" <dok@dok-net.net>
+Date: Wed, 31 Jul 2019 08:16:36 +0200
+Subject: [PATCH] Further enhancements to circular_queue from
+ EspSoftwareSerial.
+
+---
+ src/circular_queue/circular_queue.h | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/src/circular_queue/circular_queue.h b/src/circular_queue/circular_queue.h
+index 5fb25fa..130877a 100644
+--- a/src/circular_queue/circular_queue.h
++++ b/src/circular_queue/circular_queue.h
+@@ -186,6 +186,7 @@ class circular_queue
+ 
+     /*!
+         @brief	Pop multiple elements in ordered sequence from the queue to a buffer.
++                If buffer is nullptr, simply discards up to size elements from the queue.
+         @return The number of elements actually popped from the queue to
+                 buffer.
+     */
+@@ -313,9 +314,11 @@ size_t circular_queue<T>::pop_n(T* buffer, size_t size) {
+ 
+     std::atomic_thread_fence(std::memory_order_acquire);
+ 
+-    buffer = std::copy_n(std::make_move_iterator(m_buffer.get() + outPos), n, buffer);
+-    avail -= n;
+-    std::copy_n(std::make_move_iterator(m_buffer.get()), avail, buffer);
++    if (buffer) {
++        buffer = std::copy_n(std::make_move_iterator(m_buffer.get() + outPos), n, buffer);
++        avail -= n;
++        std::copy_n(std::make_move_iterator(m_buffer.get()), avail, buffer);
++    }
+ 
+     std::atomic_thread_fence(std::memory_order_release);
+ 

@@ -1,0 +1,22 @@
+From fe762503228febf76758d982587857267b8d3a98 Mon Sep 17 00:00:00 2001
+From: Andreas Nicolai <andreas.nicolai@tu-dresden.de>
+Date: Mon, 4 Oct 2021 11:57:34 +0200
+Subject: [PATCH] Added setUniformRowHeights() property (mightly performance
+ update)
+
+---
+ SIM-VICUS/src/SVNavigationTreeWidget.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/SIM-VICUS/src/SVNavigationTreeWidget.cpp b/SIM-VICUS/src/SVNavigationTreeWidget.cpp
+index ae5adf235..4f9b66bfd 100644
+--- a/SIM-VICUS/src/SVNavigationTreeWidget.cpp
++++ b/SIM-VICUS/src/SVNavigationTreeWidget.cpp
+@@ -54,6 +54,7 @@ SVNavigationTreeWidget::SVNavigationTreeWidget(QWidget *parent) :
+ 
+ 	// register item delegate that paints the "visible" bulb
+ 	m_ui->treeWidget->setItemDelegate(new SVNavigationTreeItemDelegate(this));
++	m_ui->treeWidget->setUniformRowHeights(true);
+ 
+ 
+ 	connect(&SVProjectHandler::instance(), &SVProjectHandler::modified,

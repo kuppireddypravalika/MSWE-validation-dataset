@@ -1,0 +1,30 @@
+From 22f3d56ede527a30cc14668743bef0fdbb365a48 Mon Sep 17 00:00:00 2001
+From: Cory Quammen <cory.quammen@kitware.com>
+Date: Mon, 28 Oct 2019 14:14:59 -0400
+Subject: [PATCH] Use vtk3DLinearGridPlaneCutter only when GenerateTriangles
+ option is on
+
+If GenerateTriangles is off, vtkCutter may produce quads or polygons
+depending on the input mesh. However, vtk3DLinearGridPlaneCutter
+generates only triangles. As a result, the output may not match what
+vtkCutter produced before the change was made before
+vtk3DLinearGridPlaneCutter was integrated. Use
+vtk3DLinearGridPlaneCutter only if GenerateTriangles is on.
+---
+ Filters/Core/vtkCutter.cxx | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/Filters/Core/vtkCutter.cxx b/Filters/Core/vtkCutter.cxx
+index ac001f4f5e1..1bb1045903c 100644
+--- a/Filters/Core/vtkCutter.cxx
++++ b/Filters/Core/vtkCutter.cxx
+@@ -394,7 +394,8 @@ int vtkCutter::RequestData(
+     // See if the input can be fully processed by the fast vtk3DLinearGridPlaneCutter.
+     // This algorithm can provide a substantial speed improvement over the more general
+     // algorithm for vtkUnstructuredGrids.
+-    if (this->GetCutFunction() && this->GetCutFunction()->IsA("vtkPlane") &&
++    if (this->GetGenerateTriangles() && this->GetCutFunction() &&
++      this->GetCutFunction()->IsA("vtkPlane") &&
+       this->GetNumberOfContours() == 1 &&
+       this->GetGenerateCutScalars() == 0 &&
+       (input->GetCellData() && input->GetCellData()->GetNumberOfArrays() == 0) &&

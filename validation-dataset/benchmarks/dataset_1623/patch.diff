@@ -1,0 +1,36 @@
+From 9cef9df822d887e8ca4909486f1ccc8b7e63eec4 Mon Sep 17 00:00:00 2001
+From: Thiago Macieira <thiago.macieira@intel.com>
+Date: Mon, 15 May 2023 17:26:39 -0700
+Subject: [PATCH] QModelIndex: improve qHash
+
+QModelIndex's qHash is really bad. It was retained from Qt 5, but ends
+up producing poor results in large hashes.
+
+This can't be fixed in Qt 6.
+
+Task-number: QTBUG-113613
+Change-Id: I5f7f427ded124479baa6fffd175f7810e1dc2580
+Reviewed-by: Lars Knoll <lars@knoll.priv.no>
+---
+ src/corelib/itemmodels/qabstractitemmodel.h | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/src/corelib/itemmodels/qabstractitemmodel.h b/src/corelib/itemmodels/qabstractitemmodel.h
+index e56412241a95..86b3eb76271f 100644
+--- a/src/corelib/itemmodels/qabstractitemmodel.h
++++ b/src/corelib/itemmodels/qabstractitemmodel.h
+@@ -499,7 +499,13 @@ inline Qt::ItemFlags QModelIndex::flags() const
+ { return m ? m->flags(*this) : Qt::ItemFlags(); }
+ 
+ inline size_t qHash(const QModelIndex &index, size_t seed = 0) noexcept
+-{ return size_t((size_t(index.row()) << 4) + size_t(index.column()) + index.internalId()) ^ seed; }
++{
++#if QT_VERSION >= QT_VERSION_CHECK(7, 0, 0)
++    return qHashMulti(seed, index.row(), index.column(), index.internalId());
++#else
++    return size_t((size_t(index.row()) << 4) + size_t(index.column()) + index.internalId()) ^ seed;
++#endif
++}
+ 
+ QT_END_NAMESPACE
+ 

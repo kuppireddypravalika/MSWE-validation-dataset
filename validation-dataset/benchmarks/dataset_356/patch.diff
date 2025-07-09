@@ -1,0 +1,42 @@
+From 6b8b0961969faf3576e62b2c60b26292f62f0401 Mon Sep 17 00:00:00 2001
+From: Kai Pastor <dg0yt@darc.de>
+Date: Mon, 27 Oct 2014 22:15:01 +0100
+Subject: [PATCH] TemplateImage: Try to preallocate memory when loading images
+ [tickets:#405]
+
+---
+ src/template_image.cpp | 21 ++++++++++++++++++++-
+ 1 file changed, 20 insertions(+), 1 deletion(-)
+
+diff --git a/src/template_image.cpp b/src/template_image.cpp
+index a921ee3c7..fe138315c 100644
+--- a/src/template_image.cpp
++++ b/src/template_image.cpp
+@@ -89,7 +89,26 @@ bool TemplateImage::loadTypeSpecificTemplateConfiguration(QXmlStreamReader& xml)
+ bool TemplateImage::loadTemplateFileImpl(bool configuring)
+ {
+ 	QImageReader reader(template_path);
+-	image = reader.read();
++	const QSize size = reader.size();
++	const QImage::Format format = reader.imageFormat();
++	if (size.isEmpty() || format == QImage::Format_Invalid)
++	{
++		// Leave memory allocation to QImageReader
++		image = reader.read();
++	}
++	else
++	{
++		// Pre-allocate the memory in order to catch errors
++		image = QImage(size, format);
++		if (image.isNull())
++		{
++			setErrorString(tr("Not enough free memory (image size: %1x%2 pixels)").arg(size.width()).arg(size.height()));
++			return false;
++		}
++		// Read into pre-allocated image
++		reader.read(&image);
++	}
++	
+ 	if (image.isNull())
+ 	{
+ 		setErrorString(reader.errorString());

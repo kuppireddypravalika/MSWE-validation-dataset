@@ -1,0 +1,27 @@
+From 9b3c2ca0544089bb38ef5679db4ffe7f10f7df86 Mon Sep 17 00:00:00 2001
+From: HannesSommer <hannes.sommer@mavt.ethz.ch>
+Date: Fri, 29 Jul 2016 11:57:39 +0200
+Subject: [PATCH] Removed unused timer and fixed timer description in
+ Optimizer2::optimize
+
+---
+ aslam_backend/src/Optimizer2.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/aslam_backend/src/Optimizer2.cpp b/aslam_backend/src/Optimizer2.cpp
+index e8ab6de0..539ed4de 100644
+--- a/aslam_backend/src/Optimizer2.cpp
++++ b/aslam_backend/src/Optimizer2.cpp
+@@ -182,11 +182,10 @@ namespace aslam {
+ 
+         SolutionReturnValue Optimizer2::optimize()
+         {
+-            Timer timeGn("Optimizer2: build Hessian", true);
+             Timer timeErr("Optimizer2: evaluate error", true);
+             Timer timeSchur("Optimizer2: Schur complement", true);
+             Timer timeBackSub("Optimizer2: Back substitution", true);
+-            Timer timeSolve("Optimizer2: Solve linear system", true);
++            Timer timeSolve("Optimizer2: Build and solve linear system", true);
+             // Select the design variables and (eventually) the error terms involved in the optimization.
+             initialize();
+             SolutionReturnValue srv;

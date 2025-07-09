@@ -1,0 +1,33 @@
+From 74b81b3eaee4df26109fc4524bdfe13e952121d6 Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Wed, 2 May 2018 02:08:29 -0400
+Subject: [PATCH] [librpbase] ConfReader.cpp: Use std::abs() instead of abs().
+
+abs() takes an int, so 64-bit time_t would get truncated.
+
+Found using clang on Mac OS X on travis-ci:
+
+src/librpbase/config/ConfReader.cpp:117:7: warning: absolute value function 'abs' given an argument of type 'long' but has parameter of type 'int' which may cause truncation of value [-Wabsolute-value]
+                if (abs(cur_time - d->conf_last_checked) < 2) {
+                    ^
+src/librpbase/config/ConfReader.cpp:117:7: note: use function 'std::abs' instead
+                if (abs(cur_time - d->conf_last_checked) < 2) {
+                    ^~~
+                    std::abs
+---
+ src/librpbase/config/ConfReader.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/librpbase/config/ConfReader.cpp b/src/librpbase/config/ConfReader.cpp
+index b7fa029fe2..d759f6de2d 100644
+--- a/src/librpbase/config/ConfReader.cpp
++++ b/src/librpbase/config/ConfReader.cpp
+@@ -114,7 +114,7 @@ int ConfReader::load(bool force)
+ 		// Have we checked the timestamp recently?
+ 		// TODO: Define the threshold somewhere.
+ 		const time_t cur_time = time(nullptr);
+-		if (abs(cur_time - d->conf_last_checked) < 2) {
++		if (std::abs(cur_time - d->conf_last_checked) < 2) {
+ 			// We checked it recently. Assume it's up to date.
+ 			return 0;
+ 		}

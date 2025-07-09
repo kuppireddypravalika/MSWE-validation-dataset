@@ -1,0 +1,24 @@
+From 9c09a6e03acc00550486321e487f947d2db5cce8 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@spatialys.com>
+Date: Thu, 19 Apr 2018 11:04:46 +0200
+Subject: [PATCH] SQLite/GPKG: avoid parsing of OGR_SQLITE_JOURNAL to stop on
+ JOURNAL_MODE keyword (spotted by @krlmlr)
+
+---
+ gdal/ogr/ogrsf_frmts/sqlite/ogrsqlitedatasource.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/gdal/ogr/ogrsf_frmts/sqlite/ogrsqlitedatasource.cpp b/gdal/ogr/ogrsf_frmts/sqlite/ogrsqlitedatasource.cpp
+index 74c1937d8116..409cfa27ce16 100644
+--- a/gdal/ogr/ogrsf_frmts/sqlite/ogrsqlitedatasource.cpp
++++ b/gdal/ogr/ogrsf_frmts/sqlite/ogrsqlitedatasource.cpp
+@@ -869,7 +869,8 @@ int OGRSQLiteBaseDataSource::OpenOrCreateDB(int flagsIn, int bRegisterOGR2SQLite
+                 {
+                     osJournalMode = pszEqual + 1;
+                     osJournalMode.Trim();
+-                    break;
++                    // Only apply journal_mode after changing page_size
++                    continue;
+                 }
+             }
+ 

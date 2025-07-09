@@ -1,0 +1,37 @@
+From 22f4bdb9ff5c3e6bdefa4acaa86be3fc1ab650ac Mon Sep 17 00:00:00 2001
+From: Kai Pastor <dg0yt@darc.de>
+Date: Mon, 19 Nov 2018 07:29:56 +0100
+Subject: [PATCH] MapPrinter: Scale painter, not resolution, for GDI
+
+Using a very high resolution is needed for accurate vector printing
+via GDI. But it must not cause the raster buffers for the background
+to use a higher resolution than configured by the user.
+This change needs follow-up changes in the printing code where
+additional transformations must be combined with the device painter's
+given transformation.
+---
+ src/core/map_printer.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/core/map_printer.cpp b/src/core/map_printer.cpp
+index 7b57cc1ea..e7e4f7958 100644
+--- a/src/core/map_printer.cpp
++++ b/src/core/map_printer.cpp
+@@ -1,6 +1,6 @@
+ /*
+  *    Copyright 2012, 2013 Thomas Schöps
+- *    Copyright 2012-2016  Kai Pastor
++ *    Copyright 2012-2018  Kai Pastor
+  *
+  *    This file is part of OpenOrienteering.
+  *
+@@ -1222,7 +1222,8 @@ bool MapPrinter::printMap(QPrinter* printer)
+ 			SetWindowExtEx(dc, hires_width, hires_height, nullptr);
+ 			SetViewportExtEx(dc, phys_width, phys_height, nullptr);
+ 			SetViewportOrgEx(dc, -phys_off_x, -phys_off_y, nullptr);
+-			resolution *= ((double)hires_width / phys_width);
++			const auto hires_scale = static_cast<qreal>(hires_width) / phys_width;
++			painter.scale(hires_scale, hires_scale);
+ 		}
+ 	}
+ 	else if (printer->paintEngine()->type() == QPaintEngine::Picture)

@@ -1,0 +1,25 @@
+From bcc9eccfb015462dc0dc2d917988f68deb33ce92 Mon Sep 17 00:00:00 2001
+From: Markus Vieth <mvieth@techfak.uni-bielefeld.de>
+Date: Fri, 12 Mar 2021 17:07:08 +0100
+Subject: [PATCH] Octree2BufBase: clear leaf contents when copying from
+ previous buffer The createLeafRecursive function reuses leaf nodes from the
+ previous buffer if possible. Before this commit, the contents of the leaf
+ were not cleared, so if the leaf e.g. contains point indices, they are
+ practically copied from the previous to the current octree.
+
+---
+ octree/include/pcl/octree/impl/octree2buf_base.hpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/octree/include/pcl/octree/impl/octree2buf_base.hpp b/octree/include/pcl/octree/impl/octree2buf_base.hpp
+index e1d46260b0c..61f7f70f2d0 100644
+--- a/octree/include/pcl/octree/impl/octree2buf_base.hpp
++++ b/octree/include/pcl/octree/impl/octree2buf_base.hpp
+@@ -431,6 +431,7 @@ Octree2BufBase<LeafContainerT, BranchContainerT>::createLeafRecursive(
+       OctreeNode* child_node = branch_arg->getChildPtr(!buffer_selector_, child_idx);
+       if (child_node->getNodeType() == LEAF_NODE) {
+         child_leaf = static_cast<LeafNode*>(child_node);
++        child_leaf->getContainer() = LeafContainer(); // Clear contents of leaf
+         branch_arg->setChildPtr(buffer_selector_, child_idx, child_node);
+       }
+       else {

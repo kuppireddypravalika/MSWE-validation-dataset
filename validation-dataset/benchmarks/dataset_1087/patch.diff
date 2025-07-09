@@ -1,0 +1,44 @@
+From 5ddc6a3b3a16a312571001989f3483c511c453b2 Mon Sep 17 00:00:00 2001
+From: Daniel Jour <musteresel@gmail.com>
+Date: Tue, 19 Nov 2019 20:37:22 +0100
+Subject: [PATCH] Keyframe::FlipPoints() without temporary vector
+
+The Y coordinate of each point is adjusted inplace; reduces memory
+overhead and iteration count for the loop.
+---
+ src/KeyFrame.cpp | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
+
+diff --git a/src/KeyFrame.cpp b/src/KeyFrame.cpp
+index d86ebc417..60114e6a2 100644
+--- a/src/KeyFrame.cpp
++++ b/src/KeyFrame.cpp
+@@ -29,6 +29,7 @@
+  */
+ 
+ #include "../include/KeyFrame.h"
++#include <utility>
+ 
+ using namespace std;
+ using namespace openshot;
+@@ -904,17 +905,12 @@ void Keyframe::ScalePoints(double scale)
+ void Keyframe::FlipPoints()
+ {
+ 	// Loop through each point
+-	std::vector<Point> FlippedPoints;
+-	for (int64_t point_index = 0, reverse_index = Points.size() - 1; point_index < Points.size(); point_index++, reverse_index--) {
++	for (int64_t point_index = 0, reverse_index = Points.size() - 1; point_index < reverse_index; point_index++, reverse_index--) {
+ 		// Flip the points
+-		Point p = Points[point_index];
+-		p.co.Y = Points[reverse_index].co.Y;
+-		FlippedPoints.push_back(p);
++		using std::swap;
++		swap(Points[point_index].co.Y, Points[reverse_index].co.Y);
+ 	}
+ 
+-	// Swap vectors
+-	Points.swap(FlippedPoints);
+-
+ 	// Mark for re-processing
+ 	needs_update = true;
+ }

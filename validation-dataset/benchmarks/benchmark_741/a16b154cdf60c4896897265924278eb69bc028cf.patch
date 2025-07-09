@@ -1,0 +1,34 @@
+From a16b154cdf60c4896897265924278eb69bc028cf Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Sat, 29 Oct 2016 10:22:26 -0400
+Subject: [PATCH] [libromdata] ImageDecoderPrivate::ARGB4444_to_ARGB32():
+ Reduced the number of shifts.
+
+We can shift the low nybbles into place, then shift the high nybbles in
+all at once.
+
+TODO: Benchmark these changes in both Debug and Release builds.
+---
+ src/libromdata/img/ImageDecoder.cpp | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/src/libromdata/img/ImageDecoder.cpp b/src/libromdata/img/ImageDecoder.cpp
+index 47bba6043d..21b245205f 100644
+--- a/src/libromdata/img/ImageDecoder.cpp
++++ b/src/libromdata/img/ImageDecoder.cpp
+@@ -177,10 +177,11 @@ inline uint32_t ImageDecoderPrivate::RGB5A3_to_ARGB32(uint16_t px16)
+ inline uint32_t ImageDecoderPrivate::ARGB4444_to_ARGB32(uint16_t px16)
+ {
+ 	uint32_t px32;
+-	px32  = (((px16 & 0x000F) << 4)  |  (px16 & 0x000F));           // B
+-	px32 |= (((px16 & 0x00F0) << 4)  | ((px16 & 0x00F0) << 8));     // G
+-	px32 |= (((px16 & 0x0F00) << 8)  | ((px16 & 0x0F00) << 12));    // R
+-	px32 |= (((px16 & 0xF000) << 12) | ((px16 & 0xF000) << 16));    // A
++	px32  =  (px16 & 0x000F);		// B
++	px32 |= ((px16 & 0x00F0) << 4);		// G
++	px32 |= ((px16 & 0x0F00) << 8);		// R
++	px32 |= ((px16 & 0xF000) << 12);	// A
++	px32 |= (px32 << 4);			// Copy to the top nybble.
+ 	return px32;
+ }
+ 

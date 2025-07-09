@@ -1,0 +1,54 @@
+From 8fa15892a417bd4c2af33a9dab1f394e93539c54 Mon Sep 17 00:00:00 2001
+From: Nikolai Kosjar <nikolai.kosjar@qt.io>
+Date: Fri, 18 May 2018 09:56:05 +0200
+Subject: [PATCH] Clang: Skip parsing function bodies in the preamble
+
+With this, we get
+
+ * Significantly faster reparsing (~ 50% faster here for texteditor.cpp)
+ * Less crashes due to less code to handle
+ * Reduced memory consumption and size of the preamble on disk due to
+   smaller AST
+
+On the downside, we don't get anymore diagnostics for invalid template
+instantiations, e.g:
+
+ -- header.h --
+
+  template<class T>
+  bool cmp(T t1, T t2)
+  { return t1 < t2; } // Function body is not parsed.
+
+ -- main.cpp --
+
+  #include "header.h"
+  struct Foo {};
+  void example(Foo foo)
+  {
+      cmp(foo, foo);
+  }
+
+The diagnostic "error: invalid operands to binary expression ('Foo' and
+'Foo')" is not reported anymore. It will be noticed at build time.
+
+Change-Id: I9b37be349f99af88b4786380ca1d8e6aff39b123
+Reviewed-by: Ivan Donchevskii <ivan.donchevskii@qt.io>
+---
+ src/tools/clangbackend/source/clangtranslationunitupdater.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/tools/clangbackend/source/clangtranslationunitupdater.cpp b/src/tools/clangbackend/source/clangtranslationunitupdater.cpp
+index ade9cb35f97..917d11c3aec 100644
+--- a/src/tools/clangbackend/source/clangtranslationunitupdater.cpp
++++ b/src/tools/clangbackend/source/clangtranslationunitupdater.cpp
+@@ -175,6 +175,10 @@ uint TranslationUnitUpdater::defaultParseOptions()
+ {
+     return CXTranslationUnit_CacheCompletionResults
+          | CXTranslationUnit_PrecompiledPreamble
++#ifdef CINDEX_VERSION_HAS_LIMITSKIPFUNCTIONBODIESTOPREAMBLE_BACKPORTED
++         | CXTranslationUnit_SkipFunctionBodies
++         | CXTranslationUnit_LimitSkipFunctionBodiesToPreamble
++#endif
+          | CXTranslationUnit_IncludeBriefCommentsInCodeCompletion
+          | CXTranslationUnit_DetailedPreprocessingRecord
+          | CXTranslationUnit_KeepGoing;

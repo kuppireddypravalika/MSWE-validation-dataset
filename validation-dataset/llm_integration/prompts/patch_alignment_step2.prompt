@@ -1,0 +1,34 @@
+You are evaluating how accurately and effectively the benchmark '{bench}' captures the essence of the original optimization patch. This evaluation is critical to ensure the benchmark represents real-world scenarios, maintains high fidelity to actual issues developers face, and provides meaningful insights into the capabilities and limitations of optimization techniques. Your careful scoring directly impacts the quality and reliability of future performance assessments and optimization evaluations.
+
+Step 1 instructions:
+{step1_prompt}
+
+Step 1 reasoning:
+{analysis}
+
+Step 2: Numerical Scoring
+
+Based explicitly on your documented reasoning from Step 1, assign numerical scores for each alignment dimension using the Likert scale (1-5) provided:
+
+Structural Fidelity (1-5):
+
+Targeted Isolation (1-5):
+
+Side Effect Preservation (1-5):
+
+Correctness and Functional Equivalence (1-5):
+
+Computational Realism (1-5):
+
+Context Neutrality (1-5):
+
+Performance Optimization Relevance (1-5):
+
+Contextual Dependency (1-5):
+
+Library/API Dependency (0-5 or null):
+Indicate with "uses_library" whether the optimization relies on a library or API call. If it does, assign a score based on how well known that library is in the domain (5 = widely used generic library such as OpenMP, BLAS, STL; 0 = custom or obscure). Use null when no library or API call is present.
+
+Provide concise, one-line justifications alongside your numerical scores to clearly reflect your reasoning from Step 1. Respond only with a JSON object using the keys 'structural_fidelity', 'targeted_isolation', 'side_effect_preservation', 'correctness_and_equivalence', 'computational_realism', 'context_neutrality', 'performance_optimization_relevance', 'contextual_dependency', and 'library_api_dependency'. Each key should map to an object with fields 'score' and 'justification'. The 'library_api_dependency' object must also include a 'uses_library' field set to "Yes" or "No".
+
+After providing the JSON scores, list concise recommendations outlining how the benchmark could be improved to achieve a perfect score of 5/5 in every category.

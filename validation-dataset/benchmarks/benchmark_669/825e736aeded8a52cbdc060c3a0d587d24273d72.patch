@@ -1,0 +1,32 @@
+From 825e736aeded8a52cbdc060c3a0d587d24273d72 Mon Sep 17 00:00:00 2001
+From: Bertrand Augereau <bertrand_augereau@yahoo.fr>
+Date: Sun, 17 Jul 2011 15:25:46 +0200
+Subject: [PATCH] DREAMWEB: getnextword doesn't read one byte too far any more
+
+---
+ engines/dreamweb/stubs.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/engines/dreamweb/stubs.cpp b/engines/dreamweb/stubs.cpp
+index e7fb4213533a..a2bfd5b96adb 100644
+--- a/engines/dreamweb/stubs.cpp
++++ b/engines/dreamweb/stubs.cpp
+@@ -221,9 +221,7 @@ void DreamGenContext::getnextword() {
+ 	uint8 totalWidth = 0;
+ 	bh = 0;
+ 	while(true) {
+-		ax = es.word(di);
+-		uint8 firstChar = al;
+-		uint8 secondChar = ah;
++		uint8 firstChar = es.byte(di);
+ 		++di;
+ 		++bh;
+ 		if ((firstChar == ':') || (firstChar == 0)) { //endall
+@@ -240,6 +238,7 @@ void DreamGenContext::getnextword() {
+ 		}
+ 		firstChar = engine->modifyChar(firstChar);
+ 		if (firstChar != 255) {
++			uint8 secondChar = es.byte(di);
+ 			uint8 width = ds.byte(6*(firstChar - 32 + data.word(kCharshift)));
+ 			width = kernchars(firstChar, secondChar, width);
+ 			totalWidth += width;

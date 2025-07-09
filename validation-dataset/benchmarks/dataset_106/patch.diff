@@ -1,0 +1,22 @@
+From f962230b38db6d400db0971aa7dec427a69ed728 Mon Sep 17 00:00:00 2001
+From: Rafa Gago <rafael_gago_81@hotmail.com>
+Date: Sun, 2 Apr 2017 10:16:46 +0200
+Subject: [PATCH] benchmark: smaller queue for mal-hybrid
+
+---
+ example/benchmark/main.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/example/benchmark/main.cpp b/example/benchmark/main.cpp
+index ba18b50..c1df66d 100644
+--- a/example/benchmark/main.cpp
++++ b/example/benchmark/main.cpp
+@@ -1043,7 +1043,7 @@ void run_test_dispatch(
+         break;
+     case loggers::mal_hybrid:
+         ts.mal.set_params(
+-            big_queue_bytes, queue_entry_size, true, false
++            big_queue_bytes / 8, queue_entry_size, true, false
+             );
+         run_all_tests(
+             ts.mal, c_rate, c_wall, c_cpu, thr, msgs, logger, delete_logs

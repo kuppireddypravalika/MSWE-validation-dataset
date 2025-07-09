@@ -1,0 +1,35 @@
+From 4b032b67b9017dffa534d33149b076a17107b974 Mon Sep 17 00:00:00 2001
+From: Alexandra Macedo <alexandra.l.macedo@gmail.com>
+Date: Thu, 4 Nov 2021 17:43:06 -0700
+Subject: [PATCH] Remove inlining of TensorContract::get
+
+---
+ src/DataStructures/Tensor/Expressions/Contract.hpp | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/src/DataStructures/Tensor/Expressions/Contract.hpp b/src/DataStructures/Tensor/Expressions/Contract.hpp
+index 9a907bd092c9..b6bc8cbc3594 100644
+--- a/src/DataStructures/Tensor/Expressions/Contract.hpp
++++ b/src/DataStructures/Tensor/Expressions/Contract.hpp
+@@ -232,13 +232,18 @@ struct TensorContract
+   /// \brief Return the value of the component of the resultant contracted
+   /// tensor at a given multi-index
+   ///
++  /// \details Note that this function is not inlined because it has been
++  /// observed that when `Tensor` components are `DataVector`s, the compile time
++  /// for `TensorExpression` inner products scales poorly as the dimension of
++  /// operands' indices increase and as the number of contracted index pairs
++  /// increases.
++  ///
+   /// \param contracted_multi_index the multi-index of the resultant contracted
+   /// tensor component to retrieve
+   /// \return the value of the component at `contracted_multi_index` in the
+   /// resultant contracted tensor
+-  SPECTRE_ALWAYS_INLINE decltype(auto) get(
+-      const std::array<size_t, num_tensor_indices>& contracted_multi_index)
+-      const {
++  decltype(auto) get(const std::array<size_t, num_tensor_indices>&
++                         contracted_multi_index) const {
+     constexpr size_t initial_first_contracted_index_value =
+         first_contracted_index::index_type == IndexType::Spacetime and
+                 not tmpl::at_c<ArgsList, FirstContractedIndexPos>::is_spacetime

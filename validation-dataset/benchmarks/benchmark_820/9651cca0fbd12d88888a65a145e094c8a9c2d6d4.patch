@@ -1,0 +1,32 @@
+From 9651cca0fbd12d88888a65a145e094c8a9c2d6d4 Mon Sep 17 00:00:00 2001
+From: Kostya Kortchinsky <kostyak@google.com>
+Date: Wed, 13 Dec 2017 16:10:39 +0000
+Subject: [PATCH] [scudo] Inline getScudoChunk function.
+
+Summary:
+getScudoChunk function is implicitly inlined for optimized builds on
+clang, but not on gcc. It's a small enough function that it seems
+sensible enough to just inline it by default.
+
+Reviewers: cryptoad, alekseyshl
+
+Reviewed By: cryptoad
+
+Differential Revision: https://reviews.llvm.org/D41138
+---
+ compiler-rt/lib/scudo/scudo_allocator.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/compiler-rt/lib/scudo/scudo_allocator.cpp b/compiler-rt/lib/scudo/scudo_allocator.cpp
+index 6383c6819583..d7df317ffc80 100644
+--- a/compiler-rt/lib/scudo/scudo_allocator.cpp
++++ b/compiler-rt/lib/scudo/scudo_allocator.cpp
+@@ -157,7 +157,7 @@ struct ScudoChunk : UnpackedHeader {
+   }
+ };
+ 
+-ScudoChunk *getScudoChunk(uptr UserBeg) {
++INLINE ScudoChunk *getScudoChunk(uptr UserBeg) {
+   return reinterpret_cast<ScudoChunk *>(UserBeg - AlignedChunkHeaderSize);
+ }
+ 

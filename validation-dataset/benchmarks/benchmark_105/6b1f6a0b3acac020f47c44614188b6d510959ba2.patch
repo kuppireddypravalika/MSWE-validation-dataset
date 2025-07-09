@@ -1,0 +1,29 @@
+From 6b1f6a0b3acac020f47c44614188b6d510959ba2 Mon Sep 17 00:00:00 2001
+From: Guillaume Klein <guillaumekln@users.noreply.github.com>
+Date: Mon, 30 Aug 2021 13:41:05 +0200
+Subject: [PATCH] Resolve the GELU scale constant at compile time in the CPU op
+ (#540)
+
+This is to mirror the CUDA implementation.
+---
+ src/cpu/primitives.cc | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/src/cpu/primitives.cc b/src/cpu/primitives.cc
+index 1bf77db0a..d5befcd39 100644
+--- a/src/cpu/primitives.cc
++++ b/src/cpu/primitives.cc
+@@ -284,12 +284,10 @@ namespace ctranslate2 {
+       return;
+     }
+ #endif
+-    static const float pi = std::acos(-1.f);
+-    static const float scale = std::sqrt(2.f / pi);
+     cpu::parallel_unary_transform(
+       x, y, size, /*work_size=*/14,
+       [](float v) {
+-        return 0.5f * v * (1.f + std::tanh(scale * (v + 0.044715f * std::pow(v, 3.f))));
++        return 0.5f * v * (1.f + std::tanh(0.7978845608028654f * (v + 0.044715f * std::pow(v, 3.f))));
+       });
+   }
+ 

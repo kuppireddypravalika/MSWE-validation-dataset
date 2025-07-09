@@ -1,0 +1,25 @@
+From 1f3b47520d8622f4a34d3176f744b43c82db935c Mon Sep 17 00:00:00 2001
+From: justusc <justusc@vt.edu>
+Date: Wed, 9 Oct 2013 17:17:13 -0400
+Subject: [PATCH] The evaluator now iterates over local tiles for the argument
+ instead of the target.
+
+---
+ src/TiledArray/dist_eval/unary_eval.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/TiledArray/dist_eval/unary_eval.h b/src/TiledArray/dist_eval/unary_eval.h
+index af2860cb51..e670eec4a1 100644
+--- a/src/TiledArray/dist_eval/unary_eval.h
++++ b/src/TiledArray/dist_eval/unary_eval.h
+@@ -100,8 +100,8 @@ namespace TiledArray {
+         size_type task_count = 0ul;
+ 
+         // Make sure all local tiles are present.
+-        const typename pmap_interface::const_iterator end = TensorImpl_::pmap()->end();
+-        typename pmap_interface::const_iterator it = TensorImpl_::pmap()->begin();
++        const typename pmap_interface::const_iterator end = arg_.pmap()->end();
++        typename pmap_interface::const_iterator it = arg_.pmap()->begin();
+         for(; it != end; ++it) {
+           if(! arg_.is_zero(*it)) {
+             TensorImpl_::get_world().taskq.add(self, & UnaryEvalImpl_::eval_tile,

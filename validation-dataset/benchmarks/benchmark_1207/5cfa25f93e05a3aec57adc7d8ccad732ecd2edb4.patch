@@ -1,0 +1,31 @@
+From 5cfa25f93e05a3aec57adc7d8ccad732ecd2edb4 Mon Sep 17 00:00:00 2001
+From: Sanjay Patel <spatel@rotateright.com>
+Date: Mon, 6 Nov 2017 16:52:31 +0000
+Subject: [PATCH] [Analysis] update to use new fast-math API - isFast()
+
+---
+ polly/lib/Analysis/ScopBuilder.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/polly/lib/Analysis/ScopBuilder.cpp b/polly/lib/Analysis/ScopBuilder.cpp
+index c089beea9505..0de97fabd048 100644
+--- a/polly/lib/Analysis/ScopBuilder.cpp
++++ b/polly/lib/Analysis/ScopBuilder.cpp
+@@ -1151,7 +1151,7 @@ static MemoryAccess::ReductionType getReductionType(const BinaryOperator *BinOp,
+     return MemoryAccess::RT_NONE;
+   switch (BinOp->getOpcode()) {
+   case Instruction::FAdd:
+-    if (!BinOp->hasUnsafeAlgebra())
++    if (!BinOp->isFast())
+       return MemoryAccess::RT_NONE;
+     // Fall through
+   case Instruction::Add:
+@@ -1163,7 +1163,7 @@ static MemoryAccess::ReductionType getReductionType(const BinaryOperator *BinOp,
+   case Instruction::And:
+     return MemoryAccess::RT_BAND;
+   case Instruction::FMul:
+-    if (!BinOp->hasUnsafeAlgebra())
++    if (!BinOp->isFast())
+       return MemoryAccess::RT_NONE;
+     // Fall through
+   case Instruction::Mul:

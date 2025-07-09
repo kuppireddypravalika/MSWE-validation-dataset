@@ -1,0 +1,31 @@
+From 63d2abbb00b47442a203d1f0367a2e29589ed6ed Mon Sep 17 00:00:00 2001
+From: Jason Rhinelander <jason@imaginary.ca>
+Date: Tue, 25 Feb 2020 13:47:20 -0400
+Subject: [PATCH] Another gcc 5 compat fix (plus small optimization)
+
+---
+ libabyss/src/http.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/libabyss/src/http.cpp b/libabyss/src/http.cpp
+index e85775fc2..99150ba8c 100644
+--- a/libabyss/src/http.cpp
++++ b/libabyss/src/http.cpp
+@@ -19,6 +19,7 @@ namespace abyss
+       string_view val    = line.substr(1 + idx);
+       // to lowercase
+       std::string lowerHeader;
++      lowerHeader.reserve(header.size());
+       auto itr = header.begin();
+       while(itr != header.end())
+       {
+@@ -28,7 +29,8 @@ namespace abyss
+       if(ShouldProcessHeader(lowerHeader))
+       {
+         val = val.substr(val.find_first_not_of(' '));
+-        Header.Headers.emplace(lowerHeader.c_str(), val);
++        // llarp::str() here for gcc 5 compat
++        Header.Headers.emplace(std::move(lowerHeader), llarp::str(val));
+       }
+       return true;
+     }

@@ -1,0 +1,43 @@
+From 08c0bbeaf307149f909f0227203909f5e9028b39 Mon Sep 17 00:00:00 2001
+From: thexai <58434170+thexai@users.noreply.github.com>
+Date: Mon, 27 Feb 2023 14:44:35 +0100
+Subject: [PATCH] VideoPlayer: reduce GetQueueTime() calls
+
+---
+ xbmc/cores/VideoPlayer/VideoPlayer.cpp | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/xbmc/cores/VideoPlayer/VideoPlayer.cpp b/xbmc/cores/VideoPlayer/VideoPlayer.cpp
+index 6730a43ba273e..ba388af358ea7 100644
+--- a/xbmc/cores/VideoPlayer/VideoPlayer.cpp
++++ b/xbmc/cores/VideoPlayer/VideoPlayer.cpp
+@@ -4906,7 +4906,9 @@ void CVideoPlayer::UpdatePlayState(double timeout)
+   else
+     state.caching = false;
+ 
++  double queueTime = GetQueueTime();
+   CacheInfo cache = GetCachingTimes();
++
+   if (cache.valid)
+   {
+     state.cache_delay = std::max(0.0, cache.delay);
+@@ -4916,8 +4918,8 @@ void CVideoPlayer::UpdatePlayState(double timeout)
+   else
+   {
+     state.cache_delay = 0.0;
+-    state.cache_level = std::min(1.0, GetQueueTime() / 8000.0);
+-    state.cache_offset = GetQueueTime() / state.timeMax;
++    state.cache_level = std::min(1.0, queueTime / 8000.0);
++    state.cache_offset = queueTime / state.timeMax;
+   }
+ 
+   XFILE::SCacheStatus status;
+@@ -4925,7 +4927,7 @@ void CVideoPlayer::UpdatePlayState(double timeout)
+   {
+     state.cache_bytes = status.forward;
+     if(state.timeMax)
+-      state.cache_bytes += m_pInputStream->GetLength() * (int64_t) (GetQueueTime() / state.timeMax);
++      state.cache_bytes += m_pInputStream->GetLength() * (int64_t)(queueTime / state.timeMax);
+   }
+   else
+     state.cache_bytes = 0;

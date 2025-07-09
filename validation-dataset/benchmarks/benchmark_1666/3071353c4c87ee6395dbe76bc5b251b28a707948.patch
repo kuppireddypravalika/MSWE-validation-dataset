@@ -1,0 +1,47 @@
+From 3071353c4c87ee6395dbe76bc5b251b28a707948 Mon Sep 17 00:00:00 2001
+From: Maurice Laveaux <m.laveaux@tue.nl>
+Date: Tue, 1 Jun 2021 19:02:36 +0200
+Subject: [PATCH] Use sylvan's projection optimisation.
+
+ * Whenever the remainder of the projection vector is all ones we
+   indicate this by the special value -1. Similarly, for all zeroes with -2.
+---
+ .../include/mcrl2/lps/symbolic_reachability.h  | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/libraries/lps/include/mcrl2/lps/symbolic_reachability.h b/libraries/lps/include/mcrl2/lps/symbolic_reachability.h
+index 91c3f5daac..26617d2af4 100644
+--- a/libraries/lps/include/mcrl2/lps/symbolic_reachability.h
++++ b/libraries/lps/include/mcrl2/lps/symbolic_reachability.h
+@@ -569,6 +569,7 @@ struct summand_group
+ 
+     std::size_t n = process_parameters.size();
+ 
++    // Indicates for every position whether the parameter should be projected on (for read dependencies).
+     std::vector<std::uint32_t> Ip_values;
+ 
+     for (std::size_t j = 0; j < n; j++)
+@@ -586,6 +587,23 @@ struct summand_group
+       }
+     }
+ 
++    // The index after which all values in Ip_values are the same.
++    int i = Ip_values.size() - 1;
++    while (i > 0 && Ip_values[i] == Ip_values.back())
++    {
++      --i;
++    }
++
++    Ip_values = std::vector<std::uint32_t>(Ip_values.begin(), Ip_values.begin() + i + 2);
++    if (Ip_values.back() == 0)
++    {
++      Ip_values.back() = static_cast<std::uint32_t>(-2);
++    }
++    else
++    {
++      Ip_values.back() = static_cast<std::uint32_t>(-1);
++    }
++
+     read_parameters = project(as_vector(process_parameters), read);
+     write_parameters = project(as_vector(process_parameters), write);
+     L = empty_set();

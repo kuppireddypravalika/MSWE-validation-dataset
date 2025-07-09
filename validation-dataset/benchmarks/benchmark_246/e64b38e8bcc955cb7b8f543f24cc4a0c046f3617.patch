@@ -1,0 +1,36 @@
+From e64b38e8bcc955cb7b8f543f24cc4a0c046f3617 Mon Sep 17 00:00:00 2001
+From: "konstantin@mysql.com" <>
+Date: Thu, 10 Jun 2004 01:30:39 +0400
+Subject: [PATCH] Fix for Bug#3904 "COUNT DISTINCT performance anomaly in 4.1"
+ The bug was caused by error in hash calculation function: it always returned
+ hash value for last field in a composite key, so for keys like (a text, b
+ char(1)) we were always getting bad hash values.
+
+---
+ myisam/mi_unique.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/myisam/mi_unique.c b/myisam/mi_unique.c
+index 38b4ed93311..4d82858c9ad 100644
+--- a/myisam/mi_unique.c
++++ b/myisam/mi_unique.c
+@@ -71,6 +71,7 @@ ha_checksum mi_unique_hash(MI_UNIQUEDEF *def, const byte *record)
+   const byte *pos, *end;
+   ha_checksum crc=0;
+   HA_KEYSEG *keyseg;
++  ulong seed= 4;
+ 
+   for (keyseg=def->seg ; keyseg < def->end ; keyseg++)
+   {
+@@ -108,9 +109,8 @@ ha_checksum mi_unique_hash(MI_UNIQUEDEF *def, const byte *record)
+     end= pos+length;
+     if (type == HA_KEYTYPE_TEXT || type == HA_KEYTYPE_VARTEXT)
+     {
+-      ulong nr=1, nr2=4;
+-      keyseg->charset->coll->hash_sort(keyseg->charset,(const uchar*)pos,length,&nr, &nr2);
+-      crc=nr;
++      keyseg->charset->coll->hash_sort(keyseg->charset,
++                                       (const uchar*) pos, length, &crc, &seed);
+     }
+     else
+       while (pos != end)

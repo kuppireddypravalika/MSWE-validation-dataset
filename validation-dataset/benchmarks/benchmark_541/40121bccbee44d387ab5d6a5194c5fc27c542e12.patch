@@ -1,0 +1,34 @@
+From 40121bccbee44d387ab5d6a5194c5fc27c542e12 Mon Sep 17 00:00:00 2001
+From: Bill Wendling <isanbard@gmail.com>
+Date: Thu, 10 Sep 2009 00:13:16 +0000
+Subject: [PATCH] Use the SizeOfEncodedValue function instead of magic
+ variables for the sizeof(DW_EH_PE_udata4).
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@81408 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/CodeGen/AsmPrinter/DwarfException.cpp | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/lib/CodeGen/AsmPrinter/DwarfException.cpp b/lib/CodeGen/AsmPrinter/DwarfException.cpp
+index 166c2fee57a..a41d1b00e46 100644
+--- a/lib/CodeGen/AsmPrinter/DwarfException.cpp
++++ b/lib/CodeGen/AsmPrinter/DwarfException.cpp
+@@ -594,15 +594,14 @@ void DwarfException::EmitExceptionTable() {
+   // Final tallies.
+ 
+   // Call sites.
+-  const unsigned SiteStartSize  = sizeof(int32_t); // DW_EH_PE_udata4
+-  const unsigned SiteLengthSize = sizeof(int32_t); // DW_EH_PE_udata4
+-  const unsigned LandingPadSize = sizeof(int32_t); // DW_EH_PE_udata4
++  const unsigned SiteStartSize  = SizeOfEncodedValue(dwarf::DW_EH_PE_udata4);
++  const unsigned SiteLengthSize = SizeOfEncodedValue(dwarf::DW_EH_PE_udata4);
++  const unsigned LandingPadSize = SizeOfEncodedValue(dwarf::DW_EH_PE_udata4);
+   unsigned SizeSites;
+ 
+   bool HaveTTData = (MAI->getExceptionHandlingType() == ExceptionHandling::SjLj)
+     ? (!TypeInfos.empty() || !FilterIds.empty()) : true;
+ 
+-
+   if (MAI->getExceptionHandlingType() == ExceptionHandling::SjLj) {
+     SizeSites = 0;
+   } else

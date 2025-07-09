@@ -1,0 +1,21 @@
+From 855e22abb4a1f960d83001b7b7b08a6e44dcfce5 Mon Sep 17 00:00:00 2001
+From: Magne Sjaastad <magne.sjaastad@ceetronsolutions.com>
+Date: Wed, 2 Jan 2019 15:04:33 +0100
+Subject: [PATCH] #3924 Measurements : Redraw immediately instead of schedule
+ redraw
+
+---
+ ApplicationCode/ProjectDataModel/Measurement/RimMeasurement.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ApplicationCode/ProjectDataModel/Measurement/RimMeasurement.cpp b/ApplicationCode/ProjectDataModel/Measurement/RimMeasurement.cpp
+index ace0f969b43..4ff90a468ae 100644
+--- a/ApplicationCode/ProjectDataModel/Measurement/RimMeasurement.cpp
++++ b/ApplicationCode/ProjectDataModel/Measurement/RimMeasurement.cpp
+@@ -141,5 +141,5 @@ RimMeasurement::Lengths RimMeasurement::calculateLenghts() const
+ void RimMeasurement::updateView() const
+ {
+     auto view = RiaApplication::instance()->activeReservoirView();
+-    if (view) view->scheduleCreateDisplayModelAndRedraw();
++    if (view) view->createDisplayModelAndRedraw();
+ }

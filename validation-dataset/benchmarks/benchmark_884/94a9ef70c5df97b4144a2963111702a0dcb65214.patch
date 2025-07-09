@@ -1,0 +1,34 @@
+From 94a9ef70c5df97b4144a2963111702a0dcb65214 Mon Sep 17 00:00:00 2001
+From: Sergey Linev <S.Linev@gsi.de>
+Date: Tue, 16 Mar 2021 09:06:47 +0100
+Subject: [PATCH] [io] use c++11 loop for vector of elements
+
+---
+ io/io/src/TStreamerInfo.cxx | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/io/io/src/TStreamerInfo.cxx b/io/io/src/TStreamerInfo.cxx
+index f5627bea62a05..7f2f9a5d4f298 100644
+--- a/io/io/src/TStreamerInfo.cxx
++++ b/io/io/src/TStreamerInfo.cxx
+@@ -4520,8 +4520,7 @@ void TStreamerInfo::InsertArtificialElements(std::vector<const ROOT::TSchemaRule
+       if (!rule) continue;
+ 
+       TStreamerArtificial *newel;
+-      typedef std::vector<TStreamerArtificial*> vec_t;
+-      vec_t toAdd;
++      std::vector<TStreamerArtificial*> toAdd;
+ 
+       if (rule->GetTarget()==0) {
+          TString newName;
+@@ -4591,8 +4590,8 @@ void TStreamerInfo::InsertArtificialElements(std::vector<const ROOT::TSchemaRule
+          }
+       }
+       if (loc == -1) {
+-         for(vec_t::iterator iter = toAdd.begin(); iter != toAdd.end(); ++iter) {
+-            fElements->Add(*iter);
++         for(auto &el : toAdd) {
++            fElements->Add(el);
+          }
+       } else {
+          R__TObjArray_InsertAt(fElements, toAdd, loc);

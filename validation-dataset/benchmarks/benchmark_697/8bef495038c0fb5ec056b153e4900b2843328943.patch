@@ -1,0 +1,27 @@
+From 8bef495038c0fb5ec056b153e4900b2843328943 Mon Sep 17 00:00:00 2001
+From: Toni Dietze <toni.dietze@kernkonzept.com>
+Date: Mon, 29 Jan 2024 00:00:00 +0000
+Subject: [PATCH] ned: use cxx::make_ref_obj instead of new expression
+
+Improves adherence to AUTOSAR C++14 Rule A18-5-2
+(Klocwork checker AUTOSAR.OP.NEW_DELETE):
+Non-placement new or delete expressions shall not be used.
+
+Change-Id: Ia1260faed8af385b80303abe5b0f5287d57ad6c7
+---
+ ned/server/src/lua_exec.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ned/server/src/lua_exec.cc b/ned/server/src/lua_exec.cc
+index 06ae05642..bad4041d7 100644
+--- a/ned/server/src/lua_exec.cc
++++ b/ned/server/src/lua_exec.cc
+@@ -515,7 +515,7 @@ static int exec(lua_State *l)
+   Am am(l);
+   am.parse_cfg();
+ 
+-  App_ptr app_task(new Lua_app_task(l, am.rm_fab()));
++  App_ptr app_task = cxx::make_ref_obj<Lua_app_task>(l, am.rm_fab());
+ 
+   if (!app_task)
+     {

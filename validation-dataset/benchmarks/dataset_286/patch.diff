@@ -1,0 +1,24 @@
+From 8de941dae74c34613576c92df22a0970aa98edf4 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Sun, 4 Mar 2018 17:10:57 +0000
+Subject: [PATCH] CAD: avoid very long loop. Fixes
+ https://oss-fuzz.com/v2/testcase-detail/4906280482242560. Credit to OSS Fuzz
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@41634 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/ogr/ogrsf_frmts/cad/ogrcadlayer.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/gdal/ogr/ogrsf_frmts/cad/ogrcadlayer.cpp b/gdal/ogr/ogrsf_frmts/cad/ogrcadlayer.cpp
+index facb19f1f88c..68115f9c39b3 100644
+--- a/gdal/ogr/ogrsf_frmts/cad/ogrcadlayer.cpp
++++ b/gdal/ogr/ogrsf_frmts/cad/ogrcadlayer.cpp
+@@ -700,6 +700,8 @@ OGRFeature *OGRCADLayer::GetFeature( GIntBig nFID )
+             double dfEndAngle = -1 * poCADEllipse->getStartingAngle() * DEG2RAD;
+             double dfAxisRatio = poCADEllipse->getAxisRatio();
+ 
++            dfStartAngle = fmod(dfStartAngle, 360.0);
++            dfEndAngle = fmod(dfEndAngle, 360.0);
+             if( dfStartAngle > dfEndAngle )
+                 dfEndAngle += 360.0;
+ 

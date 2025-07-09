@@ -1,0 +1,36 @@
+From 9c291ffbbc552bb0e2119e8768f69a941ad2bfa5 Mon Sep 17 00:00:00 2001
+From: mehmets <mehmet.soyturk@bricsys.com>
+Date: Fri, 27 Sep 2019 02:33:30 +0300
+Subject: [PATCH] Optimize wrapping lines in wxRichTextCtrl
+
+When wrapping long text into multiple lines, avoid unnecessary
+GetFirstLineBreakPosition calls for each wrapped line, leading to
+quadratic complexity.
+
+Closes https://github.com/wxWidgets/wxWidgets/pull/1567
+---
+ src/richtext/richtextbuffer.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/richtext/richtextbuffer.cpp b/src/richtext/richtextbuffer.cpp
+index fb9e09e65259..0c7799933823 100644
+--- a/src/richtext/richtextbuffer.cpp
++++ b/src/richtext/richtextbuffer.cpp
+@@ -5099,6 +5099,7 @@ bool wxRichTextParagraph::Layout(wxDC& dc, wxRichTextDrawingContext& context, co
+     // continue.
+ 
+     wxRect availableRect;
++    long nextBreakPos = GetFirstLineBreakPosition(lastEndPos+1);
+ 
+     node = m_children.GetFirst();
+     while (node)
+@@ -5127,7 +5128,8 @@ bool wxRichTextParagraph::Layout(wxDC& dc, wxRichTextDrawingContext& context, co
+         // and found a suitable point some way into the child. So get the size for the fragment
+         // if necessary.
+ 
+-        long nextBreakPos = GetFirstLineBreakPosition(lastEndPos+1);
++        if (nextBreakPos > -1 && nextBreakPos < lastEndPos+1)
++            nextBreakPos = GetFirstLineBreakPosition(lastEndPos+1);
+         long lastPosToUse = child->GetRange().GetEnd();
+         bool lineBreakInThisObject = (nextBreakPos > -1 && nextBreakPos <= child->GetRange().GetEnd());
+ 

@@ -1,0 +1,34 @@
+From f00151375dd50bcbe34ab6971933e8a932e76914 Mon Sep 17 00:00:00 2001
+From: Zonr Chang <zonr.net@gmail.com>
+Date: Tue, 21 Feb 2012 13:49:31 +0800
+Subject: [PATCH] Load the input file content into memory after open.
+
+Almost every byte in the input file (e.g., input object file) will
+be examined during processing. Enforcing kernel to load the entire
+file into memory right after open could generally reduce the
+number of page fault generated.
+---
+ lib/MC/MCLDDriver.cpp | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/lib/MC/MCLDDriver.cpp b/lib/MC/MCLDDriver.cpp
+index 578f052e..346be486 100644
+--- a/lib/MC/MCLDDriver.cpp
++++ b/lib/MC/MCLDDriver.cpp
+@@ -47,8 +47,14 @@ void MCLDDriver::normalize() {
+       continue;
+ 
+ 
+-    (*input)->setMemArea(m_LDInfo.memAreaFactory().produce((*input)->path(), O_RDONLY));
+-    if (!(*input)->memArea()->isGood()) {
++    MemoryArea *input_memory =
++        m_LDInfo.memAreaFactory().produce((*input)->path(), O_RDONLY);
++    if ((input_memory != NULL) && input_memory->isGood()) {
++      // enforce the kenel to load the entire file content into memory
++      input_memory->request(0, input_memory->size());
++      (*input)->setMemArea(input_memory);
++    }
++    else {
+       llvm::report_fatal_error("can not open file: " + (*input)->path().native());
+       return;
+     }

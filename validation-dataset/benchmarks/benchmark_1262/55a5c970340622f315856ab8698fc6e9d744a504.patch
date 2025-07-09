@@ -1,0 +1,43 @@
+From 55a5c970340622f315856ab8698fc6e9d744a504 Mon Sep 17 00:00:00 2001
+From: "Justin C. Miller" <justin@devjustinian.com>
+Date: Sun, 17 Jan 2021 20:54:38 -0800
+Subject: [PATCH] [libc] Attempt to speed up memcpy for aligned mem
+
+Copy long-by-long instead of byte-by-byte if both pointers are similarly
+aligned.
+---
+ src/libraries/libc/string/memcpy.c | 21 ++++++++++++++++++---
+ 1 file changed, 18 insertions(+), 3 deletions(-)
+
+diff --git a/src/libraries/libc/string/memcpy.c b/src/libraries/libc/string/memcpy.c
+index 981d3c66..ed1cda97 100644
+--- a/src/libraries/libc/string/memcpy.c
++++ b/src/libraries/libc/string/memcpy.c
+@@ -10,9 +10,24 @@ void * memcpy( void * restrict s1, const void * restrict s2, size_t n )
+ {
+     char * dest = (char *) s1;
+     const char * src = (const char *) s2;
+-    while ( n-- )
+-    {
++
++	if (((uintptr_t)src & 7) == ((uintptr_t)dest & 7)) {
++		while (((uintptr_t)src & 7) && n--)
++			*dest++ = *src++;
++
++		const uint64_t *srcq = (const uint64_t*)src;
++		uint64_t *destq = (uint64_t*)dest;
++		while (n >= 8) {
++			*destq++ = *srcq++;
++			n -= 8;
++		}
++
++		src = (const char*)srcq;
++		dest = (char*)destq;
++	}
++
++    while (n--)
+         *dest++ = *src++;
+-    }
++
+     return s1;
+ }

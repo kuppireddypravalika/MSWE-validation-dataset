@@ -1,0 +1,22 @@
+From 9d272669d713fb2a33caeb17125a9f611c35c1f6 Mon Sep 17 00:00:00 2001
+From: Josep Maria <josep-m-carbonell@users.noreply.github.com>
+Date: Mon, 9 Dec 2013 16:29:00 +0000
+Subject: [PATCH] uint changed to int in a omp loop
+
+---
+ .../calculate_signed_distance_to_3d_condition_skin_process.h    | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/kratos/processes/calculate_signed_distance_to_3d_condition_skin_process.h b/kratos/processes/calculate_signed_distance_to_3d_condition_skin_process.h
+index 0667f6894f2d..9e0535f3122a 100644
+--- a/kratos/processes/calculate_signed_distance_to_3d_condition_skin_process.h
++++ b/kratos/processes/calculate_signed_distance_to_3d_condition_skin_process.h
+@@ -1317,7 +1317,7 @@ class DistanceSpatialContainersConditionConfigure
+           mOctree.GetAllLeavesVector(all_leaves);
+ 
+ #pragma omp parallel for
+-          for (uint i = 0; i < all_leaves.size(); i++)
++          for (int i = 0; i < all_leaves.size(); i++)
+           {
+               *(all_leaves[i]->pGetDataPointer()) = ConfigurationType::AllocateData();
+           }

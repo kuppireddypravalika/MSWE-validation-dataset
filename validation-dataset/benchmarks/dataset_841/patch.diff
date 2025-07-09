@@ -1,0 +1,35 @@
+From e38abaa32ac36f99ffe85cd059827acd059c9e71 Mon Sep 17 00:00:00 2001
+From: "Michael Cook (mackal)" <mcook@mackal.net>
+Date: Tue, 14 Oct 2014 22:50:09 -0400
+Subject: [PATCH] Optimize EntityList::UnMarkNPC
+
+Going over the group_list is much better than hitting the same group
+up to 5 unnecessary times
+---
+ zone/entity.cpp | 13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
+
+diff --git a/zone/entity.cpp b/zone/entity.cpp
+index fd031d618d..4a8329639b 100644
+--- a/zone/entity.cpp
++++ b/zone/entity.cpp
+@@ -4120,15 +4120,10 @@ void EntityList::UnMarkNPC(uint16 ID)
+ 	// each group to remove the dead mobs entity ID from the groups list of NPCs marked via the
+ 	// Group Leadership AA Mark NPC ability.
+ 	//
+-	auto it = client_list.begin();
+-	while (it != client_list.end()) {
+-		if (it->second) {
+-			Group *g = nullptr;
+-			g = it->second->GetGroup();
+-
+-			if (g)
+-				g->UnMarkNPC(ID);
+-		}
++	auto it = group_list.begin();
++	while (it != group_list.end()) {
++		if (*it)
++			(*it)->UnMarkNPC(ID);
+ 		++it;
+ 	}
+ }

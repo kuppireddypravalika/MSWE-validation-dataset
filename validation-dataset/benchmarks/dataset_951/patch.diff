@@ -1,0 +1,46 @@
+From aa4df0927c50f82454f37eed71622f2ddb9a2d05 Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Wed, 2 Nov 2016 00:28:14 -0400
+Subject: [PATCH] [libromdata] NintendoDS: Read the ROM header directly into
+ d->romHeader.
+
+There's no point in reading it into a separate NDS_RomHeader and copying
+it afterwards, especially since there's only one file format for NDS.
+---
+ src/libromdata/NintendoDS.cpp | 14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
+
+diff --git a/src/libromdata/NintendoDS.cpp b/src/libromdata/NintendoDS.cpp
+index 23ee50807d..eab670582f 100644
+--- a/src/libromdata/NintendoDS.cpp
++++ b/src/libromdata/NintendoDS.cpp
+@@ -487,25 +487,19 @@ NintendoDS::NintendoDS(IRpFile *file)
+ 	}
+ 
+ 	// Read the ROM header.
+-	NDS_RomHeader romHeader;
+ 	m_file->rewind();
+-	size_t size = m_file->read(&romHeader, sizeof(romHeader));
+-	if (size != sizeof(romHeader))
++	size_t size = m_file->read(&d->romHeader, sizeof(d->romHeader));
++	if (size != sizeof(d->romHeader))
+ 		return;
+ 
+ 	// Check if this ROM image is supported.
+ 	DetectInfo info;
+ 	info.header.addr = 0;
+-	info.header.size = sizeof(romHeader);
+-	info.header.pData = reinterpret_cast<const uint8_t*>(&romHeader);
++	info.header.size = sizeof(d->romHeader);
++	info.header.pData = reinterpret_cast<const uint8_t*>(&d->romHeader);
+ 	info.ext = nullptr;	// Not needed for NDS.
+ 	info.szFile = 0;	// Not needed for NDS.
+ 	m_isValid = (isRomSupported_static(&info) >= 0);
+-
+-	if (m_isValid) {
+-		// Save the header for later.
+-		memcpy(&d->romHeader, &romHeader, sizeof(d->romHeader));
+-	}
+ }
+ 
+ NintendoDS::~NintendoDS()

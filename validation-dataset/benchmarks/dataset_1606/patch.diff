@@ -1,0 +1,33 @@
+From 2afb411590cded7cb69933cfc60869e5c5466105 Mon Sep 17 00:00:00 2001
+From: alekhgupta1441 <alekhgupta1441@gmail.com>
+Date: Sun, 12 Jul 2020 21:02:18 +0530
+Subject: [PATCH] Updated gain_phase_calibrate block
+
+- Using average of all the previous cfactors rather than only last two cfactors
+---
+ lib/gain_phase_calibrate_impl.cc | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/lib/gain_phase_calibrate_impl.cc b/lib/gain_phase_calibrate_impl.cc
+index 628a57f..84c21c5 100644
+--- a/lib/gain_phase_calibrate_impl.cc
++++ b/lib/gain_phase_calibrate_impl.cc
+@@ -71,7 +71,7 @@ int gain_phase_calibrate_impl::general_work(int noutput_items,
+ 
+     ninput_items = std::min(ninput_items_[0], noutput_items);
+     item = 0;
+-
++    gr_complex cfactor_avg_sum = gr_complex(0.0, 0.0);
+     while (item < ninput_items) {
+         // reference_acquired = d_reference_acquired;
+         // sample = d_sample;
+@@ -80,7 +80,8 @@ int gain_phase_calibrate_impl::general_work(int noutput_items,
+         //if (reference_acquired) {
+             if(previous_cfactor != gr_complex(0.0, 0.0))
+             {
+-                cfactor = gr_complex(0.5, 0.0) * (previous_cfactor + current_cfactor);
++            	cfactor_avg_sum = cfactor_avg_sum + current_cfactor;
++                cfactor = cfactor_avg_sum/gr_complex(item + 1.0);
+             }
+             else
+                 cfactor = current_cfactor;

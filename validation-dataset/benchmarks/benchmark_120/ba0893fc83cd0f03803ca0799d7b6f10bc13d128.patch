@@ -1,0 +1,53 @@
+From ba0893fc83cd0f03803ca0799d7b6f10bc13d128 Mon Sep 17 00:00:00 2001
+From: Krasimir Georgiev <krasimir@google.com>
+Date: Wed, 1 Nov 2017 18:20:41 +0000
+Subject: [PATCH] [clang-format] Make parseUnaryOperator non-recursive, NFCI
+
+Summary:
+This patch makes the implementation of parseUnaryOperator non-recursive. We had
+a problem with a file starting with tens of thousands of +'es and -'es which
+caused clang-format to stack overflow.
+
+Reviewers: bkramer
+
+Reviewed By: bkramer
+
+Subscribers: cfe-commits, klimek
+
+Differential Revision: https://reviews.llvm.org/D39498
+
+git-svn-id: https://llvm.org/svn/llvm-project/cfe/trunk@317113 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Format/TokenAnnotator.cpp | 18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
+
+diff --git a/lib/Format/TokenAnnotator.cpp b/lib/Format/TokenAnnotator.cpp
+index 1b22e266007..bc8fef8bda9 100644
+--- a/lib/Format/TokenAnnotator.cpp
++++ b/lib/Format/TokenAnnotator.cpp
+@@ -1662,17 +1662,15 @@ class ExpressionParser {
+   /// \brief Parse unary operator expressions and surround them with fake
+   /// parentheses if appropriate.
+   void parseUnaryOperator() {
+-    if (!Current || Current->isNot(TT_UnaryOperator)) {
+-      parse(PrecedenceArrowAndPeriod);
+-      return;
++    llvm::SmallVector<FormatToken *, 2> Tokens;
++    while (Current && Current->is(TT_UnaryOperator)) {
++      Tokens.push_back(Current);
++      next();
+     }
+-
+-    FormatToken *Start = Current;
+-    next();
+-    parseUnaryOperator();
+-
+-    // The actual precedence doesn't matter.
+-    addFakeParenthesis(Start, prec::Unknown);
++    parse(PrecedenceArrowAndPeriod);
++    for (FormatToken *Token : llvm::reverse(Tokens))
++      // The actual precedence doesn't matter.
++      addFakeParenthesis(Token, prec::Unknown);
+   }
+ 
+   void parseConditionalExpr() {

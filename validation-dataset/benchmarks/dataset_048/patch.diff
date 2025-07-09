@@ -1,0 +1,29 @@
+From cec118f0bbf9b67577bf0985e82cace7ff0821c7 Mon Sep 17 00:00:00 2001
+From: Xellzul <Xellzul@gmail.com>
+Date: Wed, 8 May 2024 15:27:01 +0200
+Subject: [PATCH] Use std::partition in ProductivityStats
+
+Co-authored-by: Alexander Grund <Flamefire@users.noreply.github.com>
+---
+ tests/s25Main/integration/testGamePlayer.cpp | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/tests/s25Main/integration/testGamePlayer.cpp b/tests/s25Main/integration/testGamePlayer.cpp
+index 76086f101b..7d605f0f24 100644
+--- a/tests/s25Main/integration/testGamePlayer.cpp
++++ b/tests/s25Main/integration/testGamePlayer.cpp
+@@ -70,11 +70,10 @@ BOOST_FIXTURE_TEST_CASE(ProductivityStats, WorldFixtureEmpty1P)
+         buildingTypes.push_back(*it);
+     }
+ 
+-    // Sort buildings so military buildings are created first 
++    // Sort buildings so military buildings are created first
+     // and no buildings are destroyed when borders are recalculated
+-    std::sort(buildingTypes.begin(), buildingTypes.end(), [](BuildingType a, BuildingType b) {
+-        return !BuildingProperties::IsUsual(a) > !BuildingProperties::IsUsual(b);
+-    });
++    std::partition(buildingTypes.begin(), buildingTypes.end(),
++                   [](BuildingType bld) { return !BuildingProperties::IsUsual(bld); });
+ 
+     MapPoint curPos(0, 0);
+     for(const auto bldType : buildingTypes)

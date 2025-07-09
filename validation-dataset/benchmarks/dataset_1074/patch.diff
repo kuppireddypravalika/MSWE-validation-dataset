@@ -1,0 +1,31 @@
+From da380a3ec413762ab7c94351fb1b66e60b921561 Mon Sep 17 00:00:00 2001
+From: David Rogers <masterfalcon@ogre3d.org>
+Date: Mon, 30 Jan 2012 10:14:18 -0600
+Subject: [PATCH] Patch 3469755 - Pre-read small scripts into the memory before
+ parsing. Increases performance, especially on mobiles.
+
+---
+ OgreMain/src/OgreResourceGroupManager.cpp | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/OgreMain/src/OgreResourceGroupManager.cpp b/OgreMain/src/OgreResourceGroupManager.cpp
+index f9d66c623d8..b64b7771133 100644
+--- a/OgreMain/src/OgreResourceGroupManager.cpp
++++ b/OgreMain/src/OgreResourceGroupManager.cpp
+@@ -1080,7 +1080,15 @@ namespace Ogre {
+                         {
+ 							if (mLoadingListener)
+ 								mLoadingListener->resourceStreamOpened(fii->filename, grp->name, 0, stream);
+-                            su->parseScript(stream, grp->name);
++
++							if(fii->archive->getType() == "FileSystem" && stream->size() <= 1024 * 1024)
++							{
++								DataStreamPtr cachedCopy;
++								cachedCopy.bind(OGRE_NEW MemoryDataStream(stream->getName(), stream));
++								su->parseScript(cachedCopy, grp->name);
++							}
++							else
++                            	su->parseScript(stream, grp->name);
+                         }
+                     }
+ 					fireScriptEnded(fii->filename, skipScript);

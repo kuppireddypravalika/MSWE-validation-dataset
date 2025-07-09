@@ -1,0 +1,28 @@
+From ed70a645aac345cfbe46abe69046de8805c9c985 Mon Sep 17 00:00:00 2001
+From: Andy Shaw <andy.shaw@theqtcompany.com>
+Date: Tue, 26 Jan 2016 01:29:26 +0100
+Subject: [PATCH] QWindowsVistaStyle: Reorder the if statement so the variable
+ is checked first
+
+Since the likelyhood that decoration_size is greater than 0 then we can
+save time with explicitly ensuring that it does not call the functions.
+
+Change-Id: Iaf991a6c77bbc4908c459307ca7e645cf3b3ca20
+Reviewed-by: Friedemann Kleint <Friedemann.Kleint@theqtcompany.com>
+---
+ src/widgets/styles/qwindowsvistastyle.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/widgets/styles/qwindowsvistastyle.cpp b/src/widgets/styles/qwindowsvistastyle.cpp
+index 083b1d170740..3fa0fc899db4 100644
+--- a/src/widgets/styles/qwindowsvistastyle.cpp
++++ b/src/widgets/styles/qwindowsvistastyle.cpp
+@@ -398,7 +398,7 @@ void QWindowsVistaStyle::drawPrimitive(PrimitiveElement element, const QStyleOpt
+         {
+             XPThemeData theme(widget, painter, QWindowsXPStylePrivate::TreeViewTheme);
+             static int decoration_size = 0;
+-            if (d->initTreeViewTheming() && theme.isValid() && !decoration_size) {
++            if (!decoration_size && d->initTreeViewTheming() && theme.isValid()) {
+                 XPThemeData themeSize = theme;
+                 themeSize.partId = TVP_HOTGLYPH;
+                 themeSize.stateId = GLPS_OPENED;

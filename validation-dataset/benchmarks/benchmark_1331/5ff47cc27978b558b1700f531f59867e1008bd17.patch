@@ -1,0 +1,24 @@
+From 5ff47cc27978b558b1700f531f59867e1008bd17 Mon Sep 17 00:00:00 2001
+From: Davide Italiano <davide@freebsd.org>
+Date: Tue, 18 Apr 2017 00:29:54 +0000
+Subject: [PATCH] [Target] Use hasOneUse() instead of getNumUses().
+
+The latter does a liner scan over a linked list, therefore is
+much more expensive.
+---
+ llvm/lib/Target/AArch64/AArch64ISelLowering.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/llvm/lib/Target/AArch64/AArch64ISelLowering.cpp b/llvm/lib/Target/AArch64/AArch64ISelLowering.cpp
+index 38f85bfcc9f6..1918d0b728cc 100644
+--- a/llvm/lib/Target/AArch64/AArch64ISelLowering.cpp
++++ b/llvm/lib/Target/AArch64/AArch64ISelLowering.cpp
+@@ -7126,7 +7126,7 @@ bool AArch64TargetLowering::isProfitableToHoist(Instruction *I) const {
+   if (I->getOpcode() != Instruction::FMul)
+     return true;
+ 
+-  if (I->getNumUses() != 1)
++  if (!I->hasOneUse())
+     return true;
+ 
+   Instruction *User = I->user_back();

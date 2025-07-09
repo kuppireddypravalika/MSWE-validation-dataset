@@ -1,0 +1,24 @@
+From c29d23b4c331ce90ee3744669641f4630a4f33f1 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max.kellermann@gmail.com>
+Date: Mon, 29 Jul 2024 23:08:48 +0200
+Subject: [PATCH] input/thread: use notify_one() instead of notify_all()
+
+There's only ever one waiter, and notify_one() may be faster than
+notify_all().
+---
+ src/input/ThreadInputStream.cxx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/input/ThreadInputStream.cxx b/src/input/ThreadInputStream.cxx
+index dc8fa10a0f..46dfea465b 100644
+--- a/src/input/ThreadInputStream.cxx
++++ b/src/input/ThreadInputStream.cxx
+@@ -131,7 +131,7 @@ ThreadInputStream::Read(std::unique_lock<Mutex> &lock,
+ 			size_t nbytes = std::min(dest.size(), r.size());
+ 			memcpy(dest.data(), r.data(), nbytes);
+ 			buffer.Consume(nbytes);
+-			wake_cond.notify_all();
++			wake_cond.notify_one();
+ 			offset += nbytes;
+ 			return nbytes;
+ 		}

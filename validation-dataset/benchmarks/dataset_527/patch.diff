@@ -1,0 +1,34 @@
+From 3f300207090d2aa177d49b7454c95837c2e79833 Mon Sep 17 00:00:00 2001
+From: Martin Marmsoler <martin.marmsoler@gmail.com>
+Date: Mon, 5 Apr 2021 18:46:09 +0200
+Subject: [PATCH] expand only when there are not too much elements. otherwise
+ it gets to slow
+
+---
+ src/ui/DoubleTreeWidget.cpp | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/src/ui/DoubleTreeWidget.cpp b/src/ui/DoubleTreeWidget.cpp
+index 8f45703da..77b00906d 100644
+--- a/src/ui/DoubleTreeWidget.cpp
++++ b/src/ui/DoubleTreeWidget.cpp
+@@ -232,11 +232,17 @@ void DoubleTreeWidget::setDiff(const git::Diff &diff,
+     TreeProxy* proxy = static_cast<TreeProxy *>(unstagedFiles->model());
+     DiffTreeModel* model = static_cast<DiffTreeModel*>(proxy->sourceModel());
+     model->setDiff(diff);
+-    unstagedFiles->expandAll();
++    if (diff.isValid() && diff.count() < 100)
++        unstagedFiles->expandAll();
++    else
++        unstagedFiles->collapseAll();
+ 
+     if (!diff.isValid() || diff.isStatusDiff()) {
+         mUnstagedCommitedFiles->setText(kUnstagedFiles);
+-        stagedFiles->expandAll();
++        if (diff.isValid() && diff.count() < 100)
++            stagedFiles->expandAll();
++        else
++            stagedFiles->collapseAll();
+         mStagedWidget->setVisible(true);
+ 
+     } else {

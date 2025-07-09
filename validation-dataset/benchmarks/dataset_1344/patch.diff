@@ -1,0 +1,47 @@
+From e8a3e85e10cb49f4ff38232986bfbd7a88590971 Mon Sep 17 00:00:00 2001
+From: Luke Dashjr <luke-jr+git@utopios.org>
+Date: Thu, 5 Sep 2019 16:19:50 -0300
+Subject: [PATCH] During IBD, when doing pruning, prune 10% extra to avoid
+ pruning again soon after
+
+Summary:
+Pruning forces a chainstate flush, which can defeat the dbcache and harm performance significantly.
+
+Backport of Bitcoin Core PR11658
+https://github.com/bitcoin/bitcoin/pull/11658
+
+Test Plan:
+```
+make check
+```
+
+Reviewers: Fabien, #bitcoin_abc, deadalnix, jasonbcox
+
+Reviewed By: #bitcoin_abc, jasonbcox
+
+Differential Revision: https://reviews.bitcoinabc.org/D3986
+---
+ src/validation.cpp | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/src/validation.cpp b/src/validation.cpp
+index 2a6e10d56..2f8dfe31c 100644
+--- a/src/validation.cpp
++++ b/src/validation.cpp
+@@ -4307,6 +4307,16 @@ static void FindFilesToPrune(std::set<int> &setFilesToPrune,
+     int count = 0;
+ 
+     if (nCurrentUsage + nBuffer >= nPruneTarget) {
++        // On a prune event, the chainstate DB is flushed.
++        // To avoid excessive prune events negating the benefit of high dbcache
++        // values, we should not prune too rapidly.
++        // So when pruning in IBD, increase the buffer a bit to avoid a re-prune
++        // too soon.
++        if (IsInitialBlockDownload()) {
++            // Since this is only relevant during IBD, we use a fixed 10%
++            nBuffer += nPruneTarget / 10;
++        }
++
+         for (int fileNumber = 0; fileNumber < nLastBlockFile; fileNumber++) {
+             nBytesToPrune = vinfoBlockFile[fileNumber].nSize +
+                             vinfoBlockFile[fileNumber].nUndoSize;

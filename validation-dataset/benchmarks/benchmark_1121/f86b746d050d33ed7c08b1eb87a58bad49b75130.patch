@@ -1,0 +1,24 @@
+From f86b746d050d33ed7c08b1eb87a58bad49b75130 Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Thu, 18 May 2023 09:10:14 -0600
+Subject: [PATCH] Capture `population` result by const reference
+
+Fixes MSVC Warning:
+> C26820: This is a potentially expensive copy operation. Consider using a reference unless a copy is required.
+---
+ OPHD/States/MapViewStateIO.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/OPHD/States/MapViewStateIO.cpp b/OPHD/States/MapViewStateIO.cpp
+index 318982638..da1e48524 100644
+--- a/OPHD/States/MapViewStateIO.cpp
++++ b/OPHD/States/MapViewStateIO.cpp
+@@ -160,7 +160,7 @@ void MapViewState::save(const std::string& filePath)
+ 	root->linkEndChild(writeResearch(mResearchTracker));
+ 	root->linkEndChild(NAS2D::dictionaryToAttributes("turns", {{{"count", mTurnCount}}}));
+ 
+-	const auto population = mPopulation.getPopulations();
++	const auto& population = mPopulation.getPopulations();
+ 	root->linkEndChild(NAS2D::dictionaryToAttributes(
+ 		"population",
+ 		{{

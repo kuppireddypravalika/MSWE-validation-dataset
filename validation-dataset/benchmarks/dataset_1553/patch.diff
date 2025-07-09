@@ -1,0 +1,22 @@
+From f2e89c47e7c10f59283df0eb1b5829709179b870 Mon Sep 17 00:00:00 2001
+From: Andreas Schaefer <gentryx@gmx.de>
+Date: Tue, 28 Apr 2015 21:21:50 +0200
+Subject: [PATCH] enabled larger performance test for Region.expand()
+
+---
+ src/testbed/performancetests/main.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/testbed/performancetests/main.cpp b/src/testbed/performancetests/main.cpp
+index d3a5595f1..c67bd3e78 100644
+--- a/src/testbed/performancetests/main.cpp
++++ b/src/testbed/performancetests/main.cpp
+@@ -2419,7 +2419,7 @@ int main(int argc, char **argv)
+ 
+         eval(RegionExpand(5), toVector(Coord<3>( 128,  128,  128)));
+         eval(RegionExpand(5), toVector(Coord<3>( 512,  512,  512)));
+-        // eval(RegionExpand(5), toVector(Coord<3>(2048, 2048, 2048)));
++        eval(RegionExpand(5), toVector(Coord<3>(2048, 2048, 2048)));
+ 
+         eval(CoordEnumerationVanilla(), toVector(Coord<3>( 128,  128,  128)));
+         eval(CoordEnumerationVanilla(), toVector(Coord<3>( 512,  512,  512)));

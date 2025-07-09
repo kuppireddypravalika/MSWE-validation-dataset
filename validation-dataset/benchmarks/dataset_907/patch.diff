@@ -1,0 +1,30 @@
+From 89e87147096b81d5687af60f46b70ff79ff9b16b Mon Sep 17 00:00:00 2001
+From: "Hongli Lai (Phusion)" <hongli@phusion.nl>
+Date: Tue, 6 Jul 2010 23:01:33 +0200
+Subject: [PATCH] Have MutlipartHeaders.operator[] return a const reference for
+ improved efficiency.
+
+---
+ MultipartReader.h | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/MultipartReader.h b/MultipartReader.h
+index 1ae6607..8d02f4c 100644
+--- a/MultipartReader.h
++++ b/MultipartReader.h
+@@ -6,11 +6,13 @@
+ #include "MultipartParser.h"
+ 
+ class MultipartHeaders: public std::multimap<std::string, std::string> {
++private:
++	std::string empty;
+ public:
+-	std::string operator[](const std::string &key) const {
++	const std::string &operator[](const std::string &key) const {
+ 		const_iterator it = find(key);
+ 		if (it == end()) {
+-			return std::string();
++			return empty;
+ 		} else {
+ 			return it->second;
+ 		}

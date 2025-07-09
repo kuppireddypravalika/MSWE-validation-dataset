@@ -1,0 +1,36 @@
+From e6017c40fca059b27e449f0605f4d79b78de0ff3 Mon Sep 17 00:00:00 2001
+From: Friedemann Kleint <Friedemann.Kleint@qt.io>
+Date: Thu, 19 Jan 2017 12:54:16 +0100
+Subject: [PATCH] QtOptionsPageWidget::validInformation(): Use
+ ToolChainManager::toolChain()
+
+Use a predicate to check whether any toolchain can be found instead
+of searching through all of them.
+
+Change-Id: I6d4417c548b37629dc43c11e313250c24777a5ca
+Reviewed-by: Tobias Hunger <tobias.hunger@qt.io>
+---
+ src/plugins/qtsupport/qtoptionspage.cpp | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/src/plugins/qtsupport/qtoptionspage.cpp b/src/plugins/qtsupport/qtoptionspage.cpp
+index 77f58becea1..69db72a15a9 100644
+--- a/src/plugins/qtsupport/qtoptionspage.cpp
++++ b/src/plugins/qtsupport/qtoptionspage.cpp
+@@ -389,8 +389,15 @@ QtOptionsPageWidget::ValidityInfo QtOptionsPageWidget::validInformation(const Ba
+     // Do we have tool chain issues?
+     QList<Abi> missingToolChains;
+     const QList<Abi> qtAbis = version->qtAbis();
++
+     for (const Abi &abi : qtAbis) {
+-        if (ToolChainManager::findToolChains(abi).isEmpty())
++        const auto abiCompatePred = [&abi] (const ToolChain *tc)
++        {
++            return Utils::contains(tc->supportedAbis(),
++                                   [&abi](const Abi &sabi) { return sabi.isCompatibleWith(abi); });
++        };
++
++        if (!ToolChainManager::toolChain(abiCompatePred))
+             missingToolChains.append(abi);
+     }
+ 

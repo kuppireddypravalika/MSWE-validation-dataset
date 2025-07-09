@@ -1,0 +1,34 @@
+From 5bd48f2c5e5f67840efc4413b178396a05a93759 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Sun, 11 Dec 2011 11:26:43 +0000
+Subject: [PATCH] Shapefile driver: when there's no .qix but a spatial filter
+ is defined, trust the 'bounding box' of point geometries to speed-up the
+ filtering
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@23525 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/ogr/ogrsf_frmts/shape/ogrshapelayer.cpp | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/gdal/ogr/ogrsf_frmts/shape/ogrshapelayer.cpp b/gdal/ogr/ogrsf_frmts/shape/ogrshapelayer.cpp
+index 67543bdfcc5f..851d0cc958b1 100644
+--- a/gdal/ogr/ogrsf_frmts/shape/ogrshapelayer.cpp
++++ b/gdal/ogr/ogrsf_frmts/shape/ogrshapelayer.cpp
+@@ -447,9 +447,14 @@ OGRFeature *OGRShapeLayer::FetchShape(int iShapeId)
+         
+         psShape = SHPReadObject( hSHP, iShapeId );
+ 
+-        // do not trust degenerate bounds or bounds on null shapes.
+-        if( psShape == NULL || psShape->dfXMin == psShape->dfXMax
+-            || psShape->dfYMin == psShape->dfYMax 
++        // do not trust degenerate bounds on non-point geometries
++        // or bounds on null shapes.
++        if( psShape == NULL
++            || (psShape->nSHPType != SHPT_POINT
++                && psShape->nSHPType != SHPT_POINTZ
++                && psShape->nSHPType != SHPT_POINTM
++                && (psShape->dfXMin == psShape->dfXMax
++                 || psShape->dfYMin == psShape->dfYMax))
+             || psShape->nSHPType == SHPT_NULL )
+         {
+             poFeature = SHPReadOGRFeature( hSHP, hDBF, poFeatureDefn,

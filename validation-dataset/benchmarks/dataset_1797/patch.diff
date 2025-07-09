@@ -1,0 +1,24 @@
+From 9956740905ee16eff22f75b5d6c6a85c266fba0a Mon Sep 17 00:00:00 2001
+From: Orgad Shaneh <orgad.shaneh@audiocodes.com>
+Date: Mon, 3 Apr 2023 23:20:22 +0300
+Subject: [PATCH] FilePath: Optimize string compare in setParts
+
+Change-Id: Ibc390ee943ed41dfef30fbbd07e2e681d82379ba
+Reviewed-by: hjk <hjk@qt.io>
+---
+ src/libs/utils/filepath.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/libs/utils/filepath.cpp b/src/libs/utils/filepath.cpp
+index 3af026d9ba74..e397ffe9b748 100644
+--- a/src/libs/utils/filepath.cpp
++++ b/src/libs/utils/filepath.cpp
+@@ -438,7 +438,7 @@ void FilePath::setParts(const QStringView scheme, const QStringView host, QStrin
+ {
+     QTC_CHECK(!scheme.contains('/'));
+ 
+-    if (path.startsWith(u"/./"))
++    if (path.length() >= 3 && path[0] == '/' && path[1] == '.' && path[2] == '/')
+         path = path.mid(3);
+ 
+     m_data = path.toString() + scheme.toString() + host.toString();

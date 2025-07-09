@@ -1,0 +1,23 @@
+From b919e740a90d335e3456bb16b2609686f9643d66 Mon Sep 17 00:00:00 2001
+From: Kosta <konstantin.baumann@autodesk.com>
+Date: Mon, 1 Sep 2014 12:52:36 +0200
+Subject: [PATCH] use `rapidjson::Value::SizeType` as the type for storing and
+ comparing the string length
+
+---
+ test/unittest/valuetest.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/test/unittest/valuetest.cpp b/test/unittest/valuetest.cpp
+index 0df5f34a..1f698e70 100644
+--- a/test/unittest/valuetest.cpp
++++ b/test/unittest/valuetest.cpp
+@@ -1086,7 +1086,7 @@ TEST(Document, CrtAllocator) {
+ }
+ 
+ static void TestShortStringOptimization(const char* str) {
+-    const int len = (int)strlen(str);
++    const rapidjson::Value::SizeType len = (rapidjson::Value::SizeType)strlen(str);
+ 	
+     rapidjson::Document doc;
+     rapidjson::Value val;

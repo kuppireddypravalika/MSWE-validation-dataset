@@ -1,0 +1,29 @@
+From 14d3237b8538ea1b4300f254c1a7a78765a92bfa Mon Sep 17 00:00:00 2001
+From: Lukas Rusak <lorusak@gmail.com>
+Date: Sat, 24 Apr 2021 17:42:14 -0700
+Subject: [PATCH] Cutil: use std::chrono to init srand
+
+---
+ xbmc/Util.cpp | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/xbmc/Util.cpp b/xbmc/Util.cpp
+index 706e34124dd2d..698e51b1db40a 100644
+--- a/xbmc/Util.cpp
++++ b/xbmc/Util.cpp
+@@ -1572,11 +1572,10 @@ void CUtil::GetSkinThemes(std::vector<std::string>& vecTheme)
+ void CUtil::InitRandomSeed()
+ {
+   // Init random seed
+-  int64_t now;
+-  now = CurrentHostCounter();
+-  unsigned int seed = (unsigned int)now;
+-  //  CLog::Log(LOGDEBUG, "{} - Initializing random seed with {}", __FUNCTION__, seed);
+-  srand(seed);
++  auto now = std::chrono::steady_clock::now();
++  auto seed = now.time_since_epoch();
++
++  srand(static_cast<unsigned int>(seed.count()));
+ }
+ 
+ #if defined(TARGET_POSIX) && !defined(TARGET_DARWIN_TVOS)

@@ -1,0 +1,30 @@
+From 446fc5031fe69fe1906dc1d14358d3ba83ab18bf Mon Sep 17 00:00:00 2001
+From: Michael Adler <Michael.Adler@intel.com>
+Date: Fri, 28 Sep 2018 12:57:04 -0400
+Subject: [PATCH] wsid's bound to shared buffers must be unique (#723)
+
+The hash computation was generating aliases when about 250k pages were allocated.
+Use a simple atomic counter, which is also faster, instead.
+---
+ libopae/src/common.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/libopae/src/common.c b/libopae/src/common.c
+index 3305c1e216f8..b3e47d0a5fde 100644
+--- a/libopae/src/common.c
++++ b/libopae/src/common.c
+@@ -179,10 +179,9 @@ const char __FPGA_API__ *fpgaErrStr(fpga_result e)
+  */
+ uint64_t wsid_gen(void)
+ {
+-	struct timeval t;
+-	uint64_t id = 0;
+-	gettimeofday(&t, NULL);
+-	id = ((t.tv_sec * 1000 * 1000) + (t.tv_usec * 1000)) << 42;
+-	id |= ((unsigned long) getpid() % 16777216) << 24;
++	static uint64_t ctr;
++
++	uint64_t id = __sync_fetch_and_add(&ctr, 1);
++	id ^= ((unsigned long) getpid() % 16777216) << 40;
+ 	return id;
+ }

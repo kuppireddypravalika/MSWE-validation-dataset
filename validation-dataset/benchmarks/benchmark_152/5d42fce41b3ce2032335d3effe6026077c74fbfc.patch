@@ -1,0 +1,33 @@
+From 5d42fce41b3ce2032335d3effe6026077c74fbfc Mon Sep 17 00:00:00 2001
+From: David Stone <davidfromonline@gmail.com>
+Date: Tue, 24 Oct 2023 16:28:23 -0600
+Subject: [PATCH] Improve bounds checking in `reallocation_size`
+
+---
+ source/containers/reallocation_size.cpp | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/source/containers/reallocation_size.cpp b/source/containers/reallocation_size.cpp
+index b2be8e44..ece36c0f 100644
+--- a/source/containers/reallocation_size.cpp
++++ b/source/containers/reallocation_size.cpp
+@@ -6,6 +6,7 @@
+ export module containers.reallocation_size;
+ 
+ import bounded;
++import numeric_traits;
+ 
+ using namespace bounded::literal;
+ 
+@@ -15,7 +16,10 @@ export template<typename Capacity>
+ constexpr auto reallocation_size(Capacity const current_capacity, auto const current_size, auto const extra_elements) {
+ 	return ::bounded::assume_in_range<Capacity>(bounded::max(
+ 		bounded::integer(current_size) + bounded::integer(extra_elements),
+-		bounded::integer(current_capacity) * 2_bi
++		bounded::min(
++			bounded::integer(current_capacity) * 2_bi,
++			numeric_traits::max_value<Capacity>
++		)
+ 	));
+ }
+ 

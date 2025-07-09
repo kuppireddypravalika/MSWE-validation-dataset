@@ -1,0 +1,23 @@
+From 8572669d50d30d98380db43b689e7e9e965697f7 Mon Sep 17 00:00:00 2001
+From: Emanuele Cordano <emanuele.cordano@gmail.com>
+Date: Thu, 9 Jun 2016 08:06:12 +0200
+Subject: [PATCH] 	return Pa0 * exp(-Z/scale_ht);
+
+	return Pa0 * exp(-Z/scale_ht);
+---
+ src/geotop/meteo.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/geotop/meteo.c b/src/geotop/meteo.c
+index 12d6a31a4..a63907873 100755
+--- a/src/geotop/meteo.c
++++ b/src/geotop/meteo.c
+@@ -99,7 +99,7 @@ void meteo_distr(long *line, long lineLR, METEO *met, WATER *wat, TOPO *top, PAR
+ 
+ double pressure(double Z){
+ 	double scale_ht = 8500.0;
+-	return Pa0 * exp(-3305./scale_ht);
++	return Pa0 * exp(-Z/scale_ht);
+ }
+ 
+ /******************************************************************************************************************************************/

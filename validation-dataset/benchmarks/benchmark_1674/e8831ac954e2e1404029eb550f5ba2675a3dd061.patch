@@ -1,0 +1,24 @@
+From e8831ac954e2e1404029eb550f5ba2675a3dd061 Mon Sep 17 00:00:00 2001
+From: hong <43953930+phlrain@users.noreply.github.com>
+Date: Thu, 19 Sep 2024 22:51:45 +0800
+Subject: [PATCH] optimize where op infer symbolic (#68276)
+
+---
+ .../interface/infer_symbolic_shape/multiary_infer_sym.cc      | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/paddle/fluid/pir/dialect/operator/interface/infer_symbolic_shape/multiary_infer_sym.cc b/paddle/fluid/pir/dialect/operator/interface/infer_symbolic_shape/multiary_infer_sym.cc
+index c94920f6d1ea31..4e8c17fe224e1d 100644
+--- a/paddle/fluid/pir/dialect/operator/interface/infer_symbolic_shape/multiary_infer_sym.cc
++++ b/paddle/fluid/pir/dialect/operator/interface/infer_symbolic_shape/multiary_infer_sym.cc
+@@ -3660,8 +3660,8 @@ bool WhereOpInferSymbolicShape(pir::Operation *op,
+       op->result(0),
+       symbol::ShapeOrDataDimExprs{symbol::TensorShapeOrDataDimExprs(x_shape)});
+ 
+-  const std::vector<pir::Value> &operands = {op->operand_source(0),
+-                                             op->operand_source(1)};
++  const std::vector<pir::Value> &operands = {
++      op->operand_source(0), op->operand_source(1), op->operand_source(2)};
+ 
+   size_t rank = x_shape.size();
+ 

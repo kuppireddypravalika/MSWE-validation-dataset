@@ -1,0 +1,49 @@
+From 476b674bfaeb99a97a2d7d0150e85bbda9ca849a Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Thu, 13 Oct 2016 21:50:15 -0400
+Subject: [PATCH] [libromdata] RpMemFile::read(): Improved the bounds check.
+
+- Get rid of 'sizeToCopy'. We can just modify 'size' directly.
+- Only check for (m_pos + size > m_size).
+- Fixed an off-by-one that made it slightly less efficient if the
+  specified size read exactly the rest of the buffer.
+---
+ src/libromdata/file/RpMemFile.cpp | 18 +++++++-----------
+ 1 file changed, 7 insertions(+), 11 deletions(-)
+
+diff --git a/src/libromdata/file/RpMemFile.cpp b/src/libromdata/file/RpMemFile.cpp
+index 52b6042d76..68380cd9cc 100644
+--- a/src/libromdata/file/RpMemFile.cpp
++++ b/src/libromdata/file/RpMemFile.cpp
+@@ -148,24 +148,20 @@ size_t RpMemFile::read(void *ptr, size_t size)
+ 	// Convert the const void* to a const uint8_t*.
+ 	const uint8_t *buf = reinterpret_cast<const uint8_t*>(m_buf);
+ 
+-	// Check if m_pos + size < m_size.
+-	size_t sizeToCopy;
+-	if (m_pos + size < m_size) {
+-		// We can read the whole thing.
+-		sizeToCopy = size;
+-	} else {
++	// Check if size is in bounds.
++	if (m_pos + size > m_size) {
+ 		// Not enough data.
+ 		// Copy whatever's left in the buffer.
+-		sizeToCopy = m_size - m_pos;
++		size = m_size - m_pos;
+ 	}
+ 
+-	if (sizeToCopy > 0) {
++	if (size > 0) {
+ 		// Copy the data.
+-		memcpy(ptr, &buf[m_pos], sizeToCopy);
+-		m_pos += sizeToCopy;
++		memcpy(ptr, &buf[m_pos], size);
++		m_pos += size;
+ 	}
+ 
+-	return sizeToCopy;
++	return size;
+ }
+ 
+ /**

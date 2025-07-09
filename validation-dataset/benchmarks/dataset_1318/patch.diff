@@ -1,0 +1,33 @@
+From df75e37704e0ed076798c6610a19ad0aeaebcf6e Mon Sep 17 00:00:00 2001
+From: edward_san <edo88@email.it>
+Date: Sun, 26 Apr 2015 10:29:57 +0200
+Subject: [PATCH] - Reduce the server bandwidth consumption when A_ChangeFlag
+ is called and the actor flag is not changed at all.
+
+---
+ src/thingdef/thingdef_codeptr.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/thingdef/thingdef_codeptr.cpp b/src/thingdef/thingdef_codeptr.cpp
+index b067b5e90..cb0aad903 100644
+--- a/src/thingdef/thingdef_codeptr.cpp
++++ b/src/thingdef/thingdef_codeptr.cpp
+@@ -3846,6 +3846,9 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_ChangeFlag)
+ 
+ 			DWORD *flagp = (DWORD*) (((char*)self) + fd->structoffset);
+ 
++			// [EP] Store the old value in order to save bandwidth
++			DWORD oldflag = *flagp;
++
+ 			// If these 2 flags get changed we need to update the blockmap and sector links.
+ 			bool linkchange = flagp == &self->flags && (fd->flagbit == MF_NOBLOCKMAP || fd->flagbit == MF_NOSECTOR);
+ 
+@@ -3861,7 +3864,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_ChangeFlag)
+ 			if (linkchange) self->LinkToWorld();
+ 
+ 			// [BB] Let the clients know about the flag change.
+-			if ( NETWORK_GetState( ) == NETSTATE_SERVER ) {
++			if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( *flagp != oldflag ) ) {
+ 				FlagSet flagset = FLAGSET_UNKNOWN;
+ 				if ( flagp == &self->flags )
+ 					flagset = FLAGSET_FLAGS;

@@ -1,0 +1,53 @@
+From bc4095643b955e76f349daaf7472f33da7638597 Mon Sep 17 00:00:00 2001
+From: Alexander Nozdrin <alexander.nozdrin@oracle.com>
+Date: Fri, 6 May 2011 15:41:24 +0400
+Subject: [PATCH] Patch for Bug#11848763 / 60025 (SUBSTRING inside a stored
+ function works too slow).
+
+The user-visible problem was that the server started to consume memory if a
+stored-routine of some sort is executed subsequently. The memory was freed
+only after the corresponding connection was closed.
+
+Technically, the problem was that the memory needed for temporary string
+conversions was allocated on the connection ("persistent") memory root,
+instead of statement one.
+
+The root cause of this problem was the incorrect patch for Bug 55744.
+That patch wrongly fixed a crash in prepared-statement-mode introduced by
+another patch. The patch for Bug 55744 used wrong condition to check if
+prepared statement mode is active (or whether the connection-scoped or
+statement-scoped memory root should be used). The thing is that for
+prepared statements such conversions should be done in the connection
+memory root, so that that the transformations of item-tree were correctly
+remembered in the PREPARE-phase.
+
+The fix is to use proper condition to detect prepared-statement-mode and
+use proper memory root.
+---
+ sql/item.cc | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/sql/item.cc b/sql/item.cc
+index 788c7744c14..bd231ec8687 100644
+--- a/sql/item.cc
++++ b/sql/item.cc
+@@ -1781,14 +1781,17 @@ bool agg_item_set_converter(DTCollation &coll, const char *fname,
+   }
+ 
+   THD *thd= current_thd;
+-  Query_arena *arena, backup;
+   bool res= FALSE;
+   uint i;
++
+   /*
+     In case we're in statement prepare, create conversion item
+     in its memory: it will be reused on each execute.
+   */
+-  arena= thd->activate_stmt_arena_if_needed(&backup);
++  Query_arena backup;
++  Query_arena *arena= thd->stmt_arena->is_stmt_prepare() ?
++                      thd->activate_stmt_arena_if_needed(&backup) :
++                      NULL;
+ 
+   for (i= 0, arg= args; i < nargs; i++, arg+= item_sep)
+   {

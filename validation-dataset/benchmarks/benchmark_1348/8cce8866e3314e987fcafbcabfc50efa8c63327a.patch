@@ -1,0 +1,25 @@
+From 8cce8866e3314e987fcafbcabfc50efa8c63327a Mon Sep 17 00:00:00 2001
+From: dsharlet-intel <dillon.sharlet@intel.com>
+Date: Wed, 11 Dec 2013 16:10:06 -0800
+Subject: [PATCH] Avoids loss of low significant bits in conversion from float
+ to string
+
+Former-commit-id: 523463c1a907d136a97f4225ce4b4014b64245f1
+---
+ src/CodeGen_C.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/CodeGen_C.cpp b/src/CodeGen_C.cpp
+index 520494cb1c..ded76f1c73 100644
+--- a/src/CodeGen_C.cpp
++++ b/src/CodeGen_C.cpp
+@@ -535,7 +535,8 @@ void CodeGen_C::visit(const FloatImm *op) {
+         }
+     } else {
+         ostringstream oss;
+-        oss.setf(std::ios::fixed, std::ios::floatfield);
++        oss.setf(std::ios::fixed | std::ios::scientific, std::ios::floatfield);
++        oss.precision(7 + 1); // 7 = ceil(log10(2^23)), 23 = significant bits in a float.
+         oss << op->value << 'f';
+         id = oss.str();
+     }

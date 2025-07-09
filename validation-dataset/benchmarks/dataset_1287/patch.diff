@@ -1,0 +1,29 @@
+From e972afd9e35e11f4de6ecf06ce3a0b7efa731343 Mon Sep 17 00:00:00 2001
+From: Aryan1508 <aryanparekh1508@gmail.com>
+Date: Sun, 9 May 2021 09:00:30 +0530
+Subject: [PATCH] Increase depth reduction by 1 and clamp depth after reductino
+ for lmr. Bench: 7248771
+
+---
+ Bit-Genie/src/search.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/Bit-Genie/src/search.cpp b/Bit-Genie/src/search.cpp
+index 1a5505c..3032d26 100644
+--- a/Bit-Genie/src/search.cpp
++++ b/Bit-Genie/src/search.cpp
+@@ -186,10 +186,13 @@ namespace
+                 bool quiet = !move_is_capture(position, move);
+ 
+                 int R = lmr_reductions_array[quiet][std::min(move_num, 31)];
++                int new_depth = depth - 1;
+ 
+                 R -= pv_node;
+ 
+-                score = -pvs(position, search, tt, depth - R, -alpha - 1, -alpha, false, false).score;
++                int RDepth = std::clamp(new_depth - R, 1, new_depth - 1);
++
++                score = -pvs(position, search, tt, RDepth, -alpha - 1, -alpha, false, false).score;
+ 
+                 if (score > alpha)
+                     score = -pvs(position, search, tt, depth - 1, -beta, -alpha, false).score;

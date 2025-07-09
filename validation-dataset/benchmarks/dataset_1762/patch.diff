@@ -1,0 +1,30 @@
+From eecc57e6092965020997958827bf436d28c5cde5 Mon Sep 17 00:00:00 2001
+From: Andrew Mustun <andrew@qcad.org>
+Date: Wed, 10 Jun 2015 21:41:19 +0200
+Subject: [PATCH] fix performance issue under Qt 4.7 / windows
+
+---
+ src/gui/RGraphicsViewImage.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/gui/RGraphicsViewImage.cpp b/src/gui/RGraphicsViewImage.cpp
+index 8c4648d5c6..e3f7f3e78b 100644
+--- a/src/gui/RGraphicsViewImage.cpp
++++ b/src/gui/RGraphicsViewImage.cpp
+@@ -413,12 +413,12 @@ void RGraphicsViewImage::paintOrigin(QPaintDevice& device) {
+         RBox b = getBox();
+         //pen.setStyle(Qt::DashDotDotLine);
+         pen.setDashPattern(QVector<qreal>() << 9 << 3 << 3 << 3 << 3 << 3);
+-        RVector z = mapToView(RVector(0,0));
+-        pen.setDashOffset(-z.x);
++        //RVector z = mapToView(RVector(0,0));
++        //pen.setDashOffset(-z.x);
+         gridPainter->setPen(pen);
+         gridPainter->drawLine(QPointF(b.c1.x, 0.0), QPointF(b.c2.x, 0));
+-        pen.setDashOffset(z.y);
+-        gridPainter->setPen(pen);
++//        pen.setDashOffset(z.y);
++//        gridPainter->setPen(pen);
+         gridPainter->drawLine(QPointF(0.0, b.c1.y), QPointF(0.0, b.c2.y));
+     }
+     else {

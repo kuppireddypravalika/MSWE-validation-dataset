@@ -1,0 +1,26 @@
+From 69cddd6ead372e9f160965666b3cdc2e9fc13465 Mon Sep 17 00:00:00 2001
+From: Roman Koshelev <roman.koshelev@bk.ru>
+Date: Thu, 19 Nov 2020 20:59:07 +0300
+Subject: [PATCH] optimization of rdtsc()
+
+On x86-64, the most significant bits of the RDX:RAX registers are
+guaranteed to be zero. This means that the rdtsc instruction will return
+two 64-bit numbers. In practice, this removes the extra instruction to
+clear the most significant bits of the return value.
+---
+ runtime/Cycles.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/runtime/Cycles.h b/runtime/Cycles.h
+index 80121da..e251005 100644
+--- a/runtime/Cycles.h
++++ b/runtime/Cycles.h
+@@ -42,7 +42,7 @@ class Cycles {
+         if (mockTscValue)
+             return mockTscValue;
+ #endif
+-        uint32_t lo, hi;
++        size_t lo, hi;
+         __asm__ __volatile__("rdtsc" : "=a" (lo), "=d" (hi));
+ //        __asm__ __volatile__("rdtscp" : "=a" (lo), "=d" (hi) : : "%rcx");
+         return (((uint64_t)hi << 32) | lo);

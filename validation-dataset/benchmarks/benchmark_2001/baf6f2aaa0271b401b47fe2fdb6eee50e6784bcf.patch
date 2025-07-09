@@ -1,0 +1,22 @@
+From baf6f2aaa0271b401b47fe2fdb6eee50e6784bcf Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?C=C3=B4me=20Chilliet?= <come@chilliet.eu>
+Date: Mon, 2 Jan 2017 17:25:18 +0100
+Subject: [PATCH] Replaced a strcpy by strncpy
+
+---
+ Source/Devtools/ConsoleCmds.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Source/Devtools/ConsoleCmds.cpp b/Source/Devtools/ConsoleCmds.cpp
+index f69984b7..b9aabcc4 100644
+--- a/Source/Devtools/ConsoleCmds.cpp
++++ b/Source/Devtools/ConsoleCmds.cpp
+@@ -142,7 +142,7 @@ static void set_clothes(int pnum, const char *args)
+     snprintf(buf, 63, "Textures/%s.png", args);
+ 
+     int id = Person::players[pnum]->numclothes;
+-    strcpy(Person::players[pnum]->clothes[id], buf);
++    strncpy(Person::players[pnum]->clothes[id], buf, 64);
+     Person::players[pnum]->clothestintr[id] = tintr;
+     Person::players[pnum]->clothestintg[id] = tintg;
+     Person::players[pnum]->clothestintb[id] = tintb;

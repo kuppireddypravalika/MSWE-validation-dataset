@@ -1,0 +1,31 @@
+From 12eb07a85fcc62baefad726bfbc4381c2a26aa65 Mon Sep 17 00:00:00 2001
+From: Steffen Seckler <seckler@in.tum.de>
+Date: Thu, 19 Oct 2017 12:26:55 +0000
+Subject: [PATCH] openmp parallelization of LinkedCells::getNumberOfParticles()
+
+git-svn-id: https://scm.projects.hlrs.de/svn/ls1/MarDyn/trunk@5662 a63bd714-7e14-4b5e-94e7-302c8c8ff188
+---
+ src/particleContainer/LinkedCells.cpp | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/src/particleContainer/LinkedCells.cpp b/src/particleContainer/LinkedCells.cpp
+index ff41b6c5f8..d5fabb762c 100644
+--- a/src/particleContainer/LinkedCells.cpp
++++ b/src/particleContainer/LinkedCells.cpp
+@@ -518,9 +518,13 @@ void LinkedCells::traverseCells(CellProcessor& cellProcessor) {
+ 
+ unsigned long LinkedCells::getNumberOfParticles() {
+ 	unsigned long N = 0;
+-	std::vector<ParticleCell>::iterator it;
+-	for (it = _cells.begin(); it != _cells.end(); ++it) {
+-		N += it->getMoleculeCount();
++	unsigned long numCells = _cells.size();
++
++	#if defined(_OPENMP)
++	#pragma omp parallel for reduction(+:N)
++	#endif
++	for (unsigned long i = 0; i < numCells; ++i) {
++		N += _cells.at(i).getMoleculeCount();
+ 	}
+ 	return N;
+ }

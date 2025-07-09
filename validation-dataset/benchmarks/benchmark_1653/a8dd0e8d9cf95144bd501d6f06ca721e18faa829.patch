@@ -1,0 +1,32 @@
+From a8dd0e8d9cf95144bd501d6f06ca721e18faa829 Mon Sep 17 00:00:00 2001
+From: Marcel Smit <marcel303@gmail.com>
+Date: Mon, 8 Jan 2018 20:54:21 +0100
+Subject: [PATCH] Optimized map range audio node. Use restrict keyword.
+
+---
+ audioGraph/audioNodes/audioNodeMapRange.cpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/audioGraph/audioNodes/audioNodeMapRange.cpp b/audioGraph/audioNodes/audioNodeMapRange.cpp
+index 2131e4ad1..dc32fdaca 100644
+--- a/audioGraph/audioNodes/audioNodeMapRange.cpp
++++ b/audioGraph/audioNodes/audioNodeMapRange.cpp
+@@ -90,13 +90,16 @@ void AudioNodeMapRange::tick(const float dt)
+ 		{
+ 			resultOutput.setVector();
+ 			
++			const float * __restrict valuePtr = value->samples;
++			      float * __restrict resultPtr = resultOutput.samples;
++			
+ 			for (int i = 0; i < AUDIO_UPDATE_SIZE; ++i)
+ 			{
+-				const float t2 = (value->samples[i] - _inMin) * scale;
++				const float t2 = (valuePtr[i] - _inMin) * scale;
+ 				const float t1 = 1.f - t2;
+ 				const float result = t1 * _outMin + t2 * _outMax;
+ 				
+-				resultOutput.samples[i] = result;
++				resultPtr[i] = result;
+ 			}
+ 		}
+ 	}

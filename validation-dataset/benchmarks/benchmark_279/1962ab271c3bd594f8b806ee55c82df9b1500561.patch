@@ -1,0 +1,24 @@
+From 1962ab271c3bd594f8b806ee55c82df9b1500561 Mon Sep 17 00:00:00 2001
+From: "bearlee@alum.mit.edu"
+ <bearlee@alum.mit.edu@9a304bd9-dce1-f7c0-8d5c-bb1642157d4e>
+Date: Wed, 28 Dec 2011 19:58:03 +0000
+Subject: [PATCH] updated normal_log to use multiply_log
+
+git-svn-id: https://stan.googlecode.com/svn/trunk@416 9a304bd9-dce1-f7c0-8d5c-bb1642157d4e
+---
+ src/stan/prob/distributions/normal.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/stan/prob/distributions/normal.hpp b/src/stan/prob/distributions/normal.hpp
+index 75e907054a4..e8740a92e39 100644
+--- a/src/stan/prob/distributions/normal.hpp
++++ b/src/stan/prob/distributions/normal.hpp
+@@ -162,7 +162,7 @@ namespace stan {
+       }
+       
+       if (include_summand<propto,T_scale>::value) 
+-	lp -= y.size() * log(sigma);
++	lp -= multiply_log(y.size(),sigma);
+       
+       if (include_summand<propto>::value) 
+ 	lp += y.size() * NEG_LOG_SQRT_TWO_PI;

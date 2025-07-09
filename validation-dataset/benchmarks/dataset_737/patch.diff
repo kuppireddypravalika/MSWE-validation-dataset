@@ -1,0 +1,44 @@
+From 848f5e78a60bde49900159a77b218bb15c80382d Mon Sep 17 00:00:00 2001
+From: Vadim Zeitlin <vadim@wxwidgets.org>
+Date: Mon, 5 Aug 2019 02:39:46 +0200
+Subject: [PATCH] Use the actual brush for clearing wxDC in wxMSW
+
+Instead of creating a temporary brush with the same colour as the
+background brush, just use the background brush itself directly.
+
+This allows clearing the window with non-solid brushes too, including
+transparent ones -- even though the latter doesn't make much sense (as
+it simply does nothing), it should still behave in the same way under
+MSW as under the other platforms, while previously it cleared the window
+using the solid black brush instead.
+
+Closes #10273.
+---
+ src/msw/dc.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/msw/dc.cpp b/src/msw/dc.cpp
+index ddeb2d6ba9d1..1cccc047b625 100644
+--- a/src/msw/dc.cpp
++++ b/src/msw/dc.cpp
+@@ -729,16 +729,16 @@ void wxMSWDCImpl::Clear()
+             return;
+     }
+ 
+-    DWORD colour = ::GetBkColor(GetHdc());
+-    HBRUSH brush = ::CreateSolidBrush(colour);
++    if ( !m_backgroundBrush.IsOk() )
++        return;
++
+     RECT rect;
+     ::GetClipBox(GetHdc(), &rect);
+     // Inflate the box by 1 unit in each direction
+     // to compensate rounding errors if DC is the subject
+     // of complex transformation (is e.g. rotated).
+     ::InflateRect(&rect, 1, 1);
+-    ::FillRect(GetHdc(), &rect, brush);
+-    ::DeleteObject(brush);
++    ::FillRect(GetHdc(), &rect, GetHbrushOf(m_backgroundBrush));
+ 
+     RealizeScaleAndOrigin();
+ }

@@ -1,0 +1,25 @@
+You are an expert C++ performance engineer. Optimize the provided code for high compute and resource performance while preserving behavior. The optimized function must keep the exact same signature as the hand-written implementation. If the original file contains explicit template instantiations, reproduce them unchanged at the end of the optimized file. This prompt may include compilation errors, runtime errors or timing data from the previous step. Use it to refine the code. If it is empty, produce an initial optimization based solely on the original source. When refining the code, explore potentially high-reward optimization paths that have not yet been tried and that could yield superior computational performance. Respond only with a JSON object using the keys "optimized_code" and "analysis". The "analysis" field should briefly explain the intent behind your modifications. Additional source files may be provided for context. Here are the files:
+
+// original.cpp
+#include <Eigen/Core>
+#include <unsupported/Eigen/CXX11/Tensor>
+
+template <typename T>
+void logsumexp(const Eigen::Tensor<T, 2>& x, Eigen::Tensor<T, 1>& y, const int dim) {
+    Eigen::array<int, 1> reduction_dims = {dim};
+
+    auto x_max = x.maximum(reduction_dims);
+    y = (x_max + (x - x_max.reshape(Eigen::array<Eigen::Index, 2>{x.dimension(0), 1})
+                                 .broadcast(Eigen::array<Eigen::Index, 2>{1, x.dimension(1)}))
+                     .exp()
+                     .sum(reduction_dims)
+                     .log())
+            .reshape(y.dimensions());
+}
+
+// Explicit instantiation
+template void logsumexp<float>(const Eigen::Tensor<float, 2>&, Eigen::Tensor<float, 1>&, const int);
+
+
+Previous attempt info:
+Original execution time: 6663.40 ms

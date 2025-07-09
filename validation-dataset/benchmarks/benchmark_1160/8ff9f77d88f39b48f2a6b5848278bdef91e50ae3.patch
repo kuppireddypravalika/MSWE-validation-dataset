@@ -1,0 +1,37 @@
+From 8ff9f77d88f39b48f2a6b5848278bdef91e50ae3 Mon Sep 17 00:00:00 2001
+From: Mark Burton <markb@smartavionics.com>
+Date: Sun, 3 Sep 2017 13:48:56 +0100
+Subject: [PATCH] Now enables optimisation when part has 1 hole and more than 2
+ level 1 insets.
+
+Previously, I thought that this would probably be handled better without optimisation but
+now I think it's better to optimise.
+---
+ src/InsetOrderOptimizer.cpp | 14 --------------
+ 1 file changed, 14 deletions(-)
+
+diff --git a/src/InsetOrderOptimizer.cpp b/src/InsetOrderOptimizer.cpp
+index 9aaf3640a7..be04eb8695 100644
+--- a/src/InsetOrderOptimizer.cpp
++++ b/src/InsetOrderOptimizer.cpp
+@@ -483,20 +483,6 @@ bool InsetOrderOptimizer::optimizingInsetsIsWorthwhile(const SliceMeshStorage& m
+         // no holes, definitely not worth optimizing
+         return false;
+     }
+-    if (num_insets > 2)
+-    {
+-        // we have holes with three or more insets, good chance it's worth optimizing
+-        return true;
+-    }
+-    if (num_holes == 1)
+-    {
+-        if (part.insets[1].size() > 2)
+-        {
+-            // there's only 1 hole but more than 2 level 1 insets - it's probably quicker to
+-            // print without optimization as then all of the level 1 insets will be printed as a group
+-            return false;
+-        }
+-    }
+     // for all other cases, the default is to optimize
+     return true;
+ }

@@ -1,0 +1,32 @@
+From 01e7864df0264f10ecac3b9ad5b9537d93b06c5e Mon Sep 17 00:00:00 2001
+From: Dan Gohman <sunfish@mozilla.com>
+Date: Tue, 23 Jan 2018 13:23:38 -0800
+Subject: [PATCH] Synchronize more ABI settings with WebAssembly.
+
+This sets SuitableAlign, LargeArrayMinWidth, and SimdDefaultAlign to 128,
+in order to align more things at 16-byte boundaries to make future SIMD
+optimizations more effective.
+
+It also changes SigAtomicType from SignedInt to SignedLong. It's the same
+width on asm.js/wasm32, so this change only affects things that care about
+the specific type name, such as name mangling.
+---
+ lib/Basic/Targets/AsmJS.h | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/lib/Basic/Targets/AsmJS.h b/lib/Basic/Targets/AsmJS.h
+index 877890198f5..0eeb2dbf903 100644
+--- a/lib/Basic/Targets/AsmJS.h
++++ b/lib/Basic/Targets/AsmJS.h
+@@ -36,6 +36,11 @@ class LLVM_LIBRARY_VISIBILITY AsmJSTargetInfo : public TargetInfo {
+     SizeType = TargetInfo::UnsignedLong;
+     PtrDiffType = TargetInfo::SignedLong;
+     IntPtrType = TargetInfo::SignedLong;
++    SuitableAlign = 128;
++    LargeArrayMinWidth = 128;
++    LargeArrayAlign = 128;
++    SimdDefaultAlign = 128;
++    SigAtomicType = SignedLong;
+     RegParmMax = 0; // Disallow regparm
+ 
+     // Set the native integer widths set to just i32, since that's currently the

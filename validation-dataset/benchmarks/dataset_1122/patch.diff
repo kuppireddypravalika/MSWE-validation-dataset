@@ -1,0 +1,33 @@
+From d887f8d0e6cb2af21abcf4a96bee7b2540d827fc Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Thu, 25 Dec 2014 00:25:47 +0000
+Subject: [PATCH] JPEG: in compressor, increase default val of
+ max_memory_to_use to 500MB
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@28210 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/frmts/jpeg/jpgdataset.cpp | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/gdal/frmts/jpeg/jpgdataset.cpp b/gdal/frmts/jpeg/jpgdataset.cpp
+index f494205adecd..b2ce49293b74 100644
+--- a/gdal/frmts/jpeg/jpgdataset.cpp
++++ b/gdal/frmts/jpeg/jpgdataset.cpp
+@@ -3314,7 +3314,16 @@ JPGDataset::CreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
+         sCInfo.in_color_space = JCS_UNKNOWN;
+ 
+     jpeg_set_defaults( &sCInfo );
+-    
++
++    /* This is to address bug related in ticket #1795 */
++    if (CPLGetConfigOption("JPEGMEM", NULL) == NULL)
++    {
++        /* If the user doesn't provide a value for JPEGMEM, we want to be sure */
++        /* that at least 500 MB will be used before creating the temporary file */
++        sCInfo.mem->max_memory_to_use =
++                MAX(sCInfo.mem->max_memory_to_use, 500 * 1024 * 1024);
++    }
++
+     if( eDT == GDT_UInt16 )
+     {
+         sCInfo.data_precision = 12;

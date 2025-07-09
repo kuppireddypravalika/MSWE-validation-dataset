@@ -1,0 +1,29 @@
+From 3c2ccd95d3431b571a7acda2c6226bf2196e72e6 Mon Sep 17 00:00:00 2001
+From: Jacob Bramley <Jacob.Bramley@arm.com>
+Date: Mon, 18 May 2009 01:32:10 -0400
+Subject: [PATCH] Bug 490838 -  TraceMonkey: Improve epilogue efficiency for
+ ARM. r=vlad
+
+---
+ nanojit/NativeARM.cpp | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/nanojit/NativeARM.cpp b/nanojit/NativeARM.cpp
+index 874b864..d5faf56 100644
+--- a/nanojit/NativeARM.cpp
++++ b/nanojit/NativeARM.cpp
+@@ -164,10 +164,11 @@ Assembler::nFragExit(LInsp guard)
+ NIns*
+ Assembler::genEpilogue()
+ {
+-    BX(LR); // return
+-
+-    RegisterMask savingMask = rmask(FP) | rmask(LR);
++    // On ARMv5+, loading directly to PC correctly handles interworking.
++    // Note that we don't support anything older than ARMv5.
++    NanoAssert(AvmCore::config.arch >= 5);
+ 
++    RegisterMask savingMask = rmask(FP) | rmask(PC);
+     if (!_thisfrag->lirbuf->explicitSavedRegs)
+         for (int i = 0; i < NumSavedRegs; ++i)
+             savingMask |= rmask(savedRegs[i]);

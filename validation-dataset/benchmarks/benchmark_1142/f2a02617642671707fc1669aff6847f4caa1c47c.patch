@@ -1,0 +1,24 @@
+From f2a02617642671707fc1669aff6847f4caa1c47c Mon Sep 17 00:00:00 2001
+From: kmurray <k.murray@utoronto.ca>
+Date: Thu, 21 Jan 2016 10:32:34 -0500
+Subject: [PATCH] Use size_t to avoid overflow in alloc_sblock_pattern_lookup()
+
+Previously used int which would overflow at large channel widths (e.g.
+W=900).
+---
+ vpr/SRC/route/rr_graph2.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/vpr/SRC/route/rr_graph2.c b/vpr/SRC/route/rr_graph2.c
+index 0ca5d5d264b..f6b89238320 100755
+--- a/vpr/SRC/route/rr_graph2.c
++++ b/vpr/SRC/route/rr_graph2.c
+@@ -2109,7 +2109,7 @@ short ******alloc_sblock_pattern_lookup(
+ 
+ 	/* Alloc each list of pointers in one go. items is a running product that increases
+ 	 * with each new dimension of the matrix. */
+-	int items = 1;
++	size_t items = 1;
+ 	items *= (L_nx + 1);
+ 	short ******i_list = (short ******) my_malloc(sizeof(short *****) * items);
+ 	items *= (L_ny + 1);

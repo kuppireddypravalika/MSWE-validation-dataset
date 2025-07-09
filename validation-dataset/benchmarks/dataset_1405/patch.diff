@@ -1,0 +1,37 @@
+From 6eef9d0656870526332d2422f902d0564519a5f8 Mon Sep 17 00:00:00 2001
+From: Derek Buitenhuis <derek.buitenhuis@gmail.com>
+Date: Sun, 1 Dec 2013 17:37:29 -0500
+Subject: [PATCH] ApplyRFF: Request frames in order
+
+Out of order frame requests can be slow if they are outside
+of VapourSynth's cached set of frames.
+
+Signed-off-by: Derek Buitenhuis <derek.buitenhuis@gmail.com>
+---
+ vs/applyrff.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/vs/applyrff.cpp b/vs/applyrff.cpp
+index c7d8c3e..fda08e1 100644
+--- a/vs/applyrff.cpp
++++ b/vs/applyrff.cpp
+@@ -25,6 +25,8 @@ extern "C" {
+ #include <stdlib.h>
+ }
+ 
++#include <algorithm>
++
+ #include <VapourSynth.h>
+ #include <VSHelper.h>
+ 
+@@ -60,8 +62,8 @@ const VSFrameRef *VS_CC rffGetFrame(int n, int activationReason, void **instance
+         if (samefields) {
+             vsapi->requestFrameFilter(top, d->node, frameCtx);
+         } else {
+-            vsapi->requestFrameFilter(top, d->node, frameCtx);
+-            vsapi->requestFrameFilter(bottom, d->node, frameCtx);
++            vsapi->requestFrameFilter(min(top, bottom), d->node, frameCtx);
++            vsapi->requestFrameFilter(max(bottom, bottom), d->node, frameCtx);
+         }
+         return NULL;
+     }

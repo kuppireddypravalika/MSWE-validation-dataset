@@ -1,0 +1,38 @@
+From 3c60d614636a858e18fda9e52045fd1192517b8d Mon Sep 17 00:00:00 2001
+From: pkasting <pkasting@chromium.org>
+Date: Mon, 29 Jun 2015 15:16:43 -0700
+Subject: [PATCH] Remove a cast again, after it was shown to worsen Windows
+ perf.
+
+This will hurt Linux x64 perf, but we think that's a compiler bug and we're
+willing to take the hit for the better clarity of the code sans cast as well as
+the better Windows perf.  Hopefully eventually the compiler will improve.
+
+BUG=504813
+TEST=none
+TBR=andrew
+
+Review URL: https://codereview.webrtc.org/1215053002
+
+Cr-Commit-Position: refs/heads/master@{#9516}
+---
+ webrtc/common_audio/signal_processing/cross_correlation.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/webrtc/common_audio/signal_processing/cross_correlation.c b/webrtc/common_audio/signal_processing/cross_correlation.c
+index 898d934f27..ba34438f45 100644
+--- a/webrtc/common_audio/signal_processing/cross_correlation.c
++++ b/webrtc/common_audio/signal_processing/cross_correlation.c
+@@ -22,11 +22,8 @@ void WebRtcSpl_CrossCorrelationC(int32_t* cross_correlation,
+ 
+   for (i = 0; i < dim_cross_correlation; i++) {
+     int32_t corr = 0;
+-    // Linux 64-bit performance is improved by the int16_t cast below.
+-    // Presumably this is some sort of compiler bug, as there's no obvious
+-    // reason why that should result in better code.
+     for (j = 0; j < dim_seq; j++)
+-      corr += (seq1[j] * seq2[j]) >> (int16_t)right_shifts;
++      corr += (seq1[j] * seq2[j]) >> right_shifts;
+     seq2 += step_seq2;
+     *cross_correlation++ = corr;
+   }

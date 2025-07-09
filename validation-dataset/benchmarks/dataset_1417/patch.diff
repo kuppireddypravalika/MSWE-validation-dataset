@@ -1,0 +1,37 @@
+From 133120a862f130f49fef85fc385dea32ba00c747 Mon Sep 17 00:00:00 2001
+From: Avi Bahra <Avi.Bahra@ecmwf.int>
+Date: Sat, 1 Nov 2014 10:49:34 +0000
+Subject: [PATCH] ECFLOW-158  minimise cost of profiling
+
+---
+ ANode/src/Task.cpp | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/ANode/src/Task.cpp b/ANode/src/Task.cpp
+index 8d3e55a46..4d6fc8fd6 100644
+--- a/ANode/src/Task.cpp
++++ b/ANode/src/Task.cpp
+@@ -401,8 +401,6 @@ void Task::get_all_aliases(std::vector<alias_ptr>& destinationVec) const
+ 
+ bool Task::resolveDependencies(JobsParam& jobsParam)
+ {
+-   JobProfiler profile_me(this,jobsParam);
+-
+    // Calling Submittable::resolveDependencies(jobsParam) up front can be expensive.
+    // Due to trigger and complete evaluations. Hence low cost state checks first
+ 
+@@ -482,6 +480,14 @@ bool Task::resolveDependencies(JobsParam& jobsParam)
+ 		return false;
+ 	}
+ 
++	// Minimise the cost of profiling: each profile costs two time stamps at the minimum
++	// Hence for tasks we are ignoring cost of:
++	//    o Trigger and Complete evaluation. (i.e in Node::resolveDependencies() above)
++	//    o Checking limits                  (i.e check_in_limit_up_node_tree() above)
++	// However Suite/Family will however include this, hence a reasonable compromise,
++	// since the major cost will be job generation
++   JobProfiler profile_me(this,jobsParam);
++
+    // call just before job submission, reset data members, update try_no, and generate variable
+ 	// *PLACED* outside of submitJob() so that we can configure job generation file ECF_JOB for test/python
+    increment_try_no(); // will increment state_change_no

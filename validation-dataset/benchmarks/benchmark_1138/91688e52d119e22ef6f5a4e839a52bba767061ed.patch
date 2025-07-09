@@ -1,0 +1,23 @@
+From 91688e52d119e22ef6f5a4e839a52bba767061ed Mon Sep 17 00:00:00 2001
+From: "German M. Bravo" <german.mb@gmail.com>
+Date: Mon, 6 May 2019 12:12:14 -0500
+Subject: [PATCH] DatabaseHandler: Use acquire/release memory order for
+ _processed
+
+---
+ src/database/handler.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/database/handler.cc b/src/database/handler.cc
+index 29d676eef..818776cbc 100644
+--- a/src/database/handler.cc
++++ b/src/database/handler.cc
+@@ -2345,7 +2345,7 @@ DocIndexer::operator()()
+ 
+ 		size_t processed_;
+ 		if (valid) {
+-			processed_ = _processed.fetch_add(1, std::memory_order_acquire) + 1;
++			processed_ = _processed.fetch_add(1, std::memory_order_acq_rel) + 1;
+ 
+ 			auto& term_id = std::get<0>(prepared);
+ 			auto& doc = std::get<1>(prepared);

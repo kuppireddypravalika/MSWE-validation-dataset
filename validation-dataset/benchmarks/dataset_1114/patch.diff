@@ -1,0 +1,22 @@
+From bb344a57afb65b42552ede844442dacdd19218c6 Mon Sep 17 00:00:00 2001
+From: Erik Broberg <Erik Broberg>
+Date: Sun, 10 Jul 2016 19:49:08 -0400
+Subject: [PATCH] Increase default tile provider cache size
+
+---
+ modules/globebrowsing/tile/TileProviderManager.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/modules/globebrowsing/tile/TileProviderManager.cpp b/modules/globebrowsing/tile/TileProviderManager.cpp
+index 50ed05a8e7..f98d5fd62c 100644
+--- a/modules/globebrowsing/tile/TileProviderManager.cpp
++++ b/modules/globebrowsing/tile/TileProviderManager.cpp
+@@ -71,7 +71,7 @@ namespace openspace {
+             }
+ 
+             initData.threads = 1;
+-            initData.cacheSize = 500;
++            initData.cacheSize = 5000;
+             initData.framesUntilRequestQueueFlush = 60;
+             initData.preprocessTiles =
+                 i == LayeredTextures::HeightMaps ||

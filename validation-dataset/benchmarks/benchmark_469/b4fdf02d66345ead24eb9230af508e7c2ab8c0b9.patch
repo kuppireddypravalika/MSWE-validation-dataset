@@ -1,0 +1,28 @@
+From b4fdf02d66345ead24eb9230af508e7c2ab8c0b9 Mon Sep 17 00:00:00 2001
+From: Daniel Hong <daniel.hong@live.com>
+Date: Thu, 16 Aug 2018 13:55:57 -0400
+Subject: [PATCH] Avoid reusing mem ref in fbits2i evaluator in Z codegen
+
+Z codegen does not allow memory references to be used in
+more than instruction. This change removes the duplicated
+usage in fbits2i and instead creates 2 memory references.
+
+Signed-off-by: Daniel Hong <daniel.hong@live.com>
+---
+ compiler/z/codegen/FPTreeEvaluator.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/compiler/z/codegen/FPTreeEvaluator.cpp b/compiler/z/codegen/FPTreeEvaluator.cpp
+index abadd9b45d..2248f137c0 100644
+--- a/compiler/z/codegen/FPTreeEvaluator.cpp
++++ b/compiler/z/codegen/FPTreeEvaluator.cpp
+@@ -1238,7 +1238,8 @@ OMR::Z::TreeEvaluator::fbits2iEvaluator(TR::Node * node, TR::CodeGenerator * cg)
+          TR::MemoryReference * tempMR1 = generateS390MemoryReference(node, f2iSR, cg);
+          generateRXInstruction(cg, TR::InstOpCode::STE, node, sourceReg, tempMR1);
+ 
+-         targetReg = genericLoadHelper<32, 32, MemReg>(node, cg, tempMR1, NULL, false, true);
++         TR::MemoryReference * tempMR2 = generateS390MemoryReference(node, f2iSR, cg);
++         targetReg = genericLoadHelper<32, 32, MemReg>(node, cg, tempMR2, NULL, false, true);
+          }
+       }
+     

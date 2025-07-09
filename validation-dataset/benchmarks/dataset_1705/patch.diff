@@ -1,0 +1,33 @@
+From 52d1bfc6dffe589e8a5bd4d451296efa4eddb411 Mon Sep 17 00:00:00 2001
+From: Cameron White <cameronwhite91@gmail.com>
+Date: Tue, 1 Dec 2015 21:07:17 -0500
+Subject: [PATCH] Attempt to improve annoying scrolling behaviour.
+
+When MIDI playback is not active, changing the caret position now only
+causes the minimal amount of scrolling necessary for the caret to appear
+on-screen, instead of always scrolling to the top of the current system.
+
+Fixes: #191
+---
+ source/app/scorearea.cpp | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/source/app/scorearea.cpp b/source/app/scorearea.cpp
+index a6a96e5cd..3a95cd987 100644
+--- a/source/app/scorearea.cpp
++++ b/source/app/scorearea.cpp
+@@ -191,7 +191,13 @@ std::shared_ptr<ClickPubSub> ScoreArea::getClickPubSub() const
+ 
+ void ScoreArea::adjustScroll()
+ {
+-    verticalScrollBar()->setValue(myCaretPainter->getCurrentSystemRect().y());
++    if (myDocument->getCaret().isInPlaybackMode())
++    {
++        verticalScrollBar()->setValue(
++            myCaretPainter->getCurrentSystemRect().y());
++    }
++    else
++        ensureVisible(myCaretPainter->sceneBoundingRect(), 0, 0);
+ }
+ 
+ void ScoreArea::focusInEvent(QFocusEvent *)

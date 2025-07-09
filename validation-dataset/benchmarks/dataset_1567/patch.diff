@@ -1,0 +1,31 @@
+From 6e5865cdd4bc1ac47d1db2848351ae6aa88e087f Mon Sep 17 00:00:00 2001
+From: fr33mind <freemind@live.com.pt>
+Date: Wed, 11 May 2016 00:26:02 +0100
+Subject: [PATCH] Minor optimization when setting a background image in a
+ Scene.
+
+---
+ editor/scene.cpp | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
+
+diff --git a/editor/scene.cpp b/editor/scene.cpp
+index 9ecfa4e..14063ff 100644
+--- a/editor/scene.cpp
++++ b/editor/scene.cpp
+@@ -345,12 +345,10 @@ void Scene::setBackgroundImage(const QString & path)
+         }
+         assetManager->releaseAsset(mBackgroundImage);
+ 
+-        if (image && image->isValid()) {
+-            if (image->isAnimated()) {
+-                connect(image->movie(), SIGNAL(frameChanged(int)), this, SIGNAL(dataChanged()));
+-                image->movie()->setScaledSize(Scene::size());
+-                image->movie()->start();
+-            }
++        if (image && image->isAnimated()) {
++            connect(image->movie(), SIGNAL(frameChanged(int)), this, SIGNAL(dataChanged()));
++            image->movie()->setScaledSize(Scene::size());
++            image->movie()->start();
+         }
+ 
+         mBackgroundImage = image;

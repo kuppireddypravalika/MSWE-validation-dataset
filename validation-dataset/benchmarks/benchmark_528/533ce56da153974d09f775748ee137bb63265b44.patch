@@ -1,0 +1,26 @@
+From 533ce56da153974d09f775748ee137bb63265b44 Mon Sep 17 00:00:00 2001
+From: marko <>
+Date: Mon, 5 Nov 2007 12:12:28 +0000
+Subject: [PATCH] branches/zip: page_zip_compress(): Do not call
+ deflate(&c_stream, Z_FULL_FLUSH) unless more than 6 bytes are available for
+ the output.  This should remove the possibility that deflate() returns Z_OK
+ without consuming all input.
+
+---
+ page/page0zip.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/page/page0zip.c b/page/page0zip.c
+index 180e79eada6..16253717136 100644
+--- a/page/page0zip.c
++++ b/page/page0zip.c
+@@ -1142,7 +1142,8 @@ page_zip_compress(
+ 		trx_id_col = ULINT_UNDEFINED;
+ 	}
+ 
+-	if (UNIV_UNLIKELY(c_stream.avail_out < n_dense * slot_size)) {
++	if (UNIV_UNLIKELY(c_stream.avail_out <= n_dense * slot_size
++			  + 6/* sizeof(zlib header and footer) */)) {
+ 		goto zlib_error;
+ 	}
+ 

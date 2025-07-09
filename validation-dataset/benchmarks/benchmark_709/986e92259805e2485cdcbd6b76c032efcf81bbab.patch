@@ -1,0 +1,29 @@
+From 986e92259805e2485cdcbd6b76c032efcf81bbab Mon Sep 17 00:00:00 2001
+From: Matt Spraggs <matthew.spraggs@gmail.com>
+Date: Mon, 16 Apr 2018 08:31:59 +0100
+Subject: [PATCH] Compiler: Moved call to update_line_num_table in
+ define_variable
+
+---
+ src/Compiler.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/Compiler.cpp b/src/Compiler.cpp
+index 187b3fd..31b5848 100644
+--- a/src/Compiler.cpp
++++ b/src/Compiler.cpp
+@@ -543,13 +543,13 @@ namespace loxx
+   {
+     if (arg) {
+       add_instruction(Instruction::DefineGlobal);
++      update_line_num_table(name);
+       add_integer(*arg);
+     }
+     else {
+       locals_.top().back().defined = true;
+       locals_.top().back().depth = scope_depth_;
+     }
+-    update_line_num_table(name);
+   }
+ 
+ 

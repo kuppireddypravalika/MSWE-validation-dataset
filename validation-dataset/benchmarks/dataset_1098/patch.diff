@@ -1,0 +1,22 @@
+From 819d0e185137a4a1faf4da566502dcb6f11caa27 Mon Sep 17 00:00:00 2001
+From: nikno <mail@nikno.de>
+Date: Mon, 25 Sep 2017 17:54:26 +0100
+Subject: [PATCH] optimized Portfolio::has by using a reference to shared_ptr
+
+---
+ OREData/ored/portfolio/portfolio.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/OREData/ored/portfolio/portfolio.cpp b/OREData/ored/portfolio/portfolio.cpp
+index 6a13659e14..af7cc1f241 100644
+--- a/OREData/ored/portfolio/portfolio.cpp
++++ b/OREData/ored/portfolio/portfolio.cpp
+@@ -162,7 +162,7 @@ void Portfolio::add(const boost::shared_ptr<Trade>& trade) {
+ bool Portfolio::has(const string &id) {
+     return find_if(trades_.begin(),
+                    trades_.end(),
+-                   [id](const boost::shared_ptr<Trade> trade) {return trade->id() == id; }) != trades_.end();
++                   [id](const boost::shared_ptr<Trade>& trade) {return trade->id() == id; }) != trades_.end();
+ }
+ 
+ } // namespace data

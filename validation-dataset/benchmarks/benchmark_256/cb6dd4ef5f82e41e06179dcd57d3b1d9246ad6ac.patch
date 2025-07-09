@@ -1,0 +1,30 @@
+From cb6dd4ef5f82e41e06179dcd57d3b1d9246ad6ac Mon Sep 17 00:00:00 2001
+From: "liujisi@google.com"
+ <liujisi@google.com@630680e5-0e50-0410-840e-4b1c322b438d>
+Date: Tue, 5 Jul 2011 21:05:40 +0000
+Subject: [PATCH] A workaround for MSVC 2010 x64 platform bug, which affects
+ proto compiler in generating field has_bit mask.
+
+---
+ src/google/protobuf/stubs/strutil.cc | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/src/google/protobuf/stubs/strutil.cc b/src/google/protobuf/stubs/strutil.cc
+index bb658ba8d327a..ee07ce759010c 100644
+--- a/src/google/protobuf/stubs/strutil.cc
++++ b/src/google/protobuf/stubs/strutil.cc
+@@ -670,7 +670,14 @@ char *InternalFastHexToBuffer(uint64 value, char* buffer, int num_byte) {
+   static const char *hexdigits = "0123456789abcdef";
+   buffer[num_byte] = '\0';
+   for (int i = num_byte - 1; i >= 0; i--) {
++#ifdef _M_X64
++    // MSVC x64 platform has a bug optimizing the uint32(value) in the #else
++    // block. Given that the uint32 cast was to improve performance on 32-bit
++    // platforms, we use 64-bit '&' directly.
++    buffer[i] = hexdigits[value & 0xf];
++#else
+     buffer[i] = hexdigits[uint32(value) & 0xf];
++#endif
+     value >>= 4;
+   }
+   return buffer;

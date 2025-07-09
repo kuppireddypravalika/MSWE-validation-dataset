@@ -1,0 +1,20 @@
+From 758cf7ad92989fb4b4e150e037706aa141aa422c Mon Sep 17 00:00:00 2001
+From: Kevin DuBois <kevin.dubois@canonical.com>
+Date: Mon, 1 Jun 2015 07:14:23 -0400
+Subject: [PATCH] use copy elision, better than moving
+
+---
+ src/server/scene/basic_surface.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/server/scene/basic_surface.cpp b/src/server/scene/basic_surface.cpp
+index 6cffe6d7862..8a707cc3a09 100644
+--- a/src/server/scene/basic_surface.cpp
++++ b/src/server/scene/basic_surface.cpp
+@@ -876,5 +876,5 @@ mg::RenderableList ms::BasicSurface::generate_renderables(mc::CompositorID id) c
+                 transformation_matrix, surface_alpha, nonrectangular, info.stream.get()));
+         }
+     }
+-    return std::move(list);
++    return list;
+ }

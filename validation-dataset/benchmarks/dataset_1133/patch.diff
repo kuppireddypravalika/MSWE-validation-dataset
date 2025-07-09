@@ -1,0 +1,23 @@
+From 4997578acdf7889b8dd468aed8e6aab03c5500d9 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Wed, 30 Dec 2015 20:33:42 +0000
+Subject: [PATCH] HFAGetMetadata(): avoid potential negative memory allocation
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@32565 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/frmts/hfa/hfaopen.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gdal/frmts/hfa/hfaopen.cpp b/gdal/frmts/hfa/hfaopen.cpp
+index bf4ffffc1fd9..e29a4811cd7c 100644
+--- a/gdal/frmts/hfa/hfaopen.cpp
++++ b/gdal/frmts/hfa/hfaopen.cpp
+@@ -2572,7 +2572,7 @@ char ** HFAGetMetadata( HFAHandle hHFA, int nBand )
+ /* -------------------------------------------------------------------- */
+         int nMaxNumChars = poColumn->GetIntField( "maxNumChars" );
+ 
+-        if( nMaxNumChars == 0 )
++        if( nMaxNumChars <= 0 )
+         {
+             papszMD = CSLSetNameValue( papszMD, poColumn->GetName(), "" );
+         }

@@ -1,0 +1,24 @@
+From 621cbb3d5169531684efdb8bae5c6f4ab65c3da5 Mon Sep 17 00:00:00 2001
+From: Dan Paulat <dpaulat@gmail.com>
+Date: Sat, 5 Oct 2024 04:11:28 -0500
+Subject: [PATCH] Refresh placefiles as often as every 1 second
+
+---
+ scwx-qt/source/scwx/qt/manager/placefile_manager.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/scwx-qt/source/scwx/qt/manager/placefile_manager.cpp b/scwx-qt/source/scwx/qt/manager/placefile_manager.cpp
+index 6a0392be1..58049fc63 100644
+--- a/scwx-qt/source/scwx/qt/manager/placefile_manager.cpp
++++ b/scwx-qt/source/scwx/qt/manager/placefile_manager.cpp
+@@ -348,8 +348,8 @@ PlacefileManager::Impl::PlacefileRecord::refresh_time() const
+ 
+    if (refresh_enabled())
+    {
+-      // Don't refresh more often than every 15 seconds
+-      return std::max(placefile_->refresh(), 15s);
++      // Don't refresh more often than every 1 second
++      return std::max(placefile_->refresh(), 1s);
+    }
+ 
+    return -1s;

@@ -1,0 +1,33 @@
+From 219529b1e5ad970ac0fddd62860b8b6ed8ceaafa Mon Sep 17 00:00:00 2001
+From: Pavel Rojtberg <rojtberg@gmail.com>
+Date: Wed, 20 May 2015 17:06:26 +0200
+Subject: [PATCH] use std::fill instead of manual looping
+
+---
+ Samples/Compute/src/Compute.cpp | 13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
+
+diff --git a/Samples/Compute/src/Compute.cpp b/Samples/Compute/src/Compute.cpp
+index b90559831f6..a3141235c72 100644
+--- a/Samples/Compute/src/Compute.cpp
++++ b/Samples/Compute/src/Compute.cpp
+@@ -99,16 +99,9 @@ class _OgreSampleClassExport Sample_Compute : public SdkSample
+             uint* data = static_cast<uint*>(pb.data);
+             size_t height = pb.getHeight();
+             size_t width = pb.getWidth();
+-            size_t pitch = pb.rowPitch; // Skip between rows of image
+-
+-            for (size_t y = 0; y < height; ++y)
+-            {
+-                for (size_t x = 0; x < width; ++x)
+-                {
+-                    // 0xXXRRGGBB -> fill the buffer with yellow pixels
+-                    data[pitch * y + x] = 0x00FFFF00;
+-                }
+-            }
++
++            // 0xXXRRGGBB -> fill the buffer with yellow pixels
++            std::fill(data, data + width * height, 0x00FFFF00);
+ 
+             // Unlock the buffer again (frees it for use by the GPU)
+             mPixelBuffer->unlock();

@@ -1,0 +1,23 @@
+From e4d26959a585d6913d8f86cb3ce34afda8782842 Mon Sep 17 00:00:00 2001
+From: Andrea Del Prete <andrea.delprete@iit.it>
+Date: Mon, 23 Apr 2012 16:28:39 +0000
+Subject: [PATCH] Minor change: using *= rather than * for performance.
+
+svn path=/trunk/iCub/; revision=17154
+---
+ src/libraries/iDyn/src/iDynContact.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/libraries/iDyn/src/iDynContact.cpp b/src/libraries/iDyn/src/iDynContact.cpp
+index 350b4fa6dc..a04041505f 100644
+--- a/src/libraries/iDyn/src/iDynContact.cpp
++++ b/src/libraries/iDyn/src/iDynContact.cpp
+@@ -342,7 +342,7 @@ Matrix iDynContactSolver::getHFromAtoB(unsigned int a, unsigned int b)
+     
+     Matrix H = chain->refLink(a+1)->getH();     // initialize H with the rototranslation from <a> to <a+1>
+     for(unsigned int i=a+2; i<=b; i++)
+-        H = H * chain->refLink(i)->getH();
++        H *= chain->refLink(i)->getH();
+     return H;
+ }
+ //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

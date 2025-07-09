@@ -1,0 +1,25 @@
+From 455484c9a29c76cf2919fa43a7709b6dce0e547d Mon Sep 17 00:00:00 2001
+From: Xottab-DUTY <xottab-duty@yandex.ru>
+Date: Sat, 3 Dec 2022 22:30:33 +0300
+Subject: [PATCH] xrGame/ui/UIKeyBinding.cpp: use range based for instead of
+ index based one
+
+---
+ src/xrGame/ui/UIKeyBinding.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/xrGame/ui/UIKeyBinding.cpp b/src/xrGame/ui/UIKeyBinding.cpp
+index 988fb18d5ac..e1b99bb4c09 100644
+--- a/src/xrGame/ui/UIKeyBinding.cpp
++++ b/src/xrGame/ui/UIKeyBinding.cpp
+@@ -10,8 +10,8 @@ CUIKeyBinding::CUIKeyBinding()
+     : CUIWindow("CUIKeyBinding"),
+       m_header{ "Header 1", "Header 2", "Header 3" }
+ {
+-    for (u8 i = 0; i < 3; ++i)
+-        AttachChild(&m_header[i]);
++    for (auto& header : m_header)
++        AttachChild(&header);
+ 
+     AttachChild(&m_frame);
+ 

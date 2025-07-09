@@ -1,0 +1,35 @@
+From 0405afe1189f927599276f5223e48ce9575aa095 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Sun, 9 Dec 2007 22:19:38 +0000
+Subject: [PATCH] Improve PNG reading performance by buffering all bands when
+ reading one scanline (like JPEG driver)
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@13298 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/frmts/png/pngdataset.cpp | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/gdal/frmts/png/pngdataset.cpp b/gdal/frmts/png/pngdataset.cpp
+index 3136e148c034..1fb84980c5ce 100644
+--- a/gdal/frmts/png/pngdataset.cpp
++++ b/gdal/frmts/png/pngdataset.cpp
+@@ -262,6 +262,19 @@ CPLErr PNGRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
+         }
+     }
+ 
++/* -------------------------------------------------------------------- */
++/*      Forceably load the other bands associated with this scanline.   */
++/* -------------------------------------------------------------------- */
++    int iBand;
++    for(iBand = 1; iBand < poGDS->GetRasterCount(); iBand++)
++    {
++        GDALRasterBlock *poBlock;
++
++        poBlock = 
++            poGDS->GetRasterBand(iBand+1)->GetLockedBlockRef(nBlockXOff,nBlockYOff);
++        poBlock->DropLock();
++    }
++
+     return CE_None;
+ }
+ 

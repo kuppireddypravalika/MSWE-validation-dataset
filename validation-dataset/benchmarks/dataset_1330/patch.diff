@@ -1,0 +1,22 @@
+From 573ff570c689a61c6a1afe7c271d981c7808d0a3 Mon Sep 17 00:00:00 2001
+From: dnbaker <dnb@cs.jhu.edu>
+Date: Mon, 20 Jan 2020 15:05:58 -0500
+Subject: [PATCH] Free memory once it's no longer needed.
+
+---
+ code/src/kzclustexp.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/code/src/kzclustexp.cpp b/code/src/kzclustexp.cpp
+index be78f9c0..156a9212 100644
+--- a/code/src/kzclustexp.cpp
++++ b/code/src/kzclustexp.cpp
+@@ -190,6 +190,8 @@ int main(int argc, char **argv) {
+     lsearcher.run();
+     auto med_solution = lsearcher.sol_;
+     auto ccost = lsearcher.current_cost_;
++    if(diskmatptr) diskmatptr.reset();
++    if(rammatptr) rammatptr.reset();
+ 
+     std::fprintf(stderr, "[Phase 3] Local search completed. Cost for solution: %g\n", ccost);
+     // Calculate the costs of this solution

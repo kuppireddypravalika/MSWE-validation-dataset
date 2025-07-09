@@ -1,0 +1,28 @@
+From d295755bb71576fe0faedb66374451782317bfbb Mon Sep 17 00:00:00 2001
+From: Paul Beckingham <paul@beckingham.net>
+Date: Sun, 1 Nov 2015 21:41:47 -0500
+Subject: [PATCH] Dates: Converted from strtol to std::stoi
+
+---
+ src/Dates.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/Dates.cpp b/src/Dates.cpp
+index 34519e465..203d11e22 100644
+--- a/src/Dates.cpp
++++ b/src/Dates.cpp
+@@ -386,12 +386,12 @@ bool namedDates (const std::string& name, Variant& value)
+ 
+     if (Lexer::isDigit (name[1]))
+     {
+-      number = strtol (name.substr (0, 2).c_str (), NULL, 10);
++      number = std::stoi (name.substr (0, 2));
+       ordinal = Lexer::lowerCase (name.substr (2));
+     }
+     else
+     {
+-      number = strtol (name.substr (0, 1).c_str (), NULL, 10);
++      number = std::stoi (name.substr (0, 1));
+       ordinal = Lexer::lowerCase (name.substr (1));
+     }
+ 

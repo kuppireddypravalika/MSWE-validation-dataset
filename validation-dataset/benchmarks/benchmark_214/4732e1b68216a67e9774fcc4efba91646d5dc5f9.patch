@@ -1,0 +1,27 @@
+From 4732e1b68216a67e9774fcc4efba91646d5dc5f9 Mon Sep 17 00:00:00 2001
+From: Steven Johnson <stejohns@adobe.com>
+Date: Tue, 1 Dec 2009 17:40:25 -0800
+Subject: [PATCH] nanojit/Assembler.cpp: when LIR_stqi calls asm_store32 twice,
+ pass LIR_sti for the opcode, rather than op. (r=me)
+
+--HG--
+extra : convert_revision : 0da91726eca5ccbfed98d340e428d3303d5708f0
+---
+ js/src/nanojit/Assembler.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/js/src/nanojit/Assembler.cpp b/js/src/nanojit/Assembler.cpp
+index 0efb9079ebf..2758533915e 100755
+--- a/js/src/nanojit/Assembler.cpp
++++ b/js/src/nanojit/Assembler.cpp
+@@ -1186,8 +1186,8 @@ namespace nanojit
+                     if (value->isop(LIR_qjoin) && op != LIR_st32f)
+                     {
+                         // this is correct for little-endian only
+-                        asm_store32(op, value->oprnd1(), dr, base);
+-                        asm_store32(op, value->oprnd2(), dr+4, base);
++                        asm_store32(LIR_sti, value->oprnd1(), dr, base);
++                        asm_store32(LIR_sti, value->oprnd2(), dr+4, base);
+                     }
+                     else
+                     {

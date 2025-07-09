@@ -1,0 +1,38 @@
+From a2e8e3090c992402fb8723761319cb03e4b5f9ef Mon Sep 17 00:00:00 2001
+From: Malcolm Jestadt <MalcolmJestadt@gmail.com>
+Date: Sun, 17 Jan 2021 03:45:56 -0500
+Subject: [PATCH] SPU LLVM: Optimize FSM following comparison - FSM following a
+ comparison instruction can be optimized to a single shuffle instruction
+
+---
+ rpcs3/Emu/Cell/SPURecompiler.cpp | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
+diff --git a/rpcs3/Emu/Cell/SPURecompiler.cpp b/rpcs3/Emu/Cell/SPURecompiler.cpp
+index 5dd673031683..460c2bf00da7 100644
+--- a/rpcs3/Emu/Cell/SPURecompiler.cpp
++++ b/rpcs3/Emu/Cell/SPURecompiler.cpp
+@@ -6463,6 +6463,23 @@ class spu_llvm_recompiler : public spu_recompiler_base, public cpu_translator
+ 
+ 	void FSM(spu_opcode_t op)
+ 	{
++		// FSM following a comparison instruction
++		if (match_vr<s8[16], s16[8], s32[4], s64[2]>(op.ra, [&](auto c, auto MP)
++		{
++			using VT = typename decltype(MP)::type;
++
++			if (auto [ok, x] = match_expr(c, sext<VT>(match<bool[std::extent_v<VT>]>())); ok)
++			{
++					set_vr(op.rt, (splat_scalar(c)));
++					return true;
++			}
++
++			return false;
++		}))
++		{
++			return;
++		}
++
+ 		const auto v = extract(get_vr(op.ra), 3);
+ 		const auto m = bitcast<bool[4]>(trunc<i4>(v));
+ 		set_vr(op.rt, sext<s32[4]>(m));

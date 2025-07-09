@@ -1,0 +1,29 @@
+From 5995810d341b22ff20f3350b851f55a856d87aae Mon Sep 17 00:00:00 2001
+From: Thomas Hartmann <thomas.hartmann@qt.io>
+Date: Fri, 18 Nov 2022 09:19:12 +0100
+Subject: [PATCH] FilePath: optimize comparison
+
+* The QTC_ASSERT in pathView() is quite expensive
+* Constructing the scheme using scheme() is not required
+
+Change-Id: Ibea33dd6abf67c8bd184d118f23e2598075c362c
+Reviewed-by: hjk <hjk@qt.io>
+(cherry picked from commit e47141753995f91565f8e3781315b40fe620d16c)
+Reviewed-by: Thomas Hartmann <thomas.hartmann@qt.io>
+---
+ src/libs/utils/filepath.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/libs/utils/filepath.cpp b/src/libs/utils/filepath.cpp
+index 44aa5727574..75fba81867c 100644
+--- a/src/libs/utils/filepath.cpp
++++ b/src/libs/utils/filepath.cpp
+@@ -1346,7 +1346,7 @@ bool FilePath::isNewerThan(const QDateTime &timeStamp) const
+  */
+ Qt::CaseSensitivity FilePath::caseSensitivity() const
+ {
+-    if (scheme().isEmpty())
++    if (m_schemeLen == 0)
+         return HostOsInfo::fileNameCaseSensitivity();
+ 
+     // FIXME: This could or possibly should the target device's file name case sensitivity

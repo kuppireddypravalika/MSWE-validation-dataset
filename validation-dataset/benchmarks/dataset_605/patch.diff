@@ -1,0 +1,34 @@
+From 64a56f89c39a6ea935403af103776a499ba611e0 Mon Sep 17 00:00:00 2001
+From: Juli Mallett <juli@clockworksquid.com>
+Date: Mon, 30 Mar 2009 04:10:52 +0000
+Subject: [PATCH] Drop references in the cache and then clear the hash map out,
+ rather than erasing and dropping reference on an entry at a time.  The new
+ way seems to be quite a lot faster.
+
+---
+ xcodec/xcodec_cache.h | 12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
+
+diff --git a/xcodec/xcodec_cache.h b/xcodec/xcodec_cache.h
+index 84c19e7..f41aeb2 100644
+--- a/xcodec/xcodec_cache.h
++++ b/xcodec/xcodec_cache.h
+@@ -53,13 +53,11 @@ class XCodecCache {
+ 
+ 	~XCodecCache()
+ 	{
+-		segment_hash_map_t::iterator it;
+-		while ((it = segment_hash_map_.begin()) != segment_hash_map_.end()) {
+-			BufferSegment *seg = it->second;
+-
+-			seg->unref();
+-			segment_hash_map_.erase(it);
+-		}
++		segment_hash_map_t::const_iterator it;
++		for (it = segment_hash_map_.begin();
++		     it != segment_hash_map_.end(); ++it)
++			it->second->unref();
++		segment_hash_map_.clear();
+ 	}
+ 
+ 	void enter(const uint64_t& hash, BufferSegment *seg)

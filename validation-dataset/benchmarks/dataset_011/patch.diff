@@ -1,0 +1,24 @@
+From 2377b1455e22119d6d071004b34672009dd18c77 Mon Sep 17 00:00:00 2001
+From: Niels Martin Hansen <nielsm@aegisub.org>
+Date: Fri, 22 May 2009 14:30:51 +0000
+Subject: [PATCH] Increase grabbing zone for karaoke split markers from 4 to 7
+ pixels, makes dragging much easier, speeding up work.
+
+Originally committed to SVN as r2971.
+---
+ aegisub/src/audio_display.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/aegisub/src/audio_display.cpp b/aegisub/src/audio_display.cpp
+index 4b446b4f4..198f54573 100644
+--- a/aegisub/src/audio_display.cpp
++++ b/aegisub/src/audio_display.cpp
+@@ -1589,7 +1589,7 @@ void AudioDisplay::OnMouseEvent(wxMouseEvent& event) {
+ 						pos = GetXAtMS(curStartMS+len+curpos);
+ 
+ 						// Grabbing syllable boundary
+-						if (abs64 (x - pos) < 4) {
++						if (abs64 (x - pos) < 7) {
+ 							wxCursor cursor(wxCURSOR_SIZEWE);
+ 							SetCursor(cursor);
+ 							defCursor = false;

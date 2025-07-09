@@ -1,0 +1,26 @@
+From 55baf4532f6836c3681a96441cbbf626cb968eaf Mon Sep 17 00:00:00 2001
+From: Jean-Yves Avenard <jyavenard@mythtv.org>
+Date: Wed, 1 Dec 2010 00:19:45 +0000
+Subject: [PATCH] Make AC3 encoder buffer size 16 bytes aligned so float
+ conversion will always be performed using SSE accelerated code
+
+git-svn-id: http://svn.mythtv.org/svn/trunk@27390 7dbf422c-18fa-0310-86e9-fd20926502f2
+---
+ mythtv/libs/libmyth/audio/audiooutputbase.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/mythtv/libs/libmyth/audio/audiooutputbase.cpp b/mythtv/libs/libmyth/audio/audiooutputbase.cpp
+index dda04741cd6..8f2e5488582 100644
+--- a/mythtv/libs/libmyth/audio/audiooutputbase.cpp
++++ b/mythtv/libs/libmyth/audio/audiooutputbase.cpp
+@@ -1235,8 +1235,8 @@ bool AudioOutputBase::AddFrames(void *in_buffer, int in_frames,
+             int remaining       = len;
+             int to_get          = 0;
+             // The AC3 encoder can only work on 128kB of data at a time
+-            int maxframes       = (INBUFSIZE / encoder->FrameSize()) *
+-                encoder->FrameSize();
++            int maxframes       = ((INBUFSIZE / encoder->FrameSize()) *
++                                   encoder->FrameSize() + 15) & ~0xf;
+ 
+             do
+             {

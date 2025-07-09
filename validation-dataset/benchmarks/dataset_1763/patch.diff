@@ -1,0 +1,40 @@
+From ed49d35f8f6a538af4943b8cfbead2b8731bcfbc Mon Sep 17 00:00:00 2001
+From: Andrew Mustun <andrew@qcad.org>
+Date: Mon, 30 Nov 2015 14:52:41 +0100
+Subject: [PATCH] perform no or less mouse moved check on very slow systems
+
+---
+ src/core/RMouseEvent.cpp | 20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
+
+diff --git a/src/core/RMouseEvent.cpp b/src/core/RMouseEvent.cpp
+index 5b6098d5c1..77bc13f3cb 100644
+--- a/src/core/RMouseEvent.cpp
++++ b/src/core/RMouseEvent.cpp
+@@ -43,10 +43,22 @@ RMouseEvent::~RMouseEvent() {
+ }
+ 
+ bool RMouseEvent::hasMouseMoved() {
+-    return (
+-        !oriCursor.isNull() &&
+-        (oriCursor - QCursor::pos()).manhattanLength()>RSettings::getMouseThreshold()
+-    );
++    static QTime time;
++
++    if (!RSettings::getAllowMouseMoveInterruptions()) {
++        return false;
++    }
++
++    if (!time.isValid() || time.elapsed()>50) {
++        time.start();
++        bool ret = (
++            !oriCursor.isNull() &&
++            (oriCursor - QCursor::pos()).manhattanLength()>RSettings::getMouseThreshold()
++        );
++        return ret;
++    }
++
++    return false;
+ }
+ 
+ void RMouseEvent::resetOriginalMousePos() {

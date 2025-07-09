@@ -1,0 +1,41 @@
+From 4fc97f7d8641ac077b394a8f3a2f0c89d06943ac Mon Sep 17 00:00:00 2001
+From: James Peach <jpeach@apache.org>
+Date: Fri, 31 Jan 2020 16:48:08 +1100
+Subject: [PATCH] crypto: use BoringSSL scoped EVP_MD_CTX (#9887)
+
+Rather than allocating a heap copy of EVP_MD_CTX,
+use boringssl::ScopedEVP_MD_CTX to stack allocate one.
+
+Signed-off-by: James Peach <jpeach@apache.org>
+---
+ source/extensions/common/crypto/utility_impl.cc | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/source/extensions/common/crypto/utility_impl.cc b/source/extensions/common/crypto/utility_impl.cc
+index 3edeac98ca..2fa8c6e844 100644
+--- a/source/extensions/common/crypto/utility_impl.cc
++++ b/source/extensions/common/crypto/utility_impl.cc
+@@ -14,19 +14,18 @@ namespace Crypto {
+ 
+ std::vector<uint8_t> UtilityImpl::getSha256Digest(const Buffer::Instance& buffer) {
+   std::vector<uint8_t> digest(SHA256_DIGEST_LENGTH);
+-  EVP_MD_CTX* ctx(EVP_MD_CTX_new());
+-  auto rc = EVP_DigestInit(ctx, EVP_sha256());
++  bssl::ScopedEVP_MD_CTX ctx;
++  auto rc = EVP_DigestInit(ctx.get(), EVP_sha256());
+   RELEASE_ASSERT(rc == 1, "Failed to init digest context");
+   const auto num_slices = buffer.getRawSlices(nullptr, 0);
+   absl::FixedArray<Buffer::RawSlice> slices(num_slices);
+   buffer.getRawSlices(slices.begin(), num_slices);
+   for (const auto& slice : slices) {
+-    rc = EVP_DigestUpdate(ctx, slice.mem_, slice.len_);
++    rc = EVP_DigestUpdate(ctx.get(), slice.mem_, slice.len_);
+     RELEASE_ASSERT(rc == 1, "Failed to update digest");
+   }
+-  rc = EVP_DigestFinal(ctx, digest.data(), nullptr);
++  rc = EVP_DigestFinal(ctx.get(), digest.data(), nullptr);
+   RELEASE_ASSERT(rc == 1, "Failed to finalize digest");
+-  EVP_MD_CTX_free(ctx);
+   return digest;
+ }
+ 

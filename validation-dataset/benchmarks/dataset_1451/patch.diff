@@ -1,0 +1,23 @@
+From b47b668ab59c80b3f94d187a14906d1cd8d9f2a9 Mon Sep 17 00:00:00 2001
+From: filox <montyphyton@gmail.com>
+Date: Mon, 19 Nov 2012 11:24:28 +0000
+Subject: [PATCH] Messages are written faster and are much smaller
+
+---
+ Storm.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/Storm.h b/Storm.h
+index 5a597c6..5d820f7 100644
+--- a/Storm.h
++++ b/Storm.h
+@@ -121,7 +121,8 @@ namespace storm
+ 	// Prints the message to stdout.  Using endl will automatically flush.
+ 	inline void SendMsgToParent(Json::Value &v)
+ 	{
+-		std::cout << v << std::endl;
++		static Json::FastWriter writer;
++		std::cout << writer.write(v);
+ 		std::cout << "end" << std::endl;
+ 	}
+ 

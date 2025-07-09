@@ -1,0 +1,23 @@
+From 39ee7c9176965a757d95180130af0a9f57c5cb22 Mon Sep 17 00:00:00 2001
+From: NotCompsky <adammarkgray@gmail.com>
+Date: Thu, 8 Oct 2020 17:16:35 +0100
+Subject: [PATCH] Performance		Flag error handling code path as
+ unlikely.
+
+---
+ wangle-server/src/curl_utils.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/wangle-server/src/curl_utils.cpp b/wangle-server/src/curl_utils.cpp
+index df532d6c..07db4603 100644
+--- a/wangle-server/src/curl_utils.cpp
++++ b/wangle-server/src/curl_utils.cpp
+@@ -73,7 +73,7 @@ FunctionSuccessness dl_file(const char* user_headers,  const char* const url,  c
+ 	
+ 	const CURLcode curl_rc = curl_easy_perform(handle);
+ 	fclose(f);
+-	if (curl_rc != CURLE_OK){
++	if (unlikely(curl_rc != CURLE_OK)){
+ 		os::del_file(dst_pth);
+ 		rc = FunctionSuccessness::server_error;
+ 		log("dl_file__curl error");

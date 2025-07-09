@@ -1,0 +1,29 @@
+From 49d114ab84b11695982b7dcdedf9650553f8b448 Mon Sep 17 00:00:00 2001
+From: "bernard.parisse" <bernard.parisse@23ce0884-8a58-47d3-bc5c-ddf1cd5b9f9e>
+Date: Thu, 15 Oct 2015 15:53:37 +0000
+Subject: [PATCH] [giac] attempt to improve GGB-201
+
+git-svn-id: https://dev.geogebra.org/svn/trunk/geogebra/giac@43472 23ce0884-8a58-47d3-bc5c-ddf1cd5b9f9e
+---
+ src/giac/cpp/gen.cc | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/src/giac/cpp/gen.cc b/src/giac/cpp/gen.cc
+index b22b3ea8..1d70c2f6 100644
+--- a/src/giac/cpp/gen.cc
++++ b/src/giac/cpp/gen.cc
+@@ -3677,8 +3677,12 @@ namespace giac {
+     if (!complex_mode(contextptr)){ 
+       if (u==at_ln)
+ 	return real_abs(s,contextptr);
+-      if (!has_i(s) && (u==at_exp || u==at_sqrt))
+-	return s;
++      if (!has_i(s)){
++	if (u==at_exp || u==at_sqrt)
++	  return s;
++	if (u==at_pow && f.type==_VECT && f._VECTptr->size()==2 && f._VECTptr->back()==plus_one_half)
++	  return s;
++      }
+     }
+     else {
+       if (do_lnabs(contextptr) && u==at_ln)

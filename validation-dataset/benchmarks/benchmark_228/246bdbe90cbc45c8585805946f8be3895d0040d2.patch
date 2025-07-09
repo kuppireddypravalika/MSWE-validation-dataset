@@ -1,0 +1,24 @@
+From 246bdbe90cbc45c8585805946f8be3895d0040d2 Mon Sep 17 00:00:00 2001
+From: Dan Witte <dwitte@mozilla.com>
+Date: Thu, 7 Oct 2010 14:01:16 -0700
+Subject: [PATCH] Bug 598196 - Use journal_mode = WAL in cookies. r=sdwilsh,
+ a=betaN+
+
+---
+ netwerk/cookie/nsCookieService.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/netwerk/cookie/nsCookieService.cpp b/netwerk/cookie/nsCookieService.cpp
+index 84dc8dcda43..bcfc3964ae9 100644
+--- a/netwerk/cookie/nsCookieService.cpp
++++ b/netwerk/cookie/nsCookieService.cpp
+@@ -931,6 +931,9 @@ nsCookieService::TryInitDB(PRBool aDeleteExistingDB)
+   // make operations on the table asynchronous, for performance
+   mDBState->dbConn->ExecuteSimpleSQL(NS_LITERAL_CSTRING("PRAGMA synchronous = OFF"));
+ 
++  // Use write-ahead-logging for performance.
++  mDBState->dbConn->ExecuteSimpleSQL(NS_LITERAL_CSTRING("PRAGMA journal_mode = WAL"));
++
+   // cache frequently used statements (for insertion, deletion, and updating)
+   rv = mDBState->dbConn->CreateStatement(NS_LITERAL_CSTRING(
+     "INSERT INTO moz_cookies ("

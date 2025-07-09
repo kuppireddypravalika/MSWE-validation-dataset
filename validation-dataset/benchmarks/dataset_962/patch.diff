@@ -1,0 +1,26 @@
+From 7c08ff7d3c866fd5c979b3cff7d7ce8ce3865491 Mon Sep 17 00:00:00 2001
+From: Philip Chimento <philip.chimento@gmail.com>
+Date: Mon, 12 Mar 2018 21:18:04 -0700
+Subject: [PATCH] tests: Reduce length of profiler start/stop test
+
+When run in GC verification mode, this does 100000 GCs, and takes
+forever. Running it 100 times is probably good enough.
+
+See #120.
+---
+ test/gjs-tests.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/test/gjs-tests.cpp b/test/gjs-tests.cpp
+index 0b2f4b69a..820be6fa3 100644
+--- a/test/gjs-tests.cpp
++++ b/test/gjs-tests.cpp
+@@ -387,7 +387,7 @@ gjstest_test_profiler_start_stop(void)
+ 
+     gjs_profiler_start(profiler);
+ 
+-    for (size_t ix = 0; ix < 100000; ix++) {
++    for (size_t ix = 0; ix < 100; ix++) {
+         GError *error = nullptr;
+         int estatus;
+ 

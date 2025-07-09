@@ -1,0 +1,32 @@
+From 7dae0f3e783bd48e80cdd25b021e240144a31b4e Mon Sep 17 00:00:00 2001
+From: Yi Zhang <yizhang@ca.ibm.com>
+Date: Mon, 6 Feb 2017 16:08:12 -0500
+Subject: [PATCH] Stop adding exception edges for OSRBock of callee
+
+When merging callee cfg to caller cfg, inliner iterates through all
+exception successor blocks of the original block containing that call
+and add exception edges between these blocks and all the callee blocks.
+However, the OSR blocks (both code block and catch block) of callee
+should be excluded because the OSR blocks will transfer to VM and never
+go back to any jitted block.
+
+Signed-off-by: Yi Zhang <yizhang@ca.ibm.com>
+---
+ compiler/optimizer/Inliner.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/compiler/optimizer/Inliner.cpp b/compiler/optimizer/Inliner.cpp
+index 7e4726f247..fab9e531fd 100644
+--- a/compiler/optimizer/Inliner.cpp
++++ b/compiler/optimizer/Inliner.cpp
+@@ -4959,6 +4959,10 @@ bool TR_InlinerBase::inlineCallTarget2(TR_CallStack * callStack, TR_CallTarget *
+          int32_t calleeNodeNumber = n->getNumber();
+          callerCFG->addNode(n);
+          debugTrace(tracer(),"\nAdding callee blocks into caller: callee block %p:%p:%d --> %d (caller block) ",n, n->asBlock(), calleeNodeNumber, n->getNumber());
++         if (!n->asBlock()->isOSRCatchBlock() && !n->asBlock()->isOSRCodeBlock())
++            callerCFG->copyExceptionSuccessors(blockContainingTheCall, n, succAndPredAreNotOSRBlocks);
++         else
++            debugTrace(tracer(),"\ndon't add exception edges from callee OSR block(block_%d) to caller catch blocks\n",n->getNumber());
+          callerCFG->copyExceptionSuccessors(blockContainingTheCall, n, succAndPredAreNotOSRBlocks);
+          }
+       }

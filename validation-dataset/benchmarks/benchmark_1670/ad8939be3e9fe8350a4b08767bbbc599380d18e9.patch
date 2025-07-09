@@ -1,0 +1,39 @@
+From ad8939be3e9fe8350a4b08767bbbc599380d18e9 Mon Sep 17 00:00:00 2001
+From: Jan Friso Groote <J.F.Groote@tue.nl>
+Date: Sun, 13 Mar 2022 22:05:49 +0100
+Subject: [PATCH] Repaired an obvious mistake in the pbes implication.
+
+The optimisation of a pbes implication contained
+a stupid mistake.
+---
+ .../include/mcrl2/pbes/rewriters/simplify_rewriter.h | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/libraries/pbes/include/mcrl2/pbes/rewriters/simplify_rewriter.h b/libraries/pbes/include/mcrl2/pbes/rewriters/simplify_rewriter.h
+index 50a8ee5777..6c738167d6 100644
+--- a/libraries/pbes/include/mcrl2/pbes/rewriters/simplify_rewriter.h
++++ b/libraries/pbes/include/mcrl2/pbes/rewriters/simplify_rewriter.h
+@@ -119,12 +119,22 @@ struct add_simplify: public Builder<Derived>
+     }
+     if (is_false(result))
+     { 
+-      apply(result, x.right());
++      apply(result, x.left());
+       if (is_not(result))
+       { 
+         result = atermpp::down_cast<not_>(result).operand();
+         return;
+       }
++      if (is_true(result))
++      {
++        result = false_();
++        return;
++      }
++      if (is_false(result))
++      {
++        result = true_();
++        return;
++      }
+       make_not_(result, result);
+       return;
+     }

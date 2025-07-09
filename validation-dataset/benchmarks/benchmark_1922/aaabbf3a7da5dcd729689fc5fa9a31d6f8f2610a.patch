@@ -1,0 +1,41 @@
+From aaabbf3a7da5dcd729689fc5fa9a31d6f8f2610a Mon Sep 17 00:00:00 2001
+From: Fawzi Mohamed <fawzi.mohamed@qt.io>
+Date: Thu, 13 Aug 2020 15:19:08 +0200
+Subject: [PATCH] Fix wrong optimization on ARM64 ubuntu qemu
+
+in QQuickDesignerSupportProperties::propertyNameListForWritableProperties
+inspected object is initialized with a stack variable in the first
+iteration:
+
+    if (inspectedObjects == nullptr)
+        inspectedObjects = &localObjectList;
+
+Subsequently inspectedObjects->contains(object) is called.
+This crashes on ubuntu ARM64 QEMU unless one performs other operations
+before that call (just in optimized code without debug information).
+As the contains will return false in the first iteration doing it only
+in subsequent recursions (by putting it in an else clause) does not
+change the expected execution, but avoid the optimization bug that was
+blocking CI integration of qdeclarative (a crash cannot be blacklisted).
+
+Change-Id: I2d14ecc78673ad06073825c094e4e1dcd935e73a
+Reviewed-by: Ulf Hermann <ulf.hermann@qt.io>
+---
+ src/quick/designer/qquickdesignersupportproperties.cpp | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/src/quick/designer/qquickdesignersupportproperties.cpp b/src/quick/designer/qquickdesignersupportproperties.cpp
+index 335795acf17..a9e82515721 100644
+--- a/src/quick/designer/qquickdesignersupportproperties.cpp
++++ b/src/quick/designer/qquickdesignersupportproperties.cpp
+@@ -136,9 +136,7 @@ QQuickDesignerSupport::PropertyNameList QQuickDesignerSupportProperties::propert
+ 
+     if (inspectedObjects == nullptr)
+         inspectedObjects = &localObjectList;
+-
+-
+-    if (inspectedObjects->contains(object))
++    else if (inspectedObjects->contains(object))
+         return propertyNameList;
+ 
+     inspectedObjects->append(object);

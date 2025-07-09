@@ -1,0 +1,22 @@
+From 0ceff7fd902cb29a7449d84d5c6a8c3214609579 Mon Sep 17 00:00:00 2001
+From: zsilencer <zsilencergame@gmail.com>
+Date: Wed, 20 Apr 2016 01:24:02 -0600
+Subject: [PATCH] More efficient map transfers
+
+---
+ src/network/network.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/network/network.cpp b/src/network/network.cpp
+index 92c06f1f9223..91fba0974b54 100644
+--- a/src/network/network.cpp
++++ b/src/network/network.cpp
+@@ -1333,7 +1333,7 @@ void Network::Server_Send_MAP(NetworkConnection* connection)
+ 		SDL_RWclose(rw);
+ 		return;
+ 	}
+-	size_t chunksize = 1024;
++	size_t chunksize = 65000;
+ 	size_t out_size = size;
+ 	unsigned char *compressed = util_zlib_deflate(&buffer[0], size, &out_size);
+ 	unsigned char *header;

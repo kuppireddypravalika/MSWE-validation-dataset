@@ -1,0 +1,23 @@
+From 87a18b2662adcc6f04fbf3e96afdf639150f425d Mon Sep 17 00:00:00 2001
+From: Klaus Iglberger <klaus.iglberger@gmail.com>
+Date: Mon, 4 Jan 2016 05:47:34 +0100
+Subject: [PATCH] Improve the implementation of the 'invertNxN' overload for
+ the 'SymmetricMatrix' class template
+
+---
+ blaze/math/adaptors/SymmetricMatrix.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/blaze/math/adaptors/SymmetricMatrix.h b/blaze/math/adaptors/SymmetricMatrix.h
+index a4bb9c0d8..15b5ca77a 100644
+--- a/blaze/math/adaptors/SymmetricMatrix.h
++++ b/blaze/math/adaptors/SymmetricMatrix.h
+@@ -764,7 +764,7 @@ template< DecompositionFlag DF  // Decomposition algorithm
+         , bool SO >             // Storage order of the dense matrix
+ inline void invertNxN( SymmetricMatrix<MT,SO,true,true>& m )
+ {
+-   Inversion<DF>::invert( m.matrix_ );
++   invertNxN<DF>( m.matrix_ );
+ 
+    BLAZE_INTERNAL_ASSERT( isIntact( m ), "Broken invariant detected" );
+ }

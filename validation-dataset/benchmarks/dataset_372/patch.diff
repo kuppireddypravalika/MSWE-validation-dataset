@@ -1,0 +1,28 @@
+From 504f551eecbe73591854fb014a205a76e9f65283 Mon Sep 17 00:00:00 2001
+From: Hielke Morsink <hielke.morsink@gmail.com>
+Date: Tue, 17 Nov 2015 09:18:03 +0100
+Subject: [PATCH] Avoiding the use of strlen
+
+---
+ src/windows/editor_object_selection.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/windows/editor_object_selection.c b/src/windows/editor_object_selection.c
+index c59ce1910a9e..7dfb58b1026b 100644
+--- a/src/windows/editor_object_selection.c
++++ b/src/windows/editor_object_selection.c
+@@ -2033,11 +2033,11 @@ static bool filter_string(rct_object_entry *entry, rct_object_filters *filter)
+ 	safe_strncpy(filter_lower, _filter_string, sizeof(_filter_string));
+ 
+ 	// Make use of lowercase characters only
+-	for (int i = 0; i < (int)strlen(name_lower); i++)
++	for (int i = 0; name_lower[i] != '\0'; i++)
+ 		name_lower[i] = (char)tolower(name_lower[i]);
+-	for (int i = 0; i < (int)strlen(type_lower); i++)
++	for (int i = 0; type_lower[i] != '\0'; i++)
+ 		type_lower[i] = (char)tolower(type_lower[i]);
+-	for (int i = 0; i < (int)strlen(filter_lower); i++)
++	for (int i = 0; filter_lower[i] != '\0'; i++)
+ 		filter_lower[i] = (char)tolower(filter_lower[i]);
+ 
+ 	return strstr(name_lower, filter_lower) != NULL || (((entry->flags & 0x0F) == OBJECT_TYPE_RIDE) && strstr(type_lower, filter_lower) != NULL);

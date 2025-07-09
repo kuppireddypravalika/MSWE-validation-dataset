@@ -1,0 +1,26 @@
+From 3d22f0348f30cb535178a52597d8775632022225 Mon Sep 17 00:00:00 2001
+From: Dimitrij Kotrev <dimitrij.kotrev@googlemail.com>
+Date: Sat, 13 Feb 2021 11:09:18 +0100
+Subject: [PATCH] transform_to_vector: use ranges transform algorithm
+
+---
+ .../include/piejam/algorithm/transform_to_vector.h          | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/piejam_libs/algorithm/include/piejam/algorithm/transform_to_vector.h b/piejam_libs/algorithm/include/piejam/algorithm/transform_to_vector.h
+index f275daa2..98bc47a9 100644
+--- a/piejam_libs/algorithm/include/piejam/algorithm/transform_to_vector.h
++++ b/piejam_libs/algorithm/include/piejam/algorithm/transform_to_vector.h
+@@ -17,11 +17,7 @@ auto
+ transform_to_vector(Range const& rng, F&& f)
+ {
+     std::vector<std::decay_t<decltype(f(*std::begin(rng)))>> result;
+-    std::transform(
+-            std::begin(rng),
+-            std::end(rng),
+-            std::back_inserter(result),
+-            std::forward<F>(f));
++    std::ranges::transform(rng, std::back_inserter(result), std::forward<F>(f));
+     return result;
+ }
+ 

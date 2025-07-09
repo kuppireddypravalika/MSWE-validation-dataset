@@ -1,0 +1,34 @@
+From 70c0d4f7eb9c14bccc8a585be4086712e46bfbdb Mon Sep 17 00:00:00 2001
+From: Chris Lattner <sabre@nondot.org>
+Date: Sat, 3 Apr 2010 06:16:22 +0000
+Subject: [PATCH] improve comment and drop a dead check.  If PH had no uses, it
+ would have been deleted by RecursivelyDeleteTriviallyDeadInstructions
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@100275 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Transforms/Scalar/IndVarSimplify.cpp | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/lib/Transforms/Scalar/IndVarSimplify.cpp b/lib/Transforms/Scalar/IndVarSimplify.cpp
+index b5fdd0c4a17..650231b8e5c 100644
+--- a/lib/Transforms/Scalar/IndVarSimplify.cpp
++++ b/lib/Transforms/Scalar/IndVarSimplify.cpp
+@@ -759,10 +759,14 @@ void IndVarSimplify::HandleFloatingPointIV(Loop *L, PHINode *PH) {
+   Incr->replaceAllUsesWith(UndefValue::get(Incr->getType()));
+   RecursivelyDeleteTriviallyDeadInstructions(Incr);
+ 
+-  // Replace floating induction variable, if it isn't already deleted.
+-  // Give SIToFPInst preference over UIToFPInst because it is faster on
+-  // platforms that are widely used.
+-  if (WeakPH && !PH->use_empty()) {
++  // If the FP induction variable still has uses, this is because something else
++  // in the loop uses its value.  In order to canonicalize the induction
++  // variable, we chose to eliminate the IV and rewrite it in terms of an
++  // int->fp cast.
++  //
++  // We give preference to sitofp over uitofp because it is faster on most
++  // platforms.
++  if (WeakPH) {
+     if (CanUseSIToFP(InitValueVal, ExitValueVal, InitValue, ExitValue)) {
+       SIToFPInst *Conv = new SIToFPInst(NewPHI, PH->getType(), "indvar.conv",
+                                         PH->getParent()->getFirstNonPHI());

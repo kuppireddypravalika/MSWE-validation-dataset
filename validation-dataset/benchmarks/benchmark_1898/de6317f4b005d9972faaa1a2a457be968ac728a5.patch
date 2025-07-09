@@ -1,0 +1,26 @@
+From de6317f4b005d9972faaa1a2a457be968ac728a5 Mon Sep 17 00:00:00 2001
+From: Guido Tack <guido.tack@monash.edu>
+Date: Thu, 4 Dec 2014 09:38:50 +1100
+Subject: [PATCH] Ignore (and remove) "constraint true" during optimisation
+
+---
+ lib/optimize.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/lib/optimize.cpp b/lib/optimize.cpp
+index 8d042dc4a..9328deb84 100644
+--- a/lib/optimize.cpp
++++ b/lib/optimize.cpp
+@@ -824,6 +824,12 @@ namespace MiniZinc {
+       assert(ident->decl() == vd);
+       return;
+     }
++    if (e->isa<BoolLit>()) {
++      if (e == constants().lit_true && ci) {
++        toRemove.push_back(ci);
++      }
++      return;
++    }
+     Call* c = e->cast<Call>();
+     if (c->id()==constants().ids.bool_eq) {
+       Expression* b0 = c->args()[0];

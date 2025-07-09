@@ -1,0 +1,26 @@
+From 75ad60266cf5acb576e92bca85c53a4daa44f8b9 Mon Sep 17 00:00:00 2001
+From: Hendrik Leppkes <h.leppkes@gmail.com>
+Date: Mon, 19 Jun 2017 23:40:41 +0200
+Subject: [PATCH] avcodec: change automatic thread count to the number of cpu
+ threads, instead of 1.5x the threads
+
+Using more threads then the CPU offers can result in a bit higher
+benchmarking figures, however during real-time playback it can cause
+resource contention with the video renderer and other components.
+---
+ decoder/LAVVideo/decoders/avcodec.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/decoder/LAVVideo/decoders/avcodec.cpp b/decoder/LAVVideo/decoders/avcodec.cpp
+index cf2b730be..918b6f0b8 100644
+--- a/decoder/LAVVideo/decoders/avcodec.cpp
++++ b/decoder/LAVVideo/decoders/avcodec.cpp
+@@ -356,7 +356,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
+   // Thread Count. 0 = auto detect
+   int thread_count = m_pSettings->GetNumThreads();
+   if (thread_count == 0) {
+-    thread_count = av_cpu_count() * 3 / 2;
++    thread_count = av_cpu_count();
+   }
+   m_pAVCtx->thread_count = max(1, min(thread_count, AVCODEC_MAX_THREADS));
+ 

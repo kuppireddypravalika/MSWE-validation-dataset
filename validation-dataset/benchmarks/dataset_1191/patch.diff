@@ -1,0 +1,47 @@
+From 013682bc8563dd0934f6a3d505e821f297b243bb Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Tue, 30 Jun 2020 15:22:04 -0600
+Subject: [PATCH] Use local objects for random number generation
+
+---
+ OPHD/Map/TileMap.cpp | 20 ++++++++------------
+ 1 file changed, 8 insertions(+), 12 deletions(-)
+
+diff --git a/OPHD/Map/TileMap.cpp b/OPHD/Map/TileMap.cpp
+index ec1c4a848..29bcdd833 100644
+--- a/OPHD/Map/TileMap.cpp
++++ b/OPHD/Map/TileMap.cpp
+@@ -51,18 +51,6 @@ std::map<constants::PlanetHostility, std::tuple<float, float, float>> HostilityM
+ Point<int> TRANSFORM; /**< Used to adjust mouse and screen spaces based on position of the map field. */
+ 
+ 
+-// ===============================================================================
+-// = RANDOM NUMBER GENERATION
+-// ===============================================================================
+-std::random_device rd;
+-std::mt19937 generator(rd());
+-std::uniform_int_distribution<int> map_width(5, MAP_WIDTH - 5);
+-std::uniform_int_distribution<int> map_height(5, MAP_HEIGHT - 5);
+-
+-auto mwidth = std::bind(map_width, std::ref(generator));
+-auto mheight = std::bind(map_height, std::ref(generator));
+-
+-
+ // ===============================================================================
+ // = STATIC/LOCAL FUNCTIONS
+ // ===============================================================================
+@@ -215,6 +203,14 @@ void TileMap::setupMines(int mineCount, constants::PlanetHostility hostility)
+ 	// on int types. Yield totals should only ever equate to mineCount or less
+ 	// than mineCount.
+ 
++	std::random_device rd;
++	std::mt19937 generator(rd());
++	std::uniform_int_distribution<int> map_width(5, MAP_WIDTH - 5);
++	std::uniform_int_distribution<int> map_height(5, MAP_HEIGHT - 5);
++
++	auto mwidth = std::bind(map_width, std::ref(generator));
++	auto mheight = std::bind(map_height, std::ref(generator));
++
+ 	// \fixme Inelegant solution but may not be worth refactoring out into its own function.
+ 	for (int i = 0; i < yield_low; ++i)
+ 	{

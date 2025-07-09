@@ -1,0 +1,43 @@
+From 3b570f8a2bb37379204744d347f70da10940bc4f Mon Sep 17 00:00:00 2001
+From: "Jake.Stine" <Jake.Stine@96395faa-99c1-11dd-bbfe-3dabce05a288>
+Date: Thu, 2 Apr 2009 22:22:02 +0000
+Subject: [PATCH] Fixed a bug from an earlier vtlb commit that caused some
+ slowdown when INTC_HACK was disabled.  Turns out games spinning on INTC_STAT
+ don't do it in a way that allows the recompiler to propagate consts.
+
+git-svn-id: http://pcsx2.googlecode.com/svn/trunk@889 96395faa-99c1-11dd-bbfe-3dabce05a288
+---
+ pcsx2/HwRead.cpp | 18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
+
+diff --git a/pcsx2/HwRead.cpp b/pcsx2/HwRead.cpp
+index cf86b7cbbb064..bedf07fc46033 100644
+--- a/pcsx2/HwRead.cpp
++++ b/pcsx2/HwRead.cpp
+@@ -212,14 +212,20 @@ static __forceinline mem32_t __hwRead32_page_0F( u32 mem, bool intchack )
+ 
+ 	mem &= 0xffff;
+ 
+-	switch( mem )
++	// INTC_STAT shortcut for heavy spinning.
++	// Performance Note: Visual Studio handles this best if we just manually check for it here,
++	// outside the context of the switch statement below.  This is likely fixed by PGO also,
++	// but it's an easy enough conditional to account for anyways.
++	
++	static const uint ics = INTC_STAT & 0xffff;
++	if( mem == ics )		// INTC_STAT
+ 	{
+-		case 0xf000:
+-			if( intchack ) IntCHackCheck();
+-			// This one is checked alot, so leave it commented out unless you love 600 meg logfiles.
+-			//HW_LOG("INTC_STAT Read  32bit %x", psHu32(0xf010));
+-		break;
++		if( intchack ) IntCHackCheck();
++		return *((u32*)&PS2MEM_HW[ics]);
++	}
+ 
++	switch( mem )
++	{
+ 		case 0xf010:
+ 			HW_LOG("INTC_MASK Read32, value=0x%x", psHu32(INTC_MASK));
+ 		break;

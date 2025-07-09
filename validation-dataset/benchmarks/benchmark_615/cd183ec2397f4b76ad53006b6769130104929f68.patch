@@ -1,0 +1,44 @@
+From cd183ec2397f4b76ad53006b6769130104929f68 Mon Sep 17 00:00:00 2001
+From: SebastianMestre <mestresebastianunr@gmail.com>
+Date: Wed, 29 Apr 2020 20:39:40 -0300
+Subject: [PATCH] Core: use eval free function instead of virtual method
+
+---
+ src/main.cpp | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/src/main.cpp b/src/main.cpp
+index 3c686b9e..b997198c 100644
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -2,10 +2,12 @@
+ #include <string>
+ #include <vector>
+ 
++#include "environment.hpp"
++#include "eval.hpp"
++#include "garbage_collector.hpp"
+ #include "lexer.hpp"
+ #include "parser.hpp"
+ #include "types.hpp"
+-#include "garbage_collector.hpp"
+ 
+ int main() {
+ 	std::vector<char> v;
+@@ -69,13 +71,14 @@ int main() {
+ 
+ 	parse_result.m_result->print();
+ 
+-	auto& top_level = static_cast<ASTDeclarationList&>(*parse_result.m_result);
++	auto* top_level = parse_result.m_result.get();
++	assert(dynamic_cast<ASTDeclarationList*>(top_level));
+ 
+ 	GarbageCollector::GC gc;
+ 	Type::Scope scope;
+ 	Type::Environment env = {&gc, &scope};
+ 
+-	top_level.eval(env);
++	eval(top_level, env);
+ 
+ 	auto* entry_point_ptr = env.m_scope->access("__invoke");
+ 	if(!entry_point_ptr){

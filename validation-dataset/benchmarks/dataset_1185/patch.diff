@@ -1,0 +1,25 @@
+From 49c6866d44c39e0e202e7780ef631996161cee6d Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Mon, 20 Apr 2020 00:25:12 -0600
+Subject: [PATCH] Use packed parameter calls in RadioButton::update
+
+---
+ OPHD/UI/Core/RadioButton.cpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/OPHD/UI/Core/RadioButton.cpp b/OPHD/UI/Core/RadioButton.cpp
+index 90d17ed35..c26cae14a 100644
+--- a/OPHD/UI/Core/RadioButton.cpp
++++ b/OPHD/UI/Core/RadioButton.cpp
+@@ -130,6 +130,9 @@ void RadioButton::update()
+ {
+ 	Renderer& r = Utility<Renderer>::get();
+ 
+-	r.drawSubImage(mSkin, positionX(), positionY(), mChecked ? 13.0f : 0.0f, 0.0f, 13.0f, 13.0f);
+-	r.drawText(*CBOX_FONT, text(), positionX() + 20.0f, positionY(), 255, 255, 255);
++	const auto unselectedIconRect = NAS2D::Rectangle{0, 0, 13, 13};
++	const auto selectedIconRect = NAS2D::Rectangle{13, 0, 13, 13};
++
++	r.drawSubImage(mSkin, position(), (mChecked ? selectedIconRect : unselectedIconRect));
++	r.drawText(*CBOX_FONT, text(), position() + NAS2D::Vector{20, 0}, NAS2D::Color::White);
+ }

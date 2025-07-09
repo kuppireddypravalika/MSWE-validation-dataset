@@ -1,0 +1,32 @@
+From 50b7352fe173dab47806ce03e4fd4d3b0981802c Mon Sep 17 00:00:00 2001
+From: Pilow <pierre.laupretre@gmail.com>
+Date: Wed, 3 Apr 2019 12:27:46 +0800
+Subject: [PATCH] [postfix-expr] Improve mpz -- operator
+
+---
+ src/compiler/value/PostfixExpression.cpp | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/src/compiler/value/PostfixExpression.cpp b/src/compiler/value/PostfixExpression.cpp
+index 626db92b..c072e877 100644
+--- a/src/compiler/value/PostfixExpression.cpp
++++ b/src/compiler/value/PostfixExpression.cpp
+@@ -90,10 +90,15 @@ Compiler::value PostfixExpression::compile(Compiler& c) const {
+ 		case TokenType::MINUS_MINUS: {
+ 			if (expression->type == Type::mpz()) {
+ 				auto x = expression->compile_l(c);
+-				auto r = c.insn_clone_mpz(c.insn_load(x));
+ 				auto one = c.new_integer(1);
+-				c.insn_call({}, {x, x, one}, &mpz_sub_ui);
+-				return r;
++				if (is_void) {
++					c.insn_call({}, {x, x, one}, &mpz_sub_ui);
++					return {};
++				} else {
++					auto r = c.insn_clone_mpz(c.insn_load(x));
++					c.insn_call({}, {x, x, one}, &mpz_sub_ui);
++					return r;
++				}
+ 			} else if (expression->type.is_primitive()) {
+ 				auto x_addr = expression->compile_l(c);
+ 				auto x = c.insn_load(x_addr);

@@ -1,0 +1,26 @@
+From 7712d2900dc4b539df955253c9df3bc1fbc35022 Mon Sep 17 00:00:00 2001
+From: Dan Gohman <gohman@apple.com>
+Date: Sun, 29 Aug 2010 15:07:13 +0000
+Subject: [PATCH] Micro-optimize GroupByComplexity.
+
+llvm-svn: 112431
+---
+ llvm/lib/Analysis/ScalarEvolution.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/llvm/lib/Analysis/ScalarEvolution.cpp b/llvm/lib/Analysis/ScalarEvolution.cpp
+index 176de3a2b9e..863f8a65409 100644
+--- a/llvm/lib/Analysis/ScalarEvolution.cpp
++++ b/llvm/lib/Analysis/ScalarEvolution.cpp
+@@ -704,8 +704,9 @@ static void GroupByComplexity(SmallVectorImpl<const SCEV *> &Ops,
+   if (Ops.size() == 2) {
+     // This is the common case, which also happens to be trivially simple.
+     // Special case it.
+-    if (SCEVComplexityCompare(LI)(Ops[1], Ops[0]))
+-      std::swap(Ops[0], Ops[1]);
++    const SCEV *&LHS = Ops[0], *&RHS = Ops[1];
++    if (SCEVComplexityCompare(LI)(RHS, LHS))
++      std::swap(LHS, RHS);
+     return;
+   }
+ 

@@ -1,0 +1,22 @@
+From 0f2103f40d2e04b93a742bb74d7afea13cdf0db8 Mon Sep 17 00:00:00 2001
+From: Robert Osfield <robert@openscenegraph.com>
+Date: Mon, 4 May 2020 06:56:43 +0100
+Subject: [PATCH] Removed no longer neccessary copy
+
+---
+ src/vsg/viewer/Window.cpp | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/src/vsg/viewer/Window.cpp b/src/vsg/viewer/Window.cpp
+index 3e8be7168b..0446808ec3 100644
+--- a/src/vsg/viewer/Window.cpp
++++ b/src/vsg/viewer/Window.cpp
+@@ -34,8 +34,6 @@ Window::Window(ref_ptr<WindowTraits> traits, vsg::AllocationCallbacks* allocator
+         // create the vkInstance
+         vsg::Names instanceExtensions = traits->instanceExtensionNames;
+ 
+-        instanceExtensions.insert(instanceExtensions.end(), traits->instanceExtensionNames.begin(), traits->instanceExtensionNames.end());
+-
+         vsg::Names requestedLayers;
+         if (traits && traits->debugLayer)
+         {

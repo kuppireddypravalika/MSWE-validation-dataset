@@ -1,0 +1,35 @@
+From badb0818f5116e19de9bdb6f6b2e0c3e0fa7da99 Mon Sep 17 00:00:00 2001
+From: Rym Bouabid <rym.bouabid@qt.io>
+Date: Wed, 13 Sep 2023 17:26:54 +0200
+Subject: [PATCH] Revamp Local Fortune Client Example: Create QString instead
+ of char *
+
+Create QString at compile time using the literal operator""s instead of
+using pointer to characters. This way, no conversion or allocation will
+occur at runtime.
+
+Task-number: QTBUG-117036
+Pick-to: 6.6 6.5
+Change-Id: I9942ef8efa38de9ac5975799249a65fcb4c966c9
+Reviewed-by: Ivan Solovev <ivan.solovev@qt.io>
+---
+ examples/corelib/ipc/localfortuneclient/client.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/examples/corelib/ipc/localfortuneclient/client.cpp b/examples/corelib/ipc/localfortuneclient/client.cpp
+index 44981400d03..dcc7e0f0c24 100644
+--- a/examples/corelib/ipc/localfortuneclient/client.cpp
++++ b/examples/corelib/ipc/localfortuneclient/client.cpp
+@@ -9,9 +9,11 @@
+ #include <QMessageBox>
+ #include <QTimer>
+ 
++using namespace Qt::StringLiterals;
++
+ Client::Client(QWidget *parent)
+     : QDialog(parent),
+-      hostLineEdit(new QLineEdit("fortune")),
++      hostLineEdit(new QLineEdit(u"fortune"_s)),
+       getFortuneButton(new QPushButton(tr("Get Fortune"))),
+       statusLabel(new QLabel(tr("This examples requires that you run the "
+                                 "Local Fortune Server example as well."))),

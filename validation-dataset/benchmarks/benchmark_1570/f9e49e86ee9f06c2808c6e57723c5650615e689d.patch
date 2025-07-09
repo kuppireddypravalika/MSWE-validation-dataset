@@ -1,0 +1,29 @@
+From f9e49e86ee9f06c2808c6e57723c5650615e689d Mon Sep 17 00:00:00 2001
+From: Bill Wendling <isanbard@gmail.com>
+Date: Fri, 10 Sep 2010 20:42:26 +0000
+Subject: [PATCH] Use StringRef which performs the "early exit" when compared
+ against a constant string.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@113615 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/VMCore/AutoUpgrade.cpp | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/lib/VMCore/AutoUpgrade.cpp b/lib/VMCore/AutoUpgrade.cpp
+index 2eeb35414a0..9330e141c34 100644
+--- a/lib/VMCore/AutoUpgrade.cpp
++++ b/lib/VMCore/AutoUpgrade.cpp
+@@ -366,12 +366,7 @@ bool llvm::UpgradeIntrinsicFunction(Function *F, Function *&NewFn) {
+ }
+ 
+ bool llvm::UpgradeGlobalVariable(GlobalVariable *GV) {
+-  const std::string &Name = GV->getName();
+-
+-  // Early exit with simple tests.
+-  if (Name.length() != 24 || Name[0] != '.' || Name[1] != 'l' ||
+-      Name[3] != 'l' || Name[4] != 'v' || Name[5] != 'm' || Name[6] != '.')
+-    return false;
++  StringRef Name(GV->getName());
+ 
+   // We are only upgrading one symbol here.
+   if (Name == ".llvm.eh.catch.all.value") {

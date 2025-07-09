@@ -1,0 +1,35 @@
+From 4172c18a69153470750ade1408f9de4b3ba1cd7f Mon Sep 17 00:00:00 2001
+From: T Petrov <tpetrov@codeblocks.org>
+Date: Sun, 28 May 2017 15:26:55 +0000
+Subject: [PATCH] - optimize loading: Add const here and there and remove a
+ call to Lower
+
+git-svn-id: https://svn.code.sf.net/p/codeblocks/code/trunk@11074 2a5c6006-c6dd-42ca-98ab-0921f2732cef
+---
+ src/sdk/cbproject.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/sdk/cbproject.cpp b/src/sdk/cbproject.cpp
+index afad622b6e..4a5e4d46fd 100644
+--- a/src/sdk/cbproject.cpp
++++ b/src/sdk/cbproject.cpp
+@@ -658,8 +658,8 @@ ProjectFile* cbProject::AddFile(int targetIndex, const wxString& filename, bool
+     bool localCompile, localLink;
+     wxFileName fname(filename);
+ 
+-    const wxString &ext = fname.GetExt().Lower();
+-    if (ext.IsSameAs(FileFilters::C_EXT))
++    const wxString &ext = fname.GetExt();
++    if (ext.IsSameAs(FileFilters::C_EXT, false))
+         pf->compilerVar = _T("CC");
+     else if (platform::windows && ext.IsSameAs(FileFilters::RESOURCE_EXT))
+         pf->compilerVar = _T("WINDRES");
+@@ -776,7 +776,7 @@ ProjectFile* cbProject::AddFile(int targetIndex, const wxString& filename, bool
+     }
+     fname.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_TILDE, projectBasePath);
+ 
+-    wxString fullFilename = realpath(fname.GetFullPath());
++    const wxString &fullFilename = realpath(fname.GetFullPath());
+     pf->file              = fullFilename;
+     pf->relativeFilename  = UnixFilename(local_filename);
+ 

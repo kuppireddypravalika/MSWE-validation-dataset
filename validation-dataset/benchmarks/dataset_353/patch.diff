@@ -1,0 +1,33 @@
+From f05f47900c18aee19cbae125680f191898fc8103 Mon Sep 17 00:00:00 2001
+From: Guillaume Klein <guillaumekln@users.noreply.github.com>
+Date: Mon, 12 Apr 2021 14:43:24 +0200
+Subject: [PATCH] Minor optimization to the code point to string conversion
+ (#244)
+
+---
+ src/unicode/Unicode.cc | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/src/unicode/Unicode.cc b/src/unicode/Unicode.cc
+index d400032d..4634e112 100644
+--- a/src/unicode/Unicode.cc
++++ b/src/unicode/Unicode.cc
+@@ -17,14 +17,13 @@ namespace onmt
+ 
+     std::string cp_to_utf8(code_point_t uc)
+     {
+-      uint8_t s[U8_MAX_LENGTH + 1];
++      uint8_t s[U8_MAX_LENGTH];
+       int32_t offset = 0;
+       UBool error = false;
+-      U8_APPEND(s, offset, U8_MAX_LENGTH + 1, uc, error);
++      U8_APPEND(s, offset, U8_MAX_LENGTH, uc, error);
+       if (error)
+-        return "";
+-      s[offset] = 0;
+-      return std::string(reinterpret_cast<char*>(s));
++        return std::string();
++      return std::string(reinterpret_cast<std::string::value_type*>(s), offset);
+     }
+ 
+     code_point_t utf8_to_cp(const unsigned char* s, unsigned int &l)

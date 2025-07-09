@@ -1,0 +1,45 @@
+From d14eb858ccefe24812964b0edc28ae94c6c5a754 Mon Sep 17 00:00:00 2001
+From: Tobias Grosser <tobias@grosser.es>
+Date: Tue, 18 Aug 2015 15:05:29 +0000
+Subject: [PATCH] Use schedule trees to compute dependences
+
+This patch changes Polly to compute the data-dependences on the schedule tree
+instead of a flat schedule representation. Calculating dependences directly on
+the schedule tree results in some good compile-time improvements (adi : -23.35%,
+3mm : -9.57%), as the structure of the schedule can be exploited for increased
+efficiency.
+
+Earlier experiments with schedule tree based dependence analysis in Polly showed
+some compile-time regressions. These regressions arose due to the schedule tree
+based dependence analysis not taking into account the domain constraints of the
+schedule tree. As a result, the computed dependences were different and this
+difference caused in some cases the schedule optimizer to take a very long time.
+Since isl version fe865996 the schedule tree based dependence analysis takes
+domain constraints into account, which fixes the earlier compile-time issues.
+
+Contributed-by: Pratik Bhatu <cs12b1010@iith.ac.in>
+---
+ polly/lib/Analysis/DependenceInfo.cpp | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/polly/lib/Analysis/DependenceInfo.cpp b/polly/lib/Analysis/DependenceInfo.cpp
+index 51bcbfa6fe3a..3afa5d4287a0 100644
+--- a/polly/lib/Analysis/DependenceInfo.cpp
++++ b/polly/lib/Analysis/DependenceInfo.cpp
+@@ -255,13 +255,11 @@ void Dependences::calculateDependences(Scop &S) {
+ 
+   collectInfo(S, &Read, &Write, &MayWrite, &AccessSchedule, &StmtSchedule);
+ 
+-  // TODO: Compute dependences directly on the schedule tree
+-  //
+-  // We currently don't do this yet, as the compile-time performance
+-  // implications are not 100% understood (we see some regressions).
+-  if (false && isl_union_map_is_empty(AccessSchedule)) {
++  if (isl_union_map_is_empty(AccessSchedule)) {
+     isl_union_map_free(AccessSchedule);
+     Schedule = S.getScheduleTree();
++    Schedule = isl_schedule_intersect_domain(
++        Schedule, isl_union_set_from_set(S.getAssumedContext()));
+   } else {
+     auto *ScheduleMap =
+         isl_union_map_union(AccessSchedule, isl_union_map_copy(StmtSchedule));

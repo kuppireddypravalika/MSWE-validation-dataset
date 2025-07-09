@@ -1,0 +1,45 @@
+From 29fc018b74de3869941438c1f51b3202f93e5198 Mon Sep 17 00:00:00 2001
+From: Ulf Hermann <ulf.hermann@qt.io>
+Date: Fri, 20 Mar 2020 11:30:31 +0100
+Subject: [PATCH] QQmlDelegateModel: On deletion, cancel any remaining
+ incubations
+
+This fixes the memory leaks from the "x items in the process of being
+created at engine destruction" situation.
+
+Change-Id: I65fe278ead3d4de0cbddc075972a6774b231814f
+Reviewed-by: Simon Hausmann <simon.hausmann@qt.io>
+---
+ src/qmlmodels/qqmldelegatemodel.cpp | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/src/qmlmodels/qqmldelegatemodel.cpp b/src/qmlmodels/qqmldelegatemodel.cpp
+index 095b66b3798..a68631830d8 100644
+--- a/src/qmlmodels/qqmldelegatemodel.cpp
++++ b/src/qmlmodels/qqmldelegatemodel.cpp
+@@ -269,13 +269,23 @@ QQmlDelegateModel::~QQmlDelegateModel()
+             Q_ASSERT(cacheItem->contextData->refCount == 1);
+             cacheItem->contextData = nullptr;
+             cacheItem->scriptRef -= 1;
++        } else if (cacheItem->incubationTask) {
++            // Both the incubationTask and the object may hold a scriptRef,
++            // but if both are present, only one scriptRef is held in total.
++            cacheItem->scriptRef -= 1;
+         }
++
+         cacheItem->groups &= ~Compositor::UnresolvedFlag;
+         cacheItem->objectRef = 0;
++
++        if (cacheItem->incubationTask) {
++            d->releaseIncubator(cacheItem->incubationTask);
++            cacheItem->incubationTask->vdm = nullptr;
++            cacheItem->incubationTask = nullptr;
++        }
++
+         if (!cacheItem->isReferenced())
+             delete cacheItem;
+-        else if (cacheItem->incubationTask)
+-            cacheItem->incubationTask->vdm = nullptr;
+     }
+ }
+ 

@@ -1,0 +1,25 @@
+From a46dd8cf17813163a1e1812629b31adccf5f9e3e Mon Sep 17 00:00:00 2001
+From: theilerp <theilerp@ethz.ch>
+Date: Thu, 15 Jan 2015 09:02:41 +0100
+Subject: [PATCH] replaced std::fabsf with std::abs <float> to get rid of clang
+ compile error
+
+---
+ registration/include/pcl/registration/impl/ia_fpcs.hpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/registration/include/pcl/registration/impl/ia_fpcs.hpp b/registration/include/pcl/registration/impl/ia_fpcs.hpp
+index 735e75aa2de..e859aaf26b7 100644
+--- a/registration/include/pcl/registration/impl/ia_fpcs.hpp
++++ b/registration/include/pcl/registration/impl/ia_fpcs.hpp
+@@ -554,8 +554,8 @@ pcl::registration::FPCSInitialAlignment <PointSource, PointTarget, NormalT, Scal
+   }
+ 
+   // set intersection ratios
+-  ratio[0] = (std::fabsf (sN) < small_error_) ? 0.f : sN / sD;
+-  ratio[1] = (std::fabsf (tN) < small_error_) ? 0.f : tN / tD;
++  ratio[0] = (std::abs <float> (sN) < small_error_) ? 0.f : sN / sD;
++  ratio[1] = (std::abs <float> (tN) < small_error_) ? 0.f : tN / tD;
+ 
+   Eigen::Vector3f x = w + (ratio[0] * u) - (ratio[1] * v);
+   return (x.norm ());

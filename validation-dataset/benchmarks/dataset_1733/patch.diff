@@ -1,0 +1,24 @@
+From 943a658c0763b62eff9f1a234bf561645e77b1cf Mon Sep 17 00:00:00 2001
+From: Anton Kudryavtsev <a.kudryavtsev@netris.ru>
+Date: Mon, 25 Apr 2016 12:20:08 +0300
+Subject: [PATCH] QJsonObject: use reserve() to reduce memory allocations
+
+Change-Id: I97821ffa0c485815c781dc4f98012b0b490da90a
+Reviewed-by: Edward Welbourne <edward.welbourne@theqtcompany.com>
+Reviewed-by: Marc Mutz <marc.mutz@kdab.com>
+---
+ src/corelib/json/qjsonobject.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/corelib/json/qjsonobject.cpp b/src/corelib/json/qjsonobject.cpp
+index 4ee20ef16826..7badc9d929fa 100644
+--- a/src/corelib/json/qjsonobject.cpp
++++ b/src/corelib/json/qjsonobject.cpp
+@@ -304,6 +304,7 @@ QVariantHash QJsonObject::toVariantHash() const
+ {
+     QVariantHash hash;
+     if (o) {
++        hash.reserve(o->length);
+         for (uint i = 0; i < o->length; ++i) {
+             QJsonPrivate::Entry *e = o->entryAt(i);
+             hash.insert(e->key(), QJsonValue(d, o, e->value).toVariant());

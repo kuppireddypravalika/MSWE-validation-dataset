@@ -1,0 +1,32 @@
+From c80b244196d9b8f020522879fb2cf1b8f4d5e4c0 Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Tue, 9 Nov 2021 10:38:24 -0700
+Subject: [PATCH] Multiply before dividing for better numerical stability
+
+This is particularly true if the underlying data type is changed to int.
+---
+ OPHD/UI/Core/Slider.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/OPHD/UI/Core/Slider.cpp b/OPHD/UI/Core/Slider.cpp
+index f272d7dbe..334143d16 100644
+--- a/OPHD/UI/Core/Slider.cpp
++++ b/OPHD/UI/Core/Slider.cpp
+@@ -272,7 +272,7 @@ void Slider::update()
+ 		const auto i = static_cast<int>(mSlideBar.height / mLength);
+ 		const auto newSize = std::max(i, mSlider.width);
+ 
+-		const auto relativeThumbPosition = static_cast<int>((mSlideBar.height - mSlider.height) * (mPosition / mLength)); //relative width
++		const auto relativeThumbPosition = static_cast<int>((mSlideBar.height - mSlider.height) * mPosition / mLength); //relative width
+ 
+ 		mSlider = {mSlideBar.x, mSlideBar.y + relativeThumbPosition, mSlideBar.width, newSize};
+ 	}
+@@ -282,7 +282,7 @@ void Slider::update()
+ 		const auto i = static_cast<int>(mSlideBar.width / (mLength + 1.0f));
+ 		const auto newSize = std::max(i, mSlider.height);
+ 
+-		const auto relativeThumbPosition = static_cast<int>((mSlideBar.width - mSlider.width) * (mPosition / mLength)); //relative width
++		const auto relativeThumbPosition = static_cast<int>((mSlideBar.width - mSlider.width) * mPosition / mLength); //relative width
+ 
+ 		mSlider = {mSlideBar.x + relativeThumbPosition, mSlideBar.y, newSize, mSlideBar.height};
+ 	}

@@ -1,0 +1,37 @@
+From 8b6f54546c2375e3286e42bfaf22f0b5a7fdc1a2 Mon Sep 17 00:00:00 2001
+From: Pavel Labath <labath@google.com>
+Date: Thu, 22 Oct 2015 09:34:40 +0000
+Subject: [PATCH] [AppleObjCRuntime] Don't bother looking for the runtime on
+ non-apple targets
+
+Summary:
+This short-circuits the GetObjCVersion function to avoid iterating through target modules on
+non-apple targets. This function is called on every Process::IsDynamicValue call, so this
+overhead is not negligible.
+
+Reviewers: clayborg, jingham
+
+Subscribers: lldb-commits
+
+Differential Revision: http://reviews.llvm.org/D13948
+---
+ .../ObjC/AppleObjCRuntime/AppleObjCRuntime.cpp               | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/lldb/source/Plugins/LanguageRuntime/ObjC/AppleObjCRuntime/AppleObjCRuntime.cpp b/lldb/source/Plugins/LanguageRuntime/ObjC/AppleObjCRuntime/AppleObjCRuntime.cpp
+index 96ef6cb0345e..cdb95250b2f4 100644
+--- a/lldb/source/Plugins/LanguageRuntime/ObjC/AppleObjCRuntime/AppleObjCRuntime.cpp
++++ b/lldb/source/Plugins/LanguageRuntime/ObjC/AppleObjCRuntime/AppleObjCRuntime.cpp
+@@ -382,8 +382,11 @@ AppleObjCRuntime::GetObjCVersion (Process *process, ModuleSP &objc_module_sp)
+ {
+     if (!process)
+         return ObjCRuntimeVersions::eObjC_VersionUnknown;
+-        
++
+     Target &target = process->GetTarget();
++    if (target.GetArchitecture().GetTriple().getVendor() != llvm::Triple::VendorType::Apple)
++        return ObjCRuntimeVersions::eObjC_VersionUnknown;
++
+     const ModuleList &target_modules = target.GetImages();
+     Mutex::Locker modules_locker(target_modules.GetMutex());
+     

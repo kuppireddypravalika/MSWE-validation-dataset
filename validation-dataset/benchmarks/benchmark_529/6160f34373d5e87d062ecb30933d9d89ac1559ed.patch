@@ -1,0 +1,36 @@
+From 6160f34373d5e87d062ecb30933d9d89ac1559ed Mon Sep 17 00:00:00 2001
+From: Lyve <lyve2909+github@gmail.com>
+Date: Thu, 27 Jan 2022 19:43:38 +0100
+Subject: [PATCH] optimize do_end to not query the SS register twice
+
+---
+ source/dsp56kEmu/jitops.cpp | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
+
+diff --git a/source/dsp56kEmu/jitops.cpp b/source/dsp56kEmu/jitops.cpp
+index 74897be6..f08649f5 100644
+--- a/source/dsp56kEmu/jitops.cpp
++++ b/source/dsp56kEmu/jitops.cpp
+@@ -475,11 +475,18 @@ namespace dsp56k
+ 		// decrement SP twice, restoring old loop settings
+ 		decSP();
+ 
+-		getSSL(r32(r.get()));
+-		m_dspRegs.setLC(r32(r.get()));
++		m_dspRegs.getSS(r64(r));
+ 
+-		getSSH(r32(r.get()));
+-		m_dspRegs.setLA(r32(r.get()));
++		const auto lc = m_dspRegs.getLC(JitDspRegs::Write);
++		m_asm.mov(r64(lc), r64(r));
++		m_asm.and_(r32(lc), asmjit::Imm(0xffffff));
++
++		const auto la = m_dspRegs.getLA(JitDspRegs::Write);
++		m_asm.mov(r64(la), r64(r));
++		m_asm.shr(r64(la), asmjit::Imm(24));
++		m_asm.and_(r32(la), asmjit::Imm(0xffffff));
++
++		decSP();
+ 
+ 		m_resultFlags |= WriteToLC | WriteToLA;
+ 

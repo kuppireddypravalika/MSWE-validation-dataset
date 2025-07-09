@@ -1,0 +1,31 @@
+From a5ef4a5da7d35645c3af906edbeb3b9f18ba7f70 Mon Sep 17 00:00:00 2001
+From: Alkis Evlogimenos <alkis@evlogimenos.com>
+Date: Mon, 16 Feb 2004 23:50:18 +0000
+Subject: [PATCH] Add peephole optimizations for ADD [MEM], IMM8 instructions.
+
+llvm-svn: 11511
+---
+ llvm/lib/Target/X86/PeepholeOptimizer.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/llvm/lib/Target/X86/PeepholeOptimizer.cpp b/llvm/lib/Target/X86/PeepholeOptimizer.cpp
+index 42c985d2d63..accbdd6dccb 100644
+--- a/llvm/lib/Target/X86/PeepholeOptimizer.cpp
++++ b/llvm/lib/Target/X86/PeepholeOptimizer.cpp
+@@ -94,6 +94,7 @@ bool PH::PeepholeOptimize(MachineBasicBlock &MBB,
+     return false;
+ 
+   case X86::ADDri16:  case X86::ADDri32:
++  case X86::ADDmi16:  case X86::ADDmi32:
+   case X86::SUBri16:  case X86::SUBri32:
+   case X86::ANDri16:  case X86::ANDri32:
+   case X86::ORri16:   case X86::ORri32:
+@@ -108,6 +109,8 @@ bool PH::PeepholeOptimize(MachineBasicBlock &MBB,
+         default: assert(0 && "Unknown opcode value!");
+         case X86::ADDri16:  Opcode = X86::ADDri16b; break;
+         case X86::ADDri32:  Opcode = X86::ADDri32b; break;
++        case X86::ADDmi16:  Opcode = X86::ADDmi16b; break;
++        case X86::ADDmi32:  Opcode = X86::ADDmi32b; break;
+         case X86::SUBri16:  Opcode = X86::SUBri16b; break;
+         case X86::SUBri32:  Opcode = X86::SUBri32b; break;
+         case X86::ANDri16:  Opcode = X86::ANDri16b; break;

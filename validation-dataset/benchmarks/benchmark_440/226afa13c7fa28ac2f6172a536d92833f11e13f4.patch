@@ -1,0 +1,40 @@
+From 226afa13c7fa28ac2f6172a536d92833f11e13f4 Mon Sep 17 00:00:00 2001
+From: Arnaud Gelas <arnaudgelas@gmail.com>
+Date: Wed, 6 Nov 2013 16:13:28 +0100
+Subject: [PATCH] PERF: cppcheck copy constructor
+
+Change-Id: I7ffa562b6776b1a6d8e81f45f8649b04275d9868
+---
+ .../Core/Common/include/itkAnnulusOperator.h   | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/Modules/Core/Common/include/itkAnnulusOperator.h b/Modules/Core/Common/include/itkAnnulusOperator.h
+index 97fd51abec8..6e1e2b39718 100644
+--- a/Modules/Core/Common/include/itkAnnulusOperator.h
++++ b/Modules/Core/Common/include/itkAnnulusOperator.h
+@@ -92,16 +92,16 @@ class AnnulusOperator:
+   {}
+ 
+   AnnulusOperator(const Self & other):
+-    NeighborhoodOperator< TPixel, TDimension, TAllocator >(other)
++    NeighborhoodOperator< TPixel, TDimension, TAllocator >(other),
++    m_InnerRadius( other.m_InnerRadius ),
++    m_Thickness( other.m_Thickness ),
++    m_Normalize( other.m_Normalize ),
++    m_BrightCenter( other.m_BrightCenter ),
++    m_InteriorValue( other.m_InteriorValue ),
++    m_AnnulusValue( other.m_AnnulusValue ),
++    m_ExteriorValue( other.m_ExteriorValue ),
++    m_Spacing( other.m_Spacing )
+   {
+-    m_InnerRadius = other.m_InnerRadius;
+-    m_Thickness = other.m_Thickness;
+-    m_Spacing = other.m_Spacing;
+-    m_InteriorValue = other.m_InteriorValue;
+-    m_AnnulusValue = other.m_AnnulusValue;
+-    m_ExteriorValue = other.m_ExteriorValue;
+-    m_Normalize = other.m_Normalize;
+-    m_BrightCenter = other.m_BrightCenter;
+   }
+ 
+   /** This function is called to create the operator.  The radius of

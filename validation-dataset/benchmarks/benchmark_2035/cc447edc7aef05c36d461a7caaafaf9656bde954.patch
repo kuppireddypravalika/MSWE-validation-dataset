@@ -1,0 +1,41 @@
+From cc447edc7aef05c36d461a7caaafaf9656bde954 Mon Sep 17 00:00:00 2001
+From: KONNO Kazuhiro <konno@jp.ibm.com>
+Date: Thu, 23 Apr 2020 21:53:44 +0900
+Subject: [PATCH] AArch64: Omit unnecessary zero-extension instruction in iu2l
+
+This commit stops generating unnecessary instruction for zero extension
+in iu2lEvaluator().
+iloadi-iu2l sequence often appears in IL compressedRefs tree, and
+AArch64 ldrimmw instruction clears the upper 32 bits of the register.
+
+Signed-off-by: KONNO Kazuhiro <konno@jp.ibm.com>
+---
+ compiler/aarch64/codegen/UnaryEvaluator.cpp | 15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/compiler/aarch64/codegen/UnaryEvaluator.cpp b/compiler/aarch64/codegen/UnaryEvaluator.cpp
+index 0c445b9d37..c01c035a84 100644
+--- a/compiler/aarch64/codegen/UnaryEvaluator.cpp
++++ b/compiler/aarch64/codegen/UnaryEvaluator.cpp
+@@ -208,7 +208,20 @@ TR::Register *OMR::ARM64::TreeEvaluator::su2lEvaluator(TR::Node *node, TR::CodeG
+ 
+ TR::Register *OMR::ARM64::TreeEvaluator::iu2lEvaluator(TR::Node *node, TR::CodeGenerator *cg)
+    {
+-   return extendToIntOrLongHelper(node, TR::InstOpCode::ubfmx, 31, cg);
++   TR::Node *child = node->getFirstChild();
++   TR::Register *trgReg = cg->gprClobberEvaluate(child);
++
++   if (child->getOpCodeValue() == TR::iload || child->getOpCodeValue() == TR::iloadi)
++      {
++      // No need for zero extension
++      }
++   else
++      {
++      generateTrg1Src1ImmInstruction(cg, TR::InstOpCode::ubfmx, node, trgReg, trgReg, 31);
++      }
++   node->setRegister(trgReg);
++   cg->decReferenceCount(child);
++   return trgReg;
+    }
+ 
+ TR::Register *OMR::ARM64::TreeEvaluator::l2aEvaluator(TR::Node *node, TR::CodeGenerator *cg)

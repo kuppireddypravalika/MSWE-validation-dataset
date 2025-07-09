@@ -1,0 +1,51 @@
+From 2b883dc9bb6cfd186a23a945597f67a9f9fc270e Mon Sep 17 00:00:00 2001
+From: Jason McDonald <jason.mcdonald@nokia.com>
+Date: Thu, 17 Nov 2011 13:29:36 +1000
+Subject: [PATCH] Improve Q_FUNC_INFO autotest.
+
+The availableWithoutDebug() test was trying to force QT_NO_DEBUG to be
+defined, but was actually doing the opposite.  While I'm not satisfied
+with the way this test works (it would be better to test with
+QT_NO_DEBUG already defined when Q_FUNC_INFO is included). at least this
+test now does what it says it does.
+
+Additionally, the test has been improved by checking that Q_FUNC_INFO
+returns a non-empty string, as opposed to just compiling.
+
+Change-Id: I9175e3a7406152b6250b507a61b5062e3cfabeb8
+Reviewed-by: Rohan McGovern <rohan.mcgovern@nokia.com>
+---
+ .../corelib/global/q_func_info/tst_q_func_info.cpp  | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
+
+diff --git a/tests/auto/corelib/global/q_func_info/tst_q_func_info.cpp b/tests/auto/corelib/global/q_func_info/tst_q_func_info.cpp
+index 0a2a259462..e4949348f4 100644
+--- a/tests/auto/corelib/global/q_func_info/tst_q_func_info.cpp
++++ b/tests/auto/corelib/global/q_func_info/tst_q_func_info.cpp
+@@ -123,20 +123,19 @@ void tst_q_func_info::isOfTypeConstChar() const
+ 
+ /* \internal
+     Ensure that the macro is available even though QT_NO_DEBUG
+-    is defined. We do this by undefining it, and turning it on again
+-    backwards(just so we don't break stuff), if it was in fact defined.
++    is defined.  If QT_NO_DEBUG is not defined, we define it
++    just for this function then undef it again afterwards.
+  */
+ void tst_q_func_info::availableWithoutDebug() const
+ {
+ #ifndef QT_NO_DEBUG
+-#   define USE_DEBUG
++#   define UNDEF_NO_DEBUG
+ #   define QT_NO_DEBUG
+ #endif
+-#undef QT_NO_DEBUG
+-    QString::fromLatin1(Q_FUNC_INFO);
+-#ifdef USE_DEBUG
++    QVERIFY(!QString::fromLatin1(Q_FUNC_INFO).isEmpty());
++#ifdef UNDEF_NO_DEBUG
+ #   undef QT_NO_DEBUG
+-#   undef USE_DEBUG
++#   undef UNDEF_NO_DEBUG
+ #endif
+ }
+ 

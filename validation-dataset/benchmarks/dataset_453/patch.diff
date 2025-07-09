@@ -1,0 +1,27 @@
+From 0211c7f7f38e3e1a63971bceca2f9f0663ce1d2d Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@musicpd.org>
+Date: Thu, 11 Jan 2018 20:10:38 +0100
+Subject: [PATCH] lib/yajl/ParseInputStream: use InputStream::LockRead() to
+ reduce lock duration
+
+---
+ src/lib/yajl/ParseInputStream.cxx | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/src/lib/yajl/ParseInputStream.cxx b/src/lib/yajl/ParseInputStream.cxx
+index 4e8deed212..1a81a1e7c5 100644
+--- a/src/lib/yajl/ParseInputStream.cxx
++++ b/src/lib/yajl/ParseInputStream.cxx
+@@ -25,11 +25,9 @@
+ void
+ Yajl::ParseInputStream(Handle &handle, InputStream &is)
+ {
+-	const std::lock_guard<Mutex> protect(is.mutex);
+-
+ 	while (true) {
+ 		unsigned char buffer[4096];
+-		const size_t nbytes = is.Read(buffer, sizeof(buffer));
++		const size_t nbytes = is.LockRead(buffer, sizeof(buffer));
+ 		if (nbytes == 0)
+ 			break;
+ 

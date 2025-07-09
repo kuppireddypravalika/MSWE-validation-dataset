@@ -1,0 +1,23 @@
+From d0931a0e1ba6110ca0706f16df4e0a788ef66965 Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Sat, 19 Nov 2016 19:59:09 -0500
+Subject: [PATCH] [libromdata] NintendoDS::loadFieldData(): Reduce buf[] from
+ 32 to 24.
+
+---
+ src/libromdata/NintendoDS.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/libromdata/NintendoDS.cpp b/src/libromdata/NintendoDS.cpp
+index eab670582f..b58fb02ba6 100644
+--- a/src/libromdata/NintendoDS.cpp
++++ b/src/libromdata/NintendoDS.cpp
+@@ -775,7 +775,7 @@ int NintendoDS::loadFieldData(void)
+ 			m_fields->addData_string(filetype);
+ 		} else {
+ 			// Invalid file type.
+-			char buf[32];
++			char buf[24];
+ 			int len = snprintf(buf, sizeof(buf), "Unknown (0x%02X)", romHeader->dsi_filetype);
+ 			if (len > (int)sizeof(buf))
+ 				len = sizeof(buf);

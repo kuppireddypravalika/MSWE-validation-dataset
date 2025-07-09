@@ -1,0 +1,32 @@
+From 65a5ee86ba31346ea625d0cb7ff853ff9cb75d48 Mon Sep 17 00:00:00 2001
+From: Alkis Evlogimenos <alkis@evlogimenos.com>
+Date: Tue, 17 Feb 2004 15:14:29 +0000
+Subject: [PATCH] Peephole optimize SUBmi{16,32} into SUBmi{16,32}b when
+ immediate is 8 bits wide.
+
+llvm-svn: 11548
+---
+ llvm/lib/Target/X86/PeepholeOptimizer.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/llvm/lib/Target/X86/PeepholeOptimizer.cpp b/llvm/lib/Target/X86/PeepholeOptimizer.cpp
+index 27baa521e84..3e0af70717c 100644
+--- a/llvm/lib/Target/X86/PeepholeOptimizer.cpp
++++ b/llvm/lib/Target/X86/PeepholeOptimizer.cpp
+@@ -154,6 +154,7 @@ bool PH::PeepholeOptimize(MachineBasicBlock &MBB,
+ 
+ 
+   case X86::ADDmi16:  case X86::ADDmi32:
++  case X86::SUBmi16:  case X86::SUBmi32:
+   case X86::ANDmi16:  case X86::ANDmi32:
+     assert(MI->getNumOperands() == 5 && "These should all have 5 operands!");
+     if (MI->getOperand(4).isImmediate()) {
+@@ -165,6 +166,8 @@ bool PH::PeepholeOptimize(MachineBasicBlock &MBB,
+         default: assert(0 && "Unknown opcode value!");
+         case X86::ADDmi16:  Opcode = X86::ADDmi16b; break;
+         case X86::ADDmi32:  Opcode = X86::ADDmi32b; break;
++        case X86::SUBmi16:  Opcode = X86::SUBmi16b; break;
++        case X86::SUBmi32:  Opcode = X86::SUBmi32b; break;
+         case X86::ANDmi16:  Opcode = X86::ANDmi16b; break;
+         case X86::ANDmi32:  Opcode = X86::ANDmi32b; break;
+         }

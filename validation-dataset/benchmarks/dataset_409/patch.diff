@@ -1,0 +1,33 @@
+From d623efcaaef62931dbf1eb7895fa2bea406dc50c Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Mon, 14 Jun 2021 15:22:48 -0600
+Subject: [PATCH] Limit variable scope to loop in MapViewState::readRobots
+
+Rather than manually reset each variable to 0 each iteration, move the
+declaration and initialization to 0 of each variable into the loop. This
+has the added benefit of limiting variable scope, which is generally a
+good practice.
+
+This is also the only place where `addRobot` is called with an explicit
+id.
+---
+ OPHD/States/MapViewStateIO.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/OPHD/States/MapViewStateIO.cpp b/OPHD/States/MapViewStateIO.cpp
+index e3848598f..5b3c12be1 100644
+--- a/OPHD/States/MapViewStateIO.cpp
++++ b/OPHD/States/MapViewStateIO.cpp
+@@ -263,11 +263,10 @@ void MapViewState::readRobots(Xml::XmlElement* element)
+ 	mRobots.clear();
+ 
+ 	ROBOT_ID_COUNTER = 0;
+-	int id = 0, type = 0, age = 0, production_time = 0, x = 0, y = 0, depth = 0, direction = 0;
+ 	XmlAttribute* attribute = nullptr;
+ 	for (XmlNode* robotNode = element->firstChild(); robotNode; robotNode = robotNode->nextSibling())
+ 	{
+-		id = type = age = production_time = x = y = depth = direction = 0;
++		int id = 0, type = 0, age = 0, production_time = 0, x = 0, y = 0, depth = 0, direction = 0;
+ 		attribute = robotNode->toElement()->firstAttribute();
+ 		while (attribute)
+ 		{

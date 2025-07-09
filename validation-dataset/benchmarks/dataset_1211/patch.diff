@@ -1,0 +1,22 @@
+From 83062d685528bf2c16ee757015b455ea5c193dcb Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@spatialys.com>
+Date: Sun, 4 Feb 2024 20:52:28 +0100
+Subject: [PATCH] PG: fix performance warning (CID 1534299)
+
+---
+ ogr/ogrsf_frmts/pg/ogrpgdatasource.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ogr/ogrsf_frmts/pg/ogrpgdatasource.cpp b/ogr/ogrsf_frmts/pg/ogrpgdatasource.cpp
+index ff93c68e772d..842711c08dba 100644
+--- a/ogr/ogrsf_frmts/pg/ogrpgdatasource.cpp
++++ b/ogr/ogrsf_frmts/pg/ogrpgdatasource.cpp
+@@ -2093,7 +2093,7 @@ OGRLayer *OGRPGDataSource::ICreateLayer(const char *pszLayerName,
+                              osFIDColumnNameEscaped.c_str(), pszSerialType,
+                              osFIDColumnNameEscaped.c_str());
+         }
+-        osCreateTable = osCommand;
++        osCreateTable = std::move(osCommand);
+     }
+ 
+     const char *pszSI =

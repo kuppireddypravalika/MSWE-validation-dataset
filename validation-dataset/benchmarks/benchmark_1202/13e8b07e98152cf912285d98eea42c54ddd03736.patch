@@ -1,0 +1,52 @@
+From 13e8b07e98152cf912285d98eea42c54ddd03736 Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@gmail.com>
+Date: Mon, 15 May 2017 18:14:16 +0000
+Subject: [PATCH] [SCEV] Use copy initialization of APInts instead of direct
+ initialization.
+
+This is based on post commit feed back from r302769.
+---
+ llvm/lib/Analysis/ScalarEvolution.cpp | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/llvm/lib/Analysis/ScalarEvolution.cpp b/llvm/lib/Analysis/ScalarEvolution.cpp
+index 8613d3ca5f78..7676bfc3d1f9 100644
+--- a/llvm/lib/Analysis/ScalarEvolution.cpp
++++ b/llvm/lib/Analysis/ScalarEvolution.cpp
+@@ -7403,17 +7403,17 @@ SolveQuadraticEquation(const SCEVAddRecExpr *AddRec, ScalarEvolution &SE) {
+   // Convert from chrec coefficients to polynomial coefficients AX^2+BX+C
+ 
+   // The A coefficient is N/2
+-  APInt A(N.sdiv(Two));
++  APInt A = N.sdiv(Two);
+ 
+   // The B coefficient is M-N/2
+-  APInt B(M);
++  APInt B = M;
+   B -= A; // A is the same as N/2.
+ 
+   // The C coefficient is L.
+   const APInt& C = L;
+ 
+   // Compute the B^2-4ac term.
+-  APInt SqrtTerm(B);
++  APInt SqrtTerm = B;
+   SqrtTerm *= B;
+   SqrtTerm -= 4 * (A * C);
+ 
+@@ -7424,12 +7424,12 @@ SolveQuadraticEquation(const SCEVAddRecExpr *AddRec, ScalarEvolution &SE) {
+ 
+   // Compute sqrt(B^2-4ac). This is guaranteed to be the nearest
+   // integer value or else APInt::sqrt() will assert.
+-  APInt SqrtVal(SqrtTerm.sqrt());
++  APInt SqrtVal = SqrtTerm.sqrt();
+ 
+   // Compute the two solutions for the quadratic formula.
+   // The divisions must be performed as signed divisions.
+-  APInt NegB(-std::move(B));
+-  APInt TwoA(std::move(A));
++  APInt NegB = -std::move(B);
++  APInt TwoA = std::move(A);
+   TwoA <<= 1;
+   if (TwoA.isNullValue())
+     return None;

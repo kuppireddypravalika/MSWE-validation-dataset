@@ -1,0 +1,26 @@
+From 4f80f53c2998fdafb1311942fc473e63709ac8cd Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@duempel.org>
+Date: Tue, 26 Aug 2008 08:27:04 +0200
+Subject: [PATCH] do not sleep after openAudioDevice()
+
+After the decoder has been initialized and the audio device has been
+opened, don't sleep.  The decoder plugin won't do anything special nor
+will it care to wake us up for some reason.
+---
+ src/decode.c | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/src/decode.c b/src/decode.c
+index 4df410e50e..759eacbc0c 100644
+--- a/src/decode.c
++++ b/src/decode.c
+@@ -455,9 +455,6 @@ static void decodeParent(void)
+ 					break;
+ 				}
+ 
+-				notify_signal(&dc.notify);
+-				notify_wait(&pc.notify);
+-
+ 				if (do_pause) {
+ 					dropBufferedAudio();
+ 					closeAudioDevice();

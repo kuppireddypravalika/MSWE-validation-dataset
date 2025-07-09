@@ -1,0 +1,45 @@
+From a2340c313f49d45abf3ade4645264e45c54918c7 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@musicpd.org>
+Date: Thu, 15 Mar 2018 20:02:00 +0100
+Subject: [PATCH] pcm/PcmDop: round down to the nearest multiple of 4 DSD bytes
+
+There was a discrepancy between what was written to the buffer and the
+size returned by pcm_dsd_to_dop(): the "for" loop uses num_frames/2,
+rounding down, while the return value is num_samples which is
+num_frames*channels, without rounding.  This could cause undefined
+data at the end of the destination buffer if the source buffer size
+was not aligned to multiples of 8 bytes (4 DSD bytes per channel).
+
+The latter however can occur in the 0.21 branch after commit
+a06bf388d96
+
+Closes #233
+---
+ src/pcm/PcmDop.cxx | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/src/pcm/PcmDop.cxx b/src/pcm/PcmDop.cxx
+index e54276140e..d7512d4822 100644
+--- a/src/pcm/PcmDop.cxx
++++ b/src/pcm/PcmDop.cxx
+@@ -49,16 +49,17 @@ pcm_dsd_to_dop(PcmBuffer &buffer, unsigned channels,
+ 	const size_t num_src_samples = _src.size;
+ 	const size_t num_src_frames = num_src_samples / channels;
+ 
+-	/* this rounds down and discards the last odd frame; not
++	/* this rounds down and discards up to 3 odd frames; not
+ 	   elegant, but good enough for now */
+-	const size_t num_frames = num_src_frames / 2;
++	const size_t num_dop_quads = num_src_frames / 4;
++	const size_t num_frames = num_dop_quads * 2;
+ 	const size_t num_samples = num_frames * channels;
+ 
+ 	uint32_t *const dest0 = (uint32_t *)buffer.GetT<uint32_t>(num_samples),
+ 		*dest = dest0;
+ 
+ 	auto src = _src.data;
+-	for (size_t i = num_frames / 2; i > 0; --i) {
++	for (size_t i = num_dop_quads; i > 0; --i) {
+ 		for (unsigned c = channels; c > 0; --c) {
+ 			/* each 24 bit sample has 16 DSD sample bits
+ 			   plus the magic 0x05 marker */

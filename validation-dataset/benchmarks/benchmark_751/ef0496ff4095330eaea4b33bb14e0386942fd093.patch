@@ -1,0 +1,34 @@
+From ef0496ff4095330eaea4b33bb14e0386942fd093 Mon Sep 17 00:00:00 2001
+From: Marco Costalba <mcostalba@gmail.com>
+Date: Sun, 22 Apr 2012 12:59:35 +0100
+Subject: [PATCH] Don't split if reduced depth is below min_split_depth
+
+It seems to increase SMP performances. To note that
+this patch goes in the opposite direction of "Active
+reparenting" where we try to reparent an idle slave
+as soon as possible. Instead here we prefer to keep
+it idle instead of splitting on a shallow / near the
+leaves node.
+
+After 11550 games on a QUAD (4 threads) at 15"+0.05
+Mod vs Orig 1972 - 1752 - 7826 ELO +6 (+-3.6)
+
+No functional change.
+
+Signed-off-by: Marco Costalba <mcostalba@gmail.com>
+---
+ src/search.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/search.cpp b/src/search.cpp
+index 55bf52b2..be6e360a 100644
+--- a/src/search.cpp
++++ b/src/search.cpp
+@@ -1052,6 +1052,7 @@ namespace {
+       // Step 19. Check for split
+       if (   !SpNode
+           &&  depth >= Threads.min_split_depth()
++          &&  depth - reduction<PvNode>(depth, moveCount) >= Threads.min_split_depth()
+           &&  bestValue < beta
+           &&  Threads.available_slave_exists(thisThread)
+           && !Signals.stop

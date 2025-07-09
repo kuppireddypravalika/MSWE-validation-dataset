@@ -1,0 +1,26 @@
+From 44c4c985a29e84a374a9dc94a2718b4e2d8eab99 Mon Sep 17 00:00:00 2001
+From: Derek Lamberti <derek.lamberti@arm.com>
+Date: Thu, 14 Oct 2021 00:28:37 +0100
+Subject: [PATCH] Profile optimizer in ExecuteNetwork
+
+Signed-off-by: Derek Lamberti <derek.lamberti@arm.com>
+Change-Id: I04fb80c967bba4bb377de419bde618c1cbb80075
+---
+ tests/InferenceModel.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tests/InferenceModel.hpp b/tests/InferenceModel.hpp
+index b982df396d..02511965d9 100644
+--- a/tests/InferenceModel.hpp
++++ b/tests/InferenceModel.hpp
+@@ -450,9 +450,9 @@ class InferenceModel
+             options.m_ReduceFp32ToFp16 = params.m_EnableFp16TurboMode;
+             options.m_ReduceFp32ToBf16 = params.m_EnableBf16TurboMode;
+             options.m_Debug = params.m_PrintIntermediateLayers;
+-
+             options.m_shapeInferenceMethod = params.m_InferOutputShape ?
+                     armnn::ShapeInferenceMethod::InferAndValidate : armnn::ShapeInferenceMethod::ValidateOnly;
++            options.m_ProfilingEnabled = m_EnableProfiling;
+ 
+             armnn::BackendOptions gpuAcc("GpuAcc",
+             {

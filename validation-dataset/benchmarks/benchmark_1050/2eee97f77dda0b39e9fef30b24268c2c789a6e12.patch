@@ -1,0 +1,33 @@
+From 2eee97f77dda0b39e9fef30b24268c2c789a6e12 Mon Sep 17 00:00:00 2001
+From: Jan Blechta <blechta@karlin.mff.cuni.cz>
+Date: Sun, 8 Feb 2015 19:57:00 +0100
+Subject: [PATCH] Use whole matrix in Eigen CG and MINRES.
+
+Uses now _UpLo = Whole option,
+Depends on https://bitbucket.org/eigen/eigen/pull-request/97.
+---
+ dolfin/la/EigenKrylovSolver.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/dolfin/la/EigenKrylovSolver.cpp b/dolfin/la/EigenKrylovSolver.cpp
+index d043296f850..c3eb5a0b9fe 100644
+--- a/dolfin/la/EigenKrylovSolver.cpp
++++ b/dolfin/la/EigenKrylovSolver.cpp
+@@ -204,7 +204,7 @@ std::size_t EigenKrylovSolver::solve(EigenVector& x, const EigenVector& b)
+ 
+   if (_method == "cg")
+   {
+-    Eigen::ConjugateGradient<eigen_matrix_type, Eigen::Lower> solver;
++    Eigen::ConjugateGradient<eigen_matrix_type, Eigen::Whole> solver;
+     num_iterations = call_solver(solver, x, b);
+   }
+   else if (_method == "bicgstab")
+@@ -224,7 +224,7 @@ std::size_t EigenKrylovSolver::solve(EigenVector& x, const EigenVector& b)
+   }
+   else if (_method == "minres")
+   {
+-    Eigen::MINRES<eigen_matrix_type> solver;
++    Eigen::MINRES<eigen_matrix_type, Eigen::Whole> solver;
+     num_iterations = call_solver(solver, x, b);
+   }
+ 

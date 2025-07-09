@@ -1,0 +1,22 @@
+From bb848f8eea2e135cf034cdd460cce192e6641994 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Andreas=20Sch=C3=A4fer?= <gentryx@gmx.de>
+Date: Mon, 23 May 2016 21:40:56 +0200
+Subject: [PATCH] copy grid data instead of calling initializer twice
+
+---
+ src/parallelization/nesting/commonstepper.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/parallelization/nesting/commonstepper.h b/src/parallelization/nesting/commonstepper.h
+index a65bd5be0..b74dd97e0 100644
+--- a/src/parallelization/nesting/commonstepper.h
++++ b/src/parallelization/nesting/commonstepper.h
+@@ -161,7 +161,7 @@ class CommonStepper : public Stepper<CELL_TYPE>
+         newGrid.reset(new GridType(gridBox, CELL_TYPE(), CELL_TYPE(), topoDim));
+ 
+         initializer->grid(&*oldGrid);
+-        initializer->grid(&*newGrid);
++        *newGrid = *oldGrid;
+ 
+         notifyPatchProviders(partitionManager->getOuterRim(), ParentType::GHOST,     globalNanoStep());
+         notifyPatchProviders(partitionManager->ownRegion(),   ParentType::INNER_SET, globalNanoStep());

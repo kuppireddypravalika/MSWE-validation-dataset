@@ -1,0 +1,42 @@
+From 8e69490dad460683e013896fabc388bbac9ff77f Mon Sep 17 00:00:00 2001
+From: Tim Jenssen <tim.jenssen@qt.io>
+Date: Wed, 18 Jan 2023 18:28:22 +0100
+Subject: [PATCH] Utils: improve filewatcher
+
+Avoid internal calls of QFileSystemEngine::fillMetaData
+which are expensive and especially on Windows trow
+GetFileAttributesEx can hang for seconds.
+(network drive or one drive which locks files)
+
+Task-number: QDS-8820
+Change-Id: I3269ade03d1c1ed65417eebf956080414c5d087b
+Reviewed-by: Eike Ziller <eike.ziller@qt.io>
+---
+ src/libs/utils/filesystemwatcher.cpp | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/src/libs/utils/filesystemwatcher.cpp b/src/libs/utils/filesystemwatcher.cpp
+index 8ff544c671cf..a5d0d56a0a01 100644
+--- a/src/libs/utils/filesystemwatcher.cpp
++++ b/src/libs/utils/filesystemwatcher.cpp
+@@ -3,6 +3,7 @@
+ 
+ #include "filesystemwatcher.h"
+ #include "globalfilechangeblocker.h"
++#include "filepath.h"
+ 
+ #include <QDir>
+ #include <QFileSystemWatcher>
+@@ -437,9 +438,9 @@ void FileSystemWatcher::slotDirectoryChanged(const QString &path)
+     }
+ 
+     QStringList toReadd;
+-    const QDir dir(path);
+-    for (const QFileInfo &entry : dir.entryInfoList(QDir::Files)) {
+-        const QString file = entry.filePath();
++    const auto dir = FilePath::fromString(path);
++    for (const FilePath &entry : dir.dirEntries(QDir::Files)) {
++        const QString file = entry.toString();
+         if (d->m_files.contains(file))
+             toReadd.append(file);
+     }

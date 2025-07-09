@@ -1,0 +1,24 @@
+From fe00a52e8b83a2107560d355af3dc9f1de7b5dd6 Mon Sep 17 00:00:00 2001
+From: Vishesh Handa <me@vhanda.in>
+Date: Thu, 19 Mar 2015 11:33:04 +0100
+Subject: [PATCH] DocumentUrlDB: Use custom lmdb env flags
+
+These are supposed to make it faster. However, with this test there
+doesn't seem to be any noticable difference.
+---
+ tests/documenturldbtest.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tests/documenturldbtest.cpp b/tests/documenturldbtest.cpp
+index 11f9dce40..a357c8a34 100644
+--- a/tests/documenturldbtest.cpp
++++ b/tests/documenturldbtest.cpp
+@@ -49,7 +49,7 @@ int main(int argc, char** argv)
+ 
+     // The directory needs to be created before opening the environment
+     QByteArray path = QFile::encodeName(tempDir.path());
+-    mdb_env_open(env, path.constData(), 0, 0664);
++    mdb_env_open(env, path.constData(), MDB_NOMEMINIT | MDB_WRITEMAP, 0664);
+     mdb_txn_begin(env, NULL, 0, &txn);
+ 
+     {

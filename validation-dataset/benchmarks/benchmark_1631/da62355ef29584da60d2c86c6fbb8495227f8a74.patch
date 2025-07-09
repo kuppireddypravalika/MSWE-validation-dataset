@@ -1,0 +1,31 @@
+From da62355ef29584da60d2c86c6fbb8495227f8a74 Mon Sep 17 00:00:00 2001
+From: Dilkhush <dilkhushpurohit01@gmail.com>
+Date: Tue, 3 Sep 2024 11:48:00 +0530
+Subject: [PATCH] use emplace instead of push (#6121)
+
+* use emplace instead of push
+
+* Fix syntax to use emplace instead of push
+
+Co-authored-by: Markus Vieth <39675748+mvieth@users.noreply.github.com>
+
+---------
+
+Co-authored-by: Markus Vieth <39675748+mvieth@users.noreply.github.com>
+---
+ .../include/pcl/segmentation/impl/region_growing_rgb.hpp        | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/segmentation/include/pcl/segmentation/impl/region_growing_rgb.hpp b/segmentation/include/pcl/segmentation/impl/region_growing_rgb.hpp
+index 2c240d37c46..dd35c5b1e74 100644
+--- a/segmentation/include/pcl/segmentation/impl/region_growing_rgb.hpp
++++ b/segmentation/include/pcl/segmentation/impl/region_growing_rgb.hpp
+@@ -338,7 +338,7 @@ pcl::RegionGrowingRGB<PointT, NormalT>::findRegionsKNN (pcl::index_t index, pcl:
+   {
+     if (distances[i_seg] < max_dist)
+     {
+-      segment_neighbours.push (std::make_pair (distances[i_seg], i_seg) );
++      segment_neighbours.emplace (distances[i_seg], i_seg);
+       if (segment_neighbours.size () > nghbr_number)
+         segment_neighbours.pop ();
+     }

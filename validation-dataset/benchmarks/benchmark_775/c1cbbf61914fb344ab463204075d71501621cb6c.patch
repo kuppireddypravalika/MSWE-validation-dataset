@@ -1,0 +1,44 @@
+From c1cbbf61914fb344ab463204075d71501621cb6c Mon Sep 17 00:00:00 2001
+From: Chris Sweeney <sweeney.chris.m@gmail.com>
+Date: Thu, 31 Aug 2017 08:54:12 -0700
+Subject: [PATCH] Update triangulation to use Cholesky solver since the matrix
+ is SPD
+
+Change-Id: I505e24562438b45558ddcded7a1bf0183f8aee32
+---
+ src/theia/sfm/triangulation/triangulation.cc | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/src/theia/sfm/triangulation/triangulation.cc b/src/theia/sfm/triangulation/triangulation.cc
+index f8e3ccdc8..f36869006 100644
+--- a/src/theia/sfm/triangulation/triangulation.cc
++++ b/src/theia/sfm/triangulation/triangulation.cc
+@@ -34,10 +34,10 @@
+ 
+ #include "theia/sfm/triangulation/triangulation.h"
+ 
++#include <Eigen/Cholesky>
+ #include <Eigen/Core>
+ #include <Eigen/Eigenvalues>
+ #include <Eigen/Geometry>
+-#include <Eigen/QR>
+ #include <Eigen/SVD>
+ #include <glog/logging.h>
+ #include <vector>
+@@ -148,12 +148,12 @@ bool TriangulateMidpoint(const std::vector<Vector3d>& ray_origin,
+     b += A_term * ray_origin[i].homogeneous();
+   }
+ 
+-  Eigen::ColPivHouseholderQR<Eigen::Matrix4d> qr(A);
+-  if (qr.info() != Eigen::Success) {
++  Eigen::LLT<Eigen::Matrix4d> linear_solver(A);
++  if (linear_solver.info() != Eigen::Success) {
+     return false;
+   }
+-  *triangulated_point = qr.solve(b);
+-  return qr.info() == Eigen::Success;
++  *triangulated_point = linear_solver.solve(b);
++  return linear_solver.info() == Eigen::Success;
+ }
+ 
+ // Triangulates 2 posed views

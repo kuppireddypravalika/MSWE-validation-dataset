@@ -1,0 +1,44 @@
+From 66fbffa29de034e5c55d72d69c9f137626817871 Mon Sep 17 00:00:00 2001
+From: Stuart Morgan <smorgan@mythtv.org>
+Date: Tue, 19 Nov 2013 17:47:37 +0000
+Subject: [PATCH] Services: Fix an off-by one error when using the StartIndex
+ arg with GetRecordedList.
+
+This also optimises things so that we aren't performing redundant
+string/regexp comparisons after reaching Count.
+---
+ mythtv/programs/mythbackend/services/dvr.cpp | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/mythtv/programs/mythbackend/services/dvr.cpp b/mythtv/programs/mythbackend/services/dvr.cpp
+index c506f5b293f..30c5eb53fce 100644
+--- a/mythtv/programs/mythbackend/services/dvr.cpp
++++ b/mythtv/programs/mythbackend/services/dvr.cpp
+@@ -97,6 +97,9 @@ DTC::ProgramList* Dvr::GetRecordedList( bool           bDescending,
+ 
+     for( unsigned int n = 0; n < progList.size(); n++)
+     {
++        if (nCount >= nMax)
++            break;
++
+         ProgramInfo *pInfo = progList[ n ];
+ 
+         if ((!sTitleRegEx.isEmpty() && !pInfo->GetTitle().contains(rTitleRegEx)) ||
+@@ -104,12 +107,13 @@ DTC::ProgramList* Dvr::GetRecordedList( bool           bDescending,
+             (!sStorageGroup.isEmpty() && sStorageGroup != pInfo->GetStorageGroup()))
+             continue;
+ 
+-        ++nAvailable;
+-
+-        if ((nAvailable < nStartIndex) ||
+-            (nCount >= nMax))
++        if (nAvailable < nStartIndex)
++        {
++            ++nAvailable;
+             continue;
++        }
+ 
++        ++nAvailable;
+         ++nCount;
+ 
+         DTC::Program *pProgram = pPrograms->AddNewProgram();

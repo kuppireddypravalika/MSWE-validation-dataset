@@ -1,0 +1,22 @@
+From 28f33e0433cd37fc6ca99577a28cde6b603e53e4 Mon Sep 17 00:00:00 2001
+From: Esteve Fernandez <esteve@apache.org>
+Date: Wed, 6 Jul 2016 11:20:33 +0200
+Subject: [PATCH] Use a universal reference to avoid extra std::string copies
+
+---
+ rmw_fastrtps_cpp/include/rmw_fastrtps_cpp/TypeSupport_impl.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/rmw_fastrtps_cpp/include/rmw_fastrtps_cpp/TypeSupport_impl.h b/rmw_fastrtps_cpp/include/rmw_fastrtps_cpp/TypeSupport_impl.h
+index eeac5f833..4f7c87a77 100644
+--- a/rmw_fastrtps_cpp/include/rmw_fastrtps_cpp/TypeSupport_impl.h
++++ b/rmw_fastrtps_cpp/include/rmw_fastrtps_cpp/TypeSupport_impl.h
+@@ -381,7 +381,7 @@ bool TypeSupport<MembersType>::serializeROSmessage(
+                     break;
+                 case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_STRING:
+                     {
+-                        auto str = StringHelper<MembersType>::convert_to_std_string(field);
++                        auto && str = StringHelper<MembersType>::convert_to_std_string(field);
+ 
+                         // Control maximum length.
+                         if((member->string_upper_bound_ && str.length() > member->string_upper_bound_ + 1) || str.length() > 256)

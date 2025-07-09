@@ -1,0 +1,23 @@
+From 047a09c391172e3d7a8d139ce9c922f46ff5bc1e Mon Sep 17 00:00:00 2001
+From: Andrew Tridgell <andrew@tridgell.net>
+Date: Thu, 27 Oct 2016 14:58:59 +1100
+Subject: [PATCH] AP_OpticalFlow: use const reference
+
+saves stack space and cpu
+---
+ libraries/AP_OpticalFlow/OpticalFlow.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libraries/AP_OpticalFlow/OpticalFlow.h b/libraries/AP_OpticalFlow/OpticalFlow.h
+index a056a4e771ac29..4caf99482e8c6d 100644
+--- a/libraries/AP_OpticalFlow/OpticalFlow.h
++++ b/libraries/AP_OpticalFlow/OpticalFlow.h
+@@ -74,7 +74,7 @@ class OpticalFlow
+     void setHIL(const struct OpticalFlow_state &state);
+ 
+     // return a 3D vector defining the position offset of the sensors focal point in metres relative to the body frame origin
+-    const Vector3f get_pos_offset(void) const {
++    const Vector3f &get_pos_offset(void) const {
+         return _pos_offset;
+     }
+ 

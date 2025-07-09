@@ -1,0 +1,27 @@
+From 1e0bef3ac45dc6ee3e6f53a54cf66c7f6dd69159 Mon Sep 17 00:00:00 2001
+From: Cameron White <cameronwhite91@gmail.com>
+Date: Sun, 11 Nov 2012 06:38:01 +0000
+Subject: [PATCH] Improve performance when several MIDI events occur fairly
+ close together.
+
+git-svn-id: http://svn.powertabs.org/svn/ptedev/trunk@798 5b1460fe-822e-4aa1-ac1b-8a6412c92c8c
+---
+ source/audio/midiplayer.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/source/audio/midiplayer.cpp b/source/audio/midiplayer.cpp
+index e7611fa89..1f6129e36 100755
+--- a/source/audio/midiplayer.cpp
++++ b/source/audio/midiplayer.cpp
+@@ -532,7 +532,10 @@ void MidiPlayer::playMidiEvents(boost::ptr_list<MidiEvent>& eventList, SystemLoc
+             const double speedShiftFactor = 100.0 / playbackSpeed; // slow down or speed up playback
+             mutex.unlock();
+ 
+-            usleep(1000 * sleepDuration * speedShiftFactor);
++            if (sleepDuration)
++            {
++                usleep(1000 * sleepDuration * speedShiftFactor);
++            }
+         }
+         else // last note
+         {

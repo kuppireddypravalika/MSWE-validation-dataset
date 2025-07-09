@@ -1,0 +1,24 @@
+From fb8d510952e7ed0fff38b87bc43d95decc0c42fb Mon Sep 17 00:00:00 2001
+From: Pilow <pierre.laupretre@gmail.com>
+Date: Tue, 26 Feb 2019 12:25:43 +0800
+Subject: [PATCH] [compiler] Use insn_delete_temporary instead of condition
+
+---
+ src/compiler/Compiler.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/compiler/Compiler.cpp b/src/compiler/Compiler.cpp
+index 6a9f9b95..77e249d8 100644
+--- a/src/compiler/Compiler.cpp
++++ b/src/compiler/Compiler.cpp
+@@ -389,8 +389,8 @@ Compiler::value Compiler::insn_lt(Compiler::value a, Compiler::value b) const {
+ 		auto res = insn_call(Type::integer(), {a, b}, +[](__mpz_struct a, __mpz_struct b) {
+ 			return mpz_cmp(&a, &b);
+ 		});
+-		if (a.t.temporary) insn_delete_mpz(a);
+-		if (b.t.temporary) insn_delete_mpz(b);
++		insn_delete_temporary(a);
++		insn_delete_temporary(b);
+ 		return insn_lt(res, new_integer(0));
+ 	} else if (a.t.is_real() || b.t.is_real()) {
+ 		r = {builder.CreateFCmpOLT(to_real(a).v, to_real(b).v), Type::boolean()};

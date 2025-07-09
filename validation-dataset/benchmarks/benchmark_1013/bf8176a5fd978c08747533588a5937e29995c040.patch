@@ -1,0 +1,29 @@
+From bf8176a5fd978c08747533588a5937e29995c040 Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@intel.com>
+Date: Wed, 21 Mar 2018 19:30:30 +0000
+Subject: [PATCH] [TableGen] Use count_if instead of a manual loop. NFC
+
+---
+ llvm/utils/TableGen/CodeGenSchedule.cpp | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/llvm/utils/TableGen/CodeGenSchedule.cpp b/llvm/utils/TableGen/CodeGenSchedule.cpp
+index 0cdd7d2a6561..9b419d1c60cf 100644
+--- a/llvm/utils/TableGen/CodeGenSchedule.cpp
++++ b/llvm/utils/TableGen/CodeGenSchedule.cpp
+@@ -759,11 +759,10 @@ void CodeGenSchedModels::createInstRWClass(Record *InstRWDef) {
+       const RecVec &RWDefs = SchedClasses[OldSCIdx].InstRWs;
+       if (!RWDefs.empty()) {
+         const RecVec *OrigInstDefs = Sets.expand(RWDefs[0]);
+-        unsigned OrigNumInstrs = 0;
+-        for (Record *OIDef : *OrigInstDefs) {
+-          if (InstrClassMap[OIDef] == OldSCIdx)
+-            ++OrigNumInstrs;
+-        }
++        unsigned OrigNumInstrs =
++          count_if(*OrigInstDefs, [&](Record *OIDef) {
++                     return InstrClassMap[OIDef] == OldSCIdx;
++                   });
+         if (OrigNumInstrs == InstDefs.size()) {
+           assert(SchedClasses[OldSCIdx].ProcIndices[0] == 0 &&
+                  "expected a generic SchedClass");

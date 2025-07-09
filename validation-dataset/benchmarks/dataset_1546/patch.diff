@@ -1,0 +1,33 @@
+From c243878e8d4144d0d01d2368666db1a53a4b9ce0 Mon Sep 17 00:00:00 2001
+From: Travis Abbott <tabbott@genome.wustl.edu>
+Date: Mon, 18 Nov 2013 18:07:35 -0600
+Subject: [PATCH] use std::set to make order deterministic in per-alt lists
+
+---
+ src/lib/fileformats/vcf/ValueMergers.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/lib/fileformats/vcf/ValueMergers.cpp b/src/lib/fileformats/vcf/ValueMergers.cpp
+index 54087eed..a8f75c1f 100644
+--- a/src/lib/fileformats/vcf/ValueMergers.cpp
++++ b/src/lib/fileformats/vcf/ValueMergers.cpp
+@@ -10,9 +10,9 @@
+ #include <boost/scoped_ptr.hpp>
+ 
+ #include <iterator>
++#include <set>
+ #include <sstream>
+ #include <stdexcept>
+-#include <unordered_set>
+ 
+ using boost::format;
+ using namespace std;
+@@ -170,7 +170,7 @@ CustomValue PerAltDelimitedList::operator()(
+             ) % name() % CustomType::numberToString(type->numberType(), type->number())));
+     }
+     CustomValue rv(type);
+-    boost::unordered_map<size_t, std::unordered_set<std::string>> newValues;
++    boost::unordered_map<size_t, std::set<std::string>> newValues;
+ 
+     size_t i(0);
+     for (Entry const* e = begin; e != end; ++e, ++i) {

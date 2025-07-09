@@ -1,0 +1,32 @@
+From ea47d023ae72a708a8b93d0ee36613656efb0be1 Mon Sep 17 00:00:00 2001
+From: Stephen G Tuggy <sgt@stephengtuggy.com>
+Date: Wed, 22 Jul 2020 12:00:21 -0700
+Subject: [PATCH] lin_time.cpp: Comment out UpdateTime() logging - a little
+ resource heavy
+
+---
+ engine/src/lin_time.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/engine/src/lin_time.cpp b/engine/src/lin_time.cpp
+index 691cbac972..1d6eae5dc3 100644
+--- a/engine/src/lin_time.cpp
++++ b/engine/src/lin_time.cpp
+@@ -275,7 +275,7 @@ void UpdateTime()
+     lasttime    = newtime;
+     newtime     = (double)ts.tv_sec + ((double)ts.tv_nsec) * 1.e-9;
+     elapsedtime = newtime-lasttime;
+-    BOOST_LOG_TRIVIAL(trace) << boost::format("lin_time.cpp: UpdateTime(): lasttime is %1%; newtime is %2%; elapsedtime before time compression is %3%") % lasttime % newtime % elapsedtime;
++    // BOOST_LOG_TRIVIAL(trace) << boost::format("lin_time.cpp: UpdateTime(): lasttime is %1%; newtime is %2%; elapsedtime before time compression is %3%") % lasttime % newtime % elapsedtime;
+     if (first) {
+         firsttime = newtime;
+     }
+@@ -297,7 +297,7 @@ void UpdateTime()
+ # error "We have no way to determine the time on this system."
+ #endif
+     elapsedtime *= timecompression;
+-    BOOST_LOG_TRIVIAL(trace) << boost::format("lin_time.cpp: UpdateTime():                                  elapsedtime after  time compression is %1%") % elapsedtime;
++    // BOOST_LOG_TRIVIAL(trace) << boost::format("lin_time.cpp: UpdateTime():                                  elapsedtime after  time compression is %1%") % elapsedtime;
+     first=false;
+ }
+ 

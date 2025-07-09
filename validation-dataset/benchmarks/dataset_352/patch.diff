@@ -1,0 +1,29 @@
+From 19c2900a6df7e3cf933c5ed087dd4da4fcd8d9c0 Mon Sep 17 00:00:00 2001
+From: Guillaume Klein <guillaume.klein@systrangroup.com>
+Date: Mon, 21 Feb 2022 16:54:38 +0100
+Subject: [PATCH] Remove vocabulary pre-allocation
+
+This has a minor impact on loading performance and the default value
+may not be a good guess.
+---
+ src/vocabulary.cc | 6 ------
+ 1 file changed, 6 deletions(-)
+
+diff --git a/src/vocabulary.cc b/src/vocabulary.cc
+index 0ab5ec222..d9a09e26b 100644
+--- a/src/vocabulary.cc
++++ b/src/vocabulary.cc
+@@ -7,13 +7,7 @@ namespace ctranslate2 {
+   const std::string Vocabulary::bos_token = "<s>";
+   const std::string Vocabulary::eos_token = "</s>";
+ 
+-  // Most vocabularies are typically smaller than this size. This hint is used to reserve
+-  // memory upfront and avoid multiple re-allocations and copies.
+-  constexpr size_t VOCABULARY_SIZE_HINT = 50000;
+-
+   Vocabulary::Vocabulary(std::istream& in) {
+-    _token_to_id.reserve(VOCABULARY_SIZE_HINT);
+-    _id_to_token.reserve(VOCABULARY_SIZE_HINT);
+     std::string line;
+     while (std::getline(in, line)) {
+       const auto result = _token_to_id.emplace(std::move(line), _id_to_token.size());

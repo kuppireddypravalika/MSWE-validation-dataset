@@ -1,0 +1,21 @@
+From 48d932e9f7d6c9a6d7500d2f0558f499b6a1d2db Mon Sep 17 00:00:00 2001
+From: SE2Dev <brokensilencedev@gmail.com>
+Date: Mon, 19 Dec 2016 19:40:44 -0500
+Subject: [PATCH] Increase XModel Asset Pool Size to 2048
+
+---
+ components/game_mod/dllmain.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/components/game_mod/dllmain.cpp b/components/game_mod/dllmain.cpp
+index 8fec7911..1a2e7fd9 100644
+--- a/components/game_mod/dllmain.cpp
++++ b/components/game_mod/dllmain.cpp
+@@ -377,6 +377,7 @@ BOOL GameMod_Init()
+ 	// Increase Asset Limits
+ 	//
+ 	DB_ReallocXAssetPool(ASSET_TYPE_WEAPON, 256);
++	DB_ReallocXAssetPool(ASSET_TYPE_XMODEL, 2048);
+ 
+ 	void* g_MaterialPool_entries = (PBYTE)(DB_ReallocXAssetPool(ASSET_TYPE_MATERIAL, 4096)) + 8;
+ 	PatchMemory(0x0052C28B, (PBYTE)&g_MaterialPool_entries, 4); // DB_GetMaterialAtIndex

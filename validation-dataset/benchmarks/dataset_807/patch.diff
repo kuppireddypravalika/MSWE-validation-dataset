@@ -1,0 +1,33 @@
+From b5ddac0959d97f2a0b14bbc9fc0fa930918501f0 Mon Sep 17 00:00:00 2001
+From: Jeff Rudolph <jrudolph.at.work@gmail.com>
+Date: Wed, 31 Jul 2013 15:35:51 +0000
+Subject: [PATCH] Extended the 'alloc_and_load_block_override_type()' function
+ with optional showMessage parameter to limit redundant 'Overriding
+ architecture block...' messages when using Toro fabric blocks. Reworked the
+ 'alloc_and_load_grid()' function to initialize grid types using a single
+ common x/y loop iteration, instead of separate treatments for EMPTY, IO, and
+ interior (eg. CLB) types. This change enabled less complex integration of
+ Toro's 'alloc_and_load_block_override_type()' for both IO and non-IO types.
+
+git-svn-id: https://vtr-verilog-to-routing.googlecode.com/svn/trunk@3204 8e3573b8-cf2c-4f14-ef6d-137439e28b8b
+---
+ vpr/SRC/base/SetupGrid.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/vpr/SRC/base/SetupGrid.c b/vpr/SRC/base/SetupGrid.c
+index b172ab41f14..5eb62833954 100644
+--- a/vpr/SRC/base/SetupGrid.c
++++ b/vpr/SRC/base/SetupGrid.c
+@@ -125,6 +125,12 @@ void alloc_and_load_grid(INOUTP int *num_instances_type) {
+ 						}
+ 					}
+ 				}
++			} else if (type == IO_TYPE ) {
++				grid[x][y].type = type;
++				grid[x][y].blocks = (int *) my_malloc(sizeof(int) * max(1,type->capacity));
++				for (int i = 0; i < max(1,type->capacity); ++i) {
++					grid[x][y].blocks[i] = EMPTY;
++				}
+ 			} else {
+ 				grid[x][y].type = EMPTY_TYPE;
+ 				grid[x][y].blocks = (int *) my_malloc(sizeof(int));

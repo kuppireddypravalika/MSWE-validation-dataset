@@ -1,0 +1,24 @@
+From f8075af76297ab4441d64ebcb81be5f20f81f2f3 Mon Sep 17 00:00:00 2001
+From: Andrew Mustun <andrew@qcad.org>
+Date: Fri, 5 Nov 2021 11:30:16 +0100
+Subject: [PATCH] performance: no distance calculation for entities inside
+ viewports
+
+---
+ src/core/RViewportData.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/core/RViewportData.cpp b/src/core/RViewportData.cpp
+index b759d264e0..517c267dae 100644
+--- a/src/core/RViewportData.cpp
++++ b/src/core/RViewportData.cpp
+@@ -159,7 +159,8 @@ double RViewportData::getDistanceTo(const RVector& point, bool limited, double r
+         ret = strictRange;
+     }
+ 
+-    return qMin(ret, REntityData::getDistanceTo(point, limited, range, draft, strictRange));
++    //return qMin(ret, REntityData::getDistanceTo(point, limited, range, draft, strictRange));
++    return ret;
+ }
+ 
+ QList<QSharedPointer<RShape> > RViewportData::getShapes(const RBox& queryBox, bool ignoreComplex, bool segment, QList<RObject::Id>* entityIds) const {

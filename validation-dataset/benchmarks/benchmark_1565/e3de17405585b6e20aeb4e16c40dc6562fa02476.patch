@@ -1,0 +1,37 @@
+From e3de17405585b6e20aeb4e16c40dc6562fa02476 Mon Sep 17 00:00:00 2001
+From: Baptiste Wicht <baptiste.wicht@gmail.com>
+Date: Wed, 13 Jan 2016 10:08:50 +0100
+Subject: [PATCH] Do not compile free_energy if not necessary
+
+This function takes 5 seconds to be instantiated...
+---
+ include/dll/rbm_trainer.hpp | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/include/dll/rbm_trainer.hpp b/include/dll/rbm_trainer.hpp
+index b93042109..7878a4f27 100644
+--- a/include/dll/rbm_trainer.hpp
++++ b/include/dll/rbm_trainer.hpp
+@@ -11,6 +11,7 @@
+ #include <memory>
+ 
+ #include "cpp_utils/algorithm.hpp"
++#include "cpp_utils/static_if.hpp"
+ 
+ #include "decay_type.hpp"
+ #include "batch.hpp"
+@@ -255,11 +256,11 @@ struct rbm_trainer {
+         context.reconstruction_error += context.batch_error;
+         context.sparsity += context.batch_sparsity;
+ 
+-        if (EnableWatcher && layer_traits<rbm_t>::free_energy()) {
++        cpp::static_if<EnableWatcher && layer_traits<rbm_t>::free_energy()>([&](auto f){
+             for (auto& v : input_batch) {
+-                context.free_energy += rbm.free_energy(v);
++                context.free_energy += f(rbm).free_energy(v);
+             }
+-        }
++        });
+ 
+         if (EnableWatcher && layer_traits<rbm_t>::is_verbose()) {
+             watcher.batch_end(rbm, context, batches, total_batches);

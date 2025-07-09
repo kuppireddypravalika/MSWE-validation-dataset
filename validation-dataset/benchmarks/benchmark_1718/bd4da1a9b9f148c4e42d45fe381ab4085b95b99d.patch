@@ -1,0 +1,33 @@
+From bd4da1a9b9f148c4e42d45fe381ab4085b95b99d Mon Sep 17 00:00:00 2001
+From: Alfredo Correa <alfredo.correa@gmail.com>
+Date: Thu, 18 Mar 2021 18:15:47 -0700
+Subject: [PATCH] Squashed 'external_codes/boost_multi/multi/' changes from
+ 33bef4623..42378a8e9
+
+42378a8e9 remove constexpr for intel
+
+git-subtree-dir: external_codes/boost_multi/multi
+git-subtree-split: 42378a8e9262371ba8e57cab2c8685cf21820d01
+---
+ array_ref.hpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/array_ref.hpp b/array_ref.hpp
+index c404f89dce..e2e0eef216 100644
+--- a/array_ref.hpp
++++ b/array_ref.hpp
+@@ -1077,9 +1077,12 @@ struct array_iterator<Element, 1, Ptr> ://, Ref> :
+ public:
+ 	HD constexpr array_iterator operator+(difference_type n) const{array_iterator ret{*this}; ret+=n; return ret;}
+ 	[[deprecated("use base() for iterator")]] constexpr element_ptr data() const{return data_;}
+-	// constexpr here creates problems with intel 19
+ 	       constexpr element_ptr base()              const&   {return data_;}
+-	friend constexpr element_ptr base(array_iterator const& s){return s.base();}
++	friend 
++#ifndef __INTEL_COMPILER
++	constexpr // this generates a problem with intel compiler 19 "a constexpr function cannot have a nonliteral return type"
++#endif
++	element_ptr base(array_iterator const& s){return s.base();}
+ 	constexpr stride_type stride()              const&   {return   stride_;} friend
+ 	constexpr stride_type stride(array_iterator const& s){return s.stride_;}
+ 	constexpr array_iterator& operator++(){data_+=stride_; return *this;}

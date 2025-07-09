@@ -1,0 +1,22 @@
+From b43ef6e7ca70d2325f6ce81c5c2c11dd2be8eccb Mon Sep 17 00:00:00 2001
+From: Luis Ibanez <luis.ibanez@kitware.com>
+Date: Thu, 10 Apr 2008 13:48:00 -0400
+Subject: [PATCH] ENH: Using vcl_sqrt() instead of the plain sqrt() call.
+
+---
+ Examples/Registration/ModelToImageRegistration2.cxx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Examples/Registration/ModelToImageRegistration2.cxx b/Examples/Registration/ModelToImageRegistration2.cxx
+index 810c883fef0..82f7cc1f723 100644
+--- a/Examples/Registration/ModelToImageRegistration2.cxx
++++ b/Examples/Registration/ModelToImageRegistration2.cxx
+@@ -128,7 +128,7 @@ class CommandIterationUpdate : public itk::Command
+         magnitude2 += fc * fc;
+         }  
+ 
+-      const double gradientMagnitude = sqrt( magnitude2 );
++      const double gradientMagnitude = vcl_sqrt( magnitude2 );
+ 
+       std::cout << optimizer->GetCurrentIteration() << "   ";
+       std::cout << optimizer->GetValue() << "   ";

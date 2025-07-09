@@ -1,0 +1,22 @@
+From d96f022e81535251027974d3e3ef9ca35d16bffa Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?R=C3=A9mi=20Coulom?= <remi.coulom@gmail.com>
+Date: Sat, 21 Sep 2024 15:46:41 +0200
+Subject: [PATCH] more efficient concurrency during compiled client
+ construction
+
+---
+ src/joedb/compiler/joedbc.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/joedb/compiler/joedbc.cpp b/src/joedb/compiler/joedbc.cpp
+index 75466f1a..cd25f9f9 100644
+--- a/src/joedb/compiler/joedbc.cpp
++++ b/src/joedb/compiler/joedbc.cpp
+@@ -605,6 +605,7 @@ out << R"RRR(
+     if (get_checkpoint_difference() > 0)
+      push_unlock();
+ 
++    db.play_journal(); // makes transaction shorter if db is big
+     joedb::Client::transaction([this](joedb::Client_Data &data){
+      db.initialize();
+     });

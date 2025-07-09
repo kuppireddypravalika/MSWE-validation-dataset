@@ -1,0 +1,31 @@
+From e81f52ecc7cdbc555865c25289a6946837a15126 Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Tue, 26 Jan 2016 14:38:54 +0100
+Subject: [PATCH] xcb: eradicate Q_FOREACH loops [const-& returns]
+
+... by replacing them with C++11 range-for loops.
+
+The function QObject::children() returns by const-reference,
+so its result can be passed to range-for without further changes.
+
+Saves ~300B in text size on optimized GCC 6.0 Linux AMD64 builds.
+
+Change-Id: I8360e946774b0d30233c0fa68f318872da61e867
+Reviewed-by: Lars Knoll <lars.knoll@theqtcompany.com>
+---
+ src/plugins/platforms/xcb/qxcbwindow.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/plugins/platforms/xcb/qxcbwindow.cpp b/src/plugins/platforms/xcb/qxcbwindow.cpp
+index c507ac09b64..2c0f1f26b02 100644
+--- a/src/plugins/platforms/xcb/qxcbwindow.cpp
++++ b/src/plugins/platforms/xcb/qxcbwindow.cpp
+@@ -286,7 +286,7 @@ static inline XTextProperty* qstringToXTP(Display *dpy, const QString& s)
+ // TODO move this into a utility function in QWindow or QGuiApplication
+ static QWindow *childWindowAt(QWindow *win, const QPoint &p)
+ {
+-    foreach (QObject *obj, win->children()) {
++    for (QObject *obj : win->children()) {
+         if (obj->isWindowType()) {
+             QWindow *childWin = static_cast<QWindow *>(obj);
+             if (childWin->isVisible()) {

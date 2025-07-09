@@ -1,0 +1,27 @@
+From 2cf5b86a1f4ad777115f169cfa361d09ffe80ce2 Mon Sep 17 00:00:00 2001
+From: Lukas Rusak <lorusak@gmail.com>
+Date: Mon, 13 Mar 2023 22:17:34 -0700
+Subject: [PATCH] CWinSystemGbm: improve IsHDRDisplay check by checking static
+ metadata support
+
+Signed-off-by: Lukas Rusak <lorusak@gmail.com>
+---
+ xbmc/windowing/gbm/WinSystemGbm.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/xbmc/windowing/gbm/WinSystemGbm.cpp b/xbmc/windowing/gbm/WinSystemGbm.cpp
+index d5558df2e2b18..f33b6dde4128f 100644
+--- a/xbmc/windowing/gbm/WinSystemGbm.cpp
++++ b/xbmc/windowing/gbm/WinSystemGbm.cpp
+@@ -453,9 +453,8 @@ bool CWinSystemGbm::IsHDRDisplay()
+   if (!connector)
+     return false;
+ 
+-  //! @todo: improve detection (edid?)
+-  // we have no way to know if the display is actually HDR capable and we blindly set the HDR metadata
+-  return connector->SupportsProperty("HDR_OUTPUT_METADATA");
++  return connector->SupportsProperty("HDR_OUTPUT_METADATA") && m_info &&
++         m_info->SupportsHDRStaticMetadataType1();
+ }
+ 
+ CHDRCapabilities CWinSystemGbm::GetDisplayHDRCapabilities() const

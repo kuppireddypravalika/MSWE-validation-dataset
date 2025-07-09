@@ -1,0 +1,22 @@
+From 9bfa179cb163186ab7e0b9909c5014d50fa919bf Mon Sep 17 00:00:00 2001
+From: Erik Garrison <erik.garrison@gmail.com>
+Date: Thu, 13 May 2021 18:09:08 +0200
+Subject: [PATCH] save more memory in patching
+
+---
+ src/common/wflign/src/wflign_wfa.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/common/wflign/src/wflign_wfa.cpp b/src/common/wflign/src/wflign_wfa.cpp
+index ecb41542..c50cf9b1 100644
+--- a/src/common/wflign/src/wflign_wfa.cpp
++++ b/src/common/wflign/src/wflign_wfa.cpp
+@@ -821,7 +821,7 @@ void write_merged_alignment(
+     // we will nibble patching back to this length
+     const uint64_t min_wfa_patch_length = 128;
+     const int min_wf_length = 64;
+-    const int max_dist_threshold = 512;
++    const int max_dist_threshold = 256;
+     const uint16_t max_edlib_head_tail_patch_length = 2000;
+ 
+     // we need to get the start position in the query and target

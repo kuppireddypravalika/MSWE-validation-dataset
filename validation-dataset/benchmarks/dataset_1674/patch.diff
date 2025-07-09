@@ -1,0 +1,32 @@
+From 1f758eb7d14a69fa39d6e9463b5176db5ab504c0 Mon Sep 17 00:00:00 2001
+From: Richard Moe Gustavsen <richard.gustavsen@qt.io>
+Date: Tue, 25 Sep 2018 12:29:27 +0200
+Subject: [PATCH] QQuickTableView: only preload items when rebuilding the table
+ from scratch
+
+We preload delegate items when the table is built from scratch to ensure
+that we have enough items in circulation before the user starts to flick.
+But when we only rebuild a section of the table after e.g adding or removing
+rows, we already have enough items in circulation. So only preload when
+building for RebuildOption::All.
+
+Change-Id: I96aa9518e8032ecaba25f92fe6a0fbf17ea34c7d
+Reviewed-by: Mitch Curtis <mitch.curtis@qt.io>
+---
+ src/quick/items/qquicktableview.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/quick/items/qquicktableview.cpp b/src/quick/items/qquicktableview.cpp
+index ea9cb49e1a4..e9d0ab8f3ae 100644
+--- a/src/quick/items/qquicktableview.cpp
++++ b/src/quick/items/qquicktableview.cpp
+@@ -1216,7 +1216,8 @@ void QQuickTableViewPrivate::processRebuildTable()
+             return;
+     }
+ 
+-    const bool preload = (reusableFlag == QQmlTableInstanceModel::Reusable);
++    const bool preload = (rebuildOptions & RebuildOption::All
++                          && reusableFlag == QQmlTableInstanceModel::Reusable);
+ 
+     if (rebuildState == RebuildState::PreloadColumns) {
+         if (preload && loadedTable.right() < tableSize.width() - 1)

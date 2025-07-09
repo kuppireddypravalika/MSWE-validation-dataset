@@ -1,0 +1,28 @@
+From 345a447c787a364cc22b887700d32cd3e0ece808 Mon Sep 17 00:00:00 2001
+From: Xottab-DUTY <xottab-duty@yandex.ru>
+Date: Sun, 26 May 2024 20:03:22 +0500
+Subject: [PATCH] Fix too much CPU load in the task manager
+
+---
+ src/xrCore/Threading/TaskManager.cpp | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/src/xrCore/Threading/TaskManager.cpp b/src/xrCore/Threading/TaskManager.cpp
+index d58c23449fd..2fa6d042688 100644
+--- a/src/xrCore/Threading/TaskManager.cpp
++++ b/src/xrCore/Threading/TaskManager.cpp
+@@ -239,11 +239,10 @@ void TaskManager::TaskWorkerStart()
+         SetThreadStatus(false);
+         {
+             std::unique_lock lck(s_tl_worker.mutex);
+-            newWorkArrived.wait(lck, [&]
++            do
+             {
+-                // spurious unlocks allowed
+-                return !shouldPause.load(std::memory_order_consume);
+-            });
++                newWorkArrived.wait(lck); // spurious wakeups allowed
++            } while (shouldPause.load(std::memory_order_consume));
+         }
+         SetThreadStatus(true);
+     } // while (true)

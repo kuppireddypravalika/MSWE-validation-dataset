@@ -1,0 +1,30 @@
+From f7fec72fc6449c25265548f3931225198383964f Mon Sep 17 00:00:00 2001
+From: gitamohr <gitamohr@users.noreply.github.com>
+Date: Thu, 14 Jul 2022 11:55:40 -0700
+Subject: [PATCH] sdf: Use a range-for here to explicitly cache the range end
+ condition and avoid recalculating .size() on every iteration.  The vector
+ member in question is externally accessible so the compiler cannot assume the
+ size is constant.
+
+(Internal change: 2241197)
+---
+ pxr/usd/sdf/schema.h | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/pxr/usd/sdf/schema.h b/pxr/usd/sdf/schema.h
+index 93ea7f4d5b..22a2fe0ae3 100644
+--- a/pxr/usd/sdf/schema.h
++++ b/pxr/usd/sdf/schema.h
+@@ -276,9 +276,10 @@ class SdfSchemaBase : public TfWeakBase, public boost::noncopyable {
+     /// quickly rule out field names that aren't required (and thus don't need
+     /// special handling).
+     inline bool IsRequiredFieldName(const TfToken &fieldName) const {
+-        for (size_t i = 0; i != _requiredFieldNames.size(); ++i) {
+-            if (_requiredFieldNames[i] == fieldName)
++        for (TfToken const &fname: _requiredFieldNames) {
++            if (fname == fieldName) {
+                 return true;
++            }
+         }
+         return false;
+     }

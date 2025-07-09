@@ -1,0 +1,31 @@
+From fa36ac0651117e5ed3c72c7a5f3ba942ab9422de Mon Sep 17 00:00:00 2001
+From: "Michael J. Spencer" <bigcheesegs@gmail.com>
+Date: Wed, 7 Sep 2011 19:23:11 -0400
+Subject: [PATCH] Flip order of comparison to do O(1) check first.
+
+---
+ TutorialApplication.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/TutorialApplication.cpp b/TutorialApplication.cpp
+index 26f7c29..6fb6265 100644
+--- a/TutorialApplication.cpp
++++ b/TutorialApplication.cpp
+@@ -46,15 +46,14 @@ TutorialApplication::~TutorialApplication(void)
+ }
+ 
+ bool ignoreNode(l2p::UModel *m, l2p::BSPNode &n, l2p::BSPSurface &s) {
+-  l2p::Package &p = *m->package;
++  if (s.flags & l2p::PF_WeDontCareAbout || !s.material.index)
++    return true;
+   for (int i = 0; i < n.num_verticies; ++i) {
+     Ogre::Vector3 loc = ogre_cast(m->points[m->vertexes[n.vert_pool + i].vertex]);
+     Ogre::AxisAlignedBox box = ogre_cast(m->getRegionAABB());
+     if (!box.contains(loc))
+       return true;
+   }
+-  if (s.flags & l2p::PF_WeDontCareAbout || !s.material.index)
+-    return true;
+   return false;
+ }
+ 

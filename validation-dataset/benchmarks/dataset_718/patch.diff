@@ -1,0 +1,33 @@
+From d3c390af44545740417e0fb824a18b33926a832b Mon Sep 17 00:00:00 2001
+From: eric <eric.schkufza@gmail.com>
+Date: Tue, 15 Oct 2019 13:54:53 -0700
+Subject: [PATCH] Small improvement to generated code formatting: removed
+ nested begin/end blocks.
+
+Signed-off-by: eric <eric.schkufza@gmail.com>
+---
+ src/target/core/de10/de10_rewrite.cc | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/target/core/de10/de10_rewrite.cc b/src/target/core/de10/de10_rewrite.cc
+index 8de5e848..0dfecb2e 100644
+--- a/src/target/core/de10/de10_rewrite.cc
++++ b/src/target/core/de10/de10_rewrite.cc
+@@ -41,6 +41,7 @@
+ #include "verilog/ast/ast.h"
+ #include "verilog/build/ast_builder.h"
+ #include "verilog/print/print.h"
++#include "verilog/transform/block_flatten.h"
+ 
+ using namespace std;
+ 
+@@ -88,6 +89,9 @@ string De10Rewrite::run(const ModuleDeclaration* md, const De10Logic* de, size_t
+   emit_var_logic(res, md, de);
+   emit_output_logic(res, md, de);
+ 
++  // Final cleanup passes
++  BlockFlatten().run(res);
++
+   // Holy cow! We're done!
+   ss.str(string());
+   ss << res;

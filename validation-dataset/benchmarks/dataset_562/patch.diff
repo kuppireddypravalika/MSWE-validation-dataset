@@ -1,0 +1,23 @@
+From 5178b268af7f1d083dc91c11563ffd31eb74ad88 Mon Sep 17 00:00:00 2001
+From: "pnaulls@gmail.com" <pnaulls@gmail.com>
+Date: Thu, 6 Oct 2011 16:27:42 +0000
+Subject: [PATCH] Defer polling until query process complete.  Otherwise we
+ risk interferring with query repsonses.
+
+---
+ cpp/src/Driver.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/cpp/src/Driver.cpp b/cpp/src/Driver.cpp
+index bbac19ebe9..9f59fa100c 100644
+--- a/cpp/src/Driver.cpp
++++ b/cpp/src/Driver.cpp
+@@ -2996,7 +2996,7 @@ void Driver::PollThreadProc()
+ 	{
+ 		int32 pollInterval = m_pollInterval * 1000;	// Get the time in milliseconds in which we are to poll all the devices
+ 
+-		if( !m_pollList.empty() )
++		if( !m_pollList.empty() && m_awakeNodesQueried)
+ 		{
+ 			// We only bother getting the lock if the pollList is not empty
+ 			m_pollMutex->Lock();

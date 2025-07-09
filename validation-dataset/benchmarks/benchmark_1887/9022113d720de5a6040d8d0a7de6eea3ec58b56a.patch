@@ -1,0 +1,35 @@
+From 9022113d720de5a6040d8d0a7de6eea3ec58b56a Mon Sep 17 00:00:00 2001
+From: "J.W. Jagersma" <jwjagersma@gmail.com>
+Date: Fri, 21 Oct 2022 22:11:48 +0200
+Subject: [PATCH] optimizations in mmx division
+
+---
+ include/jw/mmx.h | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/include/jw/mmx.h b/include/jw/mmx.h
+index 9dada70a..94d6d367 100644
+--- a/include/jw/mmx.h
++++ b/include/jw/mmx.h
+@@ -227,6 +227,21 @@ namespace jw
+             return std::min((bits < 16 ? 16 : 32) - dst_bits, bits);
+         };
+ 
++        constexpr auto all_one = []() consteval
++        {
++            for (auto f : mul) if (f != 1) return false;
++            return true;
++        };
++
++        constexpr auto all_int = []() consteval
++        {
++            for (auto f : mul) if (static_cast<int>(f) != f) return false;
++            return true;
++        };
++
++        if constexpr (all_one()) return src;
++        if constexpr (all_int()) return _mm_mullo_pi16(src, factor(0));
++
+         if constexpr (flags.match(simd::amd3dnow) and frac_bits(false) >= 16 and rounding and not input_overflow)
+         {
+             src = _m_pmulhrw(src, factor(16));

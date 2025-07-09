@@ -1,0 +1,44 @@
+From a5584576bfa69d0e26fedb4bf750c755c0c0b3b2 Mon Sep 17 00:00:00 2001
+From: Jonathan Peyton <jonathan.l.peyton@intel.com>
+Date: Thu, 15 Jun 2017 21:51:07 +0000
+Subject: [PATCH] Set affinity to none/false in child processes
+
+Reset affinity to none (false for proc-bind-var) so that threads in the child
+processes are not bound tightly, unless the user explicitly sets this in
+KMP_AFFINITY/OMP_PROC_BIND, in child processes. This can improve
+performance for scripting languages which fork for parallelism like Python's
+multiprocessing module.
+
+Differential Revision: https://reviews.llvm.org/D34154
+---
+ openmp/runtime/src/z_Linux_util.cpp | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/openmp/runtime/src/z_Linux_util.cpp b/openmp/runtime/src/z_Linux_util.cpp
+index a0d1639c53eb..914275a44e39 100644
+--- a/openmp/runtime/src/z_Linux_util.cpp
++++ b/openmp/runtime/src/z_Linux_util.cpp
+@@ -1280,11 +1280,22 @@ static void __kmp_atfork_child(void) {
+ 
+   ++__kmp_fork_count;
+ 
+-#if KMP_AFFINITY_SUPPORTED && KMP_OS_LINUX
++#if KMP_AFFINITY_SUPPORTED
++#if KMP_OS_LINUX
+   // reset the affinity in the child to the initial thread
+   // affinity in the parent
+   kmp_set_thread_affinity_mask_initial();
+ #endif
++  // Set default not to bind threads tightly in the child (we’re expecting
++  // over-subscription after the fork and this can improve things for
++  // scripting languages that use OpenMP inside process-parallel code).
++  __kmp_affinity_type = affinity_none;
++#if OMP_40_ENABLED
++  if (__kmp_nested_proc_bind.bind_types != NULL) {
++    __kmp_nested_proc_bind.bind_types[0] = proc_bind_false;
++  }
++#endif // OMP_40_ENABLED
++#endif // KMP_AFFINITY_SUPPORTED
+ 
+   __kmp_init_runtime = FALSE;
+ #if KMP_USE_MONITOR

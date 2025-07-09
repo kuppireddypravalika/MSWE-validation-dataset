@@ -1,0 +1,21 @@
+From 69d9b6b741361e3b02a774704e93344d473435a1 Mon Sep 17 00:00:00 2001
+From: Steven Lamerton <steve.lamerton@gmail.com>
+Date: Wed, 15 Sep 2010 09:56:30 +0100
+Subject: [PATCH] Reduce thread priority to increase responsiveness.
+
+---
+ controls/dirctrl.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/controls/dirctrl.cpp b/controls/dirctrl.cpp
+index 063b611..c3a7dd2 100644
+--- a/controls/dirctrl.cpp
++++ b/controls/dirctrl.cpp
+@@ -186,6 +186,7 @@ void DirCtrl::AddDirectory(DirCtrlItem *item){
+ 	if(GetChildrenCount(item->GetId()) == 0 && item->GetType() != DIRCTRL_FILE){
+ 		DirThread *thread = GetThread(item->GetFullPath());
+ 		thread->Create();
++        thread->SetPriority(WXTHREAD_MIN_PRIORITY);
+ 		m_IdMap[thread->GetId()] = item->GetId();
+ 		thread->Run();
+ 	}

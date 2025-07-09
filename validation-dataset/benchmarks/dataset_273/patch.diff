@@ -1,0 +1,29 @@
+From 2fab6cc7d88542316c5d7f150ba0789012cc5c14 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Thu, 21 Dec 2017 11:29:34 +0000
+Subject: [PATCH] DXF: avoid excessive memory allocation. Fixes
+ https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=4665. Credit to OSS
+ Fuzz
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@41098 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/ogr/ogrsf_frmts/dxf/ogrdxflayer.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/gdal/ogr/ogrsf_frmts/dxf/ogrdxflayer.cpp b/gdal/ogr/ogrsf_frmts/dxf/ogrdxflayer.cpp
+index 76a0adcc7418..4decf4053547 100644
+--- a/gdal/ogr/ogrsf_frmts/dxf/ogrdxflayer.cpp
++++ b/gdal/ogr/ogrsf_frmts/dxf/ogrdxflayer.cpp
+@@ -1578,9 +1578,10 @@ OGRDXFFeature *OGRDXFLayer::TranslateMLINE()
+           case 73:
+             nNumElements = atoi(szLineBuf);
+             // No-one should ever need more than 1000 elements!
+-            if( nNumElements > 1000 )
++            if( nNumElements <= 0 || nNumElements > 1000 )
+             {
+-                CPLDebug( "DXF", "Number of MLINE elements (73) exceeds 1000" );
++                CPLDebug( "DXF", "Invalid number of MLINE elements (73): %s",
++                          szLineBuf );
+                 DXF_LAYER_READER_ERROR();
+                 delete poFeature;
+                 return nullptr;

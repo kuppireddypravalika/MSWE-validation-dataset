@@ -1,0 +1,40 @@
+From 5083d1e70982308a1b7773edaa19da73d2834dd3 Mon Sep 17 00:00:00 2001
+From: Reid Kleckner <rnk@google.com>
+Date: Mon, 11 Jun 2018 16:49:43 +0000
+Subject: [PATCH] [MS] Use mangled names and comdats for string merging with
+ ASan
+
+This should reduce the binary size penalty of ASan on Windows. After
+r334313, ASan will add red zones to globals in comdats, so we will still
+find OOB accesses to string literals.
+
+git-svn-id: https://llvm.org/svn/llvm-project/cfe/trunk@334417 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/CodeGen/CodeGenModule.cpp | 12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
+
+diff --git a/lib/CodeGen/CodeGenModule.cpp b/lib/CodeGen/CodeGenModule.cpp
+index 19cfffd81c..814eda4381 100644
+--- a/lib/CodeGen/CodeGenModule.cpp
++++ b/lib/CodeGen/CodeGenModule.cpp
+@@ -4114,15 +4114,13 @@ CodeGenModule::GetAddrOfConstantStringFromLiteral(const StringLiteral *S,
+   StringRef GlobalVariableName;
+   llvm::GlobalValue::LinkageTypes LT;
+ 
+-  // Mangle the string literal if the ABI allows for it.  However, we cannot
+-  // do this if  we are compiling with ASan or -fwritable-strings because they
+-  // rely on strings having normal linkage.
+-  if (!LangOpts.WritableStrings &&
+-      !LangOpts.Sanitize.has(SanitizerKind::Address) &&
+-      getCXXABI().getMangleContext().shouldMangleStringLiteral(S)) {
++  // Mangle the string literal if that's how the ABI merges duplicate strings.
++  // Don't do it if they are writable, since we don't want writes in one TU to
++  // affect strings in another.
++  if (getCXXABI().getMangleContext().shouldMangleStringLiteral(S) &&
++      !LangOpts.WritableStrings) {
+     llvm::raw_svector_ostream Out(MangledNameBuffer);
+     getCXXABI().getMangleContext().mangleStringLiteral(S, Out);
+-
+     LT = llvm::GlobalValue::LinkOnceODRLinkage;
+     GlobalVariableName = MangledNameBuffer;
+   } else {

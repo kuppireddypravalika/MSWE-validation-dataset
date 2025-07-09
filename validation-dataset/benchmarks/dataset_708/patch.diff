@@ -1,0 +1,21 @@
+From a57c69805428c2f0aa41467db4af339153762da4 Mon Sep 17 00:00:00 2001
+From: vitamin-caig <vitamin.caig@gmail.com>
+Date: Fri, 17 Apr 2015 17:23:44 +0300
+Subject: [PATCH] Reduce volume of TFM devices.
+
+---
+ src/devices/fm/tfm.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/devices/fm/tfm.cpp b/src/devices/fm/tfm.cpp
+index a40c9e3c7d..b330248dfb 100644
+--- a/src/devices/fm/tfm.cpp
++++ b/src/devices/fm/tfm.cpp
+@@ -55,6 +55,7 @@ namespace TFM
+       FM::Details::YM2203SampleType* const outRaw = safe_ptr_cast<FM::Details::YM2203SampleType*>(out);
+       ::YM2203UpdateOne(Chips[0].get(), outRaw, count);
+       ::YM2203UpdateOne(Chips[1].get(), outRaw, count);
++      std::transform(outRaw, outRaw + count, outRaw, std::bind2nd(std::divides<FM::Details::YM2203SampleType>(), 2));
+       Helper.ConvertSamples(outRaw, outRaw + count, out);
+     }
+ 

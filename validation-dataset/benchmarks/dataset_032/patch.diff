@@ -1,0 +1,34 @@
+From 28458bf10a1b1cc7c30738d0b9570babfa5943fc Mon Sep 17 00:00:00 2001
+From: jolavillette <jolavillette@gmail.com>
+Date: Mon, 4 May 2020 08:11:57 +0200
+Subject: [PATCH] tick_send: remove unneeded lock around mBio->cansend
+
+---
+ libretroshare/src/pqi/pqistreamer.cc | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/libretroshare/src/pqi/pqistreamer.cc b/libretroshare/src/pqi/pqistreamer.cc
+index 45b48228eb..393f2ac70b 100644
+--- a/libretroshare/src/pqi/pqistreamer.cc
++++ b/libretroshare/src/pqi/pqistreamer.cc
+@@ -313,17 +313,16 @@ int 	pqistreamer::tick_recv(uint32_t timeout)
+ 
+ int 	pqistreamer::tick_send(uint32_t timeout)
+ {
+-	RsStackMutex stack(mStreamerMtx); /**** LOCKED MUTEX ****/
+-
+-	/* short circuit everything is bio isn't active */
++	/* short circuit everything if bio isn't active */
+ 	if (!(mBio->isactive()))
+ 	{
+-        		free_pend();
++		free_pend();
+ 		return 0;
+ 	}
+ 
+ 	if (mBio->cansend(timeout))
+ 	{
++		RsStackMutex stack(mStreamerMtx); /**** LOCKED MUTEX ****/
+ 		handleoutgoing_locked();
+ 	}
+     

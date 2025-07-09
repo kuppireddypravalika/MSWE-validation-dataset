@@ -1,0 +1,31 @@
+From 84550292b275b65bbb794622b4ce5104fefa50f4 Mon Sep 17 00:00:00 2001
+From: Dobiasd <editgym@gmail.com>
+Date: Sun, 1 Jul 2018 17:46:09 +0200
+Subject: [PATCH] Reduce memory usage when loading models with better string
+ concatenation
+
+---
+ include/fdeep/import_model.hpp | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/include/fdeep/import_model.hpp b/include/fdeep/import_model.hpp
+index 16a670a1..3bda2328 100644
+--- a/include/fdeep/import_model.hpp
++++ b/include/fdeep/import_model.hpp
+@@ -129,9 +129,13 @@ inline float_vec decode_floats(const nlohmann::json& data)
+     assertion(std::numeric_limits<float>::is_iec559,
+         "The floating-point format of your system is not supported.");
+ 
+-    std::vector<std::string> strs = data;
+-    const auto res = Base64_decode(fplus::concat(std::move(strs)));
+-    strs.clear(); // free RAM
++    std::string encoded;
++    encoded.reserve(data.size() * data[0].size());
++    for (auto& json_str_part : data) {
++        const std::string& str = json_str_part;
++        encoded.append(str);
++    }
++    const auto res = Base64_decode(encoded);
+     float_vec out;
+     assertion(res.size() % 4 == 0, "invalid float vector data");
+     out.reserve(res.size() / 4);

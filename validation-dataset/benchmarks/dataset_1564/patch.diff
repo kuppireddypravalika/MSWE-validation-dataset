@@ -1,0 +1,35 @@
+From cc42ab3f4bb0617cccf289ddd9e94e475d3c67d1 Mon Sep 17 00:00:00 2001
+From: "bernard.parisse" <bernard.parisse@23ce0884-8a58-47d3-bc5c-ddf1cd5b9f9e>
+Date: Sat, 5 Nov 2016 10:20:59 +0000
+Subject: [PATCH] [giac] small improvement for gcd (extract common
+ indeterminate powers)
+
+git-svn-id: https://dev.geogebra.org/svn/trunk/geogebra/giac@50001 23ce0884-8a58-47d3-bc5c-ddf1cd5b9f9e
+---
+ src/giac/cpp/gausspol.cc | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/src/giac/cpp/gausspol.cc b/src/giac/cpp/gausspol.cc
+index 92986216..5defd0e6 100644
+--- a/src/giac/cpp/gausspol.cc
++++ b/src/giac/cpp/gausspol.cc
+@@ -4646,6 +4646,19 @@ namespace giac {
+     }
+     d.dim=p.dim;
+     d.coord.clear();
++    index_t pback=p.coord.back().index.iref(),qback=q.coord.back().index.iref();
++    if (!is_zero(pback))
++      pback=p.gcddeg();
++    if (!is_zero(qback))
++      qback=q.gcddeg();
++    if (!is_zero(pback) || !is_zero(qback)){
++      index_t dback=index_gcd(pback,qback);
++      polynome pshift=p.shift(-pback), qshift=q.shift(-qback);
++      gcd(pshift,qshift,d);
++      if (!is_zero(dback))
++	d=d.shift(dback);
++      return;
++    }
+     polynome p_simp(p.dim),q_simp(p.dim);
+     index_t pdeg=p.degree(),qdeg=q.degree();
+     gen d_content,np_simp,nq_simp;

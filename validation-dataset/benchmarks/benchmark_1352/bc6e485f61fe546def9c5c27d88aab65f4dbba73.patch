@@ -1,0 +1,24 @@
+From bc6e485f61fe546def9c5c27d88aab65f4dbba73 Mon Sep 17 00:00:00 2001
+From: Pilow <pierre.laupretre@gmail.com>
+Date: Wed, 29 Apr 2020 00:15:51 +0200
+Subject: [PATCH] [array-access] Finish key compilation after actual array
+ access
+
+---
+ src/analyzer/value/ArrayAccess.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/analyzer/value/ArrayAccess.cpp b/src/analyzer/value/ArrayAccess.cpp
+index 0db6fee3..fcb623e7 100644
+--- a/src/analyzer/value/ArrayAccess.cpp
++++ b/src/analyzer/value/ArrayAccess.cpp
+@@ -276,8 +276,8 @@ Compiler::value ArrayAccess::compile(Compiler& c) const {
+ 				return e;
+ 			} else {
+ 				auto k = c.insn_to_any(key->compile(c));
+-				key->compile_end(c);
+ 				auto e = c.insn_invoke(env.any, {compiled_array, k}, "Value.at");
++				key->compile_end(c);
+ 				c.insn_delete_temporary(k);
+ 				return e;
+ 			}

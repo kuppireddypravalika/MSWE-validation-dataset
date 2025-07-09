@@ -1,0 +1,29 @@
+From 1205e2ca5068f36495ac2fb8f822a3442ebf6445 Mon Sep 17 00:00:00 2001
+From: Raizo62 <silicium62-github@yahoo.fr>
+Date: Fri, 22 Jul 2022 17:41:53 +0200
+Subject: [PATCH] cppcheck : CKernelWifi : start() : Parameter 'wd' is passed
+ by value. It could be passed as a const reference which is usually faster and
+ recommended in C++. 	-> "[this](WirelessDevice wd)" becomes "[this](const
+ WirelessDevice& wd)"
+
+---
+ src/ckernelwifi.cc | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/ckernelwifi.cc b/src/ckernelwifi.cc
+index 2515a98..d97c08f 100644
+--- a/src/ckernelwifi.cc
++++ b/src/ckernelwifi.cc
+@@ -810,9 +810,9 @@ int CKernelWifi::start(){
+ 		/** make it attribute member if you would use it elsewhere */
+ 		monwireless = new MonitorWirelessDevice() ;
+ 
+-		monwireless->setNewInetCallback([this](WirelessDevice wd) { return handle_new_winet_notification(wd);});
+-		monwireless->setDelInetCallback([this](WirelessDevice wd) { return handle_del_winet_notification(wd);});
+-		monwireless->setInitInetCallback([this](WirelessDevice wd) { return handle_init_winet_notification(wd);});
++		monwireless->setNewInetCallback([this](const WirelessDevice& wd) { return handle_new_winet_notification(wd);});
++		monwireless->setDelInetCallback([this](const WirelessDevice& wd) { return handle_del_winet_notification(wd);});
++		monwireless->setInitInetCallback([this](const WirelessDevice& wd) { return handle_init_winet_notification(wd);});
+ 
+ 		monwireless->start();
+ 

@@ -1,0 +1,35 @@
+From bd5d31319792b5a5fab4f31fc887ada7403b56a9 Mon Sep 17 00:00:00 2001
+From: Anton Kudryavtsev <anton.kudryavtsev@vk.team>
+Date: Fri, 15 Sep 2023 12:09:06 +0300
+Subject: [PATCH] QString::replace: replace QList with QVLA
+
+to reduce allocations
+
+Change-Id: Iacc34e3a8825ca6425e8716f2b5e7b5dde2a5df7
+Reviewed-by: Thiago Macieira <thiago.macieira@intel.com>
+---
+ src/corelib/text/qstring.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/corelib/text/qstring.cpp b/src/corelib/text/qstring.cpp
+index f11eff71238..68d0cb3e6fd 100644
+--- a/src/corelib/text/qstring.cpp
++++ b/src/corelib/text/qstring.cpp
+@@ -4610,7 +4610,7 @@ QString &QString::replace(const QRegularExpression &re, const QString &after)
+ 
+     // 1. build the backreferences list, holding where the backreferences
+     // are in the replacement string
+-    QList<QStringCapture> backReferences;
++    QVarLengthArray<QStringCapture> backReferences;
+     const qsizetype al = after.size();
+     const QChar *ac = after.unicode();
+ 
+@@ -4642,7 +4642,7 @@ QString &QString::replace(const QRegularExpression &re, const QString &after)
+ 
+     qsizetype newLength = 0; // length of the new string, with all the replacements
+     qsizetype lastEnd = 0;
+-    QList<QStringView> chunks;
++    QVarLengthArray<QStringView> chunks;
+     const QStringView copyView{ copy }, afterView{ after };
+     while (iterator.hasNext()) {
+         QRegularExpressionMatch match = iterator.next();

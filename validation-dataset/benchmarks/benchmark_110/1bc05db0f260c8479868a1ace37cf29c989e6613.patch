@@ -1,0 +1,45 @@
+From 1bc05db0f260c8479868a1ace37cf29c989e6613 Mon Sep 17 00:00:00 2001
+From: Thierry Tremblay <kiznit@users.noreply.github.com>
+Date: Wed, 8 Mar 2017 00:31:35 -0800
+Subject: [PATCH] InitGDT() now uses a jmp instruction to reload CS.
+
+---
+ boot/platform/bios/bios.cpp | 23 ++++++++---------------
+ 1 file changed, 8 insertions(+), 15 deletions(-)
+
+diff --git a/boot/platform/bios/bios.cpp b/boot/platform/bios/bios.cpp
+index cba91d07..95cee04c 100644
+--- a/boot/platform/bios/bios.cpp
++++ b/boot/platform/bios/bios.cpp
+@@ -136,23 +136,16 @@ static void InitGDT()
+     // Load GDT
+     asm volatile ("lgdt %0" : : "m" (GDT_PTR) );
+ 
+-    // Load code segment
++    // Load segment descriptors
+     asm volatile (
+-        "push %0\n"
+-        "push $1f\n"
+-        "retf\n"
++        "ljmpl %0, $1f\n"
+         "1:\n"
+-        : : "i"(0x08) : "memory"
+-    );
+-
+-    // Load data segments
+-    asm volatile (
+-        "movl %0, %%ds\n"
+-        "movl %0, %%es\n"
+-        "movl %0, %%fs\n"
+-        "movl %0, %%gs\n"
+-        "movl %0, %%ss\n"
+-        : : "r" (0x10) : "memory"
++        "movl %1, %%ds\n"
++        "movl %1, %%es\n"
++        "movl %1, %%fs\n"
++        "movl %1, %%gs\n"
++        "movl %1, %%ss\n"
++        : : "i" (0x08), "r" (0x10) : "memory"
+     );
+ }
+ 

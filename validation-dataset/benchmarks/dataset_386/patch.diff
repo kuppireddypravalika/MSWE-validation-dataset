@@ -1,0 +1,33 @@
+From c629f266a47600f238fa10609c111e5b73831e2a Mon Sep 17 00:00:00 2001
+From: Philippe Antoine <contact@catenacyber.fr>
+Date: Wed, 26 Apr 2023 17:39:16 +0200
+Subject: [PATCH] response: skips lines before response line
+
+Improve the logic for junk lines before response line, instead of
+treating them as body, try to peek if the next line begins with
+an H and may actually be the response line we were waiting for
+
+If we do not see an H coming, we treat as if it were a HTTP/0.9
+response to a HTTP1 request, that is a response without line and
+headers but just directly body.
+---
+ htp/htp_response.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/htp/htp_response.c b/htp/htp_response.c
+index babc06df..81cbf985 100644
+--- a/htp/htp_response.c
++++ b/htp/htp_response.c
+@@ -1078,6 +1078,12 @@ htp_status_t htp_connp_RES_LINE(htp_connp_t *connp) {
+             // data as a response body because that is what browsers do.
+            
+             if (htp_treat_response_line_as_body(data, len)) {
++                // if we have a next line beginning with H, skip this one
++                if (connp->out_current_read_offset+1 < connp->out_current_len && (connp->out_current_data[connp->out_current_read_offset] == 'H' || len <= 2)) {
++                    connp->out_tx->response_ignored_lines++;
++                    htp_connp_res_clear_buffer(connp);
++                    return HTP_OK;
++                }
+                 connp->out_tx->response_content_encoding_processing = HTP_COMPRESSION_NONE;
+ 
+                 connp->out_current_consume_offset = connp->out_current_read_offset;

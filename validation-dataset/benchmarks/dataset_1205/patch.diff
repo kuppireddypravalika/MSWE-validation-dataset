@@ -1,0 +1,25 @@
+From 67e6693a1b05cbba651ceaab1f17ae99a30297d7 Mon Sep 17 00:00:00 2001
+From: ldicker83 <leeor_net@yahoo.com>
+Date: Mon, 7 Sep 2020 01:12:55 -0400
+Subject: [PATCH] Re-implement resource consumption for structure costs using
+ MapViewState::removeRefinedResources()
+
+---
+ OPHD/States/MapViewState.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/OPHD/States/MapViewState.cpp b/OPHD/States/MapViewState.cpp
+index b72530fe5..81ad1bf28 100644
+--- a/OPHD/States/MapViewState.cpp
++++ b/OPHD/States/MapViewState.cpp
+@@ -1153,7 +1153,9 @@ void MapViewState::placeStructure()
+ 			static_cast<Factory*>(structure)->resourcePool(&mPlayerResources);
+ 		}
+ 
+-		mPlayerResources = mPlayerResources - StructureCatalogue::costToBuild(mCurrentStructure);
++		auto cost = StructureCatalogue::costToBuild(mCurrentStructure);
++		removeRefinedResources(cost);
++		updatePlayerResources();
+ 		updateStructuresAvailability();
+ 	}
+ }

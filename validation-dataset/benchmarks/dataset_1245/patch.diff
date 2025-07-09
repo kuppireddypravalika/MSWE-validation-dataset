@@ -1,0 +1,28 @@
+From bd312942786cc5210a5af73997cbd0dba78a005d Mon Sep 17 00:00:00 2001
+From: Morwenn <morwenn29@hotmail.fr>
+Date: Mon, 2 Aug 2021 16:29:09 +0200
+Subject: [PATCH] Micro-optimization for probe::dis
+
+The value of Osc(X) is obtained by computing j - i, and can only grow
+through the course of the algorithm. Since i always decreases, if it
+becomes smaller or equal to the current value of Osc(X), then it means
+that we're done because we can't find a bigger Osc(X) than the current
+value.
+---
+ include/cpp-sort/probes/dis.h | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/include/cpp-sort/probes/dis.h b/include/cpp-sort/probes/dis.h
+index 22c6e5d5..59cd1d47 100644
+--- a/include/cpp-sort/probes/dis.h
++++ b/include/cpp-sort/probes/dis.h
+@@ -96,8 +96,7 @@ namespace probe
+                     // Compute the next value of DM
+                     res = std::max(res, i - j);
+                     // Compute the next value of RL
+-                    --i;
+-                    if (i == 0) {
++                    if (--i <= res) {
+                         return res;
+                     }
+                     --rl_it;

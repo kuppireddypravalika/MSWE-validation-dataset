@@ -1,0 +1,37 @@
+From 87730a7b7e2e2af70185c5f6b925d437b174eed6 Mon Sep 17 00:00:00 2001
+From: sunyab <sunyab@users.noreply.github.com>
+Date: Thu, 10 May 2018 17:36:27 -0700
+Subject: [PATCH] Replace ternary to let returned ref ptr be moved
+
+Returning a value using a ternary with different
+argument types defeats the implicit move for return
+values. This forced a copy of the SdfLayerRefPtr
+being returned, which caused unnecessary ref-count
+operations. To avoid this, we just rewrite the
+ternary as a simple if statement.
+
+(Internal change: 1854928)
+---
+ pxr/usd/lib/sdf/layer.cpp | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/pxr/usd/lib/sdf/layer.cpp b/pxr/usd/lib/sdf/layer.cpp
+index 7ae1820ec1..fbc4cdf786 100644
+--- a/pxr/usd/lib/sdf/layer.cpp
++++ b/pxr/usd/lib/sdf/layer.cpp
+@@ -707,8 +707,13 @@ SdfLayer::FindOrOpen(const string &identifier,
+     if (SdfLayerRefPtr layer =
+         _TryToFindLayer(layerInfo.identifier, layerInfo.resolvedLayerPath,
+                         lock, /*retryAsWriter=*/true)) {
+-        return layer->_WaitForInitializationAndCheckIfSuccessful() ?
+-            layer : TfNullPtr;
++        // This could be written as a ternary, but we rely on return values 
++        // being implicitly moved to avoid making an unnecessary copy of 
++        // layer and the associated ref-count bump.
++        if (layer->_WaitForInitializationAndCheckIfSuccessful()) {
++            return layer;
++        }
++        return TfNullPtr;
+     }
+     // At this point _TryToFindLayer has upgraded lock to a writer.
+ 

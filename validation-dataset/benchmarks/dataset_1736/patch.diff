@@ -1,0 +1,47 @@
+From 691151a2411da76987f3e9cb2b6e278a3cb93767 Mon Sep 17 00:00:00 2001
+From: Anton Kudryavtsev <a.kudryavtsev@netris.ru>
+Date: Wed, 4 May 2016 16:25:52 +0300
+Subject: [PATCH] QUrlQuery: use erase and std::remove_if with QList
+
+... instead of using erase() in a loop, with quadratic complexity.
+
+Change-Id: I277ff2527e0a22b3d754b1d14296b9882f164c23
+Reviewed-by: Marc Mutz <marc.mutz@kdab.com>
+---
+ src/corelib/io/qurlquery.cpp | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/src/corelib/io/qurlquery.cpp b/src/corelib/io/qurlquery.cpp
+index a6351d3a212f..231a26c2116c 100644
+--- a/src/corelib/io/qurlquery.cpp
++++ b/src/corelib/io/qurlquery.cpp
+@@ -43,6 +43,8 @@
+ #include <QtCore/qhashfunctions.h>
+ #include <QtCore/qstringlist.h>
+ 
++#include <algorithm>
++
+ QT_BEGIN_NAMESPACE
+ 
+ /*!
+@@ -754,14 +756,12 @@ void QUrlQuery::removeQueryItem(const QString &key)
+ void QUrlQuery::removeAllQueryItems(const QString &key)
+ {
+     if (d.constData()) {
+-        QString encodedKey = d->recodeFromUser(key);
+-        Map::iterator it = d->itemList.begin();
+-        while (it != d->itemList.end()) {
+-            if (it->first == encodedKey)
+-                it = d->itemList.erase(it);
+-            else
+-                ++it;
+-        }
++        const QString encodedKey = d->recodeFromUser(key);
++        auto firstEqualsEncodedKey = [&encodedKey](const QPair<QString, QString> &item) {
++            return item.first == encodedKey;
++        };
++        const auto end = d->itemList.end();
++        d->itemList.erase(std::remove_if(d->itemList.begin(), end, firstEqualsEncodedKey), end);
+     }
+ }
+ 

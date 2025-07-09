@@ -1,0 +1,37 @@
+From 23cb8463a9967808ae06b963873e57c1a23185b9 Mon Sep 17 00:00:00 2001
+From: Fabian Deuchler <taiko000@gmail.com>
+Date: Sat, 21 May 2016 17:39:32 +0200
+Subject: [PATCH] fixed find in notes performance issue
+
+---
+ src/findfilemodel.cpp | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/src/findfilemodel.cpp b/src/findfilemodel.cpp
+index 99891a3..420db13 100644
+--- a/src/findfilemodel.cpp
++++ b/src/findfilemodel.cpp
+@@ -122,6 +122,11 @@ void FindFileModel::findInFiles(const QString& fileName, const QString &content,
+     if(path.isEmpty() || (fileName.isEmpty() && content.isEmpty()))
+         return;
+ 
++    if(future.isRunning())
++        future.cancel();
++    else
++        QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
++
+     QStringList files;
+     QDirIterator it(path, QDirIterator::Subdirectories);
+     while(it.hasNext())
+@@ -131,11 +136,6 @@ void FindFileModel::findInFiles(const QString& fileName, const QString &content,
+             files << filePath;
+     }
+ 
+-    if(future.isRunning())
+-        future.cancel();
+-    else
+-        QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+-
+     fileContainsFunctor.content = content;
+     fileContainsFunctor.fileName = fileName;
+ 

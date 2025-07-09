@@ -1,0 +1,41 @@
+From 52e758b8091a7e1cbf6945c22166beb425430740 Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Sat, 22 Jul 2017 11:31:29 -0400
+Subject: [PATCH] [libromdata] NintendoDS: Minor optimization to the secure
+ area check.
+
+- Use uintptr_t so we can read 64 bits at a time on amd64.
+- Read two elements at a time in the loop.
+- Use pointer arithmetic instead of array indexing.
+  - NOTE: Both gcc and msvc generate basically the same code with
+    pointer arithmetic as with array indexing. However, since we're
+    reading two elements at once, I think the pointer version is
+    easier to work with.
+---
+ src/libromdata/NintendoDS.cpp | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/src/libromdata/NintendoDS.cpp b/src/libromdata/NintendoDS.cpp
+index d0af6b366f..e771d216d2 100644
+--- a/src/libromdata/NintendoDS.cpp
++++ b/src/libromdata/NintendoDS.cpp
+@@ -469,15 +469,16 @@ const rp_char *NintendoDSPrivate::checkNDSSecureArea(void)
+ 		// NOTE: ndstool checks 0x0200-0x0FFF, but this may
+ 		// contain extra data for DSi-enhanced ROMs, or even
+ 		// for regular DS games released after the DSi.
+-		uint32_t blank_area[0x3000/4];
++		uintptr_t blank_area[0x3000/sizeof(uintptr_t)];
+ 		size = file->seekAndRead(0x1000, blank_area, sizeof(blank_area));
+ 		if (size != sizeof(blank_area)) {
+ 			// Seek and/or read error.
+ 			return nullptr;
+ 		}
+ 
+-		for (int i = ARRAY_SIZE(blank_area)-1; i >= 0; i--) {
+-			if (blank_area[i] != 0) {
++		const uintptr_t *const end = &blank_area[ARRAY_SIZE(blank_area)-1];
++		for (const uintptr_t *p = blank_area; p < end; p += 2) {
++			if (p[0] != 0 || p[1] != 0) {
+ 				// Not zero. This area is not accessible
+ 				// on the NDS, so it might be an original
+ 				// mask ROM dump. Either that, or a Wii U

@@ -1,0 +1,27 @@
+From 2374eff833280163a4346690093934517c09fdcb Mon Sep 17 00:00:00 2001
+From: Thomas Neele <t.s.neele@tue.nl>
+Date: Wed, 4 Sep 2019 17:37:59 +0200
+Subject: [PATCH] Move well-typedness check to assert; it is expensive for
+ large PBESs
+
+---
+ libraries/pbes/include/mcrl2/pbes/tools/pbespor.h | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/libraries/pbes/include/mcrl2/pbes/tools/pbespor.h b/libraries/pbes/include/mcrl2/pbes/tools/pbespor.h
+index ac119d3646..d9db5962ef 100644
+--- a/libraries/pbes/include/mcrl2/pbes/tools/pbespor.h
++++ b/libraries/pbes/include/mcrl2/pbes/tools/pbespor.h
+@@ -109,11 +109,7 @@ struct pbespor_pbes_composer
+       result.equations().push_back(eqn.make_equation());
+     }
+ 
+-    if (!result.is_well_typed())
+-    {
+-      mCRL2log(log::error) << "The result is not well typed!" << std::endl;
+-      mCRL2log(log::error) << pp(result) << std::endl;
+-    }
++    assert(result.is_well_typed());
+     return result;
+   }
+ 

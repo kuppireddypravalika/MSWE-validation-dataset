@@ -1,0 +1,24 @@
+From 037b77a3c3fcbd901afec5d857b4d9d39f804346 Mon Sep 17 00:00:00 2001
+From: Albert Astals Cid <tsdgeos@terra.es>
+Date: Sun, 6 Jan 2008 21:45:23 +0000
+Subject: [PATCH] microoptimization use const & for foreach "iterators" when
+ the "iterator" is an object to avoid a call to the copy-constructor
+
+svn path=/trunk/KDE/kdeedu/ktouch/; revision=758094
+---
+ src/ktouchlecture.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/ktouchlecture.cpp b/src/ktouchlecture.cpp
+index 2f73f964..a909348d 100644
+--- a/src/ktouchlecture.cpp
++++ b/src/ktouchlecture.cpp
+@@ -130,7 +130,7 @@ QSet<QChar> KTouchLecture::knownCharsInLevel(unsigned int level_num) const {
+ 		}
+ 	}
+ 	QString chars;
+-	foreach (QChar ch, knownChars)
++	foreach (const QChar &ch, knownChars)
+ 		chars.append(ch);
+ 	kDebug() << "Known chars: " << chars;
+ 	return knownChars;

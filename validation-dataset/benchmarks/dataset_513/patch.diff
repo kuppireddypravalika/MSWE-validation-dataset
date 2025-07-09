@@ -1,0 +1,33 @@
+From 0c60cd750971c4d80627dafd4e840fb0ec726eb2 Mon Sep 17 00:00:00 2001
+From: Xottab-DUTY <xottab-duty@yandex.ru>
+Date: Wed, 5 Apr 2023 06:37:09 +0300
+Subject: [PATCH] xrScriptEngine/script_process.cpp: microoptimize
+ CScriptProcess::run_scripts() function
+
+---
+ src/xrScriptEngine/script_process.cpp | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
+
+diff --git a/src/xrScriptEngine/script_process.cpp b/src/xrScriptEngine/script_process.cpp
+index e28d01dc1fe..259d3cb7a5b 100644
+--- a/src/xrScriptEngine/script_process.cpp
++++ b/src/xrScriptEngine/script_process.cpp
+@@ -29,13 +29,12 @@ CScriptProcess::CScriptProcess(CScriptEngine* scriptEngine, shared_str name, sha
+ CScriptProcess::~CScriptProcess() { delete_data(m_scripts); }
+ void CScriptProcess::run_scripts()
+ {
+-    pstr S;
+-    for (; !m_scripts_to_run.empty();)
++    while (!m_scripts_to_run.empty())
+     {
+-        pstr I = m_scripts_to_run.back().m_script_name;
+-        bool do_string = m_scripts_to_run.back().m_do_string;
+-        bool reload = m_scripts_to_run.back().m_reload;
+-        S = xr_strdup(I);
++        cpcstr I = m_scripts_to_run.back().m_script_name;
++        const bool do_string = m_scripts_to_run.back().m_do_string;
++        const bool reload = m_scripts_to_run.back().m_reload;
++        pstr S = xr_strdup(I);
+         m_scripts_to_run.pop_back();
+ 
+         CScriptThread* script = scriptEngine->CreateScriptThread(S, do_string, reload);

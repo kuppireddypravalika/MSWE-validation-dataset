@@ -1,0 +1,24 @@
+From f8554e6ca14de4bb0d2df45873aebc433ca8f211 Mon Sep 17 00:00:00 2001
+From: Erik Garrison <erik.garrison@gmail.com>
+Date: Sat, 26 Feb 2022 16:57:58 +0100
+Subject: [PATCH] scale window size by segment length to keep constant the
+ number of kmers be segment
+
+---
+ src/yeet/include/parse_args.hpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/yeet/include/parse_args.hpp b/src/yeet/include/parse_args.hpp
+index ce3acc81..0c59f970 100644
+--- a/src/yeet/include/parse_args.hpp
++++ b/src/yeet/include/parse_args.hpp
+@@ -498,7 +498,8 @@ void parse_args(int argc,
+             map_parameters.windowSize = ws;
+         } else {
+             // Compute the window size with a heuristic function
+-            int64_t windowSize = 256 * std::pow(map_parameters.percentageIdentity, 7);
++            int64_t windowSize = 256 * std::pow(map_parameters.percentageIdentity, 7)
++                * map_parameters.segLength / 5000;
+ 
+             // Avoid tiny windows to improve runtime
+             map_parameters.windowSize = std::max((int64_t)map_parameters.kmerSize, windowSize);

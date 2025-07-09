@@ -1,0 +1,24 @@
+From 55c9bffc18a897e14d7aea54314924960dc968dd Mon Sep 17 00:00:00 2001
+From: cbenthin <carsten.benthin@intel.com>
+Date: Tue, 3 Dec 2013 10:11:00 -0800
+Subject: [PATCH] lowered perf regression further
+
+---
+ kernels/xeon/geometry/triangle1_intersector16_moeller.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/kernels/xeon/geometry/triangle1_intersector16_moeller.h b/kernels/xeon/geometry/triangle1_intersector16_moeller.h
+index 096ec9bc8..36b9567bc 100644
+--- a/kernels/xeon/geometry/triangle1_intersector16_moeller.h
++++ b/kernels/xeon/geometry/triangle1_intersector16_moeller.h
+@@ -86,9 +86,9 @@ namespace embree
+ 	prefetch<PFHINT_L1EX>(&ray.u);      
+ 	prefetch<PFHINT_L1EX>(&ray.v);      
+ 	prefetch<PFHINT_L1EX>(&ray.tfar);      
+-        const mic_f t = dot(C,Ng) * rcp_den;
+ 
+         if (unlikely(none(valid))) continue;
++        const mic_f t = dot(C,Ng) * rcp_den;
+       
+         /* perform depth test */
+         valid = ge(valid, t,ray.tnear);

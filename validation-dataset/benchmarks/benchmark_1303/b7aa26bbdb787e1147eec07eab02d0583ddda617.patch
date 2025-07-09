@@ -1,0 +1,24 @@
+From b7aa26bbdb787e1147eec07eab02d0583ddda617 Mon Sep 17 00:00:00 2001
+From: Dan Gohman <gohman@apple.com>
+Date: Mon, 26 Jul 2010 17:37:36 +0000
+Subject: [PATCH] Use DominatorTree::properlyDominates instead of dominates
+ with an explicit inequality check.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@109401 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Transforms/Scalar/LoopIndexSplit.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/Transforms/Scalar/LoopIndexSplit.cpp b/lib/Transforms/Scalar/LoopIndexSplit.cpp
+index 1def1603cea..4f1ac77c8de 100644
+--- a/lib/Transforms/Scalar/LoopIndexSplit.cpp
++++ b/lib/Transforms/Scalar/LoopIndexSplit.cpp
+@@ -799,7 +799,7 @@ void LoopIndexSplit::moveExitCondition(BasicBlock *CondBB, BasicBlock *ActiveBB,
+   // the dominance frontiers.
+   for (Loop::block_iterator I = LP->block_begin(), E = LP->block_end();
+        I != E; ++I) {
+-    if (*I == CondBB || !DT->dominates(CondBB, *I)) continue;
++    if (!DT->properlyDominates(CondBB, *I)) continue;
+     DominanceFrontier::iterator BBDF = DF->find(*I);
+     DominanceFrontier::DomSetType::iterator DomSetI = BBDF->second.begin();
+     DominanceFrontier::DomSetType::iterator DomSetE = BBDF->second.end();

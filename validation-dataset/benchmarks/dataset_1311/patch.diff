@@ -1,0 +1,44 @@
+From 122df70377d6a89fed80894d9fc8061144358c77 Mon Sep 17 00:00:00 2001
+From: davidsminor <davidm@image-engine.com>
+Date: Tue, 28 Jan 2014 08:11:03 -0800
+Subject: [PATCH] Tweaked updateGridVelocities
+
+Removed extra divide by mass loop for calculating forward momenta, used forward grid velocities as an initial guess for the linear solve
+---
+ src/Grid.cpp | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
+
+diff --git a/src/Grid.cpp b/src/Grid.cpp
+index b534d44..a4e3763 100644
+--- a/src/Grid.cpp
++++ b/src/Grid.cpp
+@@ -563,6 +563,7 @@ void Grid::updateGridVelocities( const ParticleData& d, const std::vector<Collis
+ 				if( m_gridMasses[idx] == 0 )
+ 				{
+ 					forwardMomenta.segment<3>( 3 * idx ).setZero();
++					m_gridVelocities.segment<3>( 3 * idx ).setZero();
+ 				}
+ 				else
+ 				{
+@@ -597,18 +598,14 @@ void Grid::updateGridVelocities( const ParticleData& d, const std::vector<Collis
+ 							}
+ 						}
+ 					}
+-
+-					forwardMomenta.segment<3>( 3 * idx ) = forwardVelocity;
++					
++					m_gridVelocities.segment<3>( 3 * idx ) = forwardVelocity;
++					forwardMomenta.segment<3>( 3 * idx ) = forwardVelocity * m_gridMasses[idx];
+ 				}
+ 			}
+ 		}
+ 	}
+ 	
+-	for( int i=0; i < m_gridMasses.size(); ++i )
+-	{
+-		forwardMomenta.segment<3>( 3 * i ) *= m_gridMasses[i];
+-	}
+-	
+ 	// So we want to solve 
+ 	// m * v^(n+1) - m_timeStep * dF(v^(n+1) * m_timeStep) = forwardMomenta
+ 	

@@ -1,0 +1,22 @@
+From d1ab53ca2b1c5531351f6a3286a8e43a5b235200 Mon Sep 17 00:00:00 2001
+From: jsalmon3 <>
+Date: Mon, 24 Oct 2005 02:30:59 +0000
+Subject: [PATCH] Use unsigned char with CharWidth
+
+---
+ src/video/font.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/video/font.cpp b/src/video/font.cpp
+index 763f5ec7f..f541498bb 100644
+--- a/src/video/font.cpp
++++ b/src/video/font.cpp
+@@ -174,7 +174,7 @@ int CFont::Width(const char *text)
+ 			}
+ 		}
+ 		if (!isformat) {
+-			width += this->CharWidth[*s - 32] + 1;
++			width += this->CharWidth[*(unsigned char *)s - 32] + 1;
+ 		}
+ 	}
+ 	return width;

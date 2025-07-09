@@ -1,0 +1,35 @@
+From e1db0234c773f9476a22c6f52dc2d276dadd33a5 Mon Sep 17 00:00:00 2001
+From: Ye Luo <yeluo@anl.gov>
+Date: Sat, 1 Sep 2018 12:10:04 -0500
+Subject: [PATCH] Threaded full BA table evaluation in batched algo.
+
+---
+ src/Particle/SoaDistanceTableBA.h | 15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/src/Particle/SoaDistanceTableBA.h b/src/Particle/SoaDistanceTableBA.h
+index 38e81f195d..ff32d33629 100644
+--- a/src/Particle/SoaDistanceTableBA.h
++++ b/src/Particle/SoaDistanceTableBA.h
+@@ -61,9 +61,18 @@ struct SoaDistanceTableBA: public DTD_BConds<T,D,SC>, public DistanceTableData
+   /** evaluate the full table */
+   inline void evaluate(ParticleSet& P)
+   {
+-    //be aware of the sign of Displacement
+-    for(int iat=0; iat<Ntargets; ++iat)
+-      DTD_BConds<T,D,SC>::computeDistances(P.R[iat],Origin->RSoA, Distances[iat], Displacements[iat], 0, Nsources);
++    #pragma omp parallel
++    {
++      int first, last;
++      FairDivideAligned(Nsources, getAlignment<T>(),
++                        omp_get_num_threads(),
++                        omp_get_thread_num(),
++                        first, last);
++
++      //be aware of the sign of Displacement
++      for(int iat=0; iat<Ntargets; ++iat)
++        DTD_BConds<T,D,SC>::computeDistances(P.R[iat],Origin->RSoA, Distances[iat], Displacements[iat], first, last);
++    }
+   }
+ 
+   /** evaluate the iat-row with the current position

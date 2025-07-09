@@ -1,0 +1,34 @@
+From 47551b35a17d06c5d5b11917782f82205a5a556c Mon Sep 17 00:00:00 2001
+From: Gheorghita MUTU <gheorghitamutu@gmail.com>
+Date: Mon, 13 Jun 2022 14:32:25 +0300
+Subject: [PATCH] ^ PE - atoi replacement
+
+Signed-off-by: Gheorghita MUTU <gheorghitamutu@gmail.com>
+---
+ Types/PE/src/PEFile.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/Types/PE/src/PEFile.cpp b/Types/PE/src/PEFile.cpp
+index 944ea0d5e..2cd3ab460 100644
+--- a/Types/PE/src/PEFile.cpp
++++ b/Types/PE/src/PEFile.cpp
+@@ -1227,7 +1227,9 @@ void PEFile::GetSectionName(uint32 index, String& sectionName)
+     {
+         auto strtableOffset       = 0ULL;
+         const auto& sectionHeader = sect[index];
+-        auto symbolIndex          = atoi((const char*) sectionHeader.Name + 1);
++
++        const auto symbolIndex = Number::ToUInt64((const char*) sectionHeader.Name + 1);
++        CHECKRET(symbolIndex.has_value(), "");
+ 
+         switch (nth32.OptionalHeader.Magic)
+         {
+@@ -1239,7 +1241,7 @@ void PEFile::GetSectionName(uint32 index, String& sectionName)
+             break;
+         }
+ 
+-        auto bufferLongName = obj->GetData().CopyToBuffer(strtableOffset + symbolIndex, __IMAGE_SIZEOF_SHORT_NAME * 2);
++        auto bufferLongName = obj->GetData().CopyToBuffer(strtableOffset + *symbolIndex, __IMAGE_SIZEOF_SHORT_NAME * 2);
+         const auto length   = (uint32) strnlen((char*) bufferLongName.GetData(), __IMAGE_SIZEOF_SHORT_NAME * 2);
+         String name;
+         name.Set((char*) bufferLongName.GetData(), length);

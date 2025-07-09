@@ -1,0 +1,23 @@
+From 33a9e9b36903209a33ed40a246dbdca52796a99a Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Ars=C3=A8ne=20P=C3=A9rard-Gayot?=
+ <arsene.perard@laposte.net>
+Date: Tue, 22 Jun 2021 19:15:35 +0200
+Subject: [PATCH] Emit operands of mathops before emitting mathops themselves
+
+---
+ src/thorin/be/c/c.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/thorin/be/c/c.cpp b/src/thorin/be/c/c.cpp
+index b2cf4a7e0..7a3808118 100644
+--- a/src/thorin/be/c/c.cpp
++++ b/src/thorin/be/c/c.cpp
+@@ -757,6 +757,8 @@ std::string CCodeGen::emit_bb(BB& bb, const Def* def) {
+             MATH_FUNCTION(log10)
+ #undef MATH_FUNCTION
+         };
++        for (auto op : mathop->ops())
++            emit(op);
+         int bitwidth = num_bits(mathop->type()->primtype_tag());
+         assert(function_names.count(make_key(mathop->mathop_tag(), bitwidth)) > 0);
+         func_impls_.fmt("{} {};\n", convert(mathop->type()), name);

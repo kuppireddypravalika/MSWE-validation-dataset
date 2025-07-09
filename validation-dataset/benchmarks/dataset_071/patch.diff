@@ -1,0 +1,34 @@
+From 3c901537579bd6c74a82015d13698da0a41ce131 Mon Sep 17 00:00:00 2001
+From: AriDEV <aridev666@gmail.com>
+Date: Sun, 13 Sep 2020 07:39:21 +0200
+Subject: [PATCH] Server/Creature: Fix a performance issue at loading creature
+ equipments,
+
+theres absolutely no reason to double check the values.
+
+Signed-off-by: AriDEV <aridev666@gmail.com>
+---
+ src/server/game/Entities/Creature/Creature.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/server/game/Entities/Creature/Creature.cpp b/src/server/game/Entities/Creature/Creature.cpp
+index 5b5069256b4..1e27a23a9b5 100644
+--- a/src/server/game/Entities/Creature/Creature.cpp
++++ b/src/server/game/Entities/Creature/Creature.cpp
+@@ -331,13 +331,13 @@ bool Creature::InitEntry(uint32 entry, uint32 /*team*/, const CreatureData* data
+     SetGender(minfo->gender);
+ 
+     // Load creature equipment
+-    if (!data || data->equipmentId == 0)
+-        LoadEquipment(); // use default equipment (if available)
+-    else if (data && data->equipmentId != 0)                // override, 0 means no equipment
++    if (data && data->equipmentId != 0)
+     {
+         m_originalEquipmentId = data->equipmentId;
+         LoadEquipment(data->equipmentId);
+     }
++    else
++        LoadEquipment(); // use default equipment (if available)
+ 
+     SetName(normalInfo->Name);                              // at normal entry always
+ 

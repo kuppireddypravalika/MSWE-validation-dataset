@@ -1,0 +1,34 @@
+From 7f9755917ae8b6331067db083afa73d765a90f59 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Fri, 6 Feb 2015 12:11:08 +0000
+Subject: [PATCH] GDALRasterBlock::Internalize(): move the use of mutex after
+ malloc() to decrease a bit lock contention
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@28424 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/gcore/gdalrasterblock.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/gdal/gcore/gdalrasterblock.cpp b/gdal/gcore/gdalrasterblock.cpp
+index 6314f47db29f..cbf829c08b24 100644
+--- a/gdal/gcore/gdalrasterblock.cpp
++++ b/gdal/gcore/gdalrasterblock.cpp
+@@ -587,7 +587,6 @@ void GDALRasterBlock::Touch()
+ CPLErr GDALRasterBlock::Internalize()
+ 
+ {
+-    CPLMutexHolderD( &hRBMutex );
+     void        *pNewData;
+     int         nSizeInBytes;
+     GIntBig     nCurCacheMax = GDALGetCacheMax64();
+@@ -612,7 +611,9 @@ CPLErr GDALRasterBlock::Internalize()
+ /* -------------------------------------------------------------------- */
+ /*      Flush old blocks if we are nearing our memory limit.            */
+ /* -------------------------------------------------------------------- */
+-    AddLock(); /* don't flush this block! */
++    CPLMutexHolderD( &hRBMutex );
++
++    AddLock(); /* don't flush this block! FIXME: is this really needed as the block isn't yet inserted in the list. In which case the later DropLock() should be removed */
+ 
+     nCacheUsed += nSizeInBytes;
+     while( nCacheUsed > nCurCacheMax )

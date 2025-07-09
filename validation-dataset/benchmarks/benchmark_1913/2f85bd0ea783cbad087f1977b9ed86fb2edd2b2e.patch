@@ -1,0 +1,22 @@
+From 2f85bd0ea783cbad087f1977b9ed86fb2edd2b2e Mon Sep 17 00:00:00 2001
+From: Mikko Ronkainen <mikko@mikkoronkainen.com>
+Date: Wed, 18 Nov 2015 23:32:21 +0200
+Subject: [PATCH] Removed fastPow from phong shading
+
+---
+ src/Raytracing/Tracers/Raytracer.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/Raytracing/Tracers/Raytracer.cpp b/src/Raytracing/Tracers/Raytracer.cpp
+index 3dd56d1..6365297 100644
+--- a/src/Raytracing/Tracers/Raytracer.cpp
++++ b/src/Raytracing/Tracers/Raytracer.cpp
+@@ -395,7 +395,7 @@ Color Raytracer::calculatePhongShadingColor(const Vector3& normal, const Vector3
+ 			double specularAmount = reflectionDirection.dot(directionToCamera);
+ 
+ 			if (specularAmount > 0.0)
+-				phongColor += light.color * light.intensity * MathUtils::fastPow(specularAmount, shininess) * specularReflectance;
++				phongColor += light.color * light.intensity * pow(specularAmount, shininess) * specularReflectance;
+ 		}
+ 	}
+ 

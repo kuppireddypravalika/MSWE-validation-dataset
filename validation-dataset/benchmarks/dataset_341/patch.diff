@@ -1,0 +1,24 @@
+From cfff6ac02468fe20a353834a3e1dc151f91e26ed Mon Sep 17 00:00:00 2001
+From: Magne Sjaastad <magne.sjaastad@ceetronsolutions.com>
+Date: Fri, 12 Jan 2024 15:11:38 +0100
+Subject: [PATCH] #11053 Limit number of time step to 1 for static result
+
+This will also improve performance, as less memory is consumed
+---
+ .../ProjectDataModel/RimEclipseStatisticsCaseEvaluator.cpp     | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/ApplicationLibCode/ProjectDataModel/RimEclipseStatisticsCaseEvaluator.cpp b/ApplicationLibCode/ProjectDataModel/RimEclipseStatisticsCaseEvaluator.cpp
+index 17f10eb79d2..3fcf0c53fd5 100644
+--- a/ApplicationLibCode/ProjectDataModel/RimEclipseStatisticsCaseEvaluator.cpp
++++ b/ApplicationLibCode/ProjectDataModel/RimEclipseStatisticsCaseEvaluator.cpp
+@@ -63,6 +63,9 @@ void RimEclipseStatisticsCaseEvaluator::addNamedResult( RigCaseCellResultsData*
+ 
+     size_t timeStepCount = std::max( size_t( 1 ), sourceTimeStepInfos.size() );
+ 
++    // Limit to one time step for static native results
++    if ( resultType == RiaDefines::ResultCatType::STATIC_NATIVE ) timeStepCount = 1;
++
+     dataValues->resize( timeStepCount );
+ 
+     // Initializes the size of the destination dataset to active union cell count

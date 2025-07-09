@@ -1,0 +1,33 @@
+From 0663d15adacd938b0291a0be0e1c5f2e42eec130 Mon Sep 17 00:00:00 2001
+From: "bernard.parisse" <bernard.parisse@23ce0884-8a58-47d3-bc5c-ddf1cd5b9f9e>
+Date: Sun, 25 Feb 2018 16:16:17 +0000
+Subject: [PATCH] =?UTF-8?q?[giac]=20=E2=88=AB(e^(-x^2-i*t*x),x,-=E2=88=9E,?=
+ =?UTF-8?q?=E2=88=9E)=20->=20sqrt(pi)*exp(-t^2/4)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+git-svn-id: https://dev.geogebra.org/svn/trunk/geogebra/giac@59922 23ce0884-8a58-47d3-bc5c-ddf1cd5b9f9e
+---
+ src/giac/cpp/intgab.cc | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/src/giac/cpp/intgab.cc b/src/giac/cpp/intgab.cc
+index 01c9308e..60669155 100644
+--- a/src/giac/cpp/intgab.cc
++++ b/src/giac/cpp/intgab.cc
+@@ -579,6 +579,14 @@ namespace giac {
+     // check if g may be integrated using the residue formula
+     gen A,B,P;
+     int typeint=rational?2:is_meromorphic(g,x,A,B,P,contextptr);
++    if (typeint==6 && a==minus_inf && b==plus_inf && is_zero(P) && is_constant_wrt(A,x,contextptr) && is_constant_wrt(B,x,contextptr) && is_strictly_positive(-A[0],contextptr)){
++      gen A_(A[0]),B_(A[1]),C_(A[2]);
++      // int(exp(A_*x^2+B_*x+C_)*B,x,-inf,inf)
++      // =int(exp(A_*(x+B_/2/A_)^2+(-B_^2/4/A_+C_))*B,x,-inf,inf)
++      // =sqrt(pi/A_)*B*exp(B_^2/4/A_-C_)
++      res=sqrt(-cst_pi/A_,contextptr)*B*exp(ratnormal(C_-B_*B_/4/A_,contextptr),contextptr);
++      return true;
++    }
+     if (typeint==5){ 
+       // A*ln(P(x))+B, A/B/P rational fractions
+       bool estreel=is_zero(im(A,contextptr))&&is_zero(im(P,contextptr));

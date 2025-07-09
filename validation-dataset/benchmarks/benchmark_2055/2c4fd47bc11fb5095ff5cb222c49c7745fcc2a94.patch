@@ -1,0 +1,22 @@
+From 2c4fd47bc11fb5095ff5cb222c49c7745fcc2a94 Mon Sep 17 00:00:00 2001
+From: Justin Carpentier <justin.carpentier@inria.fr>
+Date: Tue, 30 Jan 2024 23:42:53 +0100
+Subject: [PATCH] algo/sparse: use factorize for sparse matrix
+
+---
+ src/algorithm/delassus-operator-sparse.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/algorithm/delassus-operator-sparse.hpp b/src/algorithm/delassus-operator-sparse.hpp
+index f36e38699f..5080404995 100644
+--- a/src/algorithm/delassus-operator-sparse.hpp
++++ b/src/algorithm/delassus-operator-sparse.hpp
+@@ -77,7 +77,7 @@ struct DelassusOperatorSparseTpl
+     damping = vec;
+     PINOCCHIO_EIGEN_MALLOC_SAVE_STATUS();
+     PINOCCHIO_EIGEN_MALLOC_ALLOWED();
+-    llt.compute(delassus_matrix_plus_damping);
++    llt.factorize(delassus_matrix_plus_damping);
+     PINOCCHIO_EIGEN_MALLOC_RESTORE_STATUS();
+   }
+ 

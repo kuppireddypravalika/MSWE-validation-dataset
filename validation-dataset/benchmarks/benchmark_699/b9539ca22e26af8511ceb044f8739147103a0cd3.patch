@@ -1,0 +1,41 @@
+From b9539ca22e26af8511ceb044f8739147103a0cd3 Mon Sep 17 00:00:00 2001
+From: dakotachasesmith <dakotachasesmith@gmail.com>
+Date: Thu, 23 May 2019 15:39:41 -1000
+Subject: [PATCH] [EE_JITTRANS] Put limit of 100 instructions for a block
+
+---
+ src/core/ee/ee_jittrans.cpp | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/src/core/ee/ee_jittrans.cpp b/src/core/ee/ee_jittrans.cpp
+index 2a14dde3d..7dbe71fa4 100644
+--- a/src/core/ee/ee_jittrans.cpp
++++ b/src/core/ee/ee_jittrans.cpp
+@@ -28,6 +28,8 @@ IR::Block EE_JitTranslator::translate(EmotionEngine &ee)
+     branch_delayslot = false;
+     eret_op = false;
+     cycle_count = 0;
++    // Set hard limit to avoid massive blocks (Thanks, Yakuza)
++    const int instrs_limit = 100;
+ 
+     while (!branch_delayslot && !eret_op)
+     {
+@@ -42,6 +44,18 @@ IR::Block EE_JitTranslator::translate(EmotionEngine &ee)
+ 
+         pc += 4;
+         cycle_count++;
++
++        if (instrs.size() >= instrs_limit && !branch_delayslot)
++            break;
++    }
++    
++    if (instrs.size() >= instrs_limit && !branch_delayslot)
++    {
++        IR::Instruction instr;
++        instr.op = IR::Opcode::Jump;
++        instr.set_jump_dest(pc);
++        instr.set_is_link(false);
++        instrs.push_back(instr);
+     }
+ 
+     for (auto instr : instrs)

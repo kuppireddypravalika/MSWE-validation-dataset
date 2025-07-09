@@ -1,0 +1,23 @@
+From 56e63c51dbeec043f14db6c61e1a22bfa12c8113 Mon Sep 17 00:00:00 2001
+From: Dillon Huff <dillonhuff@gmail.com>
+Date: Mon, 16 Nov 2020 13:02:16 -0800
+Subject: [PATCH] Replaced ubuffer agen map
+
+---
+ coreir_backend.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/coreir_backend.cpp b/coreir_backend.cpp
+index a05e27756..066a05a9b 100644
+--- a/coreir_backend.cpp
++++ b/coreir_backend.cpp
+@@ -399,7 +399,8 @@ void generate_M3_coreir(CodegenOptions& options, CoreIR::ModuleDef* def, prog& p
+       for(auto pt : bank_writers[b]) {
+         int count = map_find({pt, b}, ubuffer_port_and_bank_to_bank_port);
+         auto adjusted_buf = write_latency_adjusted_buffer(options, prg, buf, hwinfo);
+-        auto agen = ubuffer_port_agens[pt];
++        //auto agen = ubuffer_port_agens[pt];
++        auto agen = bank_and_port_input_addrgen[{b, count}];
+         bank_and_port_to_agen[{b, count}] = agen->sel("out");
+ 
+         Wireable* enable = nullptr;

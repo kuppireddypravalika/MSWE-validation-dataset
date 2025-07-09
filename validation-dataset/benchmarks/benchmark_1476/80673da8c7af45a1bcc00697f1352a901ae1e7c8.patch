@@ -1,0 +1,46 @@
+From 80673da8c7af45a1bcc00697f1352a901ae1e7c8 Mon Sep 17 00:00:00 2001
+From: Nigel Yu <yunigel@ca.ibm.com>
+Date: Wed, 19 Jun 2019 13:09:43 -0400
+Subject: [PATCH] Make ARM virtual guard evaluator use common query for VG NOP
+
+Make ARM virtual guard evaluator use the common query to decide whether
+a virtual guard NOP is needed.
+
+Signed-off-by: Nigel Yu <yunigel@ca.ibm.com>
+---
+ compiler/arm/codegen/ControlFlowEvaluator.cpp | 17 +++--------------
+ 1 file changed, 3 insertions(+), 14 deletions(-)
+
+diff --git a/compiler/arm/codegen/ControlFlowEvaluator.cpp b/compiler/arm/codegen/ControlFlowEvaluator.cpp
+index 9a9ac18db7..fb866e3a8f 100644
+--- a/compiler/arm/codegen/ControlFlowEvaluator.cpp
++++ b/compiler/arm/codegen/ControlFlowEvaluator.cpp
+@@ -312,25 +312,14 @@ TR::Instruction *OMR::ARM::TreeEvaluator::compareIntsForEquality(TR_ARMCondition
+ static bool virtualGuardHelper(TR::Node *node, TR::CodeGenerator *cg)
+    {
+ #ifdef J9_PROJECT_SPECIFIC
+-   TR::Compilation *comp = cg->comp();
+-   if ((!node->isNopableInlineGuard() && !node->isHCRGuard() && !node->isBreakpointGuard()) ||
+-       !cg->getSupportsVirtualGuardNOPing())
+-      return false;
+ 
+-   TR_VirtualGuard *virtualGuard = comp->findVirtualGuardInfo(node);
+-   if (!((comp->performVirtualGuardNOPing() || node->isHCRGuard()) &&
+-         comp->isVirtualGuardNOPingRequired(virtualGuard)) &&
+-       virtualGuard->canBeRemoved())
+-      return false;
+-
+-   if (   node->getOpCodeValue() != TR::ificmpne
+-       && node->getOpCodeValue() != TR::iflcmpne
+-       && node->getOpCodeValue() != TR::ifacmpne)
++   if (!cg->willGenerateNOPForVirtualGuard(node))
+       {
+-      //TR_ASSERT(0, "virtualGuradHelper: not expecting reversed comparison");
+       return false;
+       }
+ 
++   TR::Compilation *comp = cg->comp();
++   TR_VirtualGuard *virtualGuard = comp->findVirtualGuardInfo(node);
+    TR_VirtualGuardSite *site = NULL;
+ 
+    if (comp->compileRelocatableCode())

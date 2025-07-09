@@ -1,0 +1,30 @@
+From 0eca7fbad0a50943f9c9cefe997af67fe479217c Mon Sep 17 00:00:00 2001
+From: "J.W. Jagersma" <jwjagersma@gmail.com>
+Date: Sun, 11 Jun 2023 18:24:05 +0200
+Subject: [PATCH] avoid saturating in px_blend_premultiplied
+
+---
+ include/jw/video/pixel.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/include/jw/video/pixel.h b/include/jw/video/pixel.h
+index 5d6fa61..36b6113 100644
+--- a/include/jw/video/pixel.h
++++ b/include/jw/video/pixel.h
+@@ -595,6 +595,7 @@ namespace jw::video
+     } inline constexpr px_blend_straight;
+ 
+     // Given inputs (dst, src), blend src over dst using premultiplied alpha.
++    // Does not saturate, so must be followed by px_clamp.
+     struct px_blend_premultiplied_t
+     {
+         template<simd flags, pixel_data DD, pixel_data DS>
+@@ -636,7 +637,7 @@ namespace jw::video
+ 
+             dst = _mm_mullo_pi16(dst, _mm_set1_pi16(a));
+             dst = mmx_div_scalar_pu16<flags, true, Src::ax, max * Src::ax>(dst);
+-            dst = _mm_adds_pu8(dst, src);
++            dst = _mm_adds_pi16(dst, src);
+ 
+             return simd_data<Dst>(dst);
+         }

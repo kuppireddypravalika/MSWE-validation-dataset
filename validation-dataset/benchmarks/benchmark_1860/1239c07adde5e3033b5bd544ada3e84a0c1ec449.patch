@@ -1,0 +1,38 @@
+From 1239c07adde5e3033b5bd544ada3e84a0c1ec449 Mon Sep 17 00:00:00 2001
+From: Pilow <pierre.laupretre@gmail.com>
+Date: Wed, 19 Jul 2017 23:47:37 +0200
+Subject: [PATCH] [compiler] Don't use VM::value_to_pointer in insn_to_pointer
+
+---
+ src/compiler/Compiler.cpp | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/src/compiler/Compiler.cpp b/src/compiler/Compiler.cpp
+index 5d34da33..d8ea9697 100644
+--- a/src/compiler/Compiler.cpp
++++ b/src/compiler/Compiler.cpp
+@@ -239,7 +239,23 @@ Compiler::value Compiler::insn_to_pointer(Compiler::value v) const {
+ 	}
+ 	Type new_type = v.t;
+ 	new_type.nature = Nature::POINTER;
+-	return {VM::value_to_pointer(F, v.v, v.t), new_type};
++	if (v.t.raw_type == RawType::LONG) {
++		return insn_call(new_type, {v}, +[](long n) {
++			return LSNumber::get(n);
++		});
++	} else if (v.t.raw_type == RawType::REAL) {
++		return insn_call(new_type, {v}, +[](double n) {
++			return LSNumber::get(n);
++		});
++	} else if (v.t.raw_type == RawType::BOOLEAN) {
++		return insn_call(new_type, {v}, +[](bool n) {
++			return LSBoolean::get(n);
++		});
++	} else {
++		return insn_call(new_type, {v}, +[](int n) {
++			return LSNumber::get(n);
++		});
++	}
+ }
+ 
+ Compiler::value Compiler::insn_to_bool(Compiler::value v) const {

@@ -1,0 +1,42 @@
+From f697d2f07f9215726e01accfd92d7d4a3e7574ec Mon Sep 17 00:00:00 2001
+From: T Petrov <tpetrov@codeblocks.org>
+Date: Mon, 4 Nov 2019 19:35:21 +0000
+Subject: [PATCH] * sdk: Make CompilerFactory::GetCompiler using an id faster
+
+> The call to wxString::Lower is really slow, because it does a allocation,
+  copy and deallocation. All of these aren't needed because we could use
+  case insensitive compare.
+> The improvement is massive because before the change GetCompiler took 25%
+  of the execution of cbProject::AddFile and now it takes only 6%. I guess
+  we could improve it more by using some king of a map from id to compiler.
+
+git-svn-id: https://svn.code.sf.net/p/codeblocks/code/trunk@11900 2a5c6006-c6dd-42ca-98ab-0921f2732cef
+---
+ src/sdk/compilerfactory.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/src/sdk/compilerfactory.cpp b/src/sdk/compilerfactory.cpp
+index 26159a8fb1..af0239695c 100644
+--- a/src/sdk/compilerfactory.cpp
++++ b/src/sdk/compilerfactory.cpp
+@@ -41,10 +41,9 @@ Compiler* CompilerFactory::GetCompiler(size_t index)
+ 
+ Compiler* CompilerFactory::GetCompiler(const wxString& id)
+ {
+-    const wxString lid = id.Lower();
+     for (size_t i = 0; i < Compilers.GetCount(); ++i)
+     {
+-        if (Compilers[i]->GetID().IsSameAs(lid))
++        if (Compilers[i]->GetID().IsSameAs(id, false))
+             return Compilers[i];
+     }
+     // try again using previous id format
+@@ -52,7 +51,7 @@ Compiler* CompilerFactory::GetCompiler(const wxString& id)
+     {
+         wxString oldId = Compilers[i]->GetID();
+         oldId.Replace(wxT("-"), wxEmptyString);
+-        if (oldId.IsSameAs(lid))
++        if (oldId.IsSameAs(id, false))
+             return Compilers[i];
+     }
+     return nullptr;

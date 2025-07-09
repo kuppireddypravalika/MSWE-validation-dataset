@@ -1,0 +1,22 @@
+From 37519dc897591feeb966d344954ff9d57c2ef235 Mon Sep 17 00:00:00 2001
+From: Pilow <pierre.laupretre@gmail.com>
+Date: Sun, 30 Dec 2018 19:08:35 +0100
+Subject: [PATCH] [compiler] Use at() instead of []
+
+---
+ src/compiler/Compiler.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/compiler/Compiler.cpp b/src/compiler/Compiler.cpp
+index 6729db7b..15ffe9ae 100644
+--- a/src/compiler/Compiler.cpp
++++ b/src/compiler/Compiler.cpp
+@@ -1565,7 +1565,7 @@ Compiler::value Compiler::add_var(const std::string& name, Compiler::value value
+ 	assert(value.t.llvm_type() == value.v->getType());
+ 	auto var = create_entry(name, value.t);
+ 	insn_store(var, value);
+-	variables.back()[name] = var;
++	variables.back().at(name) = var;
+ 	return var;
+ }
+ 

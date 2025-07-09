@@ -1,0 +1,36 @@
+From c420e17642ec16cbf8894b7a5ee788bb5152205c Mon Sep 17 00:00:00 2001
+From: senquack <dansilsby@gmail.com>
+Date: Tue, 15 Nov 2016 02:47:38 -0500
+Subject: [PATCH] mipsrec: Use direct addressing to invalidate code in
+ gen_SWL_SWR()
+
+Now that we have ADR_HI()/ADR_LO() GAS %hi/%lo equivalents, we can
+optimize load/store addressing.
+
+This eliminates load dependency on psxRegs.reserved
+---
+ src/recompiler/mips/rec_lsu.cpp.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/recompiler/mips/rec_lsu.cpp.h b/src/recompiler/mips/rec_lsu.cpp.h
+index 4c6dc0ca..2b1f1eea 100644
+--- a/src/recompiler/mips/rec_lsu.cpp.h
++++ b/src/recompiler/mips/rec_lsu.cpp.h
+@@ -843,7 +843,7 @@ static void gen_SWL_SWR(int count)
+ 	icount = count;
+ 	u32 *backpatch_label_exit_1 = 0;
+ 
+-	LW(TEMP_3, PERM_REG_1, off(reserved)); // load addr of code block ptr array
++	LUI(TEMP_3, ADR_HI(recRAM)); // temp_3 = upper code block ptr array addr
+ 	do {
+ 		u32 opcode = *(u32 *)((char *)PSXM(PC));
+ 		s32 imm = _fImm_(opcode);
+@@ -869,7 +869,7 @@ static void gen_SWL_SWR(int count)
+ 			// NOTE: Branch delay slot will contain the instruction below
+ 		}
+ 		// Important: this should be the last instruction in the loop (is BD slot of exit branch)
+-		SW(0, TEMP_1, 0);  // set code block ptr to NULL
++		SW(0, TEMP_1, ADR_LO(recRAM));  // set code block ptr to NULL
+ 
+ 		PC += 4;
+ 

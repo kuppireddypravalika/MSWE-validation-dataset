@@ -1,0 +1,26 @@
+From b68e557869f2411f087e3a9955826f61717ca959 Mon Sep 17 00:00:00 2001
+From: Lyve <lyve2909+github@gmail.com>
+Date: Tue, 22 Jun 2021 23:02:05 +0200
+Subject: [PATCH] use immediate data for external memory address instead of a
+ host register
+
+---
+ source/dsp56kEmu/jitmem.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/source/dsp56kEmu/jitmem.cpp b/source/dsp56kEmu/jitmem.cpp
+index 9e722044..2392c375 100644
+--- a/source/dsp56kEmu/jitmem.cpp
++++ b/source/dsp56kEmu/jitmem.cpp
+@@ -335,10 +335,9 @@ namespace dsp56k
+ 
+ 		{
+ 			// use P memory for all bridged external memory
+-			const auto extMem = m_block.regs().getExtMemAddr();
+ 			const auto p = regSmallTemp;
+ 			getMemAreaPtr(p, MemArea_P);
+-			m_block.asm_().cmp(_offset.r32(), extMem.r32());
++			m_block.asm_().cmp(_offset.r32(), asmjit::Imm(m_block.dsp().memory().getBridgedMemoryAddress()));
+ 			m_block.asm_().cmovge(_dst, p);
+ 		}
+ 	}

@@ -1,0 +1,38 @@
+From 857decdf5a197fb26fc7feb357308dcfd0fb5b32 Mon Sep 17 00:00:00 2001
+From: "Matthew \"strager\" Glazar" <strager.nds@gmail.com>
+Date: Wed, 17 Nov 2021 01:20:37 -0800
+Subject: [PATCH] Remove std::string in arg_parser
+
+std::string is relatively expensive (even with SSO). Constructing an
+std::string is overkill for checking if an existing string has two
+characters. (Also, the std::string construction looks suspicious and
+isn't obvious.) Simplify the code.
+
+This commit should not change behavior.
+---
+ src/arg-parser.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/src/arg-parser.cpp b/src/arg-parser.cpp
+index 1ccedc3864..8330a1d101 100644
+--- a/src/arg-parser.cpp
++++ b/src/arg-parser.cpp
+@@ -7,7 +7,6 @@
+ #include <quick-lint-js/assert.h>
+ #include <quick-lint-js/narrow-cast.h>
+ #include <quick-lint-js/string-view.h>
+-#include <string>
+ #include <string_view>
+ 
+ using namespace std::literals::string_view_literals;
+@@ -35,8 +34,8 @@ bool arg_parser::match_flag_shorthand(char option_shorthand) noexcept {
+   if (!this->option_.has_value()) {
+     return false;
+   }
+-  bool matches = this->option_->arg_key == std::string{'-', option_shorthand};
+-
++  std::string_view arg = this->option_->arg_key;
++  bool matches = arg.size() == 2 && arg[0] == '-' && arg[1] == option_shorthand;
+   if (matches) {
+     this->advance(1);
+   }

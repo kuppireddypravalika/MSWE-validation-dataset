@@ -1,0 +1,24 @@
+From e1d3522a9560fae164a1a7aff4bde4b80216e495 Mon Sep 17 00:00:00 2001
+From: Andrew Adams <andrew.b.adams@gmail.com>
+Date: Fri, 14 Jun 2013 09:40:34 -0700
+Subject: [PATCH] fast_pow now casts non-floats to floats
+
+Former-commit-id: c5db49dd343fe052520f80a3c25bac242beea902
+---
+ src/IROperator.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/IROperator.h b/src/IROperator.h
+index 2921087285..7fc080455a 100644
+--- a/src/IROperator.h
++++ b/src/IROperator.h
+@@ -592,7 +592,8 @@ EXPORT Expr fast_exp(Expr x);
+  * nonsense for x < 0.0f. Accurate up to the last 5 bits of the
+  * mantissa for typical exponents. Gets worse when approaching overflow. */
+ inline Expr fast_pow(Expr x, Expr y) {
+-    assert(x.type() == Float(32) && y.type() == Float(32));
++    x = cast<float>(x);
++    y = cast<float>(y);
+     return select(x == 0.0f, 0.0f, fast_exp(fast_log(x) * y));
+ }
+ 

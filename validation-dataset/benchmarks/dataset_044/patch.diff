@@ -1,0 +1,22 @@
+From ff0335e4ef3eb41a6e571ed2171c96197ddefe30 Mon Sep 17 00:00:00 2001
+From: Timm Hoffmeister <timm.hoffmeister@gmx.de>
+Date: Tue, 2 Feb 2021 22:41:32 +0000
+Subject: [PATCH] Used insert instead of std::copy
+
+---
+ libs/s25main/mapGenerator/Algorithms.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libs/s25main/mapGenerator/Algorithms.h b/libs/s25main/mapGenerator/Algorithms.h
+index 8286733bb1..6b5243058a 100644
+--- a/libs/s25main/mapGenerator/Algorithms.h
++++ b/libs/s25main/mapGenerator/Algorithms.h
+@@ -34,7 +34,7 @@ namespace rttr { namespace mapGenerator {
+         std::vector<E> joined;
+         for(const auto& el : container)
+         {
+-            std::copy(el.begin(), el.end(), std::back_inserter(joined));
++            joined.insert(joined.end(), el.begin(), el.end());
+         }
+         return joined;
+     }

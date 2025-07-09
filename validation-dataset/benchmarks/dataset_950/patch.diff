@@ -1,0 +1,29 @@
+From d2c0e4c913af55d97e706c08050446dcf74235d0 Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Sat, 29 Oct 2016 10:26:51 -0400
+Subject: [PATCH] [libromdata] ImageDecoderPrivate::RGB5A3_to_ARGB32(): Reduced
+ the number of shifts in the RGB4A3 path.
+
+Same optimization as ARGB4444_to_ARGB32().
+---
+ src/libromdata/img/ImageDecoder.cpp | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/src/libromdata/img/ImageDecoder.cpp b/src/libromdata/img/ImageDecoder.cpp
+index 21b245205f..6e5aa47c93 100644
+--- a/src/libromdata/img/ImageDecoder.cpp
++++ b/src/libromdata/img/ImageDecoder.cpp
+@@ -153,9 +153,10 @@ inline uint32_t ImageDecoderPrivate::RGB5A3_to_ARGB32(uint16_t px16)
+ 		px32 |= 0xFF000000U; // no alpha channel
+ 	} else {
+ 		// RGB4A3
+-		px32 |= (((px16 & 0x000F) << 4)  |  (px16 & 0x000F));		// B
+-		px32 |= (((px16 & 0x00F0) << 8)  | ((px16 & 0x00F0) << 4));	// G
+-		px32 |= (((px16 & 0x0F00) << 12) | ((px16 & 0x0F00) << 8));	// R
++		px32  =  (px16 & 0x000F);	// B
++		px32 |= ((px16 & 0x00F0) << 4);	// G
++		px32 |= ((px16 & 0x0F00) << 8);	// R
++		px32 |= (px32 << 4);		// Copy to the top nybble.
+ 
+ 		// Calculate the alpha channel.
+ 		uint8_t a = ((px16 >> 7) & 0xE0);

@@ -1,0 +1,28 @@
+From 4e1df0d5fb2627a9b72a5c8df46c692515d66afd Mon Sep 17 00:00:00 2001
+From: Hanna K <hanna.knutsson@protonmail.com>
+Date: Mon, 29 Jun 2020 18:20:14 +0200
+Subject: [PATCH] Do a*b^c=a/b*b^(c+1) if -1 < c < 0 and a is divisible by b
+ (issue #205)
+
+---
+ libqalculate/MathStructure-calculate.cc | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/libqalculate/MathStructure-calculate.cc b/libqalculate/MathStructure-calculate.cc
+index 3ebfd4b2..51ced86c 100644
+--- a/libqalculate/MathStructure-calculate.cc
++++ b/libqalculate/MathStructure-calculate.cc
+@@ -2518,6 +2518,13 @@ int MathStructure::merge_multiplication(MathStructure &mstruct, const Evaluation
+ 							MERGE_APPROX_AND_PREC(mstruct)
+ 							calculateRaiseExponent(eo);
+ 							return 1;
++						} else if(CHILD(1).number().isNegative() && CHILD(1).number().isFraction() && mstruct.number().isIntegerDivisible(CHILD(0).number())) {
++							if(mstruct.number().divide(CHILD(0).number())) {
++								mstruct.numberUpdated();
++								CHILD(1).number()++;
++								calculateMultiply(mstruct, eo);
++								return 1;
++							}
+ 						}
+ 					}
+ 					// x^a*0=0 (keep units and check if not matrix and not undefined)

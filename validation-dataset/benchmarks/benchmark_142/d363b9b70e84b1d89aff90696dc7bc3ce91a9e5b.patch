@@ -1,0 +1,36 @@
+From d363b9b70e84b1d89aff90696dc7bc3ce91a9e5b Mon Sep 17 00:00:00 2001
+From: Filip Jeremic <fjeremic@ca.ibm.com>
+Date: Wed, 5 Sep 2018 17:00:38 -0400
+Subject: [PATCH] Remove negative restriction in generateS390ImmOp for CLG
+
+When attempting to generate a "compare with immediate" instruction in
+the `generateS390ImmOp` API we have an unnecessary check that the
+immediate value is non-negative. For "compare logical" instructions
+this check is unnecessary since we eliminate all negative values from
+the consideration, even though they can be encoded by the "compare
+logical immediate" instructions.
+
+A prime example of this is trying to compare against 0x80000000 with
+CLG. We can definitely use CLGFI to carry out the comparison however
+our function would instead say this is impossible and proceed to store
+the aforementioned immediate into the literal pool and use a CLGF
+instruction to compare in memory.
+
+Signed-off-by: Filip Jeremic <fjeremic@ca.ibm.com>
+---
+ compiler/z/codegen/OMRTreeEvaluator.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/compiler/z/codegen/OMRTreeEvaluator.cpp b/compiler/z/codegen/OMRTreeEvaluator.cpp
+index 8d803d7f2b..dc2c8824b7 100644
+--- a/compiler/z/codegen/OMRTreeEvaluator.cpp
++++ b/compiler/z/codegen/OMRTreeEvaluator.cpp
+@@ -1009,7 +1009,7 @@ generateS390ImmOp(TR::CodeGenerator * cg,  TR::InstOpCode::Mnemonic memOp, TR::N
+                return cursor;
+                }
+             }
+-         if (value >= 0 && cg->canUseGoldenEagleImmediateInstruction(value))
++         if (cg->canUseGoldenEagleImmediateInstruction(value))
+             {
+             // LL: If Golden Eagle - can use Compare Logical Immediate with max 32-bit value.
+             ei_immOp = TR::InstOpCode::CLGFI;

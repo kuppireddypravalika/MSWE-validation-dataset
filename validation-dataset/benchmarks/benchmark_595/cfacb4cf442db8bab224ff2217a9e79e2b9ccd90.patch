@@ -1,0 +1,39 @@
+From cfacb4cf442db8bab224ff2217a9e79e2b9ccd90 Mon Sep 17 00:00:00 2001
+From: "Matthew \"strager\" Glazar" <strager.nds@gmail.com>
+Date: Tue, 19 Apr 2022 18:29:59 -0700
+Subject: [PATCH] fix: simplify use of multi_visitor; improve crash resilience
+
+Commit 0933c774 carefully avoided instantiating the
+parse_and_visit_module function template with multi_visitor in order to
+reduce binary bloat. As of commit 40a89e9e, parse_and_visit_module is no
+longer a template. Therefore, binary bloat will not occur when using
+multi_visitor.
+
+Change the implementation of --debug-parser-visits to avoid buffering
+all visits. This means that visits are logged even if a crash occurs
+during parsing.
+
+Refs: 0933c77494bbda1e8bc6f7bd1128d18c56b1fdff, 40a89e9e22952d1bd1a6ac7e0132ceda28efdbf4
+---
+ src/main.cpp | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/src/main.cpp b/src/main.cpp
+index 2b1aa565ff..9903756882 100644
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -534,13 +534,9 @@ void process_file(padded_string_view input, configuration &config,
+   };
+ 
+   if (print_parser_visits) {
+-    linked_bump_allocator<alignof(void *)> v_allocator;
+-    buffering_visitor v(&v_allocator);
+-    run_parser(v);
+-
+     debug_visitor logger;
+     multi_visitor visitor(&logger, &l);
+-    v.move_into(visitor);
++    run_parser(visitor);
+   } else {
+     run_parser(l);
+   }

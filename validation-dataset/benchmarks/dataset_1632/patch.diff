@@ -1,0 +1,35 @@
+From 11c2a5b4778dc2c67cf21c020e8266067a99f3d2 Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@qt.io>
+Date: Tue, 8 Aug 2023 07:37:03 +0200
+Subject: [PATCH] tst_QImage: replace QList with constexpr array
+
+"Never use a dynamically-sized container for statically-sized data."
+
+Port the loop from Q_FOREACH (which can't deal with arrays) to ranged
+for (which can).
+
+Pick-to: 6.6 6.5
+Task-number: QTBUG-115839
+Change-Id: I40773a0397b83cce0c803967ee3fd7ae274933d3
+Reviewed-by: Ivan Solovev <ivan.solovev@qt.io>
+---
+ tests/auto/gui/image/qimage/tst_qimage.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/tests/auto/gui/image/qimage/tst_qimage.cpp b/tests/auto/gui/image/qimage/tst_qimage.cpp
+index 415f016519a7..2d1137bd09f2 100644
+--- a/tests/auto/gui/image/qimage/tst_qimage.cpp
++++ b/tests/auto/gui/image/qimage/tst_qimage.cpp
+@@ -1133,10 +1133,9 @@ void tst_QImage::rotate_data()
+     QTest::addColumn<QImage::Format>("format");
+     QTest::addColumn<int>("degrees");
+ 
+-    QList<int> degrees;
+-    degrees << 0 << 90 << 180 << 270;
++    constexpr int degrees[] = {0, 90, 180, 270};
+ 
+-    foreach (int d, degrees) {
++    for (int d : degrees) {
+         const QString dB = QString::number(d);
+         for (int i = QImage::Format_Indexed8; i < QImage::NImageFormats; i++) {
+             QImage::Format format = static_cast<QImage::Format>(i);

@@ -1,0 +1,22 @@
+From 4d14a1ba37a7fd4b4f2a5cfea6823d09e7994123 Mon Sep 17 00:00:00 2001
+From: Ferran <farrufat@cimne.upc.edu>
+Date: Wed, 11 Oct 2017 17:27:20 +0200
+Subject: [PATCH] changed from 1/10 to 1/1
+
+---
+ applications/DEM_application/custom_utilities/pre_utilities.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/applications/DEM_application/custom_utilities/pre_utilities.h b/applications/DEM_application/custom_utilities/pre_utilities.h
+index afb9ba170341..2db2be4168f9 100644
+--- a/applications/DEM_application/custom_utilities/pre_utilities.h
++++ b/applications/DEM_application/custom_utilities/pre_utilities.h
+@@ -93,7 +93,7 @@ class PreUtilities
+         temporal_vector_of_ids.resize(mNumberOfThreads);
+ 
+         #pragma omp parallel for
+-        for (int k = 0; k < (int)pElements.size(); k+=10) {
++        for (int k = 0; k < (int)pElements.size(); k++) {
+             ElementsArrayType::iterator it = pElements.ptr_begin() + k;
+             int analytic_particle_id = it->Id();
+             temporal_vector_of_ids[OpenMPUtils::ThisThread()].push_back(analytic_particle_id);

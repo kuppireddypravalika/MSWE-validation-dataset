@@ -1,0 +1,30 @@
+From 2f57d7cd275a67957185c0588680a8a046b8a6d5 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Sat, 12 Sep 2015 12:45:32 +0000
+Subject: [PATCH] OGRSQLiteLayer::ExportSpatiaLiteGeometryInternal(): optimize
+ export of 2D linestring
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@30327 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/ogr/ogrsf_frmts/sqlite/ogrsqlitelayer.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/gdal/ogr/ogrsf_frmts/sqlite/ogrsqlitelayer.cpp b/gdal/ogr/ogrsf_frmts/sqlite/ogrsqlitelayer.cpp
+index 03b2e0c3f9c4..4adb613770b1 100644
+--- a/gdal/ogr/ogrsf_frmts/sqlite/ogrsqlitelayer.cpp
++++ b/gdal/ogr/ogrsf_frmts/sqlite/ogrsqlitelayer.cpp
+@@ -2842,6 +2842,14 @@ int OGRSQLiteLayer::ExportSpatiaLiteGeometryInternal(const OGRGeometry *poGeomet
+             if (NEED_SWAP_SPATIALITE())
+                 CPL_SWAP32PTR( pabyData );
+ 
++            if( !bUseComprGeom && !NEED_SWAP_SPATIALITE() &&
++                poGeometry->getCoordinateDimension() == 2 && !bHasM )
++            {
++                poLineString->getPoints((OGRRawPoint*)(pabyData + 4), NULL);
++                nTotalSize += nPointCount * 16;
++                return nTotalSize;
++            }
++
+             for(int i=0;i<nPointCount;i++)
+             {
+                 double x = poLineString->getX(i);

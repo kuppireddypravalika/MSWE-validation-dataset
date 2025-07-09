@@ -1,0 +1,35 @@
+From c384444ace306038680cfa59dd9eca67706ee69d Mon Sep 17 00:00:00 2001
+From: dsp56300 <dsp56300@users.noreply.github.com>
+Date: Mon, 7 Oct 2024 21:43:37 +0200
+Subject: [PATCH] rep-div optimization for aarch64
+
+---
+ source/dsp56kEmu/jitops_alu_aarch64.cpp | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/source/dsp56kEmu/jitops_alu_aarch64.cpp b/source/dsp56kEmu/jitops_alu_aarch64.cpp
+index 300e6c32..fd335ebd 100644
+--- a/source/dsp56kEmu/jitops_alu_aarch64.cpp
++++ b/source/dsp56kEmu/jitops_alu_aarch64.cpp
+@@ -503,18 +503,16 @@ namespace dsp56k
+ 			m_asm.cneg(sNeg, r64(s), asmjit::arm::CondCode::kZero);
+ 
+ 			m_asm.add(alu, carry.get(), alu, asmjit::arm::lsl(1));
+-			m_asm.add(alu, sNeg.get());
++			m_asm.adds(alu, alu, sNeg.get());
+ 
+ 			// C is set if bit 55 of the result is cleared
+ 			if (last)
+ 			{
+-				m_asm.bitTest(alu, 55);
+-				ccr_update_ifZero(CCRB_C);
++				ccr_update(CCRB_C, asmjit::arm::CondCode::kNotSign);
+ 			}
+ 			else
+ 			{
+-				m_asm.ubfx(carry, alu, 55, 1);
+-				m_asm.eor(carry, carry, asmjit::Imm(1));
++				m_asm.cset(carry, asmjit::arm::CondCode::kNotSign);
+ 			}
+ 		};
+ 

@@ -1,0 +1,31 @@
+From 0000cf41c3a55d356195f3adfc6716485014c404 Mon Sep 17 00:00:00 2001
+From: Zigatun <jesumaron@yandex.ru>
+Date: Mon, 23 Dec 2019 00:28:21 +0700
+Subject: [PATCH] CPP version of PLCCalc instead of SSE for ARM64
+
+---
+ src/xrCore/Math/MathUtil.cpp | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/src/xrCore/Math/MathUtil.cpp b/src/xrCore/Math/MathUtil.cpp
+index 44f73323e18..a15e1f3c7ae 100644
+--- a/src/xrCore/Math/MathUtil.cpp
++++ b/src/xrCore/Math/MathUtil.cpp
+@@ -50,9 +50,16 @@ void Initialize()
+     Skin2W = Skin2W_CPP;
+     Skin3W = Skin3W_CPP;
+     Skin4W = Skin4W_CPP;
+-    PLCCalc = PLCCalc_SSE;
++#if defined(XR_ARM64)
++	PLCCalc = PLCCalc_CPP;
++#else
++	PLCCalc = PLCCalc_SSE;
++#endif
+     //PLCCalc = PLCCalc_CPP;
+ #endif
++
++
++
+     // XXX: use PLC_energy and iCeil too
+     // SSE implementations of this functions is not used.
+     // Found duplicate implementation in src\Layers\xrRenderPC_R1\LightShadows.cpp

@@ -1,0 +1,36 @@
+From 717dbc2059a7782eca5cd9a30d351d048775cecd Mon Sep 17 00:00:00 2001
+From: Aliaksandr Valialkin <valyala@gmail.com>
+Date: Thu, 22 Dec 2011 00:46:03 +0300
+Subject: [PATCH] mention link-time optimization in gheap_c.c
+
+---
+ gheap_c.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/gheap_c.c b/gheap_c.c
+index 8e16105..91b0e71 100644
+--- a/gheap_c.c
++++ b/gheap_c.c
+@@ -4,6 +4,12 @@
+  * Don't forget passing -DNDEBUG option to the compiler when creating optimized
+  * builds. This significantly speeds up gheap code by removing debug assertions.
+  *
++ * Also build and link gheap_c.c (gheap for C) with link-time optimizer
++ * turned on (-flto option for gcc). This will enable constant propagation
++ * optimization (see http://en.wikipedia.org/wiki/Constant_folding ) for fanout,
++ * page_chunks, item_size and less_comparer paremeters at link time. This should
++ * result in much faster code.
++ *
+  * Author: Aliaksandr Valialkin <valyala@gmail.com>.
+  */
+ 
+@@ -111,7 +117,8 @@ static size_t _get_child_index(const size_t fanout, const size_t page_chunks,
+ }
+ 
+ size_t gheap_get_child_index(const size_t fanout, const size_t page_chunks,
+-    size_t u) {
++    size_t u)
++{
+   return _get_child_index(fanout, page_chunks, u);
+ }
+ 

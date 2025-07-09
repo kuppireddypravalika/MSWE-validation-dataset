@@ -1,0 +1,47 @@
+From 97f1a1597f85006d20226104f8194cc5d1255f84 Mon Sep 17 00:00:00 2001
+From: hjk <hjk@qt.io>
+Date: Wed, 15 May 2019 19:02:25 +0200
+Subject: [PATCH] Use std::unordered_map for m_storageIndices
+
+Makes the Ir event count go from ~8.28 billion to ~8.12 for a
+Qt Creator null build.
+
+Change-Id: I02714cd922fd9d42abe67e5115e3ffd64778f77a
+Reviewed-by: Christian Kandeler <christian.kandeler@qt.io>
+---
+ src/lib/corelib/tools/persistence.h | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/src/lib/corelib/tools/persistence.h b/src/lib/corelib/tools/persistence.h
+index 3688cc32f5..4bda59f7c4 100644
+--- a/src/lib/corelib/tools/persistence.h
++++ b/src/lib/corelib/tools/persistence.h
+@@ -171,7 +171,7 @@ class PersistentPool
+     HeadData m_headData;
+     std::vector<void *> m_loadedRaw;
+     std::vector<std::shared_ptr<void>> m_loaded;
+-    QHash<const void*, int> m_storageIndices;
++    std::unordered_map<const void*, int> m_storageIndices;
+     PersistentObjectId m_lastStoredObjectId = 0;
+ 
+     std::vector<QString> m_stringStorage;
+@@ -198,14 +198,14 @@ template<typename T> inline void PersistentPool::storeSharedObject(const T *obje
+         return;
+     }
+     const void * const addr = uniqueAddress(object);
+-    PersistentObjectId id = m_storageIndices.value(addr, -1);
+-    if (id < 0) {
+-        id = m_lastStoredObjectId++;
+-        m_storageIndices.insert(addr, id);
++    const auto found = m_storageIndices.find(addr);
++    if (found == m_storageIndices.end()) {
++        PersistentObjectId id = m_lastStoredObjectId++;
++        m_storageIndices[addr] = id;
+         m_stream << id;
+         store(*object);
+     } else {
+-        m_stream << id;
++        m_stream << found->second;
+     }
+ }
+ 

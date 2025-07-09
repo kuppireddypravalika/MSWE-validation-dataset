@@ -1,0 +1,28 @@
+From d78401921d2450831fccc49b1f309ab178cf3efb Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Mon, 5 Mar 2018 13:49:40 +0000
+Subject: [PATCH] CAD: avoid excessive memory allocation. Fixes
+ https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=6744. Credit to OSS
+ Fuzz
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@41638 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/ogr/ogrsf_frmts/cad/libopencad/dwg/r2000.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/gdal/ogr/ogrsf_frmts/cad/libopencad/dwg/r2000.cpp b/gdal/ogr/ogrsf_frmts/cad/libopencad/dwg/r2000.cpp
+index 5f0736e98810..763c5382898c 100644
+--- a/gdal/ogr/ogrsf_frmts/cad/libopencad/dwg/r2000.cpp
++++ b/gdal/ogr/ogrsf_frmts/cad/libopencad/dwg/r2000.cpp
+@@ -3196,6 +3196,11 @@ CADImageObject * DWGFileR2000::getImage(unsigned int dObjectSize,
+         for( long i = 0; i < image->nNumberVertexesInClipPolygon; ++i )
+         {
+             CADVector vertPoint = buffer.ReadRAWVector();
++            if( buffer.IsEOB() )
++            {
++                delete image;
++                return nullptr;
++            }
+             image->avertClippingPolygonVertexes.push_back( vertPoint );
+         }
+     }

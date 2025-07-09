@@ -1,0 +1,43 @@
+From 43f0e057278f40c74ab2acab87dca64ac41053db Mon Sep 17 00:00:00 2001
+From: Mikko Partio <mikko.partio@fmi.fi>
+Date: Thu, 24 Mar 2016 13:22:45 +0000
+Subject: [PATCH] Use Filter2D() to smooth CAPE & CIN values
+
+---
+ himan-plugins/source/si.cpp | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
+
+diff --git a/himan-plugins/source/si.cpp b/himan-plugins/source/si.cpp
+index 70984169d..aa128c992 100644
+--- a/himan-plugins/source/si.cpp
++++ b/himan-plugins/source/si.cpp
+@@ -410,6 +410,29 @@ void si::CalculateVersion(shared_ptr<info> myTargetInfo, HPSoundingIndexSourceDa
+ 	myTargetInfo->Data().Set(MUCAPE3kmZonesEntered);
+ #endif
+ 
++	// Do smoothening for CAPE & CIN parameters
++	// Calculate average of nearest 4 points + the point in question
++	
++	himan::matrix<double> filter_kernel(3,3,1,kFloatMissing);
++	// C was row-major... right?
++	filter_kernel.Set({0, 0.2, 0, 0.2, 0.2, 0.2, 0, 0.2, 0});
++	
++	capeInfo->Param(CAPEParam);
++	himan::matrix<double> filtered = util::Filter2D(capeInfo->Data(), filter_kernel);
++	capeInfo->Grid()->Data(filtered);
++
++	capeInfo->Param(CAPE1040Param);
++	filtered = util::Filter2D(capeInfo->Data(), filter_kernel);
++	capeInfo->Grid()->Data(filtered);
++
++	capeInfo->Param(CAPE3kmParam);
++	filtered = util::Filter2D(capeInfo->Data(), filter_kernel);
++	capeInfo->Grid()->Data(filtered);
++
++	capeInfo->Param(CINParam);
++	filtered = util::Filter2D(capeInfo->Data(), filter_kernel);
++	capeInfo->Grid()->Data(filtered);
++
+ }
+ 
+ void si::GetCIN(shared_ptr<info> myTargetInfo, const vector<double>& Tsurf, const vector<double>& TLCL, const vector<double>& PLCL, const vector<double>& PLFC, param CINParam)

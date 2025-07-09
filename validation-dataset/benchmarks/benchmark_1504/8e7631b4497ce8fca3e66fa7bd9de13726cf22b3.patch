@@ -1,0 +1,29 @@
+From 8e7631b4497ce8fca3e66fa7bd9de13726cf22b3 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@duempel.org>
+Date: Thu, 18 Dec 2008 13:07:22 +0100
+Subject: [PATCH] mbid: use GUINT32_FROM_BE() in toInteger()
+
+toInteger() is a function which reads a big-endian 32 bit integer from
+the mp3 file.
+---
+ mbid.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/mbid.c b/mbid.c
+index c74caa5..16f2bf6 100644
+--- a/mbid.c
++++ b/mbid.c
+@@ -73,12 +73,7 @@ toSynchSafe(const uint8_t *bytes)
+ static unsigned
+ toInteger(const uint8_t *bytes)
+ {
+-    unsigned size = 0;
+-
+-    for (size_t i = 0; i < sizeof(bytes); i++) {
+-        size = size * 256 + ((unsigned)bytes[i] & 0x000000FF);
+-    }
+-    return size;
++    return GUINT32_FROM_BE(*(const uint32_t*)bytes);
+ }
+ 
+ static bool

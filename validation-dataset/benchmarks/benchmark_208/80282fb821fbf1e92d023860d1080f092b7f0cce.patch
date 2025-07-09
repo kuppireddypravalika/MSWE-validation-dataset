@@ -1,0 +1,28 @@
+From 80282fb821fbf1e92d023860d1080f092b7f0cce Mon Sep 17 00:00:00 2001
+From: Akira Saitoh <saiaki@jp.ibm.com>
+Date: Tue, 17 Oct 2023 17:09:01 +0900
+Subject: [PATCH] AArch64: Fix imulhEvaluator to use helper function to
+ generate a shift instruction
+
+This commit updates `imulhEvaluator` to use `generateLogicalShiftRightImmInstruction`
+for generating a `lsrx` instruction rather than calling `generateTrg1Src1ImmInstruction`.
+
+Signed-off-by: Akira Saitoh <saiaki@jp.ibm.com>
+---
+ compiler/aarch64/codegen/BinaryEvaluator.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/compiler/aarch64/codegen/BinaryEvaluator.cpp b/compiler/aarch64/codegen/BinaryEvaluator.cpp
+index 2a31bdfbf2..2170025fae 100644
+--- a/compiler/aarch64/codegen/BinaryEvaluator.cpp
++++ b/compiler/aarch64/codegen/BinaryEvaluator.cpp
+@@ -1185,8 +1185,7 @@ OMR::ARM64::TreeEvaluator::imulhEvaluator(TR::Node *node, TR::CodeGenerator *cg)
+    generateTrg1Src3Instruction(cg, TR::InstOpCode::smaddl, node, trgReg, src1Reg, src2Reg, zeroReg, cond);
+    cg->stopUsingRegister(zeroReg);
+    /* logical shift right by 32 bits */
+-   uint32_t imm = 0x183F; // N=1, immr=32, imms=63
+-   generateTrg1Src1ImmInstruction(cg, TR::InstOpCode::ubfmx, node, trgReg, trgReg, imm);
++   generateLogicalShiftRightImmInstruction(cg, node, trgReg, trgReg, 32, true);
+ 
+    if (tmpReg)
+       {

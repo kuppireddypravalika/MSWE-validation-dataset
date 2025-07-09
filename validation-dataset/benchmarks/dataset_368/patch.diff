@@ -1,0 +1,32 @@
+From 3d53529abf091572181960ee8c2f2960cd2d4e00 Mon Sep 17 00:00:00 2001
+From: Sijmen Schoon <vijfhoek35@gmail.com>
+Date: Tue, 21 Oct 2014 01:12:10 +0200
+Subject: [PATCH] Fix some warnings and do some optimizations
+
+---
+ src/drawing/drawing.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/src/drawing/drawing.c b/src/drawing/drawing.c
+index 6996c05f60a6..8688f6bf0ce3 100644
+--- a/src/drawing/drawing.c
++++ b/src/drawing/drawing.c
+@@ -496,14 +496,15 @@ void redraw_peep_and_rain()
+ 			
+ 			gfx_set_dirty_blocks(left, top, right, bottom);
+ 		}
+-		if (RCT2_GLOBAL(RCT2_ADDRESS_NO_RAIN_PIXELS, uint32) == 0) {
++
++		int rain_no_pixels = RCT2_GLOBAL(RCT2_ADDRESS_NO_RAIN_PIXELS, uint32);
++		if (rain_no_pixels == 0) {
+ 			return;
+ 		}
+ 		
+-		uint8 *screen_pixels = (int *)RCT2_ADDRESS(RCT2_ADDRESS_SCREEN_DPI, rct_drawpixelinfo)->bits;
+ 		uint32 *rain_pixels = RCT2_ADDRESS(RCT2_ADDRESS_RAIN_PIXEL_STORE, uint32);
+-		int rain_no_pixels = RCT2_GLOBAL(RCT2_ADDRESS_NO_RAIN_PIXELS, uint32);
+ 		if (rain_pixels) {
++			uint8 *screen_pixels = RCT2_ADDRESS(RCT2_ADDRESS_SCREEN_DPI, rct_drawpixelinfo)->bits;
+ 			for (int i = 0; i < rain_no_pixels; i++) {
+ 				uint32 pixel = rain_pixels[i];
+ 				screen_pixels[pixel >> 8] = pixel & 0xFF;

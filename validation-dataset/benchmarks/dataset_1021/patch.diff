@@ -1,0 +1,22 @@
+From 1c753b993b17b428f4ad15d4661172467502b13d Mon Sep 17 00:00:00 2001
+From: "Garth N. Wells" <gnw20@cam.ac.uk>
+Date: Thu, 1 Nov 2012 12:44:28 +0000
+Subject: [PATCH] Small improvement in dof re-odering speed and memory use
+
+---
+ dolfin/graph/BoostGraphOrdering.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/dolfin/graph/BoostGraphOrdering.cpp b/dolfin/graph/BoostGraphOrdering.cpp
+index 48e19741d31..b7a2da9f033 100644
+--- a/dolfin/graph/BoostGraphOrdering.cpp
++++ b/dolfin/graph/BoostGraphOrdering.cpp
+@@ -60,7 +60,7 @@ std::vector<std::size_t>
+       edges.push_back(std::make_pair(vertex - graph.begin(), *edge));
+ 
+   // Build Boost graph
+-  BoostGraph boost_graph(boost::edges_are_unsorted,
++  BoostGraph boost_graph(boost::edges_are_unsorted_multi_pass,
+                          edges.begin(), edges.end(), n);
+ 
+   // Boost vertex -> index map

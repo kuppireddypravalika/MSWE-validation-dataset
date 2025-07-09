@@ -1,0 +1,38 @@
+From 83c2c5055405f09043c35b93cd5ba9b9969f3174 Mon Sep 17 00:00:00 2001
+From: Anton Kudryavtsev <anton.kudryavtsev@vk.team>
+Date: Mon, 11 Sep 2023 15:56:26 +0300
+Subject: [PATCH] QBA::replace: avoid unconditional detach
+
+Let's find needle and then do detach
+While touching code, replace raw loop with algorithm
+and add early out: compare before and after args
+
+Change-Id: I22403fd3d6920d941b65e79f44b46e49a9777dc5
+Reviewed-by: Edward Welbourne <edward.welbourne@qt.io>
+Reviewed-by: Thiago Macieira <thiago.macieira@intel.com>
+---
+ src/corelib/text/qbytearray.cpp | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
+
+diff --git a/src/corelib/text/qbytearray.cpp b/src/corelib/text/qbytearray.cpp
+index 794472680b40..85bdf6a8bf42 100644
+--- a/src/corelib/text/qbytearray.cpp
++++ b/src/corelib/text/qbytearray.cpp
+@@ -2562,12 +2562,11 @@ QByteArray &QByteArray::replace(QByteArrayView before, QByteArrayView after)
+ 
+ QByteArray &QByteArray::replace(char before, char after)
+ {
+-    if (!isEmpty()) {
+-        char *i = data();
+-        char *e = i + size();
+-        for (; i != e; ++i)
+-            if (*i == before)
+-                * i = after;
++    if (before != after) {
++        if (const auto pos = indexOf(before); pos >= 0) {
++            const auto detachedData = data();
++            std::replace(detachedData + pos, detachedData + size(), before, after);
++        }
+     }
+     return *this;
+ }

@@ -1,0 +1,25 @@
+From e55f2dd7dbf07512396eeea50138179560232890 Mon Sep 17 00:00:00 2001
+From: Krodin <16670637+KRodinn@users.noreply.github.com>
+Date: Wed, 13 Oct 2021 18:09:48 +0300
+Subject: [PATCH] Optimize explosions (
+ https://github.com/OpenXRay/xray-16/pull/824 )
+
+Co-Authored-By: FreeZoneMods <23636664+FreeZoneMods@users.noreply.github.com>
+---
+ ogsr_engine/xrGame/Explosive.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/ogsr_engine/xrGame/Explosive.cpp b/ogsr_engine/xrGame/Explosive.cpp
+index 0b9b9e8e1..fa68753ee 100644
+--- a/ogsr_engine/xrGame/Explosive.cpp
++++ b/ogsr_engine/xrGame/Explosive.cpp
+@@ -557,6 +557,9 @@ void CExplosive::OnEvent(NET_Packet& P, u16 type)
+ {
+ 	switch (type) {
+ 		case GE_GRENADE_EXPLODE : {
++			if (m_explosion_flags.test(flExploding))
++				break;
++
+ 			Fvector pos, normal;
+ 			u16 parent_id;
+ 			P.r_u16(parent_id);

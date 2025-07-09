@@ -1,0 +1,33 @@
+From 216d3801b78c6bb17da81d3cfb7655ac2151fc24 Mon Sep 17 00:00:00 2001
+From: Peter Caspers <peter.caspers@quaternion.com>
+Date: Fri, 6 Nov 2020 21:59:10 +0100
+Subject: [PATCH] [touch:1404]only apply fixing if we move forward in time
+
+Even if fixingsEnd_ == d, within applyFixings inflation fixings might
+be set, which in turn sets modifiedFixingHistory_ to true, and
+therefore the next call to FixingManager::reset() will update fixing
+histories. This will notify all trades with fixings and causing them
+to recalculate under the next scenario applied in the valuation
+engine. In a sensitivity run this can cause significant delay for
+portfolios containing e.g. Bermudan swaptions and inflation trades
+since the swaption will recalculate under all scenarios, even if not
+dependent on them. We observed such a slow-down in the restore
+portfolio regression test CRIF_EUR_*.
+---
+ OREAnalytics/orea/simulation/fixingmanager.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/OREAnalytics/orea/simulation/fixingmanager.cpp b/OREAnalytics/orea/simulation/fixingmanager.cpp
+index 26cb145777..a7f2de84d3 100644
+--- a/OREAnalytics/orea/simulation/fixingmanager.cpp
++++ b/OREAnalytics/orea/simulation/fixingmanager.cpp
+@@ -169,7 +169,8 @@ void FixingManager::update(Date d) {
+         QL_REQUIRE(d >= fixingsEnd_, "Can't go back in time, fixings must be reset."
+                                      " Update date "
+                                          << d << " but current fixings go to " << fixingsEnd_);
+-        applyFixings(fixingsEnd_, d);
++        if (d > fixingsEnd_)
++            applyFixings(fixingsEnd_, d);
+     }
+     fixingsEnd_ = d;
+ }

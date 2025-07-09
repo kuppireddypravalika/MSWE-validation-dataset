@@ -1,0 +1,50 @@
+From 83b8acdde8a40c85bd9d0847b958dadf152494db Mon Sep 17 00:00:00 2001
+From: Martin Suda <sudam@cs.man.ac.uk>
+Date: Tue, 14 Jul 2015 16:16:10 +0100
+Subject: [PATCH] make solution parsing robust - survive exceptions and save
+ memory by destroying the already created units
+
+---
+ CASC/CLTBMode.cpp | 24 ++++++++++++++++++++----
+ 1 file changed, 20 insertions(+), 4 deletions(-)
+
+diff --git a/CASC/CLTBMode.cpp b/CASC/CLTBMode.cpp
+index 878a1f48d0..7fa979d244 100644
+--- a/CASC/CLTBMode.cpp
++++ b/CASC/CLTBMode.cpp
+@@ -268,15 +268,31 @@ void CLTBMode::doTraining()
+     }
+     Parse::TPTP parser(soln);
+     parser.setUnitSourceMap(sources.ptr());
+-    parser.parse();
+-    UnitList* solnUnits = parser.units();
+-
+-
++    UnitList* solnUnits = 0;
++    try {
++      parser.parse();
++      solnUnits = parser.units();
++    } catch (Lib::Exception& ex) {
++      cout << "Couldn't parse " << "solnFileName" << endl;
++      ex.cry(cout);
++      
++      //save memory by deleting the already loaded units:
++      UnitList* units = parser.units();
++      UnitList::Iterator it(units);
++      while (it.hasNext()) {
++        Unit* unit = it.next();
++        unit->destroy();
++      }
++      units->destroy();
++    }
++      
++    /*
+     UnitList::Iterator it(solnUnits);
+     while (it.hasNext()) {
+       Unit* unit = it.next();
+       cout << unit->toString() << endl;
+     }
++    */
+   }
+ 
+   // Idea is to solve training problems and look in proofs for common clauses derived from axioms

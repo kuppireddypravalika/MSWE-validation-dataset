@@ -1,0 +1,39 @@
+From ed52e84bb12b0b02bebbf613811623bd5a6c0246 Mon Sep 17 00:00:00 2001
+From: Jean-Yves Avenard <jyavenard@mythtv.org>
+Date: Tue, 4 Mar 2014 22:03:05 +1100
+Subject: [PATCH] Small optimisation of FileRingBuffer::GetRealFileSize
+
+If file is already opened, no need to use QFileInfo
+---
+ mythtv/libs/libmythtv/fileringbuffer.cpp | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/mythtv/libs/libmythtv/fileringbuffer.cpp b/mythtv/libs/libmythtv/fileringbuffer.cpp
+index 47e899b23ba..49709049571 100644
+--- a/mythtv/libs/libmythtv/fileringbuffer.cpp
++++ b/mythtv/libs/libmythtv/fileringbuffer.cpp
+@@ -592,9 +592,24 @@ long long FileRingBuffer::GetRealFileSize(void) const
+     rwlock.lockForRead();
+     long long ret = -1;
+     if (remotefile)
++    {
+         ret = remotefile->GetFileSize();
++    }
+     else
++    {
++        if (fd2 >= 0)
++        {
++            struct stat sb;
++
++            ret = fstat(fd2, &sb);
++            if (ret == 0 && S_ISREG(sb.st_mode))
++            {
++                rwlock.unlock();
++                return sb.st_size;
++            }
++        }
+         ret = QFileInfo(filename).size();
++    }
+     rwlock.unlock();
+     return ret;
+ }

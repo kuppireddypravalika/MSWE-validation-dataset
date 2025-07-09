@@ -1,0 +1,28 @@
+From 2921a44bcc0b9f5ed8a5881b498de401a3128050 Mon Sep 17 00:00:00 2001
+From: KONNO Kazuhiro <konno@jp.ibm.com>
+Date: Wed, 11 Sep 2019 19:24:55 +0900
+Subject: [PATCH] AArch64: Skip interp->jit arg loading in recursive call
+
+This commit adjusts the target address of "bl" instruction when it
+is used for a recursive call, so that it can skip the instructions
+for loading method arguments from Java stack into registers for
+interp->jit transition.
+
+Signed-off-by: KONNO Kazuhiro <konno@jp.ibm.com>
+---
+ compiler/aarch64/codegen/ARM64BinaryEncoding.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/compiler/aarch64/codegen/ARM64BinaryEncoding.cpp b/compiler/aarch64/codegen/ARM64BinaryEncoding.cpp
+index b9d9dd1d97..8de644ef5f 100644
+--- a/compiler/aarch64/codegen/ARM64BinaryEncoding.cpp
++++ b/compiler/aarch64/codegen/ARM64BinaryEncoding.cpp
+@@ -74,6 +74,8 @@ uint8_t *TR::ARM64ImmSymInstruction::generateBinaryEncoding()
+       if (cg()->comp()->isRecursiveMethodTarget(sym))
+          {
+          intptrj_t jitToJitStart = (intptrj_t)cg()->getCodeStart();
++         // how many bytes to skip loading interp->jit argument
++         jitToJitStart += ((*(int32_t *)(jitToJitStart - 4)) >> 16) & 0xFFFF;
+          TR_ASSERT_FATAL(TR::Compiler->target.cpu.isTargetWithinUnconditionalBranchImmediateRange(jitToJitStart, (intptrj_t)cursor),
+                          "Target address is out of range");
+ 

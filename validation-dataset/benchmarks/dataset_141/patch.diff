@@ -1,0 +1,25 @@
+From 017bbe1e596f67b5d6323622456f69beb137a310 Mon Sep 17 00:00:00 2001
+From: Thomas Goyne <plorkyeran@aegisub.org>
+Date: Tue, 28 Jul 2015 17:32:32 -0700
+Subject: [PATCH] Delay showing the font indexing dialog for 250ms
+
+Helps avoid ugly flickering when no indexing is required, but fontconfig
+is taking a long time to load the cache.
+---
+ src/subtitles_provider_libass.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/subtitles_provider_libass.cpp b/src/subtitles_provider_libass.cpp
+index 67e06ffcb..70c031405 100644
+--- a/src/subtitles_provider_libass.cpp
++++ b/src/subtitles_provider_libass.cpp
+@@ -109,6 +109,9 @@ class LibassSubtitlesProvider final : public SubtitlesProvider {
+ 			return shared->renderer;
+ 
+ 		auto block = [&] {
++			if (shared->ready)
++				return;
++			agi::util::sleep_for(250);
+ 			if (shared->ready)
+ 				return;
+ 			br->Run([=](agi::ProgressSink *ps) {

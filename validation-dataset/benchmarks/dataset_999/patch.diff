@@ -1,0 +1,29 @@
+From ecc5bbdb93fa767458db0cee8f9f437abe638fea Mon Sep 17 00:00:00 2001
+From: Matthew Fioravante <fmatthew5876@gmail.com>
+Date: Sun, 1 Dec 2019 16:32:33 -0500
+Subject: [PATCH] Font::Render - remove query for system
+
+Most common case is we have a system graphic, so just
+use the system we passed in. If there is no system
+we'll pay the cost of rendering the shadow but since
+this is rare it's worth while.
+---
+ src/font.cpp | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/src/font.cpp b/src/font.cpp
+index fd0d384e62..234efd8c82 100644
+--- a/src/font.cpp
++++ b/src/font.cpp
+@@ -358,10 +358,7 @@ Rect Font::GetSize(std::string const& txt) const {
+ 
+ void Font::Render(Bitmap& bmp, int const x, int const y, Bitmap const& sys, int color, char32_t code) {
+ 	if(color != ColorShadow) {
+-		BitmapRef system = Cache::System();
+-		if (system) {
+-			Render(bmp, x + 1, y + 1, system->GetShadowColor(), code);
+-		}
++		Render(bmp, x + 1, y + 1, sys.GetShadowColor(), code);
+ 	}
+ 
+ 	BitmapRef bm = Glyph(code);

@@ -1,0 +1,23 @@
+From ad95c66b23785bf35869b22acef4932f1c473b46 Mon Sep 17 00:00:00 2001
+From: Martin Preisler <mpreisle@redhat.com>
+Date: Wed, 24 Sep 2014 13:42:37 +0200
+Subject: [PATCH] Avoid an unnecessary copy of QIcon when starting the
+ application
+
+---
+ src/Application.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/Application.cpp b/src/Application.cpp
+index 70e2cfb1..1b479680 100644
+--- a/src/Application.cpp
++++ b/src/Application.cpp
+@@ -41,7 +41,7 @@ Application::Application(int& argc, char** argv):
+     mTranslator.load(QLocale(), "scap-workbench", "", getShareTranslationDirectory().absolutePath());
+     installTranslator(&mTranslator);
+ 
+-    const QIcon icon = getApplicationIcon();
++    const QIcon& icon = getApplicationIcon();
+     setWindowIcon(icon);
+     mMainWindow->setWindowIcon(icon);
+ 

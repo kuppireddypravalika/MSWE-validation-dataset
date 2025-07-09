@@ -1,0 +1,23 @@
+From 53881a341d1d832bef123c8d4d6f3c7b1823d133 Mon Sep 17 00:00:00 2001
+From: hairys <githairys@zcnoc.net>
+Date: Mon, 15 Feb 2016 20:28:11 -0500
+Subject: [PATCH] lighten the cpu load.
+
+GetAsyncKeyState returns too frequently. Sleeping it should help. Lemme know if you guys have any issues with it, I only tested it briefly.
+---
+ gw2dps/gw2dps.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gw2dps/gw2dps.cpp b/gw2dps/gw2dps.cpp
+index 0a5301d..dd9079c 100644
+--- a/gw2dps/gw2dps.cpp
++++ b/gw2dps/gw2dps.cpp
+@@ -1623,7 +1623,7 @@ void GW2LIB::gw2lib_main()
+ 
+ 	// wait for exit hotkey
+ 	while (GetAsyncKeyState(VK_F12) >= 0)
+-		;
++		Sleep(1);
+ 
+ 	close_config();
+ 

@@ -1,0 +1,24 @@
+From 2ea00e994e5d009429f31af66703f60b3c2a6850 Mon Sep 17 00:00:00 2001
+From: Chris Lattner <sabre@nondot.org>
+Date: Fri, 8 Nov 2002 22:17:01 +0000
+Subject: [PATCH] Reduce amount of work needed to compute ip/modref
+
+llvm-svn: 4637
+---
+ llvm/lib/Analysis/IPA/IPModRef.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/llvm/lib/Analysis/IPA/IPModRef.cpp b/llvm/lib/Analysis/IPA/IPModRef.cpp
+index 3832cb3cad1..ab9b7709d4b 100644
+--- a/llvm/lib/Analysis/IPA/IPModRef.cpp
++++ b/llvm/lib/Analysis/IPA/IPModRef.cpp
+@@ -148,7 +148,8 @@ DSGraph *FunctionModRefInfo::ResolveCallSiteModRefInfo(CallInst &CI,
+     // Perform the merging now of the graph for the callee, which will come with
+     // mod/ref bits set...
+     Result->mergeInGraph(CS, IPModRefObj.getBUDSGraph(*F),
+-                         DSGraph::StripAllocaBit);
++                         DSGraph::StripAllocaBit | DSGraph::DontCloneCallNodes |
++                         DSGraph::DontCloneAuxCallNodes);
+ 
+   } else {
+     std::cerr << "IP Mod/Ref indirect call not implemented yet: "

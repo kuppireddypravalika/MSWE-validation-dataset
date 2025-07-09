@@ -1,0 +1,36 @@
+From 3a538debab469d1e563dd83b1461abaf888e7c6d Mon Sep 17 00:00:00 2001
+From: HongyuJia <jiahongyu@baidu.com>
+Date: Mon, 18 Mar 2024 14:19:54 +0800
+Subject: [PATCH] [CINN] Upgrade EliminateCommonGlobalMemoryRead (#62799)
+
+---
+ .../optim/eliminate_common_global_memory_read.cc    | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/paddle/cinn/optim/eliminate_common_global_memory_read.cc b/paddle/cinn/optim/eliminate_common_global_memory_read.cc
+index 52c0e8cd1bb6f5..d9fa523064e00d 100644
+--- a/paddle/cinn/optim/eliminate_common_global_memory_read.cc
++++ b/paddle/cinn/optim/eliminate_common_global_memory_read.cc
+@@ -109,9 +109,22 @@ struct GlobalTensorInfoCollector : public ir::IRMutator<Expr*> {
+       return true;
+     };
+ 
++    auto IndiceContainsLoad =
++        [&](const IndicesAndExtent& indice_and_extent) -> bool {
++      for (const auto& index : indice_and_extent.indices) {
++        std::set<Expr> load_tensors = ir::ir_utils::CollectLoadTensors(
++            index, /*teller=*/[&](const Expr*) -> bool { return true; });
++        if (load_tensors.size() > 0) {
++          return true;
++        }
++      }
++      return false;
++    };
++
+     auto IsGlobalTensorNeedEliminate =
+         [&](const std::vector<IndicesAndExtent>& indice_and_extent) -> bool {
+       if (indice_and_extent.size() <= 1) return false;
++      if (IndiceContainsLoad(indice_and_extent[0])) return false;
+       return AllIndiceAndExtentEqual(indice_and_extent);
+     };
+ 

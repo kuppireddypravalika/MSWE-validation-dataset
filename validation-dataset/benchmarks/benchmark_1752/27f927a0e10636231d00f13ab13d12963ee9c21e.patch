@@ -1,0 +1,45 @@
+From 27f927a0e10636231d00f13ab13d12963ee9c21e Mon Sep 17 00:00:00 2001
+From: Doug Binks <doug@enkisoftware.com>
+Date: Tue, 24 Oct 2017 12:21:00 +0100
+Subject: [PATCH] Removed unused function for compile time speed up.
+
+---
+ Aurora/RuntimeObjectSystem/RuntimeInclude.h | 16 ----------------
+ 1 file changed, 16 deletions(-)
+
+diff --git a/Aurora/RuntimeObjectSystem/RuntimeInclude.h b/Aurora/RuntimeObjectSystem/RuntimeInclude.h
+index 9388242b..226bf7a3 100644
+--- a/Aurora/RuntimeObjectSystem/RuntimeInclude.h
++++ b/Aurora/RuntimeObjectSystem/RuntimeInclude.h
+@@ -54,15 +54,6 @@ template< size_t COUNT > struct RuntimeIncludeFiles : public RuntimeIncludeFiles
+ 	RuntimeIncludeFiles() : RuntimeIncludeFiles<COUNT-1>( COUNT )
+ 	{
+ 	}
+-
+-	virtual const char* GetIncludeDir( size_t Num_ ) const
+-	{
+-		if( Num_ < COUNT )
+-		{
+-			return this->RuntimeIncludeFiles< COUNT-1 >::GetIncludeDir( Num_ );
+-		}
+-		else return 0;
+-	}
+ };
+ 
+ template<> struct RuntimeIncludeFiles<0> : public IRuntimeIncludeFileList
+@@ -73,15 +64,8 @@ template<> struct RuntimeIncludeFiles<0> : public IRuntimeIncludeFileList
+ 	RuntimeIncludeFiles() : IRuntimeIncludeFileList( 0 )
+ 	{
+ 	}
+-
+-	virtual const char* GetIncludeDir( size_t Num_ ) const
+-	{
+-		return 0;
+-	} 
+ };
+ 
+-
+-
+ #define RUNTIME_MODIFIABLE_INCLUDE_BASE( N ) \
+ 	template<> struct RuntimeIncludeFiles< N + 1 >  : public RuntimeIncludeFiles< N >\
+ 	{ \

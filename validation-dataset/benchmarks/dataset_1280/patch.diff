@@ -1,0 +1,33 @@
+From 9973eee4a5923d1672541def56d633c9b5a2954e Mon Sep 17 00:00:00 2001
+From: Rob Smith <rsmith@mythtv.org>
+Date: Fri, 30 Jul 2010 06:43:41 +0000
+Subject: [PATCH] Scheduler optimization, this prevents any programs already in
+ the past from being considered for scheduling, in my tests this gives a
+ significant improvement to scheduler run times and does not modify the
+ selected programs
+
+git-svn-id: http://svn.mythtv.org/svn/trunk@25498 7dbf422c-18fa-0310-86e9-fd20926502f2
+---
+ mythtv/programs/mythbackend/scheduler.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/mythtv/programs/mythbackend/scheduler.cpp b/mythtv/programs/mythbackend/scheduler.cpp
+index f6ed836ae77..c001e5ac9b6 100644
+--- a/mythtv/programs/mythbackend/scheduler.cpp
++++ b/mythtv/programs/mythbackend/scheduler.cpp
+@@ -3294,6 +3294,7 @@ void Scheduler::AddNewRecords(void)
+ "      recduplicate = (recorded.endtime IS NOT NULL), "
+ "      findduplicate = (oldfind.findid IS NOT NULL), "
+ "      oldrecstatus = oldrecorded.recstatus "
++" WHERE program.endtime >= NOW() "
+ );
+     rmquery.replace("RECTABLE", schedTmpRecord);
+ 
+@@ -3339,6 +3340,7 @@ void Scheduler::AddNewRecords(void)
+         "ON ( oldrecstatus.station   = c.callsign  AND "
+         "     oldrecstatus.starttime = p.starttime AND "
+         "     oldrecstatus.title     = p.title ) "
++        "WHERE p.endtime >= NOW() "
+         "ORDER BY RECTABLE.recordid DESC ");
+     query.replace("RECTABLE", schedTmpRecord);
+ 

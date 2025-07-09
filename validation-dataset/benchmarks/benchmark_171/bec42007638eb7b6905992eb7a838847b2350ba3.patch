@@ -1,0 +1,32 @@
+From bec42007638eb7b6905992eb7a838847b2350ba3 Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@gmail.com>
+Date: Wed, 24 May 2017 07:00:55 +0000
+Subject: [PATCH] [APInt] Use std::end to avoid mentioning the size of a local
+ buffer repeatedly.
+
+---
+ llvm/lib/Support/APInt.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/llvm/lib/Support/APInt.cpp b/llvm/lib/Support/APInt.cpp
+index 2a916b14bc22..e9716e3b1e87 100644
+--- a/llvm/lib/Support/APInt.cpp
++++ b/llvm/lib/Support/APInt.cpp
+@@ -2045,7 +2045,7 @@ void APInt::toString(SmallVectorImpl<char> &Str, unsigned Radix,
+ 
+   if (isSingleWord()) {
+     char Buffer[65];
+-    char *BufPtr = Buffer+65;
++    char *BufPtr = std::end(Buffer);
+ 
+     uint64_t N;
+     if (!Signed) {
+@@ -2069,7 +2069,7 @@ void APInt::toString(SmallVectorImpl<char> &Str, unsigned Radix,
+       *--BufPtr = Digits[N % Radix];
+       N /= Radix;
+     }
+-    Str.append(BufPtr, Buffer+65);
++    Str.append(BufPtr, std::end(Buffer));
+     return;
+   }
+ 

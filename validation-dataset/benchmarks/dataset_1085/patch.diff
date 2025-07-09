@@ -1,0 +1,33 @@
+From 25e51d815efa3f30b337fd79bdd831ade6a88033 Mon Sep 17 00:00:00 2001
+From: Chris Kirmse <chris@athenascope.com>
+Date: Thu, 30 May 2019 09:40:18 -0700
+Subject: [PATCH] free cache in FrameMapper::Close()
+
+- this hugely reduces the memory used by rendering a timeline
+  with a lot of clips
+- could be related to issue #239
+---
+ src/FrameMapper.cpp | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/src/FrameMapper.cpp b/src/FrameMapper.cpp
+index ca2038a98..113171a23 100644
+--- a/src/FrameMapper.cpp
++++ b/src/FrameMapper.cpp
+@@ -651,6 +651,16 @@ void FrameMapper::Close()
+ 		// Close internal reader
+ 		reader->Close();
+ 
++		// Clear the fields & frames lists
++		fields.clear();
++		frames.clear();
++
++		// Mark as dirty
++		is_dirty = true;
++
++		// Clear cache
++		final_cache.Clear();
++
+ 		// Deallocate resample buffer
+ 		if (avr) {
+ 			SWR_CLOSE(avr);

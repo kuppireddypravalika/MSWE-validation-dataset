@@ -1,0 +1,31 @@
+From fbb51e2d4927619c08106de04ec93834d05ca84e Mon Sep 17 00:00:00 2001
+From: "J.W. Jagersma" <jwjagersma@gmail.com>
+Date: Tue, 25 Feb 2020 04:35:59 +0100
+Subject: [PATCH] optimize fpu context switching by marking likely/unlikely
+ branches.
+
+---
+ src/fpu.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/fpu.cpp b/src/fpu.cpp
+index a6a720b8..f5d55982 100644
+--- a/src/fpu.cpp
++++ b/src/fpu.cpp
+@@ -1,4 +1,5 @@
+ /* * * * * * * * * * * * * * libjwdpmi * * * * * * * * * * * * * */
++/* Copyright (C) 2020 J.W. Jagersma, see COPYING.txt for details */
+ /* Copyright (C) 2019 J.W. Jagersma, see COPYING.txt for details */
+ /* Copyright (C) 2018 J.W. Jagersma, see COPYING.txt for details */
+ /* Copyright (C) 2017 J.W. Jagersma, see COPYING.txt for details */
+@@ -80,8 +81,8 @@ namespace jw
+ 
+                 auto try_context_switch = [this, exc]
+                 {
+-                    if (exc != exception_num::device_not_available and exc != exception_num::invalid_opcode) return false;
+-                    if (not get_fpu_emulation().em) return false;
++                    if (exc != exception_num::device_not_available and exc != exception_num::invalid_opcode) [[likely]] return false;
++                    if (not get_fpu_emulation().em) [[unlikely]] return false;
+ 
+                     set_fpu_emulation(false);
+ 

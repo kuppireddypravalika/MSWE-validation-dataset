@@ -1,0 +1,28 @@
+From b4c8898d993c1e655e250d9f0cd1d64b60edacb6 Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Tue, 7 Apr 2020 19:34:49 -0600
+Subject: [PATCH] Remove need for multiplication from loop
+
+Text positions and heights are expressed as integers.
+---
+ OPHD/UI/Core/TextArea.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/OPHD/UI/Core/TextArea.cpp b/OPHD/UI/Core/TextArea.cpp
+index bbc6f72f3..cc1744bdc 100644
+--- a/OPHD/UI/Core/TextArea.cpp
++++ b/OPHD/UI/Core/TextArea.cpp
+@@ -95,9 +95,11 @@ void TextArea::draw()
+ 	if (highlight()) { r.drawBox(rect(), NAS2D::Color::White); }
+ 
+ 	if (!mFont) { return; }
+-	
++
++	auto textPosition = mRect.startPoint().to<int>();
+ 	for (size_t i = 0; i < mFormattedList.size() && i < mNumLines; ++i)
+ 	{
+-		r.drawText(*mFont, mFormattedList[i], {positionX(), positionY() + (mFont->height() * i)}, mTextColor);
++		r.drawText(*mFont, mFormattedList[i], textPosition, mTextColor);
++		textPosition.y() += mFont->height();
+ 	}
+ }

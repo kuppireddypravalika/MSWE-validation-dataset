@@ -1,0 +1,24 @@
+From 960386df4d9503bf05935eaf5fda3f083706e76e Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Fri, 5 Jun 2015 16:44:23 +0000
+Subject: [PATCH] CPLAcquireMutex(): improve performance on Windows
+ (https://trac.osgeo.org/gdal/ticket/5986)
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@29303 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/port/cpl_multiproc.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gdal/port/cpl_multiproc.cpp b/gdal/port/cpl_multiproc.cpp
+index 8d88aeacf2b9..f5ff4f0b3d33 100644
+--- a/gdal/port/cpl_multiproc.cpp
++++ b/gdal/port/cpl_multiproc.cpp
+@@ -804,7 +804,7 @@ int CPLAcquireMutex( CPLMutex *hMutexIn, double dfWaitInSeconds )
+             dfWaitInSeconds -= 0.01;
+         }
+     }
+-    
++
+     return ret;
+ #endif
+ }

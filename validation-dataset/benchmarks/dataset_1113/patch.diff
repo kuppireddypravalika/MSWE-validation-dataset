@@ -1,0 +1,31 @@
+From f91ea449a5da118a5e6ef404d3b929c942c25f73 Mon Sep 17 00:00:00 2001
+From: Erik Broberg <Erik Broberg>
+Date: Mon, 13 Jun 2016 19:12:39 -0400
+Subject: [PATCH] avoid an unnecessary hashmap access
+
+---
+ modules/globebrowsing/tile/tileprovider.cpp | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/modules/globebrowsing/tile/tileprovider.cpp b/modules/globebrowsing/tile/tileprovider.cpp
+index f667f314fc..8f52f88f40 100644
+--- a/modules/globebrowsing/tile/tileprovider.cpp
++++ b/modules/globebrowsing/tile/tileprovider.cpp
+@@ -129,10 +129,14 @@ namespace openspace {
+         
+         HashKey key = chunkIndex.hashKey();
+         
+-        if (_tileCache->exist(key) && _tileCache->get(key).status == Tile::Status::OK) {
+-            return { _tileCache->get(key), uvTransform };
++        if (_tileCache->exist(key)) {
++            auto tile = _tileCache->get(key);
++            if (tile.status == Tile::Status::OK) {
++                return{ _tileCache->get(key), uvTransform };
++            }
++
+         }
+-        else if (chunkIndex.level < 1) {
++        if (chunkIndex.level < 1) {
+             return{ Tile::TileUnavailable, uvTransform };
+         }
+         else {

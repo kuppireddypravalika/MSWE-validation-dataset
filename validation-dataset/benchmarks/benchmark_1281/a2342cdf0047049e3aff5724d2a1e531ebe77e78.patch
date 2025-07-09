@@ -1,0 +1,33 @@
+From a2342cdf0047049e3aff5724d2a1e531ebe77e78 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Fri, 20 Jun 2008 17:52:46 +0000
+Subject: [PATCH] Use new[]/delete[] instead of VSIMalloc/Free for an array of
+ structure whose one field is a C++ object...
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@14730 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/ogr/ogrgeometryfactory.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/gdal/ogr/ogrgeometryfactory.cpp b/gdal/ogr/ogrgeometryfactory.cpp
+index ac9a05ce90f5..6142d70dd7e9 100644
+--- a/gdal/ogr/ogrgeometryfactory.cpp
++++ b/gdal/ogr/ogrgeometryfactory.cpp
+@@ -863,7 +863,7 @@ OGRGeometry* OGRGeometryFactory::organizePolygons( OGRGeometry **papoPolygons,
+ /* -------------------------------------------------------------------- */
+ /*      Setup per polygon envelope and area information.                */
+ /* -------------------------------------------------------------------- */
+-    sPolyExtended* asPolyEx = (sPolyExtended*)VSICalloc(sizeof(sPolyExtended), nPolygonCount);
++    sPolyExtended* asPolyEx = new sPolyExtended[nPolygonCount];
+ 
+     int go_on = TRUE;
+     int bMixedUpGeometries = FALSE;
+@@ -1076,7 +1076,7 @@ OGRGeometry* OGRGeometryFactory::organizePolygons( OGRGeometry **papoPolygons,
+         }
+     }
+ 
+-    CPLFree(asPolyEx);
++    delete[] asPolyEx;
+ 
+     return geom;
+ }

@@ -1,0 +1,42 @@
+From 7121bcca2d937dfad7ba4bd549a57c74dcbf856b Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Fri, 24 Aug 2012 09:47:55 +0200
+Subject: [PATCH] QDBusMetaTypeId: replace a volatile bool with an atomic int
+
+Since there is no non-atomic data that is protected by 'initialized'
+anymore, the read from, and the store to, 'initialized' may now have
+relaxed memory ordering.
+
+Change-Id: I58004e782d9fd93122efb31fa5b30ee160646d99
+Reviewed-by: Thiago Macieira <thiago.macieira@intel.com>
+---
+ src/dbus/qdbusmetatype.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/dbus/qdbusmetatype.cpp b/src/dbus/qdbusmetatype.cpp
+index d8ee0b31e7..31b57d1db6 100644
+--- a/src/dbus/qdbusmetatype.cpp
++++ b/src/dbus/qdbusmetatype.cpp
+@@ -91,11 +91,11 @@ inline static void registerHelper(T * = 0)
+ 
+ void QDBusMetaTypeId::init()
+ {
+-    static volatile bool initialized = false;
++    static QBasicAtomicInt initialized = Q_BASIC_ATOMIC_INITIALIZER(false);
+ 
+     // reentrancy is not a problem since everything else is locked on their own
+     // set the guard variable at the end
+-    if (!initialized) {
++    if (!initialized.load()) {
+         // register our types with QtCore (calling qMetaTypeId<T>() does this implicitly)
+         (void)message();
+         (void)argument();
+@@ -135,7 +135,7 @@ void QDBusMetaTypeId::init()
+         qDBusRegisterMetaType<QList<QDBusUnixFileDescriptor> >();
+ #endif
+ 
+-        initialized = true;
++        initialized.store(true);
+     }
+ }
+ 

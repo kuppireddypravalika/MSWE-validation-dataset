@@ -1,0 +1,26 @@
+From 1b9fdb9b31c65e1f876fd7b45f21bf0e83bb02cc Mon Sep 17 00:00:00 2001
+From: Konstantin Ritt <ritt.ks@gmail.com>
+Date: Sat, 22 Dec 2012 19:47:20 +0200
+Subject: [PATCH] Skip FcCharSetHasChar() call
+
+...if writing system is already known to be supported
+
+Change-Id: Id7ea11e92507a283b2fba2ad944dd0a9772e484d
+Reviewed-by: Eskil Abrahamsen Blomfeldt <eskil.abrahamsen-blomfeldt@digia.com>
+---
+ .../fontdatabases/fontconfig/qfontconfigdatabase.cpp            | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/platformsupport/fontdatabases/fontconfig/qfontconfigdatabase.cpp b/src/platformsupport/fontdatabases/fontconfig/qfontconfigdatabase.cpp
+index 784602b59698..128ef396dbdc 100644
+--- a/src/platformsupport/fontdatabases/fontconfig/qfontconfigdatabase.cpp
++++ b/src/platformsupport/fontdatabases/fontconfig/qfontconfigdatabase.cpp
+@@ -443,7 +443,7 @@ void QFontconfigDatabase::populateFontDatabase()
+             // some languages are not supported by FontConfig, we rather check the
+             // charset to detect these
+             for (int i = 1; i < SampleCharCount; ++i) {
+-                if (!sampleCharForWritingSystem[i])
++                if (!sampleCharForWritingSystem[i] || writingSystems.supported(QFontDatabase::WritingSystem(i)))
+                     continue;
+                 if (FcCharSetHasChar(cs, sampleCharForWritingSystem[i]))
+                     writingSystems.setSupported(QFontDatabase::WritingSystem(i));

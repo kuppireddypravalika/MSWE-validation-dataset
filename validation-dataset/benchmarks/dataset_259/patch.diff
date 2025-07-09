@@ -1,0 +1,22 @@
+From f0fca5560513b4ff8f8917302d6c2863e4df603f Mon Sep 17 00:00:00 2001
+From: Kevin DuBois <kevin.dubois@canonical.com>
+Date: Fri, 20 Jul 2012 14:55:40 -0700
+Subject: [PATCH] reduce timeout time in test fixture
+
+---
+ unit-tests/compositor/stress_buffer_swapper.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/unit-tests/compositor/stress_buffer_swapper.cpp b/unit-tests/compositor/stress_buffer_swapper.cpp
+index 50b25b5ebb4..322700a6b2b 100644
+--- a/unit-tests/compositor/stress_buffer_swapper.cpp
++++ b/unit-tests/compositor/stress_buffer_swapper.cpp
+@@ -51,7 +51,7 @@ struct ThreadFixture {
+                     std::move(buffer_b));
+ 
+             auto thread_start_time = std::chrono::system_clock::now();
+-            auto abs_timeout = thread_start_time + std::chrono::milliseconds(100000);
++            auto abs_timeout = thread_start_time + std::chrono::milliseconds(1000);
+             auto sync1 = new mt::Synchronizer(abs_timeout);
+             auto sync2 = new mt::Synchronizer(abs_timeout);
+ 

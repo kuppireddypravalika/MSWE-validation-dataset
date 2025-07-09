@@ -1,0 +1,25 @@
+From ba60424c722609daab3320278592aa57eb88eebc Mon Sep 17 00:00:00 2001
+From: Josh Heidenreich <josh.sickmate@gmail.com>
+Date: Thu, 3 Jul 2014 17:36:32 +0930
+Subject: [PATCH] Bullet physics performance tweaks
+
+Enable SOLVER_ENABLE_FRICTION_DIRECTION_CACHING flag
+This seems to help, with my test case going from 22fps to 30fps or so
+---
+ src/physics_bullet.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/physics_bullet.cpp b/src/physics_bullet.cpp
+index 2ab72016..85ac8d72 100644
+--- a/src/physics_bullet.cpp
++++ b/src/physics_bullet.cpp
+@@ -70,6 +70,9 @@ void PhysicsBullet::init()
+ 		collisionConfiguration
+ 	);
+ 
++	btContactSolverInfo& info = dynamicsWorld->getSolverInfo();
++	info.m_solverMode |= SOLVER_ENABLE_FRICTION_DIRECTION_CACHING;
++
+ 	dynamicsWorld->setGravity(btVector3(0,-10,0));
+ 	dynamicsWorld->setInternalTickCallback(bulletHandleCallback, static_cast<void *>(this));
+ }

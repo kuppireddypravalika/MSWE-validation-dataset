@@ -1,0 +1,40 @@
+From c6a96f4802c68f2462198c487c796e7c2b19ed64 Mon Sep 17 00:00:00 2001
+From: Werner Turing <werner.turing@protonmail.com>
+Date: Tue, 13 Feb 2018 08:02:50 -0200
+Subject: [PATCH] Changed how the filter data header is read.
+
+Instead of reading a line, only the number of bytes of the header
+string is read. Since the program tries to read video files as filter
+data, the first "line" of a binary file might be really big.
+---
+ src/filter-generator/FilterData.cpp | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/src/filter-generator/FilterData.cpp b/src/filter-generator/FilterData.cpp
+index 2af42f9..3eea03c 100644
+--- a/src/filter-generator/FilterData.cpp
++++ b/src/filter-generator/FilterData.cpp
+@@ -16,6 +16,7 @@
+  * You should have received a copy of the GNU General Public License
+  * along with multi-delogo.  If not, see <http://www.gnu.org/licenses/>.
+  */
++#include <cstring>
+ #include <string>
+ #include <istream>
+ #include <ostream>
+@@ -67,11 +68,12 @@ FilterList& FilterData::filter_list()
+ 
+ void FilterData::load(std::istream& in)
+ {
+-  std::string header;
+-  std::getline(in, header);
+-  if (header != HEADER_) {
++  char header[HEADER_.size()];
++  in.read(header, HEADER_.size());
++  if (memcmp(header, HEADER_.c_str(), HEADER_.size()) != 0) {
+     throw InvalidFilterDataException();
+   }
++  in.read(header, 1); // skip new line
+ 
+   std::getline(in, movie_file_);
+ 

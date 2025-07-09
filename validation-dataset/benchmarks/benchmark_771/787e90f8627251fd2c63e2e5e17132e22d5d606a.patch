@@ -1,0 +1,25 @@
+From 787e90f8627251fd2c63e2e5e17132e22d5d606a Mon Sep 17 00:00:00 2001
+From: Richard Osborne <richard@xmos.com>
+Date: Thu, 16 Jul 2009 12:41:34 +0000
+Subject: [PATCH] Lower the threshold at which memcpy / memmove / memset stop
+ being expanded inline in the XCore.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@75906 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Target/XCore/XCoreISelLowering.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/lib/Target/XCore/XCoreISelLowering.cpp b/lib/Target/XCore/XCoreISelLowering.cpp
+index 7afc39e5e4b..0f503bc7a64 100644
+--- a/lib/Target/XCore/XCoreISelLowering.cpp
++++ b/lib/Target/XCore/XCoreISelLowering.cpp
+@@ -150,6 +150,9 @@ XCoreTargetLowering::XCoreTargetLowering(XCoreTargetMachine &XTM)
+   // Debug
+   setOperationAction(ISD::DBG_STOPPOINT, MVT::Other, Expand);
+   setOperationAction(ISD::DEBUG_LOC, MVT::Other, Expand);
++
++  maxStoresPerMemset = 4;
++  maxStoresPerMemmove = maxStoresPerMemcpy = 2;
+ }
+ 
+ SDValue XCoreTargetLowering::

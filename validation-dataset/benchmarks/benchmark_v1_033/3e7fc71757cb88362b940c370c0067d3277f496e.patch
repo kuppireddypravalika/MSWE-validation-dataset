@@ -1,0 +1,22 @@
+From 3e7fc71757cb88362b940c370c0067d3277f496e Mon Sep 17 00:00:00 2001
+From: mrheld <markus.held@chalmers.se>
+Date: Fri, 19 Mar 2021 11:25:15 +0100
+Subject: [PATCH] changed ellint from boost to std c++17 implementation
+
+---
+ inc/dg/sqrt_cauchy.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/inc/dg/sqrt_cauchy.h b/inc/dg/sqrt_cauchy.h
+index 3a0ca6565..01da40adc 100644
+--- a/inc/dg/sqrt_cauchy.h
++++ b/inc/dg/sqrt_cauchy.h
+@@ -285,7 +285,7 @@ struct SqrtCauchyInt
+         value_type sqrtminEV = sqrt(minEV);
+         const value_type k2 = minEV/maxEV;
+         const value_type sqrt1mk2 = sqrt(1.-k2);
+-        const value_type Ks=boost::math::ellint_1(sqrt1mk2 );
++        const value_type Ks=std::comp_ellint_1(sqrt1mk2 );
+         const value_type fac = 2.* Ks*sqrtminEV/(M_PI*iter);
+         for (unsigned j=1; j<iter+1; j++)
+         {

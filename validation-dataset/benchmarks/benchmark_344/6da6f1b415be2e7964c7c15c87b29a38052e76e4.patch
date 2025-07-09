@@ -1,0 +1,24 @@
+From 6da6f1b415be2e7964c7c15c87b29a38052e76e4 Mon Sep 17 00:00:00 2001
+From: Shauren <shauren.trinity@gmail.com>
+Date: Tue, 15 Aug 2017 23:55:41 +0200
+Subject: [PATCH] Core/Networking: Activate single threaded optimization for
+ io_service running in NetworkThread
+
+(cherry picked from commit 9711dd3f706a30d23f57b259765837b71292d09e)
+---
+ src/server/shared/Networking/NetworkThread.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/server/shared/Networking/NetworkThread.h b/src/server/shared/Networking/NetworkThread.h
+index 0cd01af7eef..e384e1515ae 100644
+--- a/src/server/shared/Networking/NetworkThread.h
++++ b/src/server/shared/Networking/NetworkThread.h
+@@ -37,7 +37,7 @@ template<class SocketType>
+ class NetworkThread
+ {
+ public:
+-    NetworkThread() : _connections(0), _stopped(false), _thread(nullptr),
++    NetworkThread() : _connections(0), _stopped(false), _thread(nullptr), _io_service(1),
+         _acceptSocket(_io_service), _updateTimer(_io_service)
+     {
+     }

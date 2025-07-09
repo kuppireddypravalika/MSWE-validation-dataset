@@ -1,0 +1,25 @@
+From e0e6b3ad6bbdb8c3206713512b34f97df403312a Mon Sep 17 00:00:00 2001
+From: lioncash <mai.iam2048@gmail.com>
+Date: Tue, 22 Nov 2022 03:40:59 +0000
+Subject: [PATCH] OpcodeDispatcher: Simplify SSE MOVSHDUP
+
+We only need to insert two values, rather than four.
+---
+ .../FEXCore/Source/Interface/Core/OpcodeDispatcher/Vector.cpp | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/External/FEXCore/Source/Interface/Core/OpcodeDispatcher/Vector.cpp b/External/FEXCore/Source/Interface/Core/OpcodeDispatcher/Vector.cpp
+index 9205a9151b..436b1f04e5 100644
+--- a/External/FEXCore/Source/Interface/Core/OpcodeDispatcher/Vector.cpp
++++ b/External/FEXCore/Source/Interface/Core/OpcodeDispatcher/Vector.cpp
+@@ -139,9 +139,7 @@ void OpDispatchBuilder::VMOVLPOp(OpcodeArgs) {
+ 
+ void OpDispatchBuilder::MOVSHDUPOp(OpcodeArgs) {
+   OrderedNode *Src = LoadSource(FPRClass, Op, Op->Src[0], Op->Flags, 8);
+-  OrderedNode *Result = _VInsElement(16, 4, 3, 3, Src, Src);
+-  Result = _VInsElement(16, 4, 2, 3, Result, Src);
+-  Result = _VInsElement(16, 4, 1, 1, Result, Src);
++  OrderedNode *Result = _VInsElement(16, 4, 2, 3, Src, Src);
+   Result = _VInsElement(16, 4, 0, 1, Result, Src);
+   StoreResult(FPRClass, Op, Result, -1);
+ }

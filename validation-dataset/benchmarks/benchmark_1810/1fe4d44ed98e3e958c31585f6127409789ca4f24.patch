@@ -1,0 +1,25 @@
+From 1fe4d44ed98e3e958c31585f6127409789ca4f24 Mon Sep 17 00:00:00 2001
+From: Yang Tse <yangsita@gmail.com>
+Date: Sat, 20 Oct 2007 15:11:51 +0000
+Subject: [PATCH] Fix compiler warning: conversion from "int" to "unsigned
+ short" may lose significant bits
+
+---
+ ares_init.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/ares_init.c b/ares_init.c
+index c1e10f9..2627cb4 100644
+--- a/ares_init.c
++++ b/ares_init.c
+@@ -266,8 +266,8 @@ int ares_save_options(ares_channel channel, struct ares_options *options,
+   options->timeout = channel->timeout;
+   options->tries   = channel->tries;
+   options->ndots   = channel->ndots;
+-  options->udp_port = channel->udp_port;
+-  options->tcp_port = channel->tcp_port;
++  options->udp_port = (unsigned short)channel->udp_port;
++  options->tcp_port = (unsigned short)channel->tcp_port;
+   options->sock_state_cb     = channel->sock_state_cb;
+   options->sock_state_cb_data = channel->sock_state_cb_data;
+ 

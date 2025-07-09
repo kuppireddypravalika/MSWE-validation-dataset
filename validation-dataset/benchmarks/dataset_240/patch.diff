@@ -1,0 +1,26 @@
+From 8367fdbbd50e8fc0753bf122fae1dbcf3016805a Mon Sep 17 00:00:00 2001
+From: NotCompsky <adammarkgray@gmail.com>
+Date: Fri, 18 Oct 2019 14:39:28 +0100
+Subject: [PATCH] Tidy,Performance:  Avoid converting QString to char*
+
+---
+ media/src/tag-manager/primaryitem.cpp | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/media/src/tag-manager/primaryitem.cpp b/media/src/tag-manager/primaryitem.cpp
+index 686b4d8b..467e0a2b 100644
+--- a/media/src/tag-manager/primaryitem.cpp
++++ b/media/src/tag-manager/primaryitem.cpp
+@@ -61,11 +61,7 @@ void PrimaryItem::add_parent(){
+ }
+ 
+ void NameItem::setData(const QVariant& value,  const int role){
+-	const QString a = this->data().toString();
+-	const QByteArray b = a.toLocal8Bit();
+-    const char* s = b.data(); // Equivalent to siblingAtColumn, but that is introduced in Qt 5.11
+-    
+-    if (!s)
++	if (this->data().toString().isNull())
+         return;
+     
+     const QString neue = value.toString();

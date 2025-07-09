@@ -1,0 +1,36 @@
+From 488d4421c67aa5045b60379beaca2f8341ac6380 Mon Sep 17 00:00:00 2001
+From: Gabor Greif <ggreif@gmail.com>
+Date: Wed, 14 Apr 2010 16:13:56 +0000
+Subject: [PATCH] performance: cache the dereferenced use_iterator
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@101250 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Transforms/Scalar/LICM.cpp | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/lib/Transforms/Scalar/LICM.cpp b/lib/Transforms/Scalar/LICM.cpp
+index d7ace342fcb..73473952912 100644
+--- a/lib/Transforms/Scalar/LICM.cpp
++++ b/lib/Transforms/Scalar/LICM.cpp
+@@ -683,16 +683,18 @@ void LICM::PromoteValuesInLoop() {
+       // to LI as we are loading or storing.  Since we know that the value is
+       // stored in this loop, this will always succeed.
+       for (Value::use_iterator UI = Ptr->use_begin(), E = Ptr->use_end();
+-           UI != E; ++UI)
+-        if (LoadInst *LI = dyn_cast<LoadInst>(*UI)) {
++           UI != E; ++UI) {
++        User *U = *UI;
++        if (LoadInst *LI = dyn_cast<LoadInst>(U)) {
+           LoadValue = LI;
+           break;
+-        } else if (StoreInst *SI = dyn_cast<StoreInst>(*UI)) {
++        } else if (StoreInst *SI = dyn_cast<StoreInst>(U)) {
+           if (SI->getOperand(1) == Ptr) {
+             LoadValue = SI->getOperand(0);
+             break;
+           }
+         }
++      }
+       assert(LoadValue && "No store through the pointer found!");
+       PointerValueNumbers.push_back(LoadValue);  // Remember this for later.
+     }

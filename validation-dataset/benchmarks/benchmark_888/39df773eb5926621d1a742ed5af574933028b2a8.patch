@@ -1,0 +1,32 @@
+From 39df773eb5926621d1a742ed5af574933028b2a8 Mon Sep 17 00:00:00 2001
+From: Kent Hansen <kent.hansen@nokia.com>
+Date: Tue, 31 Jul 2012 11:57:08 +0200
+Subject: [PATCH] Avoid qobject_cast
+
+This is slightly faster, and also avoids accessing the object's meta
+object that would cause any lazily created meta objects (e.g., for
+QML) from being built.
+
+This is just a port of commit a5972f8ec32631e70578c64e9d6c063b3c47f0f5
+(which fixed QGuiApplication, but not QApplication).
+
+Change-Id: I0d5080495aa4fd4486db297968c4d06bbfacf89b
+Reviewed-by: Lars Knoll <lars.knoll@nokia.com>
+---
+ src/widgets/kernel/qapplication.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/widgets/kernel/qapplication.cpp b/src/widgets/kernel/qapplication.cpp
+index dc09155438..803d1efc0d 100644
+--- a/src/widgets/kernel/qapplication.cpp
++++ b/src/widgets/kernel/qapplication.cpp
+@@ -2978,7 +2978,8 @@ bool QApplication::notify(QObject *receiver, QEvent *e)
+     d->checkReceiverThread(receiver);
+ #endif
+ 
+-    QGuiApplicationPrivate::sendQWindowEventToQPlatformWindow(qobject_cast<QWindow *>(receiver), e);
++    if (receiver->isWindowType())
++        QGuiApplicationPrivate::sendQWindowEventToQPlatformWindow(static_cast<QWindow *>(receiver), e);
+ 
+     // capture the current mouse/keyboard state
+     if(e->spontaneous()) {

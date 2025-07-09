@@ -1,0 +1,26 @@
+From f876ac92d6ae9b6a0d0f3ac6d79a2d12159cd1b3 Mon Sep 17 00:00:00 2001
+From: ehebrard <emmanuel.hebrard@gmail.com>
+Date: Thu, 1 Jun 2017 17:22:16 +0200
+Subject: [PATCH] subtract parse time from time limit
+
+---
+ examples/src/MistralXCSP.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/examples/src/MistralXCSP.cpp b/examples/src/MistralXCSP.cpp
+index 19cafee5..e69a2da8 100755
+--- a/examples/src/MistralXCSP.cpp
++++ b/examples/src/MistralXCSP.cpp
+@@ -134,6 +134,12 @@ int main(int argc,char **argv) {
+ 	BranchingHeuristic *heuristic = solver.heuristic_factory(cmd.get_variable_ordering(), cmd.get_value_ordering(), cmd.get_randomization());
+ 	RestartPolicy *restart = solver.restart_factory(cmd.get_restart_policy());
+ 	
++	
++	solver.parameters.time_limit -= get_run_time();
++	if(solver.parameters.time_limit < 0)
++		solver.set_time_limit(0.5);
++	
++	
+ 	if(solver.objective && solver.objective->is_optimization()) {
+ 		solver.add( new ObjectivePrinter(&solver) );
+ 	}

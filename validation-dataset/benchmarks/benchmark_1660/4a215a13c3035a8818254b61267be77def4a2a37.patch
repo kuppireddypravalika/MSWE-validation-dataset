@@ -1,0 +1,34 @@
+From 4a215a13c3035a8818254b61267be77def4a2a37 Mon Sep 17 00:00:00 2001
+From: Dan Gohman <gohman@apple.com>
+Date: Fri, 11 Sep 2009 00:36:43 +0000
+Subject: [PATCH] Make fast-isel try ISD::FNEG before resorting to bitcasts and
+ xors.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@81493 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/CodeGen/SelectionDAG/FastISel.cpp | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/lib/CodeGen/SelectionDAG/FastISel.cpp b/lib/CodeGen/SelectionDAG/FastISel.cpp
+index 15c2140b86c..54544a4d149 100644
+--- a/lib/CodeGen/SelectionDAG/FastISel.cpp
++++ b/lib/CodeGen/SelectionDAG/FastISel.cpp
+@@ -615,9 +615,17 @@ FastISel::SelectFNeg(User *I) {
+   unsigned OpReg = getRegForValue(BinaryOperator::getFNegArgument(I));
+   if (OpReg == 0) return false;
+ 
++  // If the target has ISD::FNEG, use it.
++  EVT VT = TLI.getValueType(I->getType());
++  unsigned ResultReg = FastEmit_r(VT.getSimpleVT(), VT.getSimpleVT(),
++                                  ISD::FNEG, OpReg);
++  if (ResultReg != 0) {
++    UpdateValueMap(I, ResultReg);
++    return true;
++  }
++
+   // Bitcast the value to integer, twiddle the sign bit with xor,
+   // and then bitcast it back to floating-point.
+-  EVT VT = TLI.getValueType(I->getType());
+   if (VT.getSizeInBits() > 64) return false;
+   EVT IntVT = EVT::getIntegerVT(I->getContext(), VT.getSizeInBits());
+   if (!TLI.isTypeLegal(IntVT))

@@ -1,0 +1,32 @@
+From 3f74a116c80b483ffc7c2e6922ff62f0f73d83f5 Mon Sep 17 00:00:00 2001
+From: Devang Patel <dpatel@apple.com>
+Date: Thu, 2 Sep 2010 21:29:42 +0000
+Subject: [PATCH] Detect undef value early and save unnecessary NodeMap query.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@112864 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/CodeGen/SelectionDAG/SelectionDAGBuilder.cpp | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/lib/CodeGen/SelectionDAG/SelectionDAGBuilder.cpp b/lib/CodeGen/SelectionDAG/SelectionDAGBuilder.cpp
+index 08d2e9337b7..e65744592c8 100644
+--- a/lib/CodeGen/SelectionDAG/SelectionDAGBuilder.cpp
++++ b/lib/CodeGen/SelectionDAG/SelectionDAGBuilder.cpp
+@@ -4074,6 +4074,17 @@ SelectionDAGBuilder::visitIntrinsicCall(const CallInst &I, unsigned Intrinsic) {
+     // absolute, but not relative, values are different depending on whether
+     // debug info exists.
+     ++SDNodeOrder;
++
++    // Check if address has undef value.
++    if (isa<UndefValue>(Address) ||
++        (Address->use_empty() && !isa<Argument>(Address))) {
++      SDDbgValue*SDV = 
++        DAG.getDbgValue(Variable, UndefValue::get(Address->getType()),
++                        0, dl, SDNodeOrder);
++      DAG.AddDbgValue(SDV, 0, false);
++      return 0;
++    }
++
+     SDValue &N = NodeMap[Address];
+     if (!N.getNode() && isa<Argument>(Address))
+       // Check unused arguments map.

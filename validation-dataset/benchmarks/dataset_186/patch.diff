@@ -1,0 +1,28 @@
+From 97bdd2ba42e413f0720ed561dc912fa1d567a0fb Mon Sep 17 00:00:00 2001
+From: Kunal Tyagi <tyagi.kunal@live.com>
+Date: Thu, 9 Jan 2020 16:13:08 +0900
+Subject: [PATCH] brisk_2d.hpp: Code improvement via auto and modern for loops
+
+---
+ features/include/pcl/features/impl/brisk_2d.hpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/features/include/pcl/features/impl/brisk_2d.hpp b/features/include/pcl/features/impl/brisk_2d.hpp
+index 285ed86b1d7..9c12de9278c 100644
+--- a/features/include/pcl/features/impl/brisk_2d.hpp
++++ b/features/include/pcl/features/impl/brisk_2d.hpp
+@@ -103,11 +103,11 @@ pcl::BRISK2DEstimation<PointInT, PointOutT, KeypointT, IntensityT>::generateKern
+   d_min_ = d_min;
+ 
+   // get the total number of points
+-  const int rings = int (radius_list.size ());
++  const auto rings = radius_list.size ();
+   assert (radius_list.size () != 0 && radius_list.size () == number_list.size ());
+   points_ = 0; // remember the total number of points
+-  for (int ring = 0; ring < rings; ring++)
+-    points_ += number_list[ring];
++  for (const auto number: number_list)
++    points_ += number;
+ 
+   // set up the patterns
+   pattern_points_ = new BriskPatternPoint[points_*scales_*n_rot_];

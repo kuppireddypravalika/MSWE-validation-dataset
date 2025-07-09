@@ -1,0 +1,36 @@
+From 5d8eea17aca46d096100df89c2c34e63dea01fab Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Luca=20B=C3=A9la=20Palkovics?=
+ <luca.bela.palkovics@gmail.com>
+Date: Sat, 25 Apr 2015 12:24:38 +0200
+Subject: [PATCH] Don't need to call add_provider_for_screen multiple times
+
+---
+ Source/gTox.cpp | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/Source/gTox.cpp b/Source/gTox.cpp
+index c31a090..e306f70 100644
+--- a/Source/gTox.cpp
++++ b/Source/gTox.cpp
+@@ -40,15 +40,16 @@ gTox::gTox()
+             ->property_gtk_application_prefer_dark_theme() = true;
+ 
+     auto css = Gtk::CssProvider::create();
++    auto screen = Gdk::Screen::get_default();
++    Gtk::StyleContext::add_provider_for_screen(
++                screen,
++                css,
++                GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
++
+     auto update_style = [css]() {
+         bool dark = Gtk::Settings::get_default()
+                     ->property_gtk_application_prefer_dark_theme();
+         css->load_from_resource(dark?"/org/gtox/style/dark.css":"/org/gtox/style/light.css");
+-        auto screen = Gdk::Screen::get_default();
+-        Gtk::StyleContext::add_provider_for_screen(
+-                    screen,
+-                    css,
+-                    GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+     };
+ 
+     Gtk::Settings::get_default()

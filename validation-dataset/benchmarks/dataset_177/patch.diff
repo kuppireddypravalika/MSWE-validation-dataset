@@ -1,0 +1,28 @@
+From 0b5e5a54004b95fbd3367464b18fb0692f505351 Mon Sep 17 00:00:00 2001
+From: John Woods <jwoods@vt.edu>
+Date: Tue, 8 Jul 2014 16:38:58 -0400
+Subject: [PATCH] Fixes #791.
+
+As per the description in #791, d == distance_normalization in some
+cases, which produces a bad access in the octants/quadrants vector.
+
+By using the floor function, we guarantee that the result will fall
+between 0 and 12 inclusive, but never reach 13. The subtraction by an
+integer makes the static_cast unnecessary.
+---
+ features/include/pcl/features/impl/our_cvfh.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/features/include/pcl/features/impl/our_cvfh.hpp b/features/include/pcl/features/impl/our_cvfh.hpp
+index c3f7afeda2f..4c1deda756d 100644
+--- a/features/include/pcl/features/impl/our_cvfh.hpp
++++ b/features/include/pcl/features/impl/our_cvfh.hpp
+@@ -496,7 +496,7 @@ pcl::OURCVFHEstimation<PointInT, PointNT, PointOutT>::computeRFAndShapeDistribut
+             weights[ii] *= 0.5f - wz * 0.5f;
+         }
+ 
+-        int h_index = static_cast<int> (std::floor (size_hists * (d / distance_normalization_factor)));
++        int h_index = std::ceil (size_hists * (d / distance_normalization_factor)) - 1;
+         for (int j = 0; j < num_hists; j++)
+           quadrants[j][h_index] += hist_incr * weights[j];
+ 

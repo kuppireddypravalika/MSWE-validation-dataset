@@ -1,0 +1,26 @@
+From c14a00eec92074536591c05f0ac5486bf74980f9 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@duempel.org>
+Date: Tue, 9 Sep 2014 19:07:46 +0200
+Subject: [PATCH] decoder/ffmpeg: use memset() to initialize AVProbeData
+
+---
+ src/decoder/FfmpegDecoderPlugin.cxx | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/src/decoder/FfmpegDecoderPlugin.cxx b/src/decoder/FfmpegDecoderPlugin.cxx
+index 1409a3c478..9cd26c4fad 100644
+--- a/src/decoder/FfmpegDecoderPlugin.cxx
++++ b/src/decoder/FfmpegDecoderPlugin.cxx
+@@ -383,6 +383,12 @@ ffmpeg_probe(Decoder *decoder, InputStream &is)
+ 	nbytes -= PADDING;
+ 
+ 	AVProbeData avpd;
++
++	/* new versions of ffmpeg may add new attributes, and leaving
++	   them uninitialized may crash; hopefully, zero-initializing
++	   everything we don't know is ok */
++	memset(&avpd, 0, sizeof(avpd));
++
+ 	avpd.buf = buffer;
+ 	avpd.buf_size = nbytes;
+ 	avpd.filename = is.uri.c_str();

@@ -1,0 +1,40 @@
+From 99ef43728a01f5eb761e32473549b895759aa12b Mon Sep 17 00:00:00 2001
+From: Vadim Zeitlin <vadim@wxwidgets.org>
+Date: Wed, 29 Jun 2011 17:50:32 +0000
+Subject: [PATCH] Change the loop condition to avoid comparing unsigned value
+ with 0.
+
+This resulted in (useful) g++ warning and didn't make any sense in any case.
+
+Check for the loop variable value being 0 at the end of the loop instead now.
+If the old code was correct it shouldn't change its behaviour and if not, this
+might fix a bug.
+
+git-svn-id: https://svn.wxwidgets.org/svn/wx/wxWidgets/trunk@68100 c3d73ce0-8a6f-49c7-b76d-6d57e0e08775
+---
+ src/generic/datavgen.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/generic/datavgen.cpp b/src/generic/datavgen.cpp
+index 7f75fdacd5cc..44b0bd4ef83b 100644
+--- a/src/generic/datavgen.cpp
++++ b/src/generic/datavgen.cpp
+@@ -3029,7 +3029,7 @@ wxDataViewTreeNode * wxDataViewMainWindow::FindNode( const wxDataViewItem & item
+     // Find the item along the parent-chain.
+     // This algorithm is designed to speed up the node-finding method
+     wxDataViewTreeNode* node = m_root;
+-    for( unsigned iter = parentChain.size()-1; iter>=0; --iter )
++    for( unsigned iter = parentChain.size()-1; ; --iter )
+     {
+         if( node->HasChildren() )
+         {
+@@ -3060,6 +3060,9 @@ wxDataViewTreeNode * wxDataViewMainWindow::FindNode( const wxDataViewItem & item
+         }
+         else
+             return NULL;
++
++        if ( !iter )
++            break;
+     }
+     return NULL;
+ }

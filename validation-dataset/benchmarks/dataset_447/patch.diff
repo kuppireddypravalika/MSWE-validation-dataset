@@ -1,0 +1,23 @@
+From 76380b2b45c27baa2ab79d5e18e4d0e9f8deb0af Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@musicpd.org>
+Date: Wed, 8 Feb 2017 09:42:09 +0100
+Subject: [PATCH] DetachedSong: pass std::string&& to uri initializer
+
+Eliminate one temporary allocation.
+---
+ src/DetachedSong.cxx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/DetachedSong.cxx b/src/DetachedSong.cxx
+index 8bef0f6ff4..4774cfd231 100644
+--- a/src/DetachedSong.cxx
++++ b/src/DetachedSong.cxx
+@@ -24,7 +24,7 @@
+ #include "fs/Traits.hxx"
+ 
+ DetachedSong::DetachedSong(const LightSong &other)
+-	:uri(other.GetURI().c_str()),
++	:uri(other.GetURI()),
+ 	 real_uri(other.real_uri != nullptr ? other.real_uri : ""),
+ 	 tag(*other.tag),
+ 	 mtime(other.mtime),

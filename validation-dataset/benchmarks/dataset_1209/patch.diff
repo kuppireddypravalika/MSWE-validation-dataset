@@ -1,0 +1,22 @@
+From 606a38dbca39fec36323d5b9d2bafe1029aabef8 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@spatialys.com>
+Date: Wed, 19 Apr 2023 19:49:58 +0200
+Subject: [PATCH] Parquet: avoid object copy in for loop
+
+---
+ ogr/ogrsf_frmts/parquet/ogrparquetdatasetlayer.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ogr/ogrsf_frmts/parquet/ogrparquetdatasetlayer.cpp b/ogr/ogrsf_frmts/parquet/ogrparquetdatasetlayer.cpp
+index 97fc137e9029..5a7ae074dfe2 100644
+--- a/ogr/ogrsf_frmts/parquet/ogrparquetdatasetlayer.cpp
++++ b/ogr/ogrsf_frmts/parquet/ogrparquetdatasetlayer.cpp
+@@ -221,7 +221,7 @@ OGRErr OGRParquetDatasetLayer::GetExtent(int iGeomField, OGREnvelope *psExtent,
+             *psExtent = OGREnvelope();
+             int nFragmentCount = 0;
+             int nBBoxFragmentCount = 0;
+-            for (auto oFragmentStatus : *statusFragments)
++            for (const auto &oFragmentStatus : *statusFragments)
+             {
+                 if (oFragmentStatus.ok())
+                 {

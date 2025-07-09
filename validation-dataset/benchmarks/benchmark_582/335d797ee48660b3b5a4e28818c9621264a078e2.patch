@@ -1,0 +1,36 @@
+From 335d797ee48660b3b5a4e28818c9621264a078e2 Mon Sep 17 00:00:00 2001
+From: David Anderson <danderson@mozilla.com>
+Date: Wed, 16 Jun 2010 18:15:23 -0700
+Subject: [PATCH] [JAEGER] Add fast-path for JSOP_THIS.
+
+---
+ js/src/methodjit/Compiler.cpp | 16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
+
+diff --git a/js/src/methodjit/Compiler.cpp b/js/src/methodjit/Compiler.cpp
+index 9c6d23d900c..cb6913fde4d 100644
+--- a/js/src/methodjit/Compiler.cpp
++++ b/js/src/methodjit/Compiler.cpp
+@@ -1754,9 +1754,19 @@ mjit::Compiler::jsop_this()
+      * :FIXME: We don't know whether it's a funobj or not... but we
+      * DO know it's an object! This can help downstream opcodes.
+      */
+-    prepareStubCall();
+-    stubCall(stubs::This, Uses(0), Defs(1));
+-    frame.pushSynced();
++    RegisterID reg = frame.allocReg();
++    masm.load32(Address(JSFrameReg, offsetof(JSStackFrame, flags)), reg);
++    masm.and32(Imm32(JSFRAME_COMPUTED_THIS), reg);
++    Jump j = masm.branchTest32(Assembler::Zero, reg, reg);
++    stubcc.linkExit(j);
++
++    stubcc.leave();
++    stubcc.call(stubs::This);
++
++    frame.freeReg(reg);
++    frame.push(Address(JSFrameReg, offsetof(JSStackFrame, thisv)));
++
++    stubcc.rejoin(0);
+ }
+ 
+ void

@@ -1,0 +1,38 @@
+From 8e80af06543cc9b3ef7699c2a6e900446d452e5f Mon Sep 17 00:00:00 2001
+From: Philip Chimento <philip.chimento@gmail.com>
+Date: Sun, 19 Mar 2017 05:18:36 +0000
+Subject: [PATCH] importer: Seal import with JSPropertyDescriptor directly
+
+Previously we "sealed" the import by redefining the property on the
+importer object so that it was undeleteable. Now we can do this in a more
+direct way by getting and modifying the property's descriptor.
+
+In order to make this more convenient and faster we thread the jsid
+through the call stack so we don't have to convert it to and from a
+string.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=784196
+---
+ gjs/importer.cpp | 9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
+
+diff --git a/gjs/importer.cpp b/gjs/importer.cpp
+index 8f358c0a5..d9fda8aae 100644
+--- a/gjs/importer.cpp
++++ b/gjs/importer.cpp
+@@ -206,13 +206,8 @@ seal_import(JSContext       *cx,
+         return false;
+     }
+ 
+-    /* COMPAT: in mozjs45 use .setConfigurable(false) and the form of
+-     * JS_DefineProperty that takes the JSPropertyDescriptor directly */
+-
+-    if (!JS_DefinePropertyById(cx, descr.object(), id, descr.value(),
+-                               descr.attributes() | JSPROP_PERMANENT,
+-                               JS_PROPERTYOP_GETTER(descr.getter()),
+-                               JS_PROPERTYOP_SETTER(descr.setter()))) {
++    descr.setConfigurable(false);
++    if (!JS_DefinePropertyById(cx, descr.object(), id, descr)) {
+         gjs_debug(GJS_DEBUG_IMPORTER,
+                   "Failed to redefine attributes to seal '%s' in importer",
+                   name);

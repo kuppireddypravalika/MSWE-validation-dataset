@@ -1,0 +1,33 @@
+From de68633e049386d03aa6c96f75b978f8dc794b5f Mon Sep 17 00:00:00 2001
+From: Dehao Chen <dehao@google.com>
+Date: Mon, 10 Jul 2017 20:31:37 +0000
+Subject: [PATCH] Use DenseMap instead std::map for GVSummaryMapTy
+
+Summary: Frontend change for https://reviews.llvm.org/D35148
+
+Reviewers: tejohnson
+
+Reviewed By: tejohnson
+
+Subscribers: sanjoy, cfe-commits
+
+Differential Revision: https://reviews.llvm.org/D35153
+
+git-svn-id: https://llvm.org/svn/llvm-project/cfe/trunk@307584 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/CodeGen/BackendUtil.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/CodeGen/BackendUtil.cpp b/lib/CodeGen/BackendUtil.cpp
+index 9b3850abcce..513896d9863 100644
+--- a/lib/CodeGen/BackendUtil.cpp
++++ b/lib/CodeGen/BackendUtil.cpp
+@@ -998,7 +998,7 @@ static void runThinLTOBackend(ModuleSummaryIndex *CombinedIndex, Module *M,
+                               std::unique_ptr<raw_pwrite_stream> OS,
+                               std::string SampleProfile,
+                               BackendAction Action) {
+-  StringMap<std::map<GlobalValue::GUID, GlobalValueSummary *>>
++  StringMap<DenseMap<GlobalValue::GUID, GlobalValueSummary *>>
+       ModuleToDefinedGVSummaries;
+   CombinedIndex->collectDefinedGVSummariesPerModule(ModuleToDefinedGVSummaries);
+ 

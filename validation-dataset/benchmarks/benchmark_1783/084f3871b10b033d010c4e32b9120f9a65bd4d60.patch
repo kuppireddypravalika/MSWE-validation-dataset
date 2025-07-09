@@ -1,0 +1,34 @@
+From 084f3871b10b033d010c4e32b9120f9a65bd4d60 Mon Sep 17 00:00:00 2001
+From: Peter Kasting <pkasting@google.com>
+Date: Tue, 23 Jun 2015 15:04:23 -0700
+Subject: [PATCH] Reland mysterious cast that improves performance.
+
+BUG=499241
+TEST=none
+TBR=andrew
+
+Review URL: https://codereview.webrtc.org/1206683002
+
+Cr-Commit-Position: refs/heads/master@{#9492}
+---
+ webrtc/common_audio/signal_processing/cross_correlation.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/webrtc/common_audio/signal_processing/cross_correlation.c b/webrtc/common_audio/signal_processing/cross_correlation.c
+index c14ce4c322..898d934f27 100644
+--- a/webrtc/common_audio/signal_processing/cross_correlation.c
++++ b/webrtc/common_audio/signal_processing/cross_correlation.c
+@@ -22,9 +22,11 @@ void WebRtcSpl_CrossCorrelationC(int32_t* cross_correlation,
+ 
+   for (i = 0; i < dim_cross_correlation; i++) {
+     int32_t corr = 0;
+-    /* Unrolling doesn't seem to improve performance. */
++    // Linux 64-bit performance is improved by the int16_t cast below.
++    // Presumably this is some sort of compiler bug, as there's no obvious
++    // reason why that should result in better code.
+     for (j = 0; j < dim_seq; j++)
+-      corr += (seq1[j] * seq2[j]) >> right_shifts;
++      corr += (seq1[j] * seq2[j]) >> (int16_t)right_shifts;
+     seq2 += step_seq2;
+     *cross_correlation++ = corr;
+   }

@@ -1,0 +1,25 @@
+From a810ba7d84aa8cea5b0fea21a09de8572892cdb6 Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Tue, 4 Apr 2017 22:14:02 -0400
+Subject: [PATCH] [libromdata] WiiPartitionPrivate::readSector(): Cast
+ sector_num to int64_t to prevent 32-bit overflow in multiplication.
+
+This fixes reading the Wii opening.bnr in games where it's stored after
+the 4 GB mark, e.g. "Punch-Out!!" (R7PE01).
+---
+ src/libromdata/disc/WiiPartition.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/libromdata/disc/WiiPartition.cpp b/src/libromdata/disc/WiiPartition.cpp
+index 9ee3c1efc8..7731c83999 100644
+--- a/src/libromdata/disc/WiiPartition.cpp
++++ b/src/libromdata/disc/WiiPartition.cpp
+@@ -498,7 +498,7 @@ int WiiPartitionPrivate::readSector(uint32_t sector_num)
+ 
+ 	// Read the first encrypted sector of the partition.
+ 	int64_t sector_addr = partition_offset + data_offset;
+-	sector_addr += (sector_num * SECTOR_SIZE_ENCRYPTED);
++	sector_addr += ((int64_t)sector_num * SECTOR_SIZE_ENCRYPTED);
+ 
+ 	RP_Q(WiiPartition);
+ 	int ret = discReader->seek(sector_addr);

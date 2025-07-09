@@ -1,0 +1,39 @@
+From b60a2e7d71b93c20fc7a5fd4fa43a8fc4f0a86d9 Mon Sep 17 00:00:00 2001
+From: Chris Harris <chris.harris@kitware.com>
+Date: Tue, 24 Apr 2018 16:24:48 -0400
+Subject: [PATCH] Ensure child sources are only deserialized once
+
+Here we turn the connection into a single shot operation so the
+slot is only run on the first execution of the pipeline.
+---
+ tomviz/DataSource.cxx | 17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
+
+diff --git a/tomviz/DataSource.cxx b/tomviz/DataSource.cxx
+index 4c096d834..3c2f272e3 100644
+--- a/tomviz/DataSource.cxx
++++ b/tomviz/DataSource.cxx
+@@ -412,12 +412,17 @@ bool DataSource::deserialize(const QJsonObject& state)
+     if (op != nullptr && operatorObj.contains("dataSources")) {
+       // We currently support a single child data source.
+       auto dataSourcesState = operatorObj["dataSources"].toArray();
+-      connect(pipeline(), &Pipeline::finished, op, [dataSourcesState, op]() {
+-        auto childDataSource = op->childDataSource();
+-        if (childDataSource != nullptr) {
+-          childDataSource->deserialize(dataSourcesState[0].toObject());
+-        }
+-      });
++      auto connection = new QMetaObject::Connection;
++      *connection =
++        connect(pipeline(), &Pipeline::finished, op, [connection,
++                                                      dataSourcesState, op]() {
++          auto childDataSource = op->childDataSource();
++          if (childDataSource != nullptr) {
++            childDataSource->deserialize(dataSourcesState[0].toObject());
++          }
++          QObject::disconnect(*connection);
++          delete connection;
++        });
+     }
+ 
+     pipeline()->resume(true);

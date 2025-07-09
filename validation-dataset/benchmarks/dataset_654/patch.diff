@@ -1,0 +1,22 @@
+From 691219b39439561be4f3599e55e78f81ef41bed8 Mon Sep 17 00:00:00 2001
+From: Gonzalo Exequiel Pedone <hipersayan.x@gmail.com>
+Date: Sun, 30 Dec 2018 18:24:52 -0300
+Subject: [PATCH] Using bytesPerLine instead if sizeInBytes.
+
+---
+ libAvKys/Lib/src/akvideopacket.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libAvKys/Lib/src/akvideopacket.cpp b/libAvKys/Lib/src/akvideopacket.cpp
+index 8bbaf5ecc..17078c656 100644
+--- a/libAvKys/Lib/src/akvideopacket.cpp
++++ b/libAvKys/Lib/src/akvideopacket.cpp
+@@ -202,7 +202,7 @@ QImage AkVideoPacket::toImage() const
+                  this->d->m_caps.height(),
+                  AkImageToFormat->key(this->d->m_caps.format()));
+     auto size = qMin(size_t(this->buffer().size()),
+-                     size_t(image.sizeInBytes()));
++                     size_t(image.bytesPerLine()) * size_t(image.height()));
+ 
+     if (size > 0)
+         memcpy(image.bits(), this->buffer().constData(), size);

@@ -1,0 +1,34 @@
+From 2b2232b5ea8e952310f9b7e09c9691080dfb778e Mon Sep 17 00:00:00 2001
+From: Joerg Bornemann <joerg.bornemann@theqtcompany.com>
+Date: Wed, 2 Mar 2016 16:09:38 +0100
+Subject: [PATCH] Speed up tst_QLocalSocket::sendData
+
+The data function for this test re-used listenAndConnect_data that
+has an additional column "connections" which was never used in sendData.
+Thus sendData executed three times the same code which is just uselessly
+burned CI time.
+Copied the actually needed code of listenAndConnect_data to sendData_data.
+
+Change-Id: I6cdb1c1b72cb4ce7be7c13e90eea30ac09a14914
+Reviewed-by: Friedemann Kleint <Friedemann.Kleint@theqtcompany.com>
+---
+ tests/auto/network/socket/qlocalsocket/tst_qlocalsocket.cpp | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/tests/auto/network/socket/qlocalsocket/tst_qlocalsocket.cpp b/tests/auto/network/socket/qlocalsocket/tst_qlocalsocket.cpp
+index d7480a4109d6..0505544a2961 100644
+--- a/tests/auto/network/socket/qlocalsocket/tst_qlocalsocket.cpp
++++ b/tests/auto/network/socket/qlocalsocket/tst_qlocalsocket.cpp
+@@ -498,7 +498,11 @@ void tst_QLocalSocket::connectWithOldOpen()
+ 
+ void tst_QLocalSocket::sendData_data()
+ {
+-    listenAndConnect_data();
++    QTest::addColumn<QString>("name");
++    QTest::addColumn<bool>("canListen");
++
++    QTest::newRow("null") << QString() << false;
++    QTest::newRow("tst_localsocket") << "tst_localsocket" << true;
+ }
+ 
+ void tst_QLocalSocket::sendData()

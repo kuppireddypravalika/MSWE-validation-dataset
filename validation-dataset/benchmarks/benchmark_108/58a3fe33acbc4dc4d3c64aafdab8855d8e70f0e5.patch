@@ -1,0 +1,45 @@
+From 58a3fe33acbc4dc4d3c64aafdab8855d8e70f0e5 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Nicolai=20H=C3=A4hnle?= <nicolai.haehnle@amd.com>
+Date: Sat, 23 Jul 2022 15:08:12 +0200
+Subject: [PATCH] lgc/PatchCheckShaderCache: delete cached functions' bodies
+
+This should really have been done from the very beginning. As-is, the
+pass pipeline seems to rely on:
+
+1. IPSCCP cleaning out the function bodies (replacing them by
+   unreachable), and
+2. a later GlobalDCE pass removing the functions.
+
+That's messy, so let's be cleaner and explicit.
+
+We could probably just delete the functions outright, but let's not do
+that for now on the off-chance that the function may have a use
+somewhere. Leaving around only a function declaration is cheap enough.
+
+This improves compile-time by avoiding that later passes uselessly
+look at the functions' code.
+---
+ lgc/patch/PatchCheckShaderCache.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/lgc/patch/PatchCheckShaderCache.cpp b/lgc/patch/PatchCheckShaderCache.cpp
+index 892a981ccc..d08ac7d8dd 100644
+--- a/lgc/patch/PatchCheckShaderCache.cpp
++++ b/lgc/patch/PatchCheckShaderCache.cpp
+@@ -157,12 +157,14 @@ bool PatchCheckShaderCache::runImpl(Module &module, PipelineState *pipelineState
+   if (stagesLeftToCompile == stageMask)
+     return false;
+ 
+-  // "Remove" a shader stage by making its entry-point function internal and not DLLExport, so it gets removed later.
++  // "Remove" a shader stage by making its entry-point function an external but not DLLExport declaration, so further
++  // passes no longer treat it as an entry point (based on the DLL storage class) and don't attempt to compile any code
++  // for it (because it contains no code).
+   for (auto &func : module) {
+     if (isShaderEntryPoint(&func)) {
+       auto stage = getShaderStage(&func);
+       if (stage != ShaderStageInvalid && (shaderStageToMask(stage) & ~stagesLeftToCompile) != 0) {
+-        func.setLinkage(GlobalValue::InternalLinkage);
++        func.deleteBody();
+         func.setDLLStorageClass(GlobalValue::DefaultStorageClass);
+       }
+     }

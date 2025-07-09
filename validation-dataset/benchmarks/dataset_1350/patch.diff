@@ -1,0 +1,29 @@
+From 6a651f924953bb3576b55cb8e2bc12d801335a7a Mon Sep 17 00:00:00 2001
+From: David Levin <dilevin@csail.mit.edu>
+Date: Wed, 6 Jun 2018 16:50:59 -0400
+Subject: [PATCH] 25% performance boost in Eigenfit
+
+---
+ src/FEM/include/EnergyNeohookeanHFixed.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/FEM/include/EnergyNeohookeanHFixed.h b/src/FEM/include/EnergyNeohookeanHFixed.h
+index 09411c4..b0bd796 100644
+--- a/src/FEM/include/EnergyNeohookeanHFixed.h
++++ b/src/FEM/include/EnergyNeohookeanHFixed.h
+@@ -279,13 +279,13 @@ class EnergyNeohookeanHFixed : public virtual ShapeFunction {
+             -gradZ.transpose()*ddw.block(6,6,3,3)*gradZ;
+         
+         // hard coded for tet, need to change size for hex
+-        Eigen::EigenSolver<Matrix> es(-H);
++        Eigen::SelfAdjointEigenSolver<Matrix> es(-H);
+         
+         Eigen::MatrixXd DiagEval = es.eigenvalues().real().asDiagonal();
+         Eigen::MatrixXd Evec = es.eigenvectors().real();
+         
+         for (int i = 0; i < 12; ++i) {
+-            if (es.eigenvalues()[i].real()<1e-6) {
++            if (es.eigenvalues()[i]<1e-6) {
+                 DiagEval(i,i) = 1e-3;
+             }
+         }

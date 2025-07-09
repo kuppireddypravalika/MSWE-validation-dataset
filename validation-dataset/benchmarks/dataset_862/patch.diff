@@ -1,0 +1,44 @@
+From 96771d055f928d9d6464b28b15ce7a90e6b5bd47 Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Mon, 10 Sep 2018 17:34:21 -0400
+Subject: [PATCH] [win32] RP_PropertyStore::GetValue(): Minor optimization.
+
+If the property is found, return it immediately. This lets us remove the
+`n >= d->prop_key.size()` check, since if we exit the `for` loop, it
+means the property wasn't found.
+---
+ src/win32/RP_PropertyStore.cpp | 16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
+
+diff --git a/src/win32/RP_PropertyStore.cpp b/src/win32/RP_PropertyStore.cpp
+index 7321b256e2..e7d5189d7f 100644
+--- a/src/win32/RP_PropertyStore.cpp
++++ b/src/win32/RP_PropertyStore.cpp
+@@ -508,21 +508,17 @@ IFACEMETHODIMP RP_PropertyStore::GetValue(_In_ REFPROPERTYKEY key, _Out_ PROPVAR
+ 
+ 	// Linear search for the property.
+ 	// TODO: Optimize this?
+-	size_t n;
+-	for (n = 0; n < d->prop_key.size(); n++) {
++	for (size_t n = 0; n < d->prop_key.size(); n++) {
+ 		if (*d->prop_key[n] == key) {
+ 			// Found the property.
+-			break;
++			// Return the property value.
++			return PropVariantCopy(pv, &d->prop_val[n]);
+ 		}
+ 	}
+-	if (n >= d->prop_key.size()) {
+-		// Property not found.
+-		PropVariantClear(pv);
+-		return S_OK;
+-	}
+ 
+-	// Return the property value.
+-	return PropVariantCopy(pv, &d->prop_val[n]);
++	// Property not found.
++	PropVariantClear(pv);
++	return S_OK;
+ }
+ 
+ IFACEMETHODIMP RP_PropertyStore::SetValue(_In_ REFPROPERTYKEY key, _In_ REFPROPVARIANT propvar)

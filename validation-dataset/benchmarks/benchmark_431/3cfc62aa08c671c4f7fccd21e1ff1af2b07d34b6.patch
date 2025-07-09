@@ -1,0 +1,41 @@
+From 3cfc62aa08c671c4f7fccd21e1ff1af2b07d34b6 Mon Sep 17 00:00:00 2001
+From: Owen Anderson <resistor@mac.com>
+Date: Thu, 18 Jun 2009 16:08:27 +0000
+Subject: [PATCH] As pointed out by Duncan, I accidentally dropped the first
+ MemoryFence of the double-checked locking pattern here.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@73701 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/VMCore/Pass.cpp | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/lib/VMCore/Pass.cpp b/lib/VMCore/Pass.cpp
+index 579f1029ac3..70ec108fa18 100644
+--- a/lib/VMCore/Pass.cpp
++++ b/lib/VMCore/Pass.cpp
+@@ -197,17 +197,21 @@ static PassRegistrar *getPassRegistrar() {
+   
+   // Use double-checked locking to safely initialize the registrar when
+   // we're running in multithreaded mode.
+-  if (!PassRegistrarObj) {
++  PassRegistrar* tmp = PassRegistrarObj;
++  sys::MemoryFence();
++  if (!tmp) {
+     if (llvm_is_multithreaded()) {
+       llvm_acquire_global_lock();
+-      if (!PassRegistrarObj) {
+-        PassRegistrar* tmp = new PassRegistrar();
++      tmp = PassRegistrarObj;
++      if (!tmp) {
++        tmp = new PassRegistrar();
+         sys::MemoryFence();
+         PassRegistrarObj = tmp;
+       }
+       llvm_release_global_lock();
+-    } else
++    } else {
+       PassRegistrarObj = new PassRegistrar();
++    }
+   }
+   return PassRegistrarObj;
+ }

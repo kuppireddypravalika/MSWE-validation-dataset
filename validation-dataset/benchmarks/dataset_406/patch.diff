@@ -1,0 +1,20 @@
+From 5433c32e082af4dd5c6354af8e1b8eca0572fa54 Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Fri, 26 Feb 2021 14:07:10 -0700
+Subject: [PATCH] Use Vector::lengthSquared in Tile::distanceTo
+
+---
+ OPHD/Map/Tile.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/OPHD/Map/Tile.cpp b/OPHD/Map/Tile.cpp
+index d6e147d23..1ad45d8b2 100644
+--- a/OPHD/Map/Tile.cpp
++++ b/OPHD/Map/Tile.cpp
+@@ -157,5 +157,5 @@ float Tile::distanceTo(Tile* tile)
+ float Tile::distanceTo(NAS2D::Point<int> point)
+ {
+ 	const auto direction = point - position();
+-	return static_cast<float>(std::sqrt((direction.x * direction.x) + (direction.y * direction.y)));
++	return static_cast<float>(std::sqrt(direction.lengthSquared()));
+ }

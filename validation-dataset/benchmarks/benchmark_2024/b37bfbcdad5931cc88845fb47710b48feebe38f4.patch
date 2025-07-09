@@ -1,0 +1,51 @@
+From b37bfbcdad5931cc88845fb47710b48feebe38f4 Mon Sep 17 00:00:00 2001
+From: Morwenn <morwenn29@hotmail.fr>
+Date: Sun, 10 Jan 2021 13:07:08 +0100
+Subject: [PATCH] ska_sort: don't feed a lambda to the pdqsort fallback (#177)
+
+The lambda was a leftover from when ska_sort still relied on std::sort
+as a fallback. Replacing it with std::less<> + the passed projection
+means that pdqsort might use its branchless partition algorithm when it
+makes sense.
+---
+ include/cpp-sort/detail/ska_sort.h | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/include/cpp-sort/detail/ska_sort.h b/include/cpp-sort/detail/ska_sort.h
+index 5081dad8..763d2faa 100644
+--- a/include/cpp-sort/detail/ska_sort.h
++++ b/include/cpp-sort/detail/ska_sort.h
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2017-2019 Morwenn
++ * Copyright (c) 2017-2021 Morwenn
+  * SPDX-License-Identifier: MIT
+  */
+ 
+@@ -18,13 +18,14 @@
+ #include <climits>
+ #include <cstddef>
+ #include <cstdint>
++#include <functional>
+ #include <iterator>
+ #include <limits>
+ #include <tuple>
+ #include <type_traits>
+ #include <utility>
+ #include <cpp-sort/utility/as_function.h>
+-#include <cpp-sort/utility/functional.h>
++#include <cpp-sort/utility/iter_move.h>
+ #include "attributes.h"
+ #include "iterator_traits.h"
+ #include "memcpy_cast.h"
+@@ -532,9 +533,7 @@ namespace detail
+         -> void
+     {
+         auto&& proj = utility::as_function(projection);
+-        pdqsort(std::move(begin), std::move(end), [&](auto&& l, auto&& r) {
+-            return proj(l) < proj(r);
+-        }, utility::identity{});
++        pdqsort(std::move(begin), std::move(end), std::less<>{}, std::move(projection));
+     }
+ 
+     template<std::ptrdiff_t StdSortThreshold, typename RandomAccessIterator, typename Projection>

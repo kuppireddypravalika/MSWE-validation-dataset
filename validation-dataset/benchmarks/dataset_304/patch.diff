@@ -1,0 +1,31 @@
+From 94ee5e6096f7d87a93ed35ec56818ab935715efb Mon Sep 17 00:00:00 2001
+From: Paul Harrison <pharrison@mythtv.org>
+Date: Tue, 4 Feb 2014 23:52:35 +0000
+Subject: [PATCH] RemoteFile::Copy() fix the really poor performance
+
+---
+ mythtv/libs/libmythbase/remotefile.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/mythtv/libs/libmythbase/remotefile.cpp b/mythtv/libs/libmythbase/remotefile.cpp
+index 00eee39a0ec..b0cc83a7faf 100644
+--- a/mythtv/libs/libmythbase/remotefile.cpp
++++ b/mythtv/libs/libmythbase/remotefile.cpp
+@@ -527,7 +527,7 @@ bool RemoteFile::CopyFile (const QString& src, const QString& dst)
+         return false;
+     }
+ 
+-    const int readSize = 16 * 1024;
++    const int readSize = 2 * 1024 * 1024;
+     char *buf = new char[readSize];
+     if (!buf)
+     {
+@@ -556,7 +556,7 @@ bool RemoteFile::CopyFile (const QString& src, const QString& dst)
+ 
+     int srcLen, dstLen;
+ 
+-    while ((srcLen = srcFile.Read(buf, sizeof(buf))) > 0)
++    while ((srcLen = srcFile.Read(buf, readSize)) > 0)
+     {
+         dstLen = dstFile.Write(buf, srcLen);
+ 

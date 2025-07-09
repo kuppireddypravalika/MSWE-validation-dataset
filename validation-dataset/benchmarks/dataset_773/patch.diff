@@ -1,0 +1,23 @@
+From 57183029a69fa9f1564ef3865e2ba9ca896f9eac Mon Sep 17 00:00:00 2001
+From: fuzzelhjb <chschmidt9@gmail.com>
+Date: Tue, 2 Jun 2015 06:01:17 +0000
+Subject: [PATCH] optimize collision detail for rubbers
+
+git-svn-id: https://svn.code.sf.net/p/vpinball/code/trunk@2013 14438d79-0ffd-4333-8ae7-ea2bdd901387
+---
+ rubber.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/rubber.cpp b/rubber.cpp
+index 4a385b4b8b..71d980b3d3 100644
+--- a/rubber.cpp
++++ b/rubber.cpp
+@@ -493,7 +493,7 @@ void Rubber::GetHitShapes(Vector<HitObject> * const pvho)
+ {
+    std::set< std::pair<unsigned, unsigned> > addedEdges;
+ 
+-   GenerateMesh();
++   GenerateMesh(6);
+ 
+    // add collision triangles and edges
+    for (unsigned i = 0; i<ringIndices.size(); i += 3)

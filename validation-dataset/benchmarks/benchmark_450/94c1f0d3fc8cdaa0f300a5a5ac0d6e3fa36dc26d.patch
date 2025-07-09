@@ -1,0 +1,29 @@
+From 94c1f0d3fc8cdaa0f300a5a5ac0d6e3fa36dc26d Mon Sep 17 00:00:00 2001
+From: "Justin C. Miller" <justin@justin.cm>
+Date: Thu, 30 Jul 2020 19:54:25 -0700
+Subject: [PATCH] [kutil] Calculate block-size order with clz
+
+Previously we were using a less efficient loop method of finding the
+appropriate block size order, now we use __builtin_clz, which should use
+the CPU's clz instruction if it's available.
+---
+ src/libraries/kutil/heap_allocator.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/libraries/kutil/heap_allocator.cpp b/src/libraries/kutil/heap_allocator.cpp
+index b8830e43..b77a6633 100644
+--- a/src/libraries/kutil/heap_allocator.cpp
++++ b/src/libraries/kutil/heap_allocator.cpp
+@@ -74,9 +74,10 @@ heap_allocator::allocate(size_t length)
+ {
+ 	size_t total = length + sizeof(mem_header);
+ 
+-	unsigned order = min_order;
+-	while (total > (1 << order)) order++;
++	if (length == 0)
++		return nullptr;
+ 
++	unsigned order = 64 - __builtin_clz(length);
+ 	kassert(order <= max_order, "Tried to allocate a block bigger than max_order");
+ 	if (order > max_order)
+ 		return nullptr;

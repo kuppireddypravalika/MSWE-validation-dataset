@@ -1,0 +1,22 @@
+From 9584b2721d2bec99c2d7c3f011d8e2e006e2b010 Mon Sep 17 00:00:00 2001
+From: Hendrik Leppkes <h.leppkes@gmail.com>
+Date: Sun, 3 Feb 2013 07:22:54 +0100
+Subject: [PATCH] Increase analyze_duration for MPEG-TS
+
+---
+ demuxer/Demuxers/LAVFDemuxer.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/demuxer/Demuxers/LAVFDemuxer.cpp b/demuxer/Demuxers/LAVFDemuxer.cpp
+index fbacfefe7..4c77a8c40 100644
+--- a/demuxer/Demuxers/LAVFDemuxer.cpp
++++ b/demuxer/Demuxers/LAVFDemuxer.cpp
+@@ -391,7 +391,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
+   // Increase default probe sizes
+   //m_avFormat->probesize            = 5 * 5000000;
+   if (m_bMPEGTS)
+-    m_avFormat->max_analyze_duration = (m_avFormat->max_analyze_duration * 3) / 2;
++    m_avFormat->max_analyze_duration = (m_avFormat->max_analyze_duration * 2);
+ 
+   av_opt_set_int(m_avFormat, "correct_ts_overflow", !m_pBluRay, 0);
+ 

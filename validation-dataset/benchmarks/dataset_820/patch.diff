@@ -1,0 +1,30 @@
+From 9ecc76209c29e4031298a10fe0f03b96bdb7dedd Mon Sep 17 00:00:00 2001
+From: Giles Bathgate <gilesbathgate@gmail.com>
+Date: Wed, 2 Apr 2014 23:03:32 +0100
+Subject: [PATCH] Improvement to cgalexplorer. If no edges could be found
+ evaluation is done.
+
+---
+ src/cgalexplorer.cpp | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/src/cgalexplorer.cpp b/src/cgalexplorer.cpp
+index 58e5fef89..2c3b1b5ab 100644
+--- a/src/cgalexplorer.cpp
++++ b/src/cgalexplorer.cpp
+@@ -247,8 +247,14 @@ void CGALExplorer::evaluate()
+ 							poly->setNormal(v);
+ 
+ 							perimeters.append(poly);
+-							poly=new CGALPolygon();
++
+ 							f=findNewEdge(visited,outEdges);
++							if(f==NULL) {
++								evaluated=true;
++								return;
++							}
++
++							poly=new CGALPolygon();
+ 							c=f;
+ 							first=true;
+ 						}

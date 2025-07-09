@@ -1,0 +1,24 @@
+From ff8df35f21eb8d49a291d091a37abd2044ac7a74 Mon Sep 17 00:00:00 2001
+From: Mathieu Malaterre <mathieu.malaterre@gmail.com>
+Date: Fri, 20 Jun 2008 03:41:31 -0400
+Subject: [PATCH] ENH: minor trick to please bcc32 and not add extra copy
+ overhead
+
+---
+ Code/Review/itkVoxBoCUBImageIO.cxx | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/Code/Review/itkVoxBoCUBImageIO.cxx b/Code/Review/itkVoxBoCUBImageIO.cxx
+index 42560c9d5cb..fdcb45781f3 100644
+--- a/Code/Review/itkVoxBoCUBImageIO.cxx
++++ b/Code/Review/itkVoxBoCUBImageIO.cxx
+@@ -692,7 +692,8 @@ ::WriteImageInformation(void)
+     if (strcmp(keys[i].c_str(),ITK_CoordinateOrientation))
+       {
+       // The following local, key, was required to avoid Borland compiler errors
+-      std::string key = keys[i];
++      // Using const reference should avoid extra copy while still please bcc32
++      const std::string &key = keys[i];
+       ExposeMetaData<std::string>(dic, key, word);
+       if (!strcmp(key.c_str(),"resample_date"))
+         {

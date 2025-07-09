@@ -1,0 +1,32 @@
+From 58c93568f6f0d8d4ad6a8fd46169b7262a4a911b Mon Sep 17 00:00:00 2001
+From: Lioncache <mai.iam2048@gmail.com>
+Date: Thu, 13 Jul 2023 14:20:21 -0400
+Subject: [PATCH] OpcodeDispatcher: Narrow use of LoadXMMRegister in
+ StoreResult_WithOpSize
+
+This only needs to be loaded when a partial insert needs to be performed,
+so we can narrow it's scope instead of always loading it in the AVX case.
+---
+ External/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/External/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp b/External/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp
+index 8fed476733..bbfd68a6ad 100644
+--- a/External/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp
++++ b/External/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp
+@@ -5074,7 +5074,6 @@ void OpDispatchBuilder::StoreResult_WithOpSize(FEXCore::IR::RegisterClassType Cl
+       if (OpSize != VectorSize) {
+         // Partial writes can come from FPRs.
+         // TODO: Fix the instructions doing partial writes rather than dealing with it here.
+-        auto SrcVector = LoadXMMRegister(gprIndex);
+ 
+         LOGMAN_THROW_A_FMT(Class != IR::GPRClass, "Partial writes from GPR not allowed. Instruction: {}",
+                            Op->TableInfo->Name);
+@@ -5084,6 +5083,7 @@ void OpDispatchBuilder::StoreResult_WithOpSize(FEXCore::IR::RegisterClassType Cl
+         if (VectorSize == Core::CPUState::XMM_AVX_REG_SIZE && OpSize == Core::CPUState::XMM_SSE_REG_SIZE) {
+           Result = _VMov(OpSize, Src);
+         } else {
++          auto SrcVector = LoadXMMRegister(gprIndex);
+           Result = _VInsElement(VectorSize, OpSize, 0, 0, SrcVector, Src);
+         }
+       }

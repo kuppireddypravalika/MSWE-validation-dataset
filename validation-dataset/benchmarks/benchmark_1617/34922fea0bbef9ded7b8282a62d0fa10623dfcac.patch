@@ -1,0 +1,47 @@
+From 34922fea0bbef9ded7b8282a62d0fa10623dfcac Mon Sep 17 00:00:00 2001
+From: Michael Kuperstein <mkuper@google.com>
+Date: Thu, 29 Dec 2016 22:37:13 +0000
+Subject: [PATCH] [LICM] Only recompute LCSSA when we actually promoted
+ something.
+
+We want to recompute LCSSA only when we actually promoted a value.
+This means we only need to look at changes made by promotion when
+deciding whether to recompute it or not, not at regular sinking/hoisting.
+
+(This was what the code was documented as doing, just not what it did)
+
+Hopefully NFC.
+---
+ llvm/lib/Transforms/Scalar/LICM.cpp | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/llvm/lib/Transforms/Scalar/LICM.cpp b/llvm/lib/Transforms/Scalar/LICM.cpp
+index c981a8ff96b0..30a703799688 100644
+--- a/llvm/lib/Transforms/Scalar/LICM.cpp
++++ b/llvm/lib/Transforms/Scalar/LICM.cpp
+@@ -255,9 +255,11 @@ bool LoopInvariantCodeMotion::runOnLoop(Loop *L, AliasAnalysis *AA,
+     SmallVector<Instruction *, 8> InsertPts;
+     PredIteratorCache PIC;
+ 
++    bool Promoted = false;
++
+     // Loop over all of the alias sets in the tracker object.
+     for (AliasSet &AS : *CurAST)
+-      Changed |= promoteLoopAccessesToScalars(
++      Promoted |= promoteLoopAccessesToScalars(
+           AS, ExitBlocks, InsertPts, PIC, LI, DT, TLI, L, CurAST, &SafetyInfo);
+ 
+     // Once we have promoted values across the loop body we have to recursively
+@@ -266,9 +268,10 @@ bool LoopInvariantCodeMotion::runOnLoop(Loop *L, AliasAnalysis *AA,
+     // FIXME: This is really heavy handed. It would be a bit better to use an
+     // SSAUpdater strategy during promotion that was LCSSA aware and reformed
+     // it as it went.
+-    if (Changed) {
++    if (Promoted)
+       formLCSSARecursively(*L, *DT, LI, SE);
+-    }
++
++    Changed |= Promoted;
+   }
+ 
+   // Check that neither this loop nor its parent have had LCSSA broken. LICM is

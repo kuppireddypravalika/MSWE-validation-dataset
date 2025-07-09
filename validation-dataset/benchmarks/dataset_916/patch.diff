@@ -1,0 +1,25 @@
+From fcacd0205cc850dd257b57fcdb387be4412cf256 Mon Sep 17 00:00:00 2001
+From: tteuling <tteuling@users.sourceforge.net>
+Date: Tue, 14 Sep 2010 09:55:43 +0200
+Subject: [PATCH] Disabled unnecessary output to Progress that slows down
+ import speed.
+
+---
+ libosmscout/src/osmscout/GenRelationDat.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/libosmscout/src/osmscout/GenRelationDat.cpp b/libosmscout/src/osmscout/GenRelationDat.cpp
+index b0f3db1d3..172f37688 100644
+--- a/libosmscout/src/osmscout/GenRelationDat.cpp
++++ b/libosmscout/src/osmscout/GenRelationDat.cpp
+@@ -500,8 +500,9 @@ namespace osmscout {
+     }
+ 
+     if (oldSize!=relation.roles.size()) {
++      /*
+       progress.Info("Compacted number of roles of relation "+NumberToString(relation.id)+" "+name+
+-                    " from "+NumberToString(oldSize)+" to "+NumberToString(relation.roles.size()));
++                    " from "+NumberToString(oldSize)+" to "+NumberToString(relation.roles.size()));*/
+     }
+ 
+     return true;

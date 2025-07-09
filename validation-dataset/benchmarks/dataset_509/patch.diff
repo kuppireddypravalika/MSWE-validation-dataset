@@ -1,0 +1,22 @@
+From 5a331351dbb18597c7c7fff2a9b8edfa15bbeb1a Mon Sep 17 00:00:00 2001
+From: Xottab-DUTY <xottab-duty@yandex.ru>
+Date: Tue, 15 Feb 2022 03:25:47 +0300
+Subject: [PATCH] xrGame/sound_collection_storage.cpp: use emplace_back instead
+ of push_back
+
+---
+ src/xrGame/sound_collection_storage.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/xrGame/sound_collection_storage.cpp b/src/xrGame/sound_collection_storage.cpp
+index 4c5425d6df3..a911b279354 100644
+--- a/src/xrGame/sound_collection_storage.cpp
++++ b/src/xrGame/sound_collection_storage.cpp
+@@ -34,6 +34,5 @@ const CSoundCollectionStorage::SOUND_COLLECTION_PAIR& CSoundCollectionStorage::o
+     if (I != m_objects.end())
+         return (*I);
+ 
+-    m_objects.push_back(std::make_pair(params, xr_new<CSoundCollection>(params)));
+-    return (m_objects.back());
++    return m_objects.emplace_back(params, xr_new<CSoundCollection>(params));
+ }

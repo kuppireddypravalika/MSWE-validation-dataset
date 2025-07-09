@@ -1,0 +1,28 @@
+From 69268d6ded2d5f9ef8330253fce5a355726e6c48 Mon Sep 17 00:00:00 2001
+From: Vadim Zeitlin <vadim@wxwidgets.org>
+Date: Wed, 9 Jul 2003 19:58:28 +0000
+Subject: [PATCH] initialize wxStrings in initialization list, not ctor body;
+ this is more efficient and incidentally also fixes crash under Mac with gcc
+ 3.3
+
+git-svn-id: https://svn.wxwidgets.org/svn/wx/wxWidgets/trunk@21806 c3d73ce0-8a6f-49c7-b76d-6d57e0e08775
+---
+ src/common/protocol.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/common/protocol.cpp b/src/common/protocol.cpp
+index c3f0c1e4b4dd..ca133288c9ed 100644
+--- a/src/common/protocol.cpp
++++ b/src/common/protocol.cpp
+@@ -40,9 +40,9 @@
+ 
+ wxProtoInfo::wxProtoInfo(const wxChar *name, const wxChar *serv,
+                          const bool need_host1, wxClassInfo *info)
++           : m_protoname(name),
++             m_servname(serv)
+ {
+-    m_protoname = name;
+-    m_servname = serv;
+     m_cinfo = info;
+     m_needhost = need_host1;
+     next = wxURL::ms_protocols;

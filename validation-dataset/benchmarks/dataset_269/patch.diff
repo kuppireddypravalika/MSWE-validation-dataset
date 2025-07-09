@@ -1,0 +1,29 @@
+From 31e2ff1971c37749a50bd9f571640ae92a41ffc2 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Mon, 23 Oct 2017 15:29:01 +0000
+Subject: [PATCH] NTF: avoid use of uninitialized memory that can cause later
+ large memory allocation attempts. Fixes
+ https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=3709. Credit to OSS
+ Fuzz
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@40534 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/ogr/ogrsf_frmts/ntf/ntffilereader.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/gdal/ogr/ogrsf_frmts/ntf/ntffilereader.cpp b/gdal/ogr/ogrsf_frmts/ntf/ntffilereader.cpp
+index 08efa38291c3..e244d14fc5e1 100644
+--- a/gdal/ogr/ogrsf_frmts/ntf/ntffilereader.cpp
++++ b/gdal/ogr/ogrsf_frmts/ntf/ntffilereader.cpp
+@@ -332,8 +332,10 @@ int NTFFileReader::Open( const char * pszFilenameIn )
+ 
+             pasAttDesc = static_cast<NTFAttDesc *>(
+                 CPLRealloc( pasAttDesc, sizeof(NTFAttDesc) * nAttCount ));
++            memset( &pasAttDesc[nAttCount-1], 0, sizeof(NTFAttDesc) );
+ 
+-            ProcessAttDesc( poRecord, pasAttDesc + nAttCount - 1 );
++            if( !ProcessAttDesc( poRecord, pasAttDesc + nAttCount - 1 ) )
++                nAttCount --;
+         }
+ 
+ /* -------------------------------------------------------------------- */

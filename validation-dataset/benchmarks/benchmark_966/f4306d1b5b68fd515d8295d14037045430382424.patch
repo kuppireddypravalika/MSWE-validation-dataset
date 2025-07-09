@@ -1,0 +1,42 @@
+From f4306d1b5b68fd515d8295d14037045430382424 Mon Sep 17 00:00:00 2001
+From: Christoph Niethammer <niethammer@hlrs.de>
+Date: Wed, 9 Mar 2011 11:23:05 +0000
+Subject: [PATCH] Replaced double "ifdef" macros by "if defined" and logical
+ and.
+
+git-svn-id: https://scm.projects.hlrs.de/svn/ls1/MarDyn/trunk@497 a63bd714-7e14-4b5e-94e7-302c8c8ff188
+---
+ src/Simulation.cpp | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/src/Simulation.cpp b/src/Simulation.cpp
+index 9d32babed3..507e5d9a36 100644
+--- a/src/Simulation.cpp
++++ b/src/Simulation.cpp
+@@ -990,12 +990,10 @@ void Simulation::simulate() {
+ 	_perStepIoTimer = new Timer;
+ 	_ioTimer = new Timer;
+ 
+-#ifdef STEEREO
+-#ifdef STEEREO_COUPLING
++#if defined(STEEREO) && defined(STEEREO_COUPLING)
+ 	_simstep = _initSimulation;
+ 	//SteereoLogger::setOutputLevel (4);
+ 	_coupling->waitForConnection();
+-#endif //STEEREO_COUPLING
+ #endif
+ 
+ 	_loopTimer->start();
+@@ -1014,11 +1012,9 @@ void Simulation::simulate() {
+ 
+ 		_integrator->eventNewTimestep(_moleculeContainer, _domain);
+ 
+-#ifdef STEEREO
+-#ifdef STEEREO_COUPLING
++#if defined(STEEREO) && defined(STEEREO_COUPLING)
+ 		_steer -> processQueue (1);
+ 		global_log->debug() << "molecules in simulation: " << _moleculeContainer->getNumberOfParticles() << std::endl;
+-#endif
+ #endif
+ 		// activate RDF sampling
+ 		if ((_simstep >= this->_initStatistics) && this->_rdf != NULL) {

@@ -1,0 +1,37 @@
+From e548e583cc6452144dc41d57acea9ceddbc6ab89 Mon Sep 17 00:00:00 2001
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Date: Wed, 7 Jul 2021 01:53:59 +0300
+Subject: [PATCH] cam: Make CamApp::cameraName() static
+
+The CamApp::cameraName() doesn't need to access any member of the CamApp
+class. Make it static. While at it, drop an unneeded const from the
+return value.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+---
+ src/cam/main.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/cam/main.cpp b/src/cam/main.cpp
+index 19ed9837c..03e62f305 100644
+--- a/src/cam/main.cpp
++++ b/src/cam/main.cpp
+@@ -44,7 +44,7 @@ class CamApp
+ 	int infoConfiguration();
+ 	int run();
+ 
+-	std::string const cameraName(const Camera *camera);
++	static std::string cameraName(const Camera *camera);
+ 
+ 	static CamApp *app_;
+ 	OptionsParser::Options options_;
+@@ -319,7 +319,7 @@ int CamApp::run()
+ 	return 0;
+ }
+ 
+-std::string const CamApp::cameraName(const Camera *camera)
++std::string CamApp::cameraName(const Camera *camera)
+ {
+ 	const ControlList &props = camera->properties();
+ 	bool addModel = true;

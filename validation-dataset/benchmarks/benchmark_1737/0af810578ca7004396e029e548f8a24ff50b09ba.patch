@@ -1,0 +1,30 @@
+From 0af810578ca7004396e029e548f8a24ff50b09ba Mon Sep 17 00:00:00 2001
+From: mark <mark@d0ab736e-dc22-4aeb-8dc9-08def0aa14fd>
+Date: Mon, 1 Sep 2014 18:46:17 +0000
+Subject: [PATCH] MMCore logging: Avoid copy upon buffer swap
+
+It looks like calling std::swap() on a pair of boost::container::vector
+results in a deep copy of the data (log entry content), due to the
+default std::swap() implementation being used. Use the member swap()
+instead, which just swaps pointers, as we originally intended. In
+particular, this avoids holding the lock (which synchronizes logging)
+for an unnecessarily long time.
+
+git-svn-id: https://valelab.ucsf.edu/svn/micromanager2/trunk@14280 d0ab736e-dc22-4aeb-8dc9-08def0aa14fd
+---
+ MMCore/Logging/GenericPacketArray.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/MMCore/Logging/GenericPacketArray.h b/MMCore/Logging/GenericPacketArray.h
+index 56c1ce84e..202375f9c 100644
+--- a/MMCore/Logging/GenericPacketArray.h
++++ b/MMCore/Logging/GenericPacketArray.h
+@@ -52,7 +52,7 @@ class GenericPacketArray
+    { std::copy(first, last, std::back_inserter(packets_)); }
+    bool IsEmpty() const { return packets_.empty(); }
+    void Clear() { packets_.clear(); }
+-   void Swap(GenericPacketArray& other) { std::swap(packets_, other.packets_); }
++   void Swap(GenericPacketArray& other) { packets_.swap(other.packets_); }
+    IteratorType Begin() { return packets_.begin(); }
+    IteratorType End() { return packets_.end(); }
+    ConstIteratorType Begin() const { return packets_.begin(); }

@@ -1,0 +1,25 @@
+From a216f28c9de114be1d5b03b846026ea7af33cc35 Mon Sep 17 00:00:00 2001
+From: Connor McLaughlin <stenzek@gmail.com>
+Date: Sat, 14 Aug 2021 12:56:17 +1000
+Subject: [PATCH] iR5900: Use a signed multiply for MULT1 const prop
+
+---
+ pcsx2/x86/ix86-32/iR5900MultDiv.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/pcsx2/x86/ix86-32/iR5900MultDiv.cpp b/pcsx2/x86/ix86-32/iR5900MultDiv.cpp
+index 7e3a5d0116003..87989d255a9b8 100644
+--- a/pcsx2/x86/ix86-32/iR5900MultDiv.cpp
++++ b/pcsx2/x86/ix86-32/iR5900MultDiv.cpp
+@@ -254,9 +254,9 @@ EERECOMPILE_CODE0(MULTU, XMMINFO_READS|XMMINFO_READT|(_Rd_?XMMINFO_WRITED:0));
+ ////////////////////////////////////////////////////
+ void recMULT1_const()
+ {
+-	u64 res = (u64)g_cpuConstRegs[_Rs_].UL[0] * (u64)g_cpuConstRegs[_Rt_].UL[0];
++	s64 res = (s64)g_cpuConstRegs[_Rs_].SL[0] * (s64)g_cpuConstRegs[_Rt_].SL[0];
+ 
+-	recWritebackConstHILO(res, 1, 1);
++	recWritebackConstHILO((u64)res, 1, 1);
+ }
+ 
+ void recMULT1_(int info)

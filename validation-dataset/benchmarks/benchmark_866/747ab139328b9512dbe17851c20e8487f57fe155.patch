@@ -1,0 +1,21 @@
+From 747ab139328b9512dbe17851c20e8487f57fe155 Mon Sep 17 00:00:00 2001
+From: aster2013 <asterjian@qq.com>
+Date: Thu, 17 Oct 2013 23:03:33 +0800
+Subject: [PATCH] Adjust lua gc step pause parameter, make it gc aggressive.
+
+---
+ Source/Extras/LuaScript/LuaScript.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/Source/Extras/LuaScript/LuaScript.cpp b/Source/Extras/LuaScript/LuaScript.cpp
+index 67fffc893b..77ebf45330 100644
+--- a/Source/Extras/LuaScript/LuaScript.cpp
++++ b/Source/Extras/LuaScript/LuaScript.cpp
+@@ -80,6 +80,7 @@ LuaScript::LuaScript(Context* context) :
+         return;
+     }
+ 
++    lua_gc(luaState_, LUA_GCSETPAUSE, 125);
+     lua_atpanic(luaState_, &LuaScript::AtPanic);
+ 
+     luaL_openlibs(luaState_);

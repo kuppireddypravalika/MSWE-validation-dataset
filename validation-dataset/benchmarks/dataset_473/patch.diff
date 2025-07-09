@@ -1,0 +1,31 @@
+From f642597098c1e4f4d6e8b68aa8d4dc208fc49187 Mon Sep 17 00:00:00 2001
+From: Ted John <ted@brambles.org>
+Date: Thu, 30 Apr 2020 01:54:12 +0100
+Subject: [PATCH] Replace loop with std::find_if
+
+---
+ src/openrct2/network/Network.cpp | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
+
+diff --git a/src/openrct2/network/Network.cpp b/src/openrct2/network/Network.cpp
+index eaef82f509b4..96c760be7a38 100644
+--- a/src/openrct2/network/Network.cpp
++++ b/src/openrct2/network/Network.cpp
+@@ -671,13 +671,10 @@ NetworkConnection* Network::GetPlayerConnection(uint8_t id)
+     auto player = GetPlayerByID(id);
+     if (player != nullptr)
+     {
+-        for (auto& connection : client_connection_list)
+-        {
+-            if (connection->Player == player)
+-            {
+-                return connection.get();
+-            }
+-        }
++        return std::find_if(
++                   client_connection_list.begin(), client_connection_list.end(),
++                   [player](const auto& conn) -> bool { return conn->Player == player; })
++            ->get();
+     }
+     return nullptr;
+ }

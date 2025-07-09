@@ -1,0 +1,26 @@
+From cb70f38acfcefe56ba042e81f8eb680be021178f Mon Sep 17 00:00:00 2001
+From: Akira Saitoh <saiaki@jp.ibm.com>
+Date: Thu, 19 Mar 2020 16:31:57 +0900
+Subject: [PATCH] AArch64: Change REACHEABLE_RANGE_KB to 128MB
+
+Change `REACHEABLE_RANGE_KB` to 128MB for aarch64 as the offset for
+`bl` instruction is in the ragne +/-128MB.
+
+Signed-off-by: Akira Saitoh <saiaki@jp.ibm.com>
+---
+ compiler/runtime/OMRCodeCacheManager.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/compiler/runtime/OMRCodeCacheManager.cpp b/compiler/runtime/OMRCodeCacheManager.cpp
+index 86f8d40f56..a95074223e 100644
+--- a/compiler/runtime/OMRCodeCacheManager.cpp
++++ b/compiler/runtime/OMRCodeCacheManager.cpp
+@@ -152,6 +152,8 @@ OMR::CodeCacheManager::initialize(
+ 
+ #if defined(TR_HOST_POWER)
+    #define REACHEABLE_RANGE_KB (32*1024)
++#elif defined(TR_HOST_ARM64)
++   #define REACHEABLE_RANGE_KB (128*1024)
+ #else
+    #define REACHEABLE_RANGE_KB (2048*1024)
+ #endif

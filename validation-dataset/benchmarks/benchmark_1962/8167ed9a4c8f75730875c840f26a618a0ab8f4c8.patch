@@ -1,0 +1,34 @@
+From 8167ed9a4c8f75730875c840f26a618a0ab8f4c8 Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@gmail.com>
+Date: Mon, 8 May 2017 04:55:12 +0000
+Subject: [PATCH] [APInt] Take advantage of new operator*=(uint64_t) to remove
+ a temporary APInt.
+
+---
+ llvm/lib/Support/APInt.cpp | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/llvm/lib/Support/APInt.cpp b/llvm/lib/Support/APInt.cpp
+index e2cfb90d9e25..a337b5f87271 100644
+--- a/llvm/lib/Support/APInt.cpp
++++ b/llvm/lib/Support/APInt.cpp
+@@ -1842,10 +1842,6 @@ void APInt::fromString(unsigned numbits, StringRef str, uint8_t radix) {
+   // Figure out if we can shift instead of multiply
+   unsigned shift = (radix == 16 ? 4 : radix == 8 ? 3 : radix == 2 ? 1 : 0);
+ 
+-  // Set up an APInt for the radix multiplier outside the loop so we don't
+-  // constantly construct/destruct it.
+-  APInt apradix(getBitWidth(), radix);
+-
+   // Enter digit traversal loop
+   for (StringRef::iterator e = str.end(); p != e; ++p) {
+     unsigned digit = getDigit(*p, radix);
+@@ -1856,7 +1852,7 @@ void APInt::fromString(unsigned numbits, StringRef str, uint8_t radix) {
+       if (shift)
+         *this <<= shift;
+       else
+-        *this *= apradix;
++        *this *= radix;
+     }
+ 
+     // Add in the digit we just interpreted

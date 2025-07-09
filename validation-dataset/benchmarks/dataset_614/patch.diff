@@ -1,0 +1,27 @@
+From ded3541a7eccdf36411188f511dfed49673c09e6 Mon Sep 17 00:00:00 2001
+From: Werner Turing <werner.turing@protonmail.com>
+Date: Mon, 17 Dec 2018 20:08:01 -0200
+Subject: [PATCH] Improved shift starting frames.
+
+It's faster and at the end the displayed frame is not changed.
+---
+ src/gui/Coordinator.cpp | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/src/gui/Coordinator.cpp b/src/gui/Coordinator.cpp
+index a8330a6..7cd68ae 100644
+--- a/src/gui/Coordinator.cpp
++++ b/src/gui/Coordinator.cpp
+@@ -438,5 +438,11 @@ void Coordinator::on_shift()
+ 
+ std::pair<int, int> Coordinator::shift(int start, int end, int amount)
+ {
+-  return filter_model_->shift_frames(start, end, amount);
++  on_filter_selected_.block();
++  std::pair<int, int> r = filter_model_->shift_frames(start, end, amount);
++  on_filter_selected_.block(false);
++
++  on_frame_changed(current_frame_);
++
++  return r;
+ }

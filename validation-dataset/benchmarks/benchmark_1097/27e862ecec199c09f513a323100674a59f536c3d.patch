@@ -1,0 +1,31 @@
+From 27e862ecec199c09f513a323100674a59f536c3d Mon Sep 17 00:00:00 2001
+From: John Criswell <criswell@uiuc.edu>
+Date: Wed, 25 May 2005 23:45:20 +0000
+Subject: [PATCH] Make sure to run pointer compression on functions that are
+ called from an already pointer compressed function, even if no arguments to
+ the function had to be changed. Hopefully, this fixes lots of stuff.
+
+git-svn-id: https://llvm.org/svn/llvm-project/poolalloc/trunk@22170 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/PoolAllocate/PointerCompress.cpp | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/lib/PoolAllocate/PointerCompress.cpp b/lib/PoolAllocate/PointerCompress.cpp
+index 4935e907..934d6a31 100644
+--- a/lib/PoolAllocate/PointerCompress.cpp
++++ b/lib/PoolAllocate/PointerCompress.cpp
+@@ -993,7 +993,13 @@ void InstructionRewriter::visitCallInst(CallInst &CI) {
+   }
+ 
+   // If this function doesn't require compression, there is nothing to do!
+-  if (PoolsToCompress.empty()) return;
++  // However, this function still needs to be transformed; it may just be
++  // using a global pool descriptor.
++  if (PoolsToCompress.empty()) {
++    PtrComp.NoArgFunctionsCalled.push_back(Callee);
++    return;
++  }
++    
+     
+   // Get the clone of this function that uses compressed pointers instead of
+   // normal pointers.

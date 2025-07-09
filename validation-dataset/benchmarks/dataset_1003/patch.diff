@@ -1,0 +1,25 @@
+From 32e9ad4dadfaa62ffa75978e943b2328a4532e2a Mon Sep 17 00:00:00 2001
+From: Ghabry <gabriel+github@mastergk.de>
+Date: Sat, 7 Aug 2021 21:23:52 +0200
+Subject: [PATCH] ErasePicture unloads the image instead of just hiding it.
+
+Because "empty name" is not a criteria for not rendering anymore this is necessary.
+
+Also reduces memory usage because unused images are not keeping there buffer active anymore.
+---
+ src/game_pictures.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/game_pictures.cpp b/src/game_pictures.cpp
+index 237b529b9c..136cb8477c 100644
+--- a/src/game_pictures.cpp
++++ b/src/game_pictures.cpp
+@@ -288,7 +288,7 @@ void Game_Pictures::Picture::Erase() {
+ 	request_id = {};
+ 	data.name.clear();
+ 	if (sprite) {
+-		sprite->SetVisible(false);
++		sprite->SetBitmap(nullptr);
+ 	}
+ }
+ 

@@ -1,0 +1,22 @@
+From 00d84458250e497e49145c1b58094250238a704c Mon Sep 17 00:00:00 2001
+From: Alexander Bock <alexander.bock@liu.se>
+Date: Mon, 30 May 2016 12:26:06 +0200
+Subject: [PATCH] Increase the Syncbuffer to deal with larger scripts
+
+---
+ src/engine/openspaceengine.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/engine/openspaceengine.cpp b/src/engine/openspaceengine.cpp
+index 8fafb203e4..699bf15b3f 100644
+--- a/src/engine/openspaceengine.cpp
++++ b/src/engine/openspaceengine.cpp
+@@ -124,7 +124,7 @@ OpenSpaceEngine::OpenSpaceEngine(std::string programName,
+     , _globalPropertyNamespace(new properties::PropertyOwner)
+     , _isMaster(false)
+     , _runTime(0.0)
+-    , _syncBuffer(new SyncBuffer(1024))
++    , _syncBuffer(new SyncBuffer(4096))
+ {
+     _interactionHandler->setPropertyOwner(_globalPropertyNamespace.get());
+     _globalPropertyNamespace->addPropertySubOwner(_interactionHandler.get());

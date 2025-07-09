@@ -1,0 +1,43 @@
+From 901d44f864312de2d16f4ce595079c1e9fbd32b3 Mon Sep 17 00:00:00 2001
+From: cantabile <cantabile.desu@gmail.com>
+Date: Mon, 1 Apr 2019 22:08:23 +0300
+Subject: [PATCH] GUI: Don't use the slow NTFS permission checking
+
+It's a lot slower than I thought. QFileInfo::isWritable() takes 13
+seconds. QSettings also appears to be affected.
+
+Not using the slow permission checking means the d2v edit box will
+not necessarily turn red when the chosen folder is not writable.
+---
+ src/GUIWindow.cpp | 11 -----------
+ 1 file changed, 11 deletions(-)
+
+diff --git a/src/GUIWindow.cpp b/src/GUIWindow.cpp
+index c507b80..0784f9b 100644
+--- a/src/GUIWindow.cpp
++++ b/src/GUIWindow.cpp
+@@ -432,11 +432,6 @@ void GUIWindow::startDemuxing() {
+ }
+ 
+ 
+-#ifdef _WIN32
+-extern Q_CORE_EXPORT int qt_ntfs_permission_lookup;
+-#endif
+-
+-
+ extern std::atomic_bool stop_processing;
+ 
+ 
+@@ -452,12 +447,6 @@ GUIWindow::GUIWindow(QSettings &_settings, QWidget *parent)
+     , vsframe(nullptr)
+     , settings(_settings)
+ {
+-#ifdef _WIN32
+-    // Enable slow permissions checking for NTFS.
+-    qt_ntfs_permission_lookup++;
+-#endif
+-
+-
+     qRegisterMetaType<int64_t>("int64_t");
+     qRegisterMetaType<D2V>();
+ 

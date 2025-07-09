@@ -1,0 +1,23 @@
+From a685582048ab2714b854acf228bd8b61def1ca53 Mon Sep 17 00:00:00 2001
+From: Daniel Dunbar <daniel@zuster.org>
+Date: Thu, 29 Jul 2010 15:24:21 +0000
+Subject: [PATCH] CrashRecovery: Use ThreadLocal::erase() instead of set(0).
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@109752 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Support/CrashRecoveryContext.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/Support/CrashRecoveryContext.cpp b/lib/Support/CrashRecoveryContext.cpp
+index 1213484f8c1..4514a9948d4 100644
+--- a/lib/Support/CrashRecoveryContext.cpp
++++ b/lib/Support/CrashRecoveryContext.cpp
+@@ -31,7 +31,7 @@ struct CrashRecoveryContextImpl {
+     CurrentContext.set(this);
+   }
+   ~CrashRecoveryContextImpl() {
+-    CurrentContext.set(0);
++    CurrentContext.erase();
+   }
+ 
+   void HandleCrash() {

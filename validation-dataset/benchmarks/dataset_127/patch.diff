@@ -1,0 +1,23 @@
+From 750e7b73e3e532fef51aed659c60cdf648ab74b0 Mon Sep 17 00:00:00 2001
+From: Eladash <elad3356p@gmail.com>
+Date: Fri, 7 Oct 2022 07:55:44 +0300
+Subject: [PATCH] Optimize vm::range_lock a bit
+
+Bad conditions led to optimization misses and long-generated code.
+---
+ rpcs3/Emu/Memory/vm_locking.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/rpcs3/Emu/Memory/vm_locking.h b/rpcs3/Emu/Memory/vm_locking.h
+index a09694a78e2f6..9923464434f4a 100644
+--- a/rpcs3/Emu/Memory/vm_locking.h
++++ b/rpcs3/Emu/Memory/vm_locking.h
+@@ -50,7 +50,7 @@ namespace vm
+ 		// Old-style conditional constexpr
+ 		const u32 size = Size ? Size : _size;
+ 
+-		if (size <= 4096u && !((begin | size) & (size - 1)) ? !vm::check_addr(begin) : !vm::check_addr(begin, vm::page_readable, size))
++		if (Size == 1 || (begin % 4096 + size % 4096) / 4096 == 0 ? !vm::check_addr(begin) : !vm::check_addr(begin, vm::page_readable, size))
+ 		{
+ 			range_lock->release(0);
+ 			range_lock_internal(range_lock, begin, _size);

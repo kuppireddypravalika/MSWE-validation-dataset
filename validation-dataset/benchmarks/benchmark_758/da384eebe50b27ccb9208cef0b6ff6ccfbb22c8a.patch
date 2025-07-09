@@ -1,0 +1,33 @@
+From da384eebe50b27ccb9208cef0b6ff6ccfbb22c8a Mon Sep 17 00:00:00 2001
+From: "Michael J. Spencer" <bigcheesegs@gmail.com>
+Date: Wed, 20 Mar 2013 19:25:58 +0000
+Subject: [PATCH] [ELF][Reader][Perf] Only do loookup once.
+
+llvm-svn: 177563
+---
+ lld/lib/ReaderWriter/ELF/File.h | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/lld/lib/ReaderWriter/ELF/File.h b/lld/lib/ReaderWriter/ELF/File.h
+index d011c603124..15cb9a4fc20 100644
+--- a/lld/lib/ReaderWriter/ELF/File.h
++++ b/lld/lib/ReaderWriter/ELF/File.h
+@@ -516,7 +516,8 @@ template <class ELFT> class ELFFile : public File {
+           int64_t relocAddend = relHandler.relocAddend(*ri);
+           uint64_t addend = ri->addend() + relocAddend;
+           const MergeSectionKey ms(shdr, addend);
+-          if (_mergedSectionMap.find(ms) == _mergedSectionMap.end()) {
++          auto msec = _mergedSectionMap.find(ms);
++          if (msec == _mergedSectionMap.end()) {
+             if (Symbol->getType() != llvm::ELF::STT_SECTION)
+               addend = Symbol->st_value + addend;
+             MergeAtomsIter mai = findMergeAtom(shdr, addend);
+@@ -529,7 +530,7 @@ template <class ELFT> class ELFFile : public File {
+               llvm_unreachable("unable to find a merge atom");
+           } // find
+               else
+-            ri->setTarget(_mergedSectionMap[ms]);
++            ri->setTarget(msec->second);
+         } else
+           ri->setTarget(findAtom(Symbol));
+       }

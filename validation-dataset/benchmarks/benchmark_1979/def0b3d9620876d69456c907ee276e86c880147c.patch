@@ -1,0 +1,29 @@
+From def0b3d9620876d69456c907ee276e86c880147c Mon Sep 17 00:00:00 2001
+From: Sergio Martins <smartins@kde.org>
+Date: Fri, 14 May 2021 23:33:29 +0100
+Subject: [PATCH] incorrect-emit: Don't classify template functions as signals
+
+It was using the loc of the method definition, which is after
+"signals". Instead of improving the loc calculation for the
+template case, simply bail out early and save some CPU cycles.
+
+signals can't be templated
+
+BUG: 437092
+---
+ src/AccessSpecifierManager.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/AccessSpecifierManager.cpp b/src/AccessSpecifierManager.cpp
+index 99218b02..40b48834 100644
+--- a/src/AccessSpecifierManager.cpp
++++ b/src/AccessSpecifierManager.cpp
+@@ -222,7 +222,7 @@ QtAccessSpecifierType AccessSpecifierManager::qtAccessSpecifierType(const CXXMet
+     method = method->getCanonicalDecl();
+ 
+     const CXXRecordDecl *record = method->getParent();
+-    if (!record || isa<clang::ClassTemplateSpecializationDecl>(record))
++    if (!record || isa<clang::ClassTemplateSpecializationDecl>(record) || method->isTemplateInstantiation())
+         return QtAccessSpecifier_None;
+ 
+     const SourceLocation methodLoc = clazy::getLocStart(method);

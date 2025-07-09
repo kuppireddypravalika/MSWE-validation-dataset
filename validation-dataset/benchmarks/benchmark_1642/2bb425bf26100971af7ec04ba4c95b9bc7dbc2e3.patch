@@ -1,0 +1,35 @@
+From 2bb425bf26100971af7ec04ba4c95b9bc7dbc2e3 Mon Sep 17 00:00:00 2001
+From: hjk <hjk@qt.io>
+Date: Mon, 10 Aug 2020 04:57:08 +0200
+Subject: [PATCH] Use qstrntod instead of qstrtod
+
+Potentially saves a few cycles by avoiding a strlen call.
+
+Change-Id: I3c1e4ddf3fb0a52e9f44edea11616a8969604091
+Reviewed-by: Fabian Kosmale <fabian.kosmale@qt.io>
+---
+ src/qml/parser/qqmljslexer.cpp | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/src/qml/parser/qqmljslexer.cpp b/src/qml/parser/qqmljslexer.cpp
+index c0ff69c6c46..df1789c4b32 100644
+--- a/src/qml/parser/qqmljslexer.cpp
++++ b/src/qml/parser/qqmljslexer.cpp
+@@ -1188,15 +1188,13 @@ int Lexer::scanNumber(QChar ch)
+         }
+     }
+ 
+-    chars.append(u'\0');
+-
+     const char *begin = chars.constData();
+     const char *end = nullptr;
+     bool ok = false;
+ 
+-    _tokenValue = qstrtod(begin, &end, &ok);
++    _tokenValue = qstrntod(begin, chars.size(), &end, &ok);
+ 
+-    if (end - begin != chars.size() - 1) {
++    if (end - begin != chars.size()) {
+         _errorCode = IllegalExponentIndicator;
+         _errorMessage = QCoreApplication::translate("QQmlParser", "Illegal syntax for exponential number");
+         return T_ERROR;

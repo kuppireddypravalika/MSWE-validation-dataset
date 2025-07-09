@@ -1,0 +1,28 @@
+From c9e47ccd6628c771b7e0d6fdd7b9814ed3a52c1e Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Devernay?= <frederic.devernay@m4x.org>
+Date: Thu, 19 Sep 2013 15:05:48 +0200
+Subject: [PATCH] be efficient, use std::list instead of std::vector if you
+ intend to erase()
+
+---
+ Readers/Reader.cpp | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/Readers/Reader.cpp b/Readers/Reader.cpp
+index 0107f8fada..4012cfb88b 100644
+--- a/Readers/Reader.cpp
++++ b/Readers/Reader.cpp
+@@ -438,10 +438,9 @@ void Reader::setPreview(QImage* img){
+ 
+ /*Adds to _rowsToRead the rows in others that are missing to _rows*/
+ void Reader::Buffer::ScanLineContext::computeIntersectionAndSetRowsToRead(const std::vector<int>& others){
+-    ScanLineConstIterator it = others.begin();
+-    std::vector<int> rowsCopy = _rows;
+-    for (; it!=others.end(); ++it) {
+-        ScanLineConstIterator found = std::find(rowsCopy.begin(),rowsCopy.end(),*it);
++    std::list<int> rowsCopy (_rows.begin(), _rows.end()); // std::list is more efficient with respect to erase()
++    for (ScanLineConstIterator it = others.begin(); it!=others.end(); ++it) {
++        std::list<int>::iterator found = std::find(rowsCopy.begin(),rowsCopy.end(),*it);
+         if(found == rowsCopy.end()){ // if not found, we add the row to rows
+             _rowsToRead.push_back(*it);
+         }else{

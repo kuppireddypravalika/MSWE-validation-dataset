@@ -1,0 +1,7 @@
+```json
+{
+  "optimized_code": "#include \"recycling.hpp\"\n\nvoid updateBiowasteRecycling(std::vector<Residence*>& residences,\n                             std::vector<Recycling*>& recyclingFacilities) {\n    if (residences.empty() || recyclingFacilities.empty()) return;\n\n    for (auto recyclingFacility : recyclingFacilities) {\n        // Since operational check is trivial, we can early continue if not operational\n        if (!recyclingFacility->operational()) continue;\n\n        int count = 0;\n        for (auto residenceIterator = residences.begin(); residenceIterator != residences.end() && count < 10; ++residenceIterator) {\n            Residence* residence = static_cast<Residence*>(*residenceIterator);\n            residence->pullWaste(30);\n            ++count;\n        }\n    }\n}\n\n\n// Explicit template instantiations\n"
+,
+  "analysis": "The main optimizations include moving the 'residenceIterator' initialization inside the loop and combining the count condition in the for loop check to potentially reduce the number of iterations. This keeps the same logic but reduces the overhead of the count variable and ensures that we terminate the inner loop as soon as we've pulled waste for 10 residences. Additionally, the operational check is retained to skip non-operational recycling facilities efficiently."
+}
+```

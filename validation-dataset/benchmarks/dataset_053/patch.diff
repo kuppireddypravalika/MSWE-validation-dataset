@@ -1,0 +1,23 @@
+From 240270feb5364febc82e0b3bf38695aa5366ee84 Mon Sep 17 00:00:00 2001
+From: ulteq <ulteq@web.de>
+Date: Thu, 21 Jan 2016 21:14:57 +0100
+Subject: [PATCH] [Codechange] New default slowmotion ratio (10x slower than
+ normal)
+
+---
+ source/main/gameplay/RoRFrameListener.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/source/main/gameplay/RoRFrameListener.cpp b/source/main/gameplay/RoRFrameListener.cpp
+index 96a7bcb71e..e44b7cf33a 100644
+--- a/source/main/gameplay/RoRFrameListener.cpp
++++ b/source/main/gameplay/RoRFrameListener.cpp
+@@ -171,7 +171,7 @@ RoRFrameListener::RoRFrameListener() :
+ 	hidegui(false),
+ 	loading_state(NONE_LOADED),
+ 	mStatsOn(0),
+-	mLastSimulationSpeed(0.01f),
++	mLastSimulationSpeed(0.1f),
+ 	mTimeUntilNextToggle(0),
+ 	mTruckInfoOn(false),
+ 	netChat(0),

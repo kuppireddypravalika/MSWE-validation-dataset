@@ -1,0 +1,23 @@
+From 32bb353801478f38f637f0b75b3919c56557afcb Mon Sep 17 00:00:00 2001
+From: Kirstie <kirstie@physics>
+Date: Wed, 13 Dec 2017 09:33:21 -0800
+Subject: [PATCH] made the efficient calculation of weighted densities the
+ default
+
+---
+ papers/fuzzy-fmt/figs/new-melting.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/papers/fuzzy-fmt/figs/new-melting.cpp b/papers/fuzzy-fmt/figs/new-melting.cpp
+index 19a5955a8..6c462d377 100644
+--- a/papers/fuzzy-fmt/figs/new-melting.cpp
++++ b/papers/fuzzy-fmt/figs/new-melting.cpp
+@@ -789,7 +789,7 @@ int main(int argc, const char **argv) {
+   double dx=0.01;        //grid point spacing dx=dy=dz=0.01
+   int verbose = false;
+   int downhill = false;
+-  int efficient = false;
++  int efficient = true;
+ 
+   //Downhill Simplex starting guess
+   double simplex_fe[3][3] = {{0.8, 0.2, 0},  //best when ordered

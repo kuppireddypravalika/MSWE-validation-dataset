@@ -1,0 +1,35 @@
+From 8f79feebcd642e742697ea7e9ad94d348cce40c5 Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@intel.com>
+Date: Tue, 20 Mar 2018 20:24:14 +0000
+Subject: [PATCH] [TableGen] Use vector::append instead of looping and calling
+ push_back. NFC
+
+Both vectors contain unsigned so we can just use append to do the copying. Not only is this shorter, but it should be able to predict the final size and only grow the vector once if needed.
+---
+ llvm/utils/TableGen/CodeGenSchedule.cpp | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/llvm/utils/TableGen/CodeGenSchedule.cpp b/llvm/utils/TableGen/CodeGenSchedule.cpp
+index 7375e08766df..cf7328ce6e5d 100644
+--- a/llvm/utils/TableGen/CodeGenSchedule.cpp
++++ b/llvm/utils/TableGen/CodeGenSchedule.cpp
+@@ -1420,8 +1420,7 @@ void CodeGenSchedModels::inferFromRW(ArrayRef<unsigned> OperWrites,
+     unsigned Idx = LastTransitions[0].WriteSequences.size();
+     LastTransitions[0].WriteSequences.resize(Idx + 1);
+     SmallVectorImpl<unsigned> &Seq = LastTransitions[0].WriteSequences[Idx];
+-    for (IdxIter WI = WriteSeq.begin(), WE = WriteSeq.end(); WI != WE; ++WI)
+-      Seq.push_back(*WI);
++    Seq.append(WriteSeq.begin(), WriteSeq.end());
+     DEBUG(dbgs() << "("; dumpIdxVec(Seq); dbgs() << ") ");
+   }
+   DEBUG(dbgs() << " Reads: ");
+@@ -1431,8 +1430,7 @@ void CodeGenSchedModels::inferFromRW(ArrayRef<unsigned> OperWrites,
+     unsigned Idx = LastTransitions[0].ReadSequences.size();
+     LastTransitions[0].ReadSequences.resize(Idx + 1);
+     SmallVectorImpl<unsigned> &Seq = LastTransitions[0].ReadSequences[Idx];
+-    for (IdxIter RI = ReadSeq.begin(), RE = ReadSeq.end(); RI != RE; ++RI)
+-      Seq.push_back(*RI);
++    Seq.append(ReadSeq.begin(), ReadSeq.end());
+     DEBUG(dbgs() << "("; dumpIdxVec(Seq); dbgs() << ") ");
+   }
+   DEBUG(dbgs() << '\n');

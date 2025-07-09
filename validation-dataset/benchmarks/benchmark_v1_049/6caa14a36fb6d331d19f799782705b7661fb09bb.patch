@@ -1,0 +1,30 @@
+From 6caa14a36fb6d331d19f799782705b7661fb09bb Mon Sep 17 00:00:00 2001
+From: Rene Brun <Rene.Brun@cern.ch>
+Date: Mon, 19 Jun 2006 09:35:45 +0000
+Subject: [PATCH] Use GetEntriesFast instead of GetEntries in the constructor.
+ This prevents a recursive call to TChain::LoadTree.
+
+git-svn-id: http://root.cern.ch/svn/root/trunk@15469 27541ba8-7e3a-0410-8455-c3a389f83636
+---
+ tree/src/TTreeFilePrefetch.cxx | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/tree/src/TTreeFilePrefetch.cxx b/tree/src/TTreeFilePrefetch.cxx
+index b7d39e19bfcc5..9a19832e3f99c 100644
+--- a/tree/src/TTreeFilePrefetch.cxx
++++ b/tree/src/TTreeFilePrefetch.cxx
+@@ -1,4 +1,4 @@
+-// @(#)root/tree:$Name:  $:$Id: TTreeFilePrefetch.cxx,v 1.10 2006/06/15 10:02:13 brun Exp $
++// @(#)root/tree:$Name:  $:$Id: TTreeFilePrefetch.cxx,v 1.11 2006/06/16 11:01:16 brun Exp $
+ // Author: Rene Brun   04/06/2006
+ 
+ /*************************************************************************
+@@ -71,7 +71,7 @@ TTreeFilePrefetch::TTreeFilePrefetch() : TFilePrefetch(),
+ //______________________________________________________________________________
+ TTreeFilePrefetch::TTreeFilePrefetch(TTree *tree, Int_t buffersize) : TFilePrefetch(tree->GetCurrentFile(),buffersize),
+    fEntryMin(0),
+-   fEntryMax(tree->GetEntries()),
++   fEntryMax(tree->GetEntriesFast()),
+    fEntryNext(0),
+    fZipBytes(0),
+    fNbranches(0),

@@ -1,0 +1,22 @@
+From c06f0b7cb32beaf139434c4f3817b3357dbc86f3 Mon Sep 17 00:00:00 2001
+From: lioncash <mai.iam2048@gmail.com>
+Date: Wed, 21 Dec 2022 04:08:29 +0000
+Subject: [PATCH] OpcodeDispatcher: Remove usage of VMov in VPSLLDQOp
+
+The extract operation essentially does this for us.
+---
+ .../FEXCore/Source/Interface/Core/OpcodeDispatcher/Vector.cpp    | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/External/FEXCore/Source/Interface/Core/OpcodeDispatcher/Vector.cpp b/External/FEXCore/Source/Interface/Core/OpcodeDispatcher/Vector.cpp
+index 5d8849fd6a..8ad13b25f0 100644
+--- a/External/FEXCore/Source/Interface/Core/OpcodeDispatcher/Vector.cpp
++++ b/External/FEXCore/Source/Interface/Core/OpcodeDispatcher/Vector.cpp
+@@ -1550,7 +1550,6 @@ void OpDispatchBuilder::VPSLLDQOp(OpcodeArgs) {
+     if (Shift < DstSize) {
+       Result = _VExtr(DstSize, 1, Src, Result, DstSize - Shift);
+     }
+-    Result = _VMov(16, Result);
+   } else {
+     if (Shift < Core::CPUState::XMM_SSE_REG_SIZE) {
+       OrderedNode *ResultBottom = _VExtr(16, 1, Src, Result, 16 - Shift);

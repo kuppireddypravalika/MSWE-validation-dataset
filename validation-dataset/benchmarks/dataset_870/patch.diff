@@ -1,0 +1,41 @@
+From 1be6a926b5bf6f45c520ec85be8ff48f511c6c3e Mon Sep 17 00:00:00 2001
+From: philippedistributive
+ <151072087+philippedistributive@users.noreply.github.com>
+Date: Tue, 30 Jul 2024 10:18:22 -0400
+Subject: [PATCH] more efficient string processing
+
+Co-authored-by: Caleb Aikens <caleb@distributive.network>
+---
+ src/PyBytesProxyHandler.cc | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/src/PyBytesProxyHandler.cc b/src/PyBytesProxyHandler.cc
+index c8d7dad8..f2199df5 100644
+--- a/src/PyBytesProxyHandler.cc
++++ b/src/PyBytesProxyHandler.cc
+@@ -35,17 +35,17 @@ static bool array_valueOf(JSContext *cx, unsigned argc, JS::Value *vp) {
+   JS::AutoCheckCannotGC autoNoGC(cx);
+   uint8_t *data = JS::GetArrayBufferData(rootedArrayBuffer, &isSharedMemory, autoNoGC);
+ 
+-  std::string valueOfString;
++  const size_t STRING_LENGTH = byteLength*2 - 1;
++  JS::Latin1Char* buffer = (JS::Latin1Char *)malloc(sizeof(JS::Latin1Char) * STRING_LENGTH);
+ 
+-  for (Py_ssize_t index = 0; index < byteLength; index++) {
+-    if (index > 0) {
+-      valueOfString += ",";
+-    }
+-    
+-    valueOfString += std::to_string(data[index]);
++  buffer[0] = data[0];
++  for (Py_ssize_t index = 1; index < byteLength; index++) {
++    buffer[index*2 - 1] = ',';
++    buffer[index*2] = data[index];
+   }
+ 
+-  args.rval().setString(JS_NewStringCopyZ(cx, valueOfString.c_str()));
++  JS::UniqueLatin1Chars str(buffer);
++  args.rval().setString(JS_NewLatin1String(cx, std::move(str), STRING_LENGTH));
+   return true;
+ }
+ 

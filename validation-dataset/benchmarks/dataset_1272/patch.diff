@@ -1,0 +1,25 @@
+From 8b03ce562c1fe075d3321b3f014c27fea0332ee0 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max.kellermann@gmail.com>
+Date: Thu, 4 Jan 2024 17:56:29 +0100
+Subject: [PATCH] input/curl: increase CURLOPT_BUFFERSIZE from 16 kB to 512 kB
+
+---
+ src/input/plugins/CurlInputPlugin.cxx | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/src/input/plugins/CurlInputPlugin.cxx b/src/input/plugins/CurlInputPlugin.cxx
+index b5660c3ad6..4cee498e07 100644
+--- a/src/input/plugins/CurlInputPlugin.cxx
++++ b/src/input/plugins/CurlInputPlugin.cxx
+@@ -460,6 +460,11 @@ CreateEasy(const char *url, struct curl_slist *headers)
+ {
+ 	CurlEasy easy{url};
+ 
++	/* increase CURL's receive buffer size from 16 kB to 512 kB
++	   (the maximum until CURL 7.88.0) to reduce system call
++	   overhead */
++	easy.TrySetOption(CURLOPT_BUFFERSIZE, 512L * 1024L);
++
+ 	easy.SetOption(CURLOPT_HTTP200ALIASES, http_200_aliases);
+ 	easy.SetOption(CURLOPT_FOLLOWLOCATION, 1L);
+ 	easy.SetOption(CURLOPT_MAXREDIRS, 5L);

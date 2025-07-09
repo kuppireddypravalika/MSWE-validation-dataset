@@ -1,0 +1,40 @@
+From 385ebf2f4a485787602197928b4e31ed48697b54 Mon Sep 17 00:00:00 2001
+From: Vadim Zeitlin <vadim@wxwidgets.org>
+Date: Sun, 24 Feb 2019 22:34:32 +0100
+Subject: [PATCH] Don't call UpdateSize() unnecessarily at the end of Realize()
+
+SetRows(), called just above in most case, already calls UpdateSize(),
+so there is no need to do it again.
+---
+ src/msw/toolbar.cpp | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/src/msw/toolbar.cpp b/src/msw/toolbar.cpp
+index eb7f54b08e8e..e868bb6668ea 100644
+--- a/src/msw/toolbar.cpp
++++ b/src/msw/toolbar.cpp
+@@ -1312,8 +1312,16 @@ bool wxToolBar::Realize()
+     if ( !IsVertical() )
+     {
+         if ( m_maxRows == 0 )
++        {
+             // if not set yet, only one row
+             SetRows(1);
++        }
++        else
++        {
++            // In all the other cases, UpdateSize() is called by SetRows(), but
++            // when we don't call it here, call it directly instead.
++            UpdateSize();
++        }
+     }
+     else if ( m_nButtons > 0 ) // vertical non empty toolbar
+     {
+@@ -1323,7 +1331,6 @@ bool wxToolBar::Realize()
+     }
+ 
+     InvalidateBestSize();
+-    UpdateSize();
+ 
+     return true;
+ }

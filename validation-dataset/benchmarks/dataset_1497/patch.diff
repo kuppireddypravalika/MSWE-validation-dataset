@@ -1,0 +1,25 @@
+From 8d2eaffcac34fd45b487f780948f2d5c41c96af9 Mon Sep 17 00:00:00 2001
+From: "bernard.parisse" <bernard.parisse@23ce0884-8a58-47d3-bc5c-ddf1cd5b9f9e>
+Date: Fri, 12 Apr 2019 10:47:20 +0000
+Subject: [PATCH] [giac] attempt to improve a little bit sign checking, for
+ example sqrt(a)>-sqrt(a) now returns true
+
+git-svn-id: https://dev.geogebra.org/svn/trunk/geogebra/giac@67842 23ce0884-8a58-47d3-bc5c-ddf1cd5b9f9e
+---
+ src/giac/cpp/gen.cc | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/giac/cpp/gen.cc b/src/giac/cpp/gen.cc
+index 3921cdb8..cabe5267 100644
+--- a/src/giac/cpp/gen.cc
++++ b/src/giac/cpp/gen.cc
+@@ -8551,6 +8551,9 @@ namespace giac {
+     case _FRAC:
+       return sign(a._FRACptr->num,contextptr)*sign(a._FRACptr->den,contextptr);
+     }
++    int fs=fastsign(a,contextptr);
++    if (fs)
++      return fs;
+     gen b=evalf_double(a,1,contextptr);
+     if (b.type==_DOUBLE_){
+       if (b._DOUBLE_val>eps)

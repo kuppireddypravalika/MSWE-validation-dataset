@@ -1,0 +1,27 @@
+From fc4633a0fab838123547d8d822d7f20fd0c1815c Mon Sep 17 00:00:00 2001
+From: Norbyte <infernorb@gmail.com>
+Date: Tue, 17 Sep 2024 21:49:06 +0200
+Subject: [PATCH] Activate event perf improvement
+
+---
+ BG3Extender/Extender/Client/IMGUI/IMGUI.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/BG3Extender/Extender/Client/IMGUI/IMGUI.cpp b/BG3Extender/Extender/Client/IMGUI/IMGUI.cpp
+index ccc5e65d..6dceddf3 100644
+--- a/BG3Extender/Extender/Client/IMGUI/IMGUI.cpp
++++ b/BG3Extender/Extender/Client/IMGUI/IMGUI.cpp
+@@ -203,11 +203,11 @@ void StyledRenderable::Render()
+         ImGui::PopID();
+     }
+ 
+-    if (ImGui::IsItemActivated() && OnActivate) {
++    if (OnActivate && ImGui::IsItemActivated()) {
+         Manager->GetEventQueue().Call(OnActivate, lua::ImguiHandle(Handle));
+     }
+ 
+-    if (ImGui::IsItemDeactivated() && OnDeactivate) {
++    if (OnDeactivate && ImGui::IsItemDeactivated()) {
+         Manager->GetEventQueue().Call(OnDeactivate, lua::ImguiHandle(Handle));
+     }
+ 

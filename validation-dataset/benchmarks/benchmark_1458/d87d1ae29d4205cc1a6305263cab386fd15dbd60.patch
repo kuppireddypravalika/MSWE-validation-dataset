@@ -1,0 +1,39 @@
+From d87d1ae29d4205cc1a6305263cab386fd15dbd60 Mon Sep 17 00:00:00 2001
+From: Laszlo Ersek <laszlo.ersek@scylladb.com>
+Date: Wed, 14 Aug 2024 13:20:17 +0200
+Subject: [PATCH] service/raft_sys_table_storage: simplify (snap.idx -
+ preserve_log_entries)
+
+With conversion of tagged integers to untagged ones going away, replace
+
+  static_cast<uint64_t>(snap.idx)
+
+with
+
+  snap.idx.value()
+
+Furthermore, casting "preserve_log_entries" (of type "size_t") to
+"uint64_t" is redundant (both "snap.idx" and "preserve_log_entries" carry
+nonnegative values, and the mathematical difference is expected to be
+nonnegative); remove the cast.
+
+Finally, simplify the initialization syntax.
+
+Signed-off-by: Laszlo Ersek <laszlo.ersek@scylladb.com>
+---
+ service/raft/raft_sys_table_storage.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/service/raft/raft_sys_table_storage.cc b/service/raft/raft_sys_table_storage.cc
+index 492cf4e1d23c..8dce1791d72a 100644
+--- a/service/raft/raft_sys_table_storage.cc
++++ b/service/raft/raft_sys_table_storage.cc
+@@ -309,7 +309,7 @@ future<> raft_sys_table_storage::abort() {
+ 
+ future<> raft_sys_table_storage::update_snapshot_and_truncate_log_tail(const raft::snapshot_descriptor &snap, size_t preserve_log_entries) {
+     // Update snapshot and truncate logs in `system.raft` atomically
+-    raft::index_t log_tail_idx = raft::index_t(static_cast<uint64_t>(snap.idx) - static_cast<uint64_t>(preserve_log_entries));
++    raft::index_t log_tail_idx(snap.idx.value() - preserve_log_entries);
+     static const auto store_latest_id_and_truncate_log_tail_cql = format(
+         "BEGIN UNLOGGED BATCH"
+         "   INSERT INTO system.{} (group_id, snapshot_id) VALUES (?, ?);"   // store latest id

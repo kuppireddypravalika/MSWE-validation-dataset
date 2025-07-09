@@ -1,0 +1,31 @@
+From 8d227675a912dba31598681e2ed2c443610554c9 Mon Sep 17 00:00:00 2001
+From: Jeffrey Walton <noloader@gmail.com>
+Date: Tue, 27 Sep 2016 20:20:54 -0400
+Subject: [PATCH] Coverity finding CID 147829 Bad bit shift operation
+ (BAD_SHIFT) I'm fairly certian this is a false positive. Checking
+ GF2NT::MultiplicativeInverse under code coverage shows its exercised 555,735
+ times. We will clear it anayway to squash the finding For those not aware, on
+ Linux and Unix, you can issue 'make coverage' and get code coverage
+ statistics
+
+---
+ gf2n.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/gf2n.cpp b/gf2n.cpp
+index 55aa4815a..6c3461c0c 100644
+--- a/gf2n.cpp
++++ b/gf2n.cpp
+@@ -717,8 +717,11 @@ const GF2NT::Element& GF2NT::MultiplicativeInverse(const Element &a) const
+ 			for (unsigned int j=0; j<WORD_BITS-t1; j++)
+ 			{
+ 				// Coverity finding on shift amount of 'word x << (t1+j)'.
++				// temp ^= ((temp >> j) & 1) << (t1 + j);
++
+ 				CRYPTOPP_ASSERT(t1+j < WORD_BITS);
+-				temp ^= ((temp >> j) & 1) << (t1 + j);
++				const unsigned int shift = t1 + j;
++				temp ^= ((shift >= WORD_BITS) ? 0 : ((temp >> j) & 1) << shift);
+ 			}
+ 		}
+ 		else

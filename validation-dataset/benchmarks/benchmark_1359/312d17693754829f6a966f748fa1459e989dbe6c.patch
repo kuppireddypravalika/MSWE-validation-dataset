@@ -1,0 +1,40 @@
+From 312d17693754829f6a966f748fa1459e989dbe6c Mon Sep 17 00:00:00 2001
+From: Andreas Gal <gal@mozilla.com>
+Date: Sun, 6 Jul 2008 17:43:08 -0700
+Subject: [PATCH] Strength reduce i2f(doubleToInt32(x)) and
+ u2f(doubleToUint32(x)) to x. This eliminate most of the on-trace overhead,
+ but we still need type peeling of loop variable into int to win back the
+ performance loss casting introduced.
+
+---
+ js/src/jstracer.cpp | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
+diff --git a/js/src/jstracer.cpp b/js/src/jstracer.cpp
+index e94fa1c6d19..9a6cc8e6de6 100644
+--- a/js/src/jstracer.cpp
++++ b/js/src/jstracer.cpp
+@@ -210,6 +210,23 @@ class FuncFilter: public LirWriter
+         LirWriter(out)
+     {
+     }
++    
++    LInsp ins1(LOpcode v, LInsp s0)
++    {
++        switch (v) {
++        case LIR_i2f:
++            if (s0->oprnd1()->isCall() && s0->imm8() == F_doubleToInt32) 
++                return callArgN(s0->oprnd1(), 1);
++            break;
++        case LIR_u2f:
++            if (s0->oprnd1()->isCall() && s0->imm8() == F_doubleToUint32)
++                return callArgN(s0->oprnd1(), 1);
++            break;
++        default:
++            JS_NOT_REACHED("ins1");
++        }
++        return out->ins1(v, s0);
++    }
+ 
+     LInsp ins2(LOpcode v, LInsp s1, LInsp s0)
+     {

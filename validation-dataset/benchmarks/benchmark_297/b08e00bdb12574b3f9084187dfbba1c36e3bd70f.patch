@@ -1,0 +1,47 @@
+From b08e00bdb12574b3f9084187dfbba1c36e3bd70f Mon Sep 17 00:00:00 2001
+From: Protobuf Team Bot <protobuf-github-bot@google.com>
+Date: Fri, 8 Dec 2023 09:19:07 -0800
+Subject: [PATCH] Improve codegen for address pinning. We avoid one instruction
+ and the memory access.
+
+Instead of generating:
+
+```
+leaq   0xb98201(%rip), %rax
+movq   %rax, -0x8(%rsp)
+```
+
+It now generated just:
+
+```
+leaq   0xb981c1(%rip), %rax
+```
+
+PiperOrigin-RevId: 589152440
+---
+ src/google/protobuf/port.h | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/google/protobuf/port.h b/src/google/protobuf/port.h
+index da593161fa081..a5f3b98b12ccc 100644
+--- a/src/google/protobuf/port.h
++++ b/src/google/protobuf/port.h
+@@ -38,13 +38,17 @@ class MessageLite;
+ 
+ namespace internal {
+ 
+-
+ template <typename T>
+ void StrongPointer(T* var) {
++#if defined(__GNUC__)
++  asm("" : : "r"(var));
++#else
+   auto volatile unused = var;
+   (void)&unused;  // Use address to avoid an extra load of "unused".
++#endif
+ }
+ 
++
+ // See comments on `AllocateAtLeast` for information on size returning new.
+ struct SizedPtr {
+   void* p;

@@ -1,0 +1,22 @@
+From 35f7aa5c2d85f0fbf8a9df5996bcc31d3255aff9 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Andreas=20Sch=C3=A4fer?= <gentryx@gmx.de>
+Date: Thu, 1 Dec 2016 13:46:26 +0100
+Subject: [PATCH] fix parallel performance test
+
+---
+ src/testbed/parallelperformancetests/main.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/testbed/parallelperformancetests/main.cpp b/src/testbed/parallelperformancetests/main.cpp
+index 0a46640d1..4d8d4355a 100644
+--- a/src/testbed/parallelperformancetests/main.cpp
++++ b/src/testbed/parallelperformancetests/main.cpp
+@@ -236,7 +236,7 @@ class PartitionManagerBig3DPerfTest : public CPUBenchmark
+             }
+ 
+             for (int i = 0; i < 2; ++i) {
+-                boundingBoxes << myPartitionManager.getRegion(i, ghostZoneWidth).boundingBox();
++                expandedBoundingBoxes << myPartitionManager.getRegion(i, ghostZoneWidth).boundingBox();
+             }
+ 
+             myPartitionManager.resetGhostZones(boundingBoxes, expandedBoundingBoxes);

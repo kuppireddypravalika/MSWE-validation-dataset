@@ -1,0 +1,22 @@
+From fd6386115724e099b19898e2dd6701c10bd438d8 Mon Sep 17 00:00:00 2001
+From: Simon Frasch <simon.frasch@cscs.ch>
+Date: Mon, 1 Mar 2021 09:53:36 +0100
+Subject: [PATCH] increased default block size for better avg performance
+
+---
+ src/spla/context_internal.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/spla/context_internal.hpp b/src/spla/context_internal.hpp
+index 3225300..247fa86 100644
+--- a/src/spla/context_internal.hpp
++++ b/src/spla/context_internal.hpp
+@@ -63,7 +63,7 @@ class ContextInternal {
+       : pu_(pu),
+         numThreads_(omp_get_max_threads()),
+         numTiles_(4),
+-        tileSizeHost_(pu == SplaProcessingUnit::SPLA_PU_HOST ? 256 : 1024),
++        tileSizeHost_(pu == SplaProcessingUnit::SPLA_PU_HOST ? 500 : 1500),
+         tileSizeGPU_(2048),
+         opThresholdGPU_(2000000),
+         gpuDeviceId_(0) {

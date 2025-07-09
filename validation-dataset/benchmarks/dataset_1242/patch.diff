@@ -1,0 +1,23 @@
+From d640b29d83991d2af3b7f4b76d7ee17abf46c879 Mon Sep 17 00:00:00 2001
+From: Morwenn <morwenn29@hotmail.fr>
+Date: Wed, 2 May 2018 21:47:10 +0200
+Subject: [PATCH] Use return value of rotate instead of recomputing it
+
+---
+ include/cpp-sort/detail/grail_sort.h | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/include/cpp-sort/detail/grail_sort.h b/include/cpp-sort/detail/grail_sort.h
+index 470b8f19..f61995dc 100644
+--- a/include/cpp-sort/detail/grail_sort.h
++++ b/include/cpp-sort/detail/grail_sort.h
+@@ -49,8 +49,7 @@ namespace detail
+         while (u != last && h < nkeys) {
+             int r = lower_bound(h0, h0 + h, proj(*u), compare.base(), projection) - h0;
+             if (r == h || compare(proj(*u), proj(h0[r])) != 0) {
+-                detail::rotate(h0, h0 + h, u);
+-                h0 = u - h;
++                h0 = detail::rotate(h0, h0 + h, u);
+                 detail::rotate(h0 + r, u, std::next(u));
+                 ++h;
+             }

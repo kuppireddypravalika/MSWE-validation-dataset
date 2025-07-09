@@ -1,0 +1,38 @@
+From 76c92e019fed6a824835125fa9d20acfa207fffb Mon Sep 17 00:00:00 2001
+From: Jeffrey Walton <noloader@gmail.com>
+Date: Fri, 3 Apr 2020 00:57:15 -0400
+Subject: [PATCH] Align Rijdael SIMD data to natural alignment This should
+ provide a small speedup and avoid problems with loads using 32-bit pointers
+
+---
+ rijndael.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/rijndael.cpp b/rijndael.cpp
+index 1c3bc2950..75a1b1b35 100644
+--- a/rijndael.cpp
++++ b/rijndael.cpp
+@@ -250,19 +250,19 @@ unsigned int Rijndael::Base::OptimalDataAlignment() const
+ {
+ #if (CRYPTOPP_AESNI_AVAILABLE)
+ 	if (HasAESNI())
+-		return 1;
++		return GetAlignmentOf<word32>();
+ #endif
+ #if (CRYPTOPP_ARM_AES_AVAILABLE)
+ 	if (HasAES())
+-		return 1;
++		return GetAlignmentOf<word32>();
+ #endif
+ #if (CRYPTOGAMS_ARM_AES)
+ 	if (HasARMv7())
+-		return 1;
++		return GetAlignmentOf<word32>();
+ #endif
+ #if (CRYPTOPP_POWER8_AES_AVAILABLE)
+ 	if (HasAES())
+-		return 1;
++		return GetAlignmentOf<word32>();
+ #endif
+ 	return BlockTransformation::OptimalDataAlignment();
+ }

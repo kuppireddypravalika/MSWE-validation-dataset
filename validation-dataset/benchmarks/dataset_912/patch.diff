@@ -1,0 +1,23 @@
+From 003a7b1a4367a4159126188131259f24ea038781 Mon Sep 17 00:00:00 2001
+From: Jeroen Baert <3607063+Forceflow@users.noreply.github.com>
+Date: Sat, 13 Nov 2021 10:24:51 +0100
+Subject: [PATCH] Use magicbits combined method for 2D 32-bit encode - it's the
+ fastest
+
+---
+ include/libmorton/morton.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/libmorton/morton.h b/include/libmorton/morton.h
+index 8bdff74..59fadae 100644
+--- a/include/libmorton/morton.h
++++ b/include/libmorton/morton.h
+@@ -48,7 +48,7 @@ namespace libmorton {
+ 	}
+ #else
+ 	inline uint_fast32_t morton2D_32_encode(const uint_fast16_t x, const uint_fast16_t y) {
+-		return m2D_e_sLUT<uint_fast32_t, uint_fast16_t>(x, y);
++		return m2D_e_magicbits_combined(x, y);
+ 	}
+ 	inline uint_fast64_t morton2D_64_encode(const uint_fast32_t x, const uint_fast32_t y) {
+ 		return m2D_e_sLUT<uint_fast64_t, uint_fast32_t>(x, y);

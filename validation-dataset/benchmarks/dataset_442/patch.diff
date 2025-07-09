@@ -1,0 +1,33 @@
+From fe4b1f96f1b061d58f81f47652d9c3c9f4355f67 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@duempel.org>
+Date: Sun, 28 Feb 2016 11:08:00 +0100
+Subject: [PATCH] SongLoader: use temporary stack variable, no heap allocation
+
+Improved exception-safety.
+---
+ src/SongLoader.cxx | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/src/SongLoader.cxx b/src/SongLoader.cxx
+index 637c80284e..e68edbef4b 100644
+--- a/src/SongLoader.cxx
++++ b/src/SongLoader.cxx
+@@ -65,15 +65,14 @@ SongLoader::LoadFile(const char *path_utf8, Path path_fs, Error &error) const
+ 	}
+ #endif
+ 
+-	DetachedSong *song = new DetachedSong(path_utf8);
+-	if (!song->LoadFile(path_fs)) {
++	DetachedSong song(path_utf8);
++	if (!song.LoadFile(path_fs)) {
+ 		error.Set(playlist_domain, int(PlaylistResult::NO_SUCH_SONG),
+ 			  "No such file");
+-		delete song;
+ 		return nullptr;
+ 	}
+ 
+-	return song;
++	return new DetachedSong(std::move(song));
+ }
+ 
+ DetachedSong *

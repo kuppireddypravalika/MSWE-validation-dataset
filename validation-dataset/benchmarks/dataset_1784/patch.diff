@@ -1,0 +1,25 @@
+From e291d42c10d1ba7c1a2e397bcd7d4221bf66ea68 Mon Sep 17 00:00:00 2001
+From: root <root@220.101.136.61.ha.cnc>
+Date: Mon, 11 Dec 2023 20:44:36 +0800
+Subject: [PATCH] Opt(Query): filter multiple conditions early termination
+
+---
+ Query/TempResult.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/Query/TempResult.cpp b/Query/TempResult.cpp
+index 145ab105..28be3c56 100644
+--- a/Query/TempResult.cpp
++++ b/Query/TempResult.cpp
+@@ -757,6 +757,11 @@ TempResult::doComp(const CompTreeNode &root, ResultPair &row, int id_cols, KVsto
+ 	{
+ 		EvalMultitypeValue lRes, rRes;
+ 		lRes = doComp(root.children[0], row, id_cols, kvstore, this_varset);
++		if (lRes.datatype == EvalMultitypeValue::xsd_boolean) {
++			if ((root.oprt == "||" && lRes.bool_value.getValue() == 1) || (root.oprt == "&&" && lRes.bool_value.getValue() != 1))
++				return lRes;
++		} else if (root.oprt == "&&")
++			return lRes;
+ 		rRes = doComp(root.children[1], row, id_cols, kvstore, this_varset);
+ 
+ 		if (root.oprt == "||")

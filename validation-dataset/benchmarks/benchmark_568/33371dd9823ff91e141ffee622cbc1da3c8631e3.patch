@@ -1,0 +1,22 @@
+From 33371dd9823ff91e141ffee622cbc1da3c8631e3 Mon Sep 17 00:00:00 2001
+From: Pilow <pierre.laupretre@gmail.com>
+Date: Sun, 14 Jul 2019 20:06:05 +0200
+Subject: [PATCH] [block] Move_inc instead of move in assignment
+
+---
+ src/compiler/value/Block.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/compiler/value/Block.cpp b/src/compiler/value/Block.cpp
+index 05b84a52..34bdc5ba 100644
+--- a/src/compiler/value/Block.cpp
++++ b/src/compiler/value/Block.cpp
+@@ -201,7 +201,7 @@ Compiler::value Block::compile(Compiler& c) const {
+ 			for (const auto& assignment : assignments) {
+ 				// std::cout << "Store variable " << assignment.first << " = " << assignment.second << std::endl;
+ 				assignment.first->val = c.create_entry(assignment.first->name, assignment.first->type);
+-				c.insn_store(assignment.first->val, c.insn_move(c.insn_load(assignment.second->val)));
++				c.insn_store(assignment.first->val, c.insn_move_inc(c.insn_load(assignment.second->val)));
+ 			}
+ 			c.leave_block();
+ 			if (is_function_block) {

@@ -1,0 +1,33 @@
+From 20e8d5a8cc36c9e39cae1dd99527a4ac0a9d770f Mon Sep 17 00:00:00 2001
+From: Chris Lattner <sabre@nondot.org>
+Date: Sat, 15 Aug 2009 01:39:28 +0000
+Subject: [PATCH] switch DominanceFrontier::splitBlock to use a smallvector for
+ the pred list instead of a vector, saving a boat load of malloc/free's.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@79062 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/VMCore/Dominators.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/lib/VMCore/Dominators.cpp b/lib/VMCore/Dominators.cpp
+index 735a70c5092..9b6f5c2c946 100644
+--- a/lib/VMCore/Dominators.cpp
++++ b/lib/VMCore/Dominators.cpp
+@@ -76,7 +76,7 @@ void DominanceFrontier::splitBlock(BasicBlock *NewBB) {
+          && "NewBB should have a single successor!");
+   BasicBlock *NewBBSucc = NewBB->getTerminator()->getSuccessor(0);
+ 
+-  std::vector<BasicBlock*> PredBlocks;
++  SmallVector<BasicBlock*, 8> PredBlocks;
+   for (pred_iterator PI = pred_begin(NewBB), PE = pred_end(NewBB);
+        PI != PE; ++PI)
+       PredBlocks.push_back(*PI);  
+@@ -153,7 +153,7 @@ void DominanceFrontier::splitBlock(BasicBlock *NewBB) {
+     // Verify whether this block dominates a block in predblocks.  If not, do
+     // not update it.
+     bool BlockDominatesAny = false;
+-    for (std::vector<BasicBlock*>::const_iterator BI = PredBlocks.begin(), 
++    for (SmallVectorImpl<BasicBlock*>::const_iterator BI = PredBlocks.begin(), 
+            BE = PredBlocks.end(); BI != BE; ++BI) {
+       if (DT.dominates(FI, *BI)) {
+         BlockDominatesAny = true;

@@ -1,0 +1,24 @@
+From 3af57cdbcd1ae14e856cd0fc1a006d9fcb5fc24c Mon Sep 17 00:00:00 2001
+From: Thomas Goyne <plorkyeran@aegisub.org>
+Date: Wed, 1 Feb 2012 00:47:49 +0000
+Subject: [PATCH] Copy the source line's group in AssDialogue's copy
+ constructor as copying wxStrings is far faster than constructing new ones
+
+Originally committed to SVN as r6409.
+---
+ aegisub/src/ass_dialogue.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/aegisub/src/ass_dialogue.cpp b/aegisub/src/ass_dialogue.cpp
+index 74c807ba2..e51f9c064 100644
+--- a/aegisub/src/ass_dialogue.cpp
++++ b/aegisub/src/ass_dialogue.cpp
+@@ -60,7 +60,7 @@ AssDialogue::AssDialogue()
+ }
+ 
+ AssDialogue::AssDialogue(AssDialogue const& that)
+-: AssEntry(wxString(), "[Events]")
++: AssEntry(wxString(), that.group)
+ , Comment(that.Comment)
+ , Layer(that.Layer)
+ , Start(that.Start)

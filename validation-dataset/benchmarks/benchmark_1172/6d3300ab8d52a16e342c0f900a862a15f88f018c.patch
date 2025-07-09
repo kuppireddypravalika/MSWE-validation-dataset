@@ -1,0 +1,23 @@
+From 6d3300ab8d52a16e342c0f900a862a15f88f018c Mon Sep 17 00:00:00 2001
+From: Jonathan Behrens <fintelia@gmail.com>
+Date: Fri, 22 May 2020 11:18:28 -0400
+Subject: [PATCH] Use madvise in pthread_create function
+
+---
+ lib/threads.cc | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/lib/threads.cc b/lib/threads.cc
+index 5f961d912..c90367240 100644
+--- a/lib/threads.cc
++++ b/lib/threads.cc
+@@ -61,6 +61,9 @@ pthread_create(pthread_t* tid, const pthread_attr_t* attr,
+ {
+   char* base = (char*) mmap(NULL, stack_size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+   assert(base);
++
++  madvise(base, stack_size, MADV_WILLNEED);
++
+   int t = forkt(base + stack_size, (void*) start, arg, FORK_SHARE_VMAP | FORK_SHARE_FD);
+   if (t < 0)
+     return t;

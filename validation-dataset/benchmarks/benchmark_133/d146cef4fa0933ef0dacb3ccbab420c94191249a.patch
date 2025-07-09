@@ -1,0 +1,23 @@
+From d146cef4fa0933ef0dacb3ccbab420c94191249a Mon Sep 17 00:00:00 2001
+From: kpu <github@kheafield.com>
+Date: Fri, 10 Sep 2010 18:38:32 +0000
+Subject: [PATCH] Make murmur compile on 32 bit
+
+git-svn-id: file:///dev/shm/somefilter.svn@305 e102df66-1e2e-11dd-9b44-c24451a4db5e
+---
+ util/murmur_hash.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/util/murmur_hash.cc b/util/murmur_hash.cc
+index 70810fd..58e0eed 100644
+--- a/util/murmur_hash.cc
++++ b/util/murmur_hash.cc
+@@ -14,7 +14,7 @@
+ 
+ uint64_t MurmurHash64A ( const void * key, int len, unsigned int seed )
+ {
+-  const uint64_t m = 0xc6a4a7935bd1e995;
++  const uint64_t m = 0xc6a4a7935bd1e995ULL;
+   const int r = 47;
+ 
+   uint64_t h = seed ^ (len * m);

@@ -1,0 +1,29 @@
+From f5f78400e15e72bdb7ddda1d0a5623a80009b933 Mon Sep 17 00:00:00 2001
+From: Anton Kudryavtsev <anton.kudryavtsev@vk.team>
+Date: Wed, 6 Sep 2023 17:48:34 +0300
+Subject: [PATCH] qsslcertificate: use QAnyStringView more
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+to avoid needless allocations
+
+Change-Id: I03494d7075e2f333cbd3974797d9ea97f2c915fd
+Reviewed-by: Mårten Nordheim <marten.nordheim@qt.io>
+---
+ src/network/ssl/qsslcertificate.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/network/ssl/qsslcertificate.cpp b/src/network/ssl/qsslcertificate.cpp
+index 64738453b22e..56904006a6c7 100644
+--- a/src/network/ssl/qsslcertificate.cpp
++++ b/src/network/ssl/qsslcertificate.cpp
+@@ -878,7 +878,7 @@ static const char *const certificate_blacklist[] = {
+ bool QSslCertificatePrivate::isBlacklisted(const QSslCertificate &certificate)
+ {
+     for (int a = 0; certificate_blacklist[a] != nullptr; a++) {
+-        QString blacklistedCommonName = QString::fromUtf8(certificate_blacklist[(a+1)]);
++        auto blacklistedCommonName = QAnyStringView(QUtf8StringView(certificate_blacklist[(a+1)]));
+         if (certificate.serialNumber() == certificate_blacklist[a++] &&
+             (certificate.subjectInfo(QSslCertificate::CommonName).contains(blacklistedCommonName) ||
+              certificate.issuerInfo(QSslCertificate::CommonName).contains(blacklistedCommonName)))

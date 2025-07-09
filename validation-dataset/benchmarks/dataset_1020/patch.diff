@@ -1,0 +1,49 @@
+From ac98d409df278184755ea57f67864291b524f5fe Mon Sep 17 00:00:00 2001
+From: Anders Logg <logg@glaurung>
+Date: Sat, 13 Oct 2012 19:55:06 -0500
+Subject: [PATCH] Add timer for Function::init_vector, seems surprisingly
+ expensive for small vectors, at least for PETSc
+
+---
+ dolfin/function/Function.cpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/dolfin/function/Function.cpp b/dolfin/function/Function.cpp
+index af45e922806..c1962561e7f 100644
+--- a/dolfin/function/Function.cpp
++++ b/dolfin/function/Function.cpp
+@@ -20,7 +20,7 @@
+ // Modified by Andre Massing 2009
+ //
+ // First added:  2003-11-28
+-// Last changed: 2012-10-02
++// Last changed: 2012-10-13
+ 
+ #include <algorithm>
+ #include <map>
+@@ -30,6 +30,7 @@
+ 
+ #include <dolfin/adaptivity/Extrapolation.h>
+ #include <dolfin/common/utils.h>
++#include <dolfin/common/Timer.h>
+ #include <dolfin/common/Array.h>
+ #include <dolfin/common/NoDeleter.h>
+ #include <dolfin/fem/FiniteElement.h>
+@@ -598,6 +599,8 @@ void Function::update() const
+ //-----------------------------------------------------------------------------
+ void Function::init_vector()
+ {
++  Timer timer("Init dof vector");
++
+   // Check that function space is not a subspace (view)
+   dolfin_assert(_function_space);
+   if (_function_space->dofmap()->is_view())
+@@ -616,7 +619,7 @@ void Function::init_vector()
+ 
+   // Determine ghost vertices if dof map is distributed
+   std::vector<uint> ghost_indices;
+-  if (N  > local_size)
++  if (N > local_size)
+     compute_ghost_indices(range, ghost_indices);
+ 
+   // Create vector of dofs

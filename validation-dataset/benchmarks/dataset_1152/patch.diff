@@ -1,0 +1,34 @@
+From 0faa0b34f69d4faa3ae318468c3ef06037458e99 Mon Sep 17 00:00:00 2001
+From: Frank Warmerdam <warmerdam@pobox.com>
+Date: Wed, 7 Feb 2007 23:04:39 +0000
+Subject: [PATCH] Up default cache size to 40MB from 10MB. Treat GDAL_CACHEMAX
+ value of up to 10000 as being in megabytes, instead of just values up to
+ 1000.
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@10797 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/gcore/gdalrasterblock.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/gdal/gcore/gdalrasterblock.cpp b/gdal/gcore/gdalrasterblock.cpp
+index 6e60f9d141b2..6230c867dd52 100644
+--- a/gdal/gcore/gdalrasterblock.cpp
++++ b/gdal/gcore/gdalrasterblock.cpp
+@@ -34,7 +34,7 @@
+ CPL_CVSID("$Id$");
+ 
+ static int bCacheMaxInitialized = FALSE;
+-static int nCacheMax = 10 * 1024*1024;
++static int nCacheMax = 40 * 1024*1024;
+ static volatile int nCacheUsed = 0;
+ 
+ static volatile GDALRasterBlock *poOldest = NULL;    /* tail */
+@@ -96,7 +96,7 @@ int CPL_STDCALL GDALGetCacheMax()
+         if( CPLGetConfigOption("GDAL_CACHEMAX",NULL) != NULL )
+         {
+             nCacheMax = atoi(CPLGetConfigOption("GDAL_CACHEMAX","10"));
+-            if( nCacheMax < 1000 )
++            if( nCacheMax < 10000 )
+                 nCacheMax *= 1024 * 1024;
+         }
+         bCacheMaxInitialized = TRUE;

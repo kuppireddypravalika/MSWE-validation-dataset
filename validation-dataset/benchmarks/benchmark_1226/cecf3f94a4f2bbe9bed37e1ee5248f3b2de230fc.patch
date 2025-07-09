@@ -1,0 +1,38 @@
+From cecf3f94a4f2bbe9bed37e1ee5248f3b2de230fc Mon Sep 17 00:00:00 2001
+From: Chris Lattner <sabre@nondot.org>
+Date: Fri, 7 May 2004 19:55:55 +0000
+Subject: [PATCH] Make comparisons against the null pointer as efficient as
+ integer comparisons against zero.  In particular, don't emit:
+
+        mov %ESI, 0
+        cmp %ECX, %ESI
+
+instead, emit:
+
+       test %ECX, %ECX
+
+llvm-svn: 13407
+---
+ llvm/lib/Target/X86/InstSelectSimple.cpp | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/llvm/lib/Target/X86/InstSelectSimple.cpp b/llvm/lib/Target/X86/InstSelectSimple.cpp
+index da2175bbd43..4597a824738 100644
+--- a/llvm/lib/Target/X86/InstSelectSimple.cpp
++++ b/llvm/lib/Target/X86/InstSelectSimple.cpp
+@@ -829,7 +829,14 @@ unsigned ISel::EmitComparison(unsigned OpNum, Value *Op0, Value *Op1,
+   unsigned Op0r = getReg(Op0, MBB, IP);
+ 
+   // Special case handling of: cmp R, i
+-  if (ConstantInt *CI = dyn_cast<ConstantInt>(Op1)) {
++  if (isa<ConstantPointerNull>(Op1)) {
++    if (OpNum < 2)    // seteq/setne -> test
++      BuildMI(*MBB, IP, X86::TEST32rr, 2).addReg(Op0r).addReg(Op0r);
++    else
++      BuildMI(*MBB, IP, X86::CMP32ri, 2).addReg(Op0r).addImm(0);
++    return OpNum;
++
++  } else if (ConstantInt *CI = dyn_cast<ConstantInt>(Op1)) {
+     if (Class == cByte || Class == cShort || Class == cInt) {
+       unsigned Op1v = CI->getRawValue();
+ 

@@ -1,0 +1,27 @@
+From d5ec12e9a844a80a49bdbef79fe1612349110e78 Mon Sep 17 00:00:00 2001
+From: Protobuf Team Bot <protobuf-github-bot@google.com>
+Date: Tue, 26 Sep 2023 08:46:57 -0700
+Subject: [PATCH] Allocate the Cord element in the arena, instead of allocating
+ on the heap and then passing ownership to the arena.
+
+PiperOrigin-RevId: 568551775
+---
+ src/google/protobuf/generated_message_tctable_lite.cc | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/src/google/protobuf/generated_message_tctable_lite.cc b/src/google/protobuf/generated_message_tctable_lite.cc
+index 1db5018bc0be1..868cf57e5fe6a 100644
+--- a/src/google/protobuf/generated_message_tctable_lite.cc
++++ b/src/google/protobuf/generated_message_tctable_lite.cc
+@@ -2270,10 +2270,8 @@ PROTOBUF_NOINLINE const char* TcParser::MpString(PROTOBUF_TC_PARAM_DECL) {
+       absl::Cord* field;
+       if (is_oneof) {
+         if (need_init) {
+-          field = new absl::Cord;
++          field = Arena::Create<absl::Cord>(msg->GetArenaForAllocation());
+           RefAt<absl::Cord*>(msg, entry.offset) = field;
+-          Arena* arena = msg->GetArenaForAllocation();
+-          if (arena) arena->Own(field);
+         } else {
+           field = RefAt<absl::Cord*>(msg, entry.offset);
+         }

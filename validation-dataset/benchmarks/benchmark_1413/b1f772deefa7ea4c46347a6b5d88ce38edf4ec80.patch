@@ -1,0 +1,31 @@
+From b1f772deefa7ea4c46347a6b5d88ce38edf4ec80 Mon Sep 17 00:00:00 2001
+From: Nikoli Dryden <dryden1@llnl.gov>
+Date: Sun, 14 Jan 2018 16:22:50 -0800
+Subject: [PATCH] Use the same simple performance model for
+ NonblockingAllreduce as Allreduce does.
+
+---
+ allreduce_impl.hpp | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/allreduce_impl.hpp b/allreduce_impl.hpp
+index 17151edd..a901f4e6 100644
+--- a/allreduce_impl.hpp
++++ b/allreduce_impl.hpp
+@@ -52,8 +52,14 @@ void NonblockingAllreduce(
+   AllreduceRequest& req,
+   AllreduceAlgorithm algo) {
+   if (algo == AllreduceAlgorithm::automatic) {
+-    // TODO: Algorithm selection/performance model.
+-    algo = AllreduceAlgorithm::mpi_recursive_doubling;
++    // TODO: Better algorithm selection/performance model.
++    // TODO: Make tuneable.
++    algo = AllreduceAlgorithm::mpi_passthrough;
++    if (count <= 1<<9) {
++      algo = AllreduceAlgorithm::mpi_recursive_doubling;
++    } else {
++      algo = AllreduceAlgorithm::mpi_rabenseifner;
++    }
+   }
+   switch (algo) {
+   case AllreduceAlgorithm::mpi_passthrough:

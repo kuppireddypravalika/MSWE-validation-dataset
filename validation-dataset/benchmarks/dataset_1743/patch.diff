@@ -1,0 +1,29 @@
+From 15d76a75018e4af0af04d5060d29c5e5fb79c28a Mon Sep 17 00:00:00 2001
+From: "D.R.racer" <drracer@drracer.eu>
+Date: Tue, 2 Feb 2021 07:57:06 +0100
+Subject: [PATCH] Remove duplicit incrementation of consecutive comment lines
+
+It was left in the code in one of the refactoring/optimization passes.
+It really didn't do any harm, but was limiting the performance of the
+skipping algorithm.
+
++ some verification code added - will be removed after successful tests
+---
+ Firmware/SdFile.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/Firmware/SdFile.cpp b/Firmware/SdFile.cpp
+index 19e0fad50e..ee91bdfc99 100644
+--- a/Firmware/SdFile.cpp
++++ b/Firmware/SdFile.cpp
+@@ -151,7 +151,9 @@ int16_t SdFile::readFilteredGcode(){
+                 if( ! gfEnsureBlock() )goto eof_or_fail; // fetch it into RAM
+                 rdPtr = start = blockBuffBegin;
+             } else {
+-                if(++consecutiveCommentLines == 255){
++                if(consecutiveCommentLines >= 250){
++//                    SERIAL_ECHO("ccl=");
++//                    SERIAL_ECHOLN((int)consecutiveCommentLines);
+                     // SERIAL_PROTOCOLLN(sd->curPosition_);
+                     --rdPtr; // unget the already consumed newline
+                     goto emit_char;

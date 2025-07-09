@@ -1,0 +1,37 @@
+From 5c21b74baca0a5e5ecc3429b94b82d9a9aa1bed1 Mon Sep 17 00:00:00 2001
+From: Martin Suda <sudam@cs.man.ac.uk>
+Date: Fri, 6 Sep 2019 16:44:20 +0200
+Subject: [PATCH] once we have getId for terms, we can make argNormGt in
+ TermSharing more efficient
+
+---
+ Indexing/TermSharing.cpp | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/Indexing/TermSharing.cpp b/Indexing/TermSharing.cpp
+index 8fb0d65304..7bb2ba4472 100644
+--- a/Indexing/TermSharing.cpp
++++ b/Indexing/TermSharing.cpp
+@@ -342,6 +342,14 @@ bool TermSharing::argNormGt(TermList t1, TermList t2)
+   }
+   Term* trm1=t1.term();
+   Term* trm2=t2.term();
++
++  // if both shared, we can just use ids (can they ever be non-shared here?)
++  ASS_REP(trm1->shared(), trm1->toString());
++  ASS_REP(trm2->shared(), trm2->toString());
++
++  return (trm1->getId() > trm2->getId());
++
++  /*
+   if(trm1->functor()!=trm2->functor()) {
+     return trm1->functor()>trm2->functor();
+   }
+@@ -387,6 +395,7 @@ bool TermSharing::argNormGt(TermList t1, TermList t2)
+   }
+   ASSERTION_VIOLATION;
+   return false;
++  */
+ }
+ 
+ 

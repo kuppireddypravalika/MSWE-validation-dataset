@@ -1,0 +1,23 @@
+From 237eb0444f5da2767ddad765103fc2d0e8dec7d1 Mon Sep 17 00:00:00 2001
+From: Xottab-DUTY <xottab-duty@yandex.ru>
+Date: Sat, 15 Dec 2018 16:25:30 +0500
+Subject: [PATCH] xrRender/blenders/Blender_Recorder.cpp: micro optimization
+ for macro usage
+
+---
+ src/Layers/xrRender/blenders/Blender_Recorder.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/Layers/xrRender/blenders/Blender_Recorder.cpp b/src/Layers/xrRender/blenders/Blender_Recorder.cpp
+index 03f6b5f7903..46363e1d86b 100644
+--- a/src/Layers/xrRender/blenders/Blender_Recorder.cpp
++++ b/src/Layers/xrRender/blenders/Blender_Recorder.cpp
+@@ -234,7 +234,7 @@ void CBlender_Compile::PassSET_ablend_mode(BOOL bABlend, u32 abSRC, u32 abDST)
+     RS.SetRS(D3DRS_SRCBLEND, bABlend ? abSRC : D3DBLEND_ONE);
+     RS.SetRS(D3DRS_DESTBLEND, bABlend ? abDST : D3DBLEND_ZERO);
+ 
+-#if defined(USE_DX10) || defined(USE_DX11) || defined(USE_OGL)
++#ifndef USE_DX9
+     //	Since in our engine D3DRS_SEPARATEALPHABLENDENABLE state is
+     //	always set to false and in DirectX 10 blend functions for
+     //	color and alpha are always independent, assign blend options for

@@ -1,0 +1,25 @@
+From 94628d10cc4fbd558ed2cb7de73dd205e52ef2d9 Mon Sep 17 00:00:00 2001
+From: Henric Jungheim <software@henric.org>
+Date: Sun, 1 May 2022 22:14:10 -0700
+Subject: [PATCH] Use std::floor for the width and height when converting to
+ SDL_Rect.
+
+---
+ include/misc/DrawingRectHelper.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/include/misc/DrawingRectHelper.h b/include/misc/DrawingRectHelper.h
+index d7aec14d5..d07ad3f3c 100644
+--- a/include/misc/DrawingRectHelper.h
++++ b/include/misc/DrawingRectHelper.h
+@@ -720,8 +720,8 @@ calcAlignedDrawingRect(const DuneTexture* pTexture, HAlign halign = HAlign::Cent
+ }
+ 
+ inline auto as_rect(const SDL_FRect& rect) {
+-    return SDL_Rect{static_cast<int>(std::ceil(rect.x)), static_cast<int>(std::ceil(rect.y)),
+-                    static_cast<int>(std::ceil(rect.w)), static_cast<int>(std::ceil(rect.h))};
++    return SDL_Rect{static_cast<int>(std::ceil(rect.x)), static_cast<int>(std::floor(rect.y)),
++                    static_cast<int>(std::ceil(rect.w)), static_cast<int>(std::floor(rect.h))};
+ }
+ 
+ #endif // DRAWINGRECTHELPER_H

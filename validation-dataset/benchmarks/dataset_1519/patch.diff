@@ -1,0 +1,23 @@
+From 341df6c2b2760ee35f6bc562134e9f1346ce63e9 Mon Sep 17 00:00:00 2001
+From: Stephan Hirth <stephan.hirth@tu-dresden.de>
+Date: Thu, 6 Apr 2023 15:43:45 +0200
+Subject: [PATCH] Added space for speed up. Fixes #615
+
+---
+ SIM-VICUS/src/core3D/Vic3DScene.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/SIM-VICUS/src/core3D/Vic3DScene.cpp b/SIM-VICUS/src/core3D/Vic3DScene.cpp
+index ce0ac6d16..3e1ce8d75 100644
+--- a/SIM-VICUS/src/core3D/Vic3DScene.cpp
++++ b/SIM-VICUS/src/core3D/Vic3DScene.cpp
+@@ -405,6 +405,9 @@ bool Scene::inputEvent(const KeyboardMouseHandler & keyboardHandler, const QPoin
+ 		float transSpeed = TRANSLATION_SPEED;
+ 		if (keyboardHandler.keyDown(Qt::Key_Shift))
+ 			transSpeed = 0.1f;
++		else if (keyboardHandler.keyDown(Qt::Key_Space))
++			transSpeed = 10.0f;
++
+ 		m_camera.translate(transSpeed * translation);
+ 		m_camera.rotate(transSpeed, rotationAxis);
+ 

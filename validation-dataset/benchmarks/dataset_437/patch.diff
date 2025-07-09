@@ -1,0 +1,23 @@
+From e4d0293a31f30c01142202ee433cd28115b73343 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@duempel.org>
+Date: Sat, 20 Jun 2015 16:06:01 +0200
+Subject: [PATCH] DecoderAPI: "move" the Tag object
+
+Reduce runtime overhead.
+---
+ src/decoder/DecoderAPI.cxx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/decoder/DecoderAPI.cxx b/src/decoder/DecoderAPI.cxx
+index 4794d60e75..366c4af6dd 100644
+--- a/src/decoder/DecoderAPI.cxx
++++ b/src/decoder/DecoderAPI.cxx
+@@ -566,7 +566,7 @@ decoder_tag(Decoder &decoder, InputStream *is,
+ 	/* save the tag */
+ 
+ 	delete decoder.decoder_tag;
+-	decoder.decoder_tag = new Tag(tag);
++	decoder.decoder_tag = new Tag(std::move(tag));
+ 
+ 	/* check for a new stream tag */
+ 

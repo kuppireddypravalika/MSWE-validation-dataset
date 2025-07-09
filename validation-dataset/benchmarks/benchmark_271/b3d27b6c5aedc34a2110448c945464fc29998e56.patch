@@ -1,0 +1,33 @@
+From b3d27b6c5aedc34a2110448c945464fc29998e56 Mon Sep 17 00:00:00 2001
+From: Carl Ritson <carl.ritson@amd.com>
+Date: Thu, 6 Feb 2020 15:20:55 +0900
+Subject: [PATCH] Set keepLoops for all CFG simplification passes.
+
+Currently one CFG simplification pass sets keepLoops to false.
+This can produce irreducible control flow which cannot currently
+be handled by the backend structuriser.  This also has negative
+interactions with the commit to make SubgroupBroadcastFirst
+inputs volatile.
+
+This commit is a pre-requisite for reintroducing the change
+"Make SubgroupBroadcastFirst input volatile".
+
+Local testing shows no significant performance difference with
+this change.
+---
+ llpc/patch/llpcPatch.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/llpc/patch/llpcPatch.cpp b/llpc/patch/llpcPatch.cpp
+index c80cbafeb4..5a463f1105 100644
+--- a/llpc/patch/llpcPatch.cpp
++++ b/llpc/patch/llpcPatch.cpp
+@@ -296,7 +296,7 @@ void Patch::AddOptimizationPasses(
+         passMgr.add(createInstSimplifyLegacyPass());
+         passMgr.add(createFloat2IntPass());
+         passMgr.add(createLoopRotatePass());
+-        passMgr.add(createCFGSimplificationPass(1, true, true, false, true));
++        passMgr.add(createCFGSimplificationPass(1, true, true, true, true));
+         passMgr.add(CreatePatchPeepholeOpt(true));
+         passMgr.add(createInstSimplifyLegacyPass());
+         passMgr.add(createLoopUnrollPass(optLevel));

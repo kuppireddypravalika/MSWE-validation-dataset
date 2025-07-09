@@ -1,0 +1,24 @@
+From 2d147c440178044aa2af1d9c276f9c4e540fcb8e Mon Sep 17 00:00:00 2001
+From: Dan Gohman <gohman@apple.com>
+Date: Fri, 31 Jul 2009 23:36:06 +0000
+Subject: [PATCH] Use a range insert instead of an explicit loop.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@77752 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/CodeGen/SelectionDAG/LegalizeTypes.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/lib/CodeGen/SelectionDAG/LegalizeTypes.cpp b/lib/CodeGen/SelectionDAG/LegalizeTypes.cpp
+index c80b34db990..82d98a72d5b 100644
+--- a/lib/CodeGen/SelectionDAG/LegalizeTypes.cpp
++++ b/lib/CodeGen/SelectionDAG/LegalizeTypes.cpp
+@@ -480,8 +480,7 @@ SDNode *DAGTypeLegalizer::AnalyzeNewNode(SDNode *N) {
+       NewOps.push_back(Op);
+     } else if (Op != OrigOp) {
+       // This is the first operand to change - add all operands so far.
+-      for (unsigned j = 0; j < i; ++j)
+-        NewOps.push_back(N->getOperand(j));
++      NewOps.insert(NewOps.end(), N->op_begin(), N->op_begin() + i);
+       NewOps.push_back(Op);
+     }
+   }

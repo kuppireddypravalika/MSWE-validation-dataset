@@ -1,0 +1,42 @@
+From 3f3ddc0c5a14352190f7b5f75b3fa6e0ebf76c9c Mon Sep 17 00:00:00 2001
+From: David Freese <w1hkj@w1hkj.com>
+Date: Fri, 12 Feb 2010 14:42:46 -0600
+Subject: [PATCH] FELD improvement
+
+    * Changed FM modes to force symbol transition to occur
+      at zero point of first derivative (peaks) of the transmitted
+      audio sub carrier.
+---
+ src/feld/feld.cxx | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/src/feld/feld.cxx b/src/feld/feld.cxx
+index fe7efa2a4..710daed1f 100644
+--- a/src/feld/feld.cxx
++++ b/src/feld/feld.cxx
+@@ -458,15 +458,21 @@ double feld::nco(double freq)
+ void feld::send_symbol(int currsymb, int nextsymb)
+ {
+ 	double tone = get_txfreq_woffset();
+-	double Amp;
++	double tone2 = 0;
++	double Amp = 1.0;
++	double ncoval = 0;
+ 	int outlen = 0;
+ 
+-	Amp = 1.0;
+-	if (mode >= MODE_FSKHELL && mode <= MODE_HELL80)
+-		tone += (reverse ? -1 : 1) * (currsymb ? -1 : 1) * bandwidth / 2.0;
++	if (mode >= MODE_FSKHELL && mode <= MODE_HELL80) {
++		tone += (reverse ? -1 : 1) * (prevsymb ? -1 : 1) * bandwidth / 2.0;
++		tone2 += (reverse ? -1 : 1) * (currsymb ? -1 : 1) * bandwidth / 2.0;
++	}
+ 	for (;;) {
+ 		switch (mode) {
++			ncoval = nco(tone);
+ 			case MODE_FSKHELL : case MODE_FSKH105 : case MODE_HELL80 :
++				if ((tone2 != tone) && ((1.0 - fabs(ncoval)) < .001)) 
++					tone = tone2;
+ 				break;
+ 			case MODE_HELLX5 : case MODE_HELLX9 :
+ 				Amp = currsymb;

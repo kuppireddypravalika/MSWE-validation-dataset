@@ -1,0 +1,31 @@
+From 2a7298a942dbd96f62ba1e3ea5e7a115f88a9d75 Mon Sep 17 00:00:00 2001
+From: NotCompsky <adammarkgray@gmail.com>
+Date: Thu, 6 Aug 2020 13:13:59 +0100
+Subject: [PATCH] Performance		Reduce unnecessary memory management.
+
+---
+ utils/src/extract-audio.hpp | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/utils/src/extract-audio.hpp b/utils/src/extract-audio.hpp
+index 6d4c6752..4b9dbf53 100644
+--- a/utils/src/extract-audio.hpp
++++ b/utils/src/extract-audio.hpp
+@@ -73,7 +73,7 @@ bool is_file(const char* const path){
+ inline
+ int extract_audio(char* const output_filepath_basename,  const char* const input_filepath,  const bool _extract_audio,  const bool print_output_file_path){
+ 	int err = ERR_SUCCESS;
+-	AVFormatContext* input_fmt_ctx = avformat_alloc_context();
++	static AVFormatContext* input_fmt_ctx = avformat_alloc_context();
+ 	AVFormatContext* output_fmt_ctx;
+ 	AVPacket pkt;
+ 	const char* file_ext;
+@@ -193,8 +193,5 @@ int extract_audio(char* const output_filepath_basename,  const char* const input
+ 	cleanup2:
+ 	avformat_close_input(&input_fmt_ctx);
+ 	
+-	cleanup1:
+-	avformat_free_context(input_fmt_ctx);
+-	
+ 	return 0;
+ }

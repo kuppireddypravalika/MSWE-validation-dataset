@@ -1,0 +1,41 @@
+From 57b75479c383a5a43647ade35b8812c974accbfc Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Martin=20Storsj=C3=B6?= <martin@martin.st>
+Date: Fri, 6 Jun 2014 12:03:09 +0300
+Subject: [PATCH] adpcm: Write the proper predictor in trellis mode in IMA QT
+
+The actual predictor value, set by the trellis code, never
+was written back into the variable that was written into
+the block header. This was accidentally removed in b304244b.
+
+This significantly improves the audio quality of the trellis
+case, which was plain broken since b304244b.
+
+Encoding IMA QT with trellis still actually gives a slightly
+worse quality than without trellis, since the trellis encoder
+doesn't use the exact same way of rounding as in
+adpcm_ima_qt_compress_sample and adpcm_ima_qt_expand_nibble.
+
+Fixes part of Ticket3701
+
+Signed-off-by: Michael Niedermayer <michaelni@gmx.at>
+(cherry picked from commit fa8f060b75bf9074792a0f9ff4ed002652ef62b8)
+
+Conflicts:
+	tests/ref/acodec/adpcm-ima_qt-trellis
+Signed-off-by: Jean-Yves Avenard <jyavenard@mythtv.org>
+---
+ mythtv/external/FFmpeg/libavcodec/adpcmenc.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/mythtv/external/FFmpeg/libavcodec/adpcmenc.c b/mythtv/external/FFmpeg/libavcodec/adpcmenc.c
+index bfcce328ef4..da149a3962d 100644
+--- a/mythtv/external/FFmpeg/libavcodec/adpcmenc.c
++++ b/mythtv/external/FFmpeg/libavcodec/adpcmenc.c
+@@ -553,6 +553,7 @@ static int adpcm_encode_frame(AVCodecContext *avctx, AVPacket *avpkt,
+                                        64, 1);
+                 for (i = 0; i < 64; i++)
+                     put_bits(&pb, 4, buf[i ^ 1]);
++                status->prev_sample = status->predictor;
+             } else {
+                 for (i = 0; i < 64; i += 2) {
+                     int t1, t2;

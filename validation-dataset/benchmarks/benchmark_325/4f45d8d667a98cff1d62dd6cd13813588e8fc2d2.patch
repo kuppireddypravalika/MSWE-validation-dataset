@@ -1,0 +1,26 @@
+From 4f45d8d667a98cff1d62dd6cd13813588e8fc2d2 Mon Sep 17 00:00:00 2001
+From: Sangjin Han <sangjin@eecs.berkeley.edu>
+Date: Fri, 11 Dec 2015 18:24:54 -0800
+Subject: [PATCH] minor optimization (why is compiler so stupid)
+
+---
+ core/module.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/core/module.h b/core/module.h
+index ad963de50..47c963792 100644
+--- a/core/module.h
++++ b/core/module.h
+@@ -223,10 +223,11 @@ static void run_split(struct module *m, const gate_t *ogates,
+ 		const struct pkt_batch *mixed_batch)
+ {
+ 	gate_t pending[MAX_PKT_BURST];
++	int cnt = mixed_batch->cnt;
+ 	int num_pending = 0;
+ 
+ 	/* collect */
+-	for (int i = 0; i < mixed_batch->cnt; i++) {
++	for (int i = 0; i < cnt; i++) {
+ 		struct pkt_batch *batch;
+ 		gate_t ogate;
+ 		

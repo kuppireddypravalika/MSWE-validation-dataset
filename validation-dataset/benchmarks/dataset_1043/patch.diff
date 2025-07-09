@@ -1,0 +1,23 @@
+From 1adc0aa4d4c2d0767d306b18d9e7cd30e45df656 Mon Sep 17 00:00:00 2001
+From: Peter Oschwald <oschwaldp@ociweb.com>
+Date: Tue, 7 Apr 2015 15:58:36 -0500
+Subject: [PATCH] Remove use of istringstream and use atol instead
+
+---
+ dds/DCPS/DataDurabilityCache.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/dds/DCPS/DataDurabilityCache.cpp b/dds/DCPS/DataDurabilityCache.cpp
+index 388abdf9e25..482fe83bfc6 100644
+--- a/dds/DCPS/DataDurabilityCache.cpp
++++ b/dds/DCPS/DataDurabilityCache.cpp
+@@ -333,8 +333,7 @@ void OpenDDS::DCPS::DataDurabilityCache::init()
+       path[0] = domain->name();
+       DDS::DomainId_t domain_id;
+       {
+-        std::istringstream iss(path[0]);
+-        iss >> domain_id;
++        domain_id = atol(path[0].c_str());
+       }
+ 
+       for (Directory::DirectoryIterator topic = domain->begin_dirs(),

@@ -1,0 +1,31 @@
+From 40aab8fd18642d69267c3c7761720204c3f5e744 Mon Sep 17 00:00:00 2001
+From: Aleksandar Micic <Aleksandar_Micic@ca.ibm.com>
+Date: Fri, 19 Apr 2024 18:08:57 -0400
+Subject: [PATCH] Use OMRPORT_CPU_TARGET for split list calculation
+
+For Flat heap GCs, use OMRPORT_CPU_TARGET (rather than
+OMRPORT_CPU_ONLINE). It really is the number of h/w threads available to
+JVM process, if configured in a container or by some other OS specific
+means.
+
+Same TARGET is used for other (and indirectly related) GC thread count
+caculation.
+
+Signed-off-by: Aleksandar Micic <Aleksandar_Micic@ca.ibm.com>
+---
+ gc/base/Configuration.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gc/base/Configuration.cpp b/gc/base/Configuration.cpp
+index afbb11783b..cf80fdf8db 100644
+--- a/gc/base/Configuration.cpp
++++ b/gc/base/Configuration.cpp
+@@ -507,7 +507,7 @@ MM_Configuration::initializeGCParameters(MM_EnvironmentBase *env)
+ 	/* initialize default split freelist split amount */
+ 	if (!extensions->splitFreeListAmountForced) {
+ 		OMRPORT_ACCESS_FROM_OMRPORT(env->getPortLibrary());
+-		uintptr_t freeListSplitAmount = (omrsysinfo_get_number_CPUs_by_type(OMRPORT_CPU_ONLINE) - 1) / 8  +  1;
++		uintptr_t freeListSplitAmount = (omrsysinfo_get_number_CPUs_by_type(OMRPORT_CPU_TARGET) - 1) / 8  +  1;
+ #if defined(OMR_GC_MODRON_SCAVENGER)
+ 		if (extensions->scavengerEnabled) {
+ 			freeListSplitAmount = splitAmount;

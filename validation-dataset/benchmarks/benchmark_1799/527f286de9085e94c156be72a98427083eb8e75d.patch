@@ -1,0 +1,23 @@
+From 527f286de9085e94c156be72a98427083eb8e75d Mon Sep 17 00:00:00 2001
+From: HOU Yu <yu.hou@sophgo.com>
+Date: Mon, 5 Aug 2024 19:01:20 +0800
+Subject: [PATCH] fix detr performance loss problem
+
+Change-Id: I358d1571aca3a3062377ee57a0f591f556f0274f
+---
+ lib/Conversion/TopToTpu/MixPrecision.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/lib/Conversion/TopToTpu/MixPrecision.cpp b/lib/Conversion/TopToTpu/MixPrecision.cpp
+index 5d756201a..896fa8459 100644
+--- a/lib/Conversion/TopToTpu/MixPrecision.cpp
++++ b/lib/Conversion/TopToTpu/MixPrecision.cpp
+@@ -1362,6 +1362,8 @@ bool ConvertTopToTpu::detr_mix_precision() {
+     }
+   }
+ 
++  spread_q_config();
++
+   return true;
+ }
+ 

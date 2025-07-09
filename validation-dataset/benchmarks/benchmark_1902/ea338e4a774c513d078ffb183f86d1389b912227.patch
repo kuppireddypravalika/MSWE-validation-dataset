@@ -1,0 +1,29 @@
+From ea338e4a774c513d078ffb183f86d1389b912227 Mon Sep 17 00:00:00 2001
+From: Cristian Cadar <c.cadar@imperial.ac.uk>
+Date: Thu, 12 Dec 2013 17:55:13 +0000
+Subject: [PATCH] Patch by Daniel Lupei, fixing a performance bug with the
+ counterexample cache.  (This is an old patch, reported at
+ http://llvm.org/bugs/show_bug.cgi?id=11435, on KLEE's old bug tracking
+ system.)
+
+---
+ include/klee/Expr.h | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/include/klee/Expr.h b/include/klee/Expr.h
+index 4bebd521..f893c6cc 100644
+--- a/include/klee/Expr.h
++++ b/include/klee/Expr.h
+@@ -197,8 +197,10 @@ class Expr {
+   typedef llvm::DenseSet<std::pair<const Expr *, const Expr *> > ExprEquivSet;
+   int compare(const Expr &b, ExprEquivSet &equivs) const;
+   int compare(const Expr &b) const {
+-    ExprEquivSet equivs;
+-    return compare(b, equivs);
++    static ExprEquivSet equivs;
++    int r = compare(b, equivs);
++    equivs.clear();
++    return r;
+   }
+   virtual int compareContents(const Expr &b) const { return 0; }
+ 

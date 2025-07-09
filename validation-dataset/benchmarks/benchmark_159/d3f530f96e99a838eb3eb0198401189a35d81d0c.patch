@@ -1,0 +1,30 @@
+From d3f530f96e99a838eb3eb0198401189a35d81d0c Mon Sep 17 00:00:00 2001
+From: Connor McLaughlin <stenzek@gmail.com>
+Date: Sun, 23 Aug 2020 01:30:20 +1000
+Subject: [PATCH] CPU/CachedInterpreter: Very slight optmization
+
+---
+ src/core/cpu_code_cache.cpp | 10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
+
+diff --git a/src/core/cpu_code_cache.cpp b/src/core/cpu_code_cache.cpp
+index bd1c5ef7b..b4fc78ebb 100644
+--- a/src/core/cpu_code_cache.cpp
++++ b/src/core/cpu_code_cache.cpp
+@@ -165,15 +165,7 @@ static void ExecuteImpl()
+       LogCurrentState();
+ #endif
+ 
+-      if (s_use_recompiler)
+-      {
+-        g_state.current_instruction_pc = g_state.regs.pc;
+-        block->host_code();
+-      }
+-      else
+-      {
+-        InterpretCachedBlock<pgxp_mode>(*block);
+-      }
++      InterpretCachedBlock<pgxp_mode>(*block);
+ 
+       if (g_state.pending_ticks >= g_state.downcount)
+         break;

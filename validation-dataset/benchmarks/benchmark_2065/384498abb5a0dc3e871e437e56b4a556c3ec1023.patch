@@ -1,0 +1,43 @@
+From 384498abb5a0dc3e871e437e56b4a556c3ec1023 Mon Sep 17 00:00:00 2001
+From: Tommi <tommi@webrtc.org>
+Date: Thu, 23 Feb 2017 20:23:19 +0100
+Subject: [PATCH] Use sched_yield on all POSIX platforms in PlatformThread.
+ (not only MacOS)
+
+This is a test to see if perf regressions we're seeing may be related to the use of nanosleep().
+
+BUG=695438
+TBR=solenberg@webrtc.org
+
+Review-Url: https://codereview.webrtc.org/2716683002 .
+Cr-Commit-Position: refs/heads/master@{#16807}
+---
+ webrtc/base/platform_thread.cc | 7 -------
+ 1 file changed, 7 deletions(-)
+
+diff --git a/webrtc/base/platform_thread.cc b/webrtc/base/platform_thread.cc
+index 525f0ddf08..bb838a2553 100644
+--- a/webrtc/base/platform_thread.cc
++++ b/webrtc/base/platform_thread.cc
+@@ -221,9 +221,6 @@ void PlatformThread::Run() {
+     return;
+   }
+ // TODO(tommi): Delete the below.
+-#if !defined(WEBRTC_MAC) && !defined(WEBRTC_WIN)
+-  const struct timespec ts_null = {0};
+-#endif
+   do {
+     // The interface contract of Start/Stop is that for a successful call to
+     // Start, there should be at least one call to the run function.  So we
+@@ -235,11 +232,7 @@ void PlatformThread::Run() {
+     SleepEx(0, true);
+   } while (!stop_);
+ #else
+-#if defined(WEBRTC_MAC)
+     sched_yield();
+-#else
+-    nanosleep(&ts_null, nullptr);
+-#endif
+   } while (!AtomicOps::AcquireLoad(&stop_flag_));
+ #endif  // defined(WEBRTC_WIN)
+ }

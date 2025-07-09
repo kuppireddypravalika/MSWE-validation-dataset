@@ -1,0 +1,34 @@
+From b430a4457ade2140f5ae0d1ccb74f01d3435c673 Mon Sep 17 00:00:00 2001
+From: lgracia <lgracia@cimne.upc.edu>
+Date: Tue, 15 Nov 2016 10:03:29 +0000
+Subject: [PATCH] Using a direct method for computing the eigenvalues
+
+---
+ .../streamlines_output_3D_utilities.hpp            | 14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
+
+diff --git a/applications/DamApplication/custom_utilities/streamlines_output_3D_utilities.hpp b/applications/DamApplication/custom_utilities/streamlines_output_3D_utilities.hpp
+index befe499b3626..0c194762b6e5 100644
+--- a/applications/DamApplication/custom_utilities/streamlines_output_3D_utilities.hpp
++++ b/applications/DamApplication/custom_utilities/streamlines_output_3D_utilities.hpp
+@@ -73,19 +73,7 @@ class StreamlinesOutput3DUtilities
+ 
+             //We compute the principal Stresses
+             Vector PrincipalStresses(dimension);
+-            double stress_check = 0.0;
+-            for ( unsigned int i=0; i<3; i++)
+-            {
+-                stress_check += NodalStress(i,i);
+-            } 
+-            if(fabs(stress_check)> 1.0e-20)
+-            {
+-                noalias(PrincipalStresses) = SolidMechanicsMathUtilities<double>::EigenValues(NodalStress,1.0e-10,1.0e-10);
+-            }
+-            else
+-            {
+-                noalias(PrincipalStresses)= ZeroVector(3);
+-            }
++            noalias(PrincipalStresses) = SolidMechanicsMathUtilities<double>::EigenValuesDirectMethod(NodalStress);          
+                 
+             for(unsigned int i = 0; i<3; i++)
+             {

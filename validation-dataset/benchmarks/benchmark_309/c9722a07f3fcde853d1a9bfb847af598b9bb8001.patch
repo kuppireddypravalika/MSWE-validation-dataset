@@ -1,0 +1,35 @@
+From c9722a07f3fcde853d1a9bfb847af598b9bb8001 Mon Sep 17 00:00:00 2001
+From: "Justin C. Miller" <justin@devjustinian.com>
+Date: Sun, 17 May 2020 22:00:50 -0700
+Subject: [PATCH] [boot] Provide memset implementation
+
+Clang needs memset, memcpy, etc to exist even in freestanding situations
+because it will emit calls to those functions. This commit adds a simple
+weak-linked memset implementation.
+---
+ src/boot/support.cpp | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/src/boot/support.cpp b/src/boot/support.cpp
+index a438e919..16a97a69 100644
+--- a/src/boot/support.cpp
++++ b/src/boot/support.cpp
+@@ -17,6 +17,18 @@ void *memcpy(void *dest, const void *src, size_t n)
+ 	return dest;
+ }
+ 
++/// Basic memset() implementation for clang. Clang requires freestanding code
++/// implement memset(), as it may emit references to it. This basic memset is
++/// not the most efficient, but will get linked if no other memcpy exists.
++__attribute__ ((__weak__))
++void *memset(void *dest, int c, size_t n)
++{
++	uint8_t *cdest = reinterpret_cast<uint8_t*>(dest);
++	for (size_t i = 0; i < n; ++i)
++		cdest[i] = static_cast<uint8_t>(c);
++	return dest;
++}
++
+ int _purecall()
+ {
+ 	::boot::error::raise(uefi::status::unsupported, L"Pure virtual call");

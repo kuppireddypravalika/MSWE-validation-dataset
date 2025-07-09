@@ -1,0 +1,23 @@
+From c48bcfa43a163d752bf0573aaea4f7d6434829ab Mon Sep 17 00:00:00 2001
+From: Jonathan Poelen <jpoelen@wallix.com>
+Date: Tue, 31 Mar 2020 13:19:08 +0200
+Subject: [PATCH] #80 search without boyer_moore_searcher (used once)
+
+---
+ src/transport/ws/ws_protocol.hpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/transport/ws/ws_protocol.hpp b/src/transport/ws/ws_protocol.hpp
+index 8430f69677..1a9068e549 100644
+--- a/src/transport/ws/ws_protocol.hpp
++++ b/src/transport/ws/ws_protocol.hpp
+@@ -72,8 +72,7 @@ struct WsHttpHeader
+         }
+ 
+         auto extract_http_header_value = [&](array_view_const_char needle, auto cb){
+-            auto it = std::search(in.begin(), in.end(),
+-                std::boyer_moore_searcher(needle.begin(), needle.end()));
++            auto it = std::search(in.begin(), in.end(), needle.begin(), needle.end());
+             if (it != in.end()) {
+                 it += needle.size();
+                 auto e = it;

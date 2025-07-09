@@ -1,0 +1,35 @@
+From f59d5d66578935704b282af9418119ef72f52d41 Mon Sep 17 00:00:00 2001
+From: Christian Kandeler <christian.kandeler@qt.io>
+Date: Tue, 10 Jul 2018 13:30:11 +0200
+Subject: [PATCH] Speed up the removeFromRuleNodes() function
+
+It is quite silly to traverse all rule nodes in the entire project when
+we have the relevant ones available as the artifact's parents.
+
+Change-Id: Ic5420011375bbc8c8af099093e702df9a5a863ca
+Reviewed-by: Joerg Bornemann <joerg.bornemann@qt.io>
+---
+ src/lib/corelib/buildgraph/projectbuilddata.cpp | 10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
+
+diff --git a/src/lib/corelib/buildgraph/projectbuilddata.cpp b/src/lib/corelib/buildgraph/projectbuilddata.cpp
+index 194276e40f..a658a331a6 100644
+--- a/src/lib/corelib/buildgraph/projectbuilddata.cpp
++++ b/src/lib/corelib/buildgraph/projectbuilddata.cpp
+@@ -220,14 +220,8 @@ void ProjectBuildData::removeArtifactAndExclusiveDependents(Artifact *artifact,
+ 
+ static void removeFromRuleNodes(Artifact *artifact)
+ {
+-    for (const ResolvedProductPtr &product : artifact->product->topLevelProject()->allProducts()) {
+-        if (!product->buildData)
+-            continue;
+-        for (BuildGraphNode *n : qAsConst(product->buildData->allNodes())) {
+-            if (n->type() == BuildGraphNode::RuleNodeType)
+-                static_cast<RuleNode *>(n)->removeOldInputArtifact(artifact);
+-        }
+-    }
++    for (RuleNode * const ruleNode : filterByType<RuleNode>(artifact->parents))
++        ruleNode->removeOldInputArtifact(artifact);
+ }
+ 
+ void ProjectBuildData::removeArtifact(Artifact *artifact,

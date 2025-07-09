@@ -1,0 +1,27 @@
+From 88a5335004ef7f0859fb6a3132fa645bbe865017 Mon Sep 17 00:00:00 2001
+From: Niels Martin Hansen <nielsm@aegisub.org>
+Date: Thu, 4 Jun 2009 02:28:46 +0000
+Subject: [PATCH] Adjust calculation of secondary colour for checkerboard
+ pattern in dummy video provider. New calculation produces better results for
+ dark colours, the old calculation produced very high contrast patterns for
+ dark colours.
+
+Originally committed to SVN as r3015.
+---
+ aegisub/src/video_provider_dummy.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/aegisub/src/video_provider_dummy.cpp b/aegisub/src/video_provider_dummy.cpp
+index 61104443f..ccfc7943d 100644
+--- a/aegisub/src/video_provider_dummy.cpp
++++ b/aegisub/src/video_provider_dummy.cpp
+@@ -68,7 +68,8 @@ void DummyVideoProvider::Create(double _fps, int frames, int _width, int _height
+ 
+ 	unsigned char h, s, l, lr, lg, lb; // light variants
+ 	rgb_to_hsl(r, g, b, &h, &s, &l);
+-	l = 255 - (255 - l) / 2;
++	l += 24;
++	if (l < 24) l -= 48;
+ 	hsl_to_rgb(h, s, l, &lr, &lg, &lb);
+ 
+ 	if (pattern) {

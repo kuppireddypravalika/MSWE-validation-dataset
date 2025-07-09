@@ -1,0 +1,22 @@
+From f22348a9f90cf04dd1df7b6361033a47109a0b7a Mon Sep 17 00:00:00 2001
+From: Eladash <elad3356p@gmail.com>
+Date: Sat, 26 Sep 2020 10:08:12 +0300
+Subject: [PATCH] sys_memory: Improve sys_memory_get_page_attribute for stack
+
+---
+ rpcs3/Emu/Cell/lv2/sys_memory.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/rpcs3/Emu/Cell/lv2/sys_memory.cpp b/rpcs3/Emu/Cell/lv2/sys_memory.cpp
+index 74a7bba526fe0..8ef20a4e08964 100644
+--- a/rpcs3/Emu/Cell/lv2/sys_memory.cpp
++++ b/rpcs3/Emu/Cell/lv2/sys_memory.cpp
+@@ -184,7 +184,7 @@ error_code sys_memory_get_page_attribute(u32 addr, vm::ptr<sys_page_attr_t> attr
+ 	}
+ 
+ 	attr->attribute = 0x40000ull; // SYS_MEMORY_PROT_READ_WRITE (TODO)
+-	attr->access_right = 0xFull; // SYS_MEMORY_ACCESS_RIGHT_ANY (TODO)
++	attr->access_right = addr >> 28 == 0xdu ? SYS_MEMORY_ACCESS_RIGHT_PPU_THR : SYS_MEMORY_ACCESS_RIGHT_ANY;// (TODO)
+ 
+ 	if (vm::check_addr(addr, 1, vm::page_1m_size))
+ 	{

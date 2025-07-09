@@ -1,0 +1,34 @@
+From 7ebdb79265d94825f5eddd252714ae882131e67f Mon Sep 17 00:00:00 2001
+From: Rinnegatamante <rinnegatamante@gmail.com>
+Date: Fri, 26 Jun 2020 11:24:58 +0200
+Subject: [PATCH] Exec roms sorting only when strictly required.
+
+---
+ Source/SysVita/UI/MainMenuScreen.cpp | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/Source/SysVita/UI/MainMenuScreen.cpp b/Source/SysVita/UI/MainMenuScreen.cpp
+index 7ace52a2..ced6ffbf 100644
+--- a/Source/SysVita/UI/MainMenuScreen.cpp
++++ b/Source/SysVita/UI/MainMenuScreen.cpp
+@@ -73,6 +73,8 @@ CRefPtr<CNativeTexture> mpPreviewTexture;
+ GLuint preview_icon = 0;
+ 
+ 
++int oldSortOrder = -1;
++
+ void swap(RomSelection *a, RomSelection *b) 
+ { 
+ 	char nametmp[128], pathtmp[256];
+@@ -322,7 +324,10 @@ char *DrawRomSelector() {
+ 		}
+ 	}
+ 	
+-	sort_list(list, gSortOrder);
++	if (oldSortOrder != gSortOrder) {
++		oldSortOrder = gSortOrder;
++		sort_list(list, gSortOrder);
++	}
+ 
+ 	ImGui::SetNextWindowPos(ImVec2(0, 19), ImGuiSetCond_Always);
+ 	ImGui::SetNextWindowSize(ImVec2(SCR_WIDTH - 400, SCR_HEIGHT - 19), ImGuiSetCond_Always);

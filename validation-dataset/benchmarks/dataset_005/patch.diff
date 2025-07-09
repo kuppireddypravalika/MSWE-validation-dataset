@@ -1,0 +1,36 @@
+From 52ad90ba1080159c996b1c3d1c412fd152766adb Mon Sep 17 00:00:00 2001
+From: RikkaW <rikka@xing.moe>
+Date: Mon, 30 Nov 2020 15:53:35 +0800
+Subject: [PATCH] Use fstat to replace lseek
+
+---
+ riru/src/main/cpp/daemon/daemon.cpp | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/riru/src/main/cpp/daemon/daemon.cpp b/riru/src/main/cpp/daemon/daemon.cpp
+index d35b83f5..1dbdf7a4 100644
+--- a/riru/src/main/cpp/daemon/daemon.cpp
++++ b/riru/src/main/cpp/daemon/daemon.cpp
+@@ -86,6 +86,8 @@ static bool handle_read_file(int sockfd) {
+     uint32_t size;
+     int32_t reply;
+     ssize_t res;
++    int32_t file_size;
++    struct stat st{};
+ 
+     if (read_full(sockfd, &size, sizeof(uint32_t)) == -1
+         || read_full(sockfd, path, size) == -1) {
+@@ -109,9 +111,10 @@ static bool handle_read_file(int sockfd) {
+         return true;
+     }
+ 
+-    auto file_size = (int32_t) lseek(fd, 0, SEEK_END);
+-    if (file_size != -1) {
+-        lseek(fd, 0, SEEK_SET);
++    if (fstat(fd, &st) == 0) {
++        file_size = (int32_t) st.st_size;
++    } else {
++        file_size = -1;
+     }
+ 
+     if (write_full(sockfd, &file_size, sizeof(int32_t)) == -1) {

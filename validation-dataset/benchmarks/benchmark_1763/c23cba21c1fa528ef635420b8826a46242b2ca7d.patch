@@ -1,0 +1,26 @@
+From c23cba21c1fa528ef635420b8826a46242b2ca7d Mon Sep 17 00:00:00 2001
+From: Ugo Pattacini <ugo.pattacini@iit.it>
+Date: Fri, 13 Jan 2017 17:38:46 +0100
+Subject: [PATCH] [depth2kin]: SVD was called without preallocating matrices
+
+fix #409
+cc @giuliavezzani @traversaro
+---
+ src/tools/depth2kin/src/methods.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/tools/depth2kin/src/methods.cpp b/src/tools/depth2kin/src/methods.cpp
+index 3456dbab41..05387b6c7b 100644
+--- a/src/tools/depth2kin/src/methods.cpp
++++ b/src/tools/depth2kin/src/methods.cpp
+@@ -40,7 +40,9 @@ using namespace iCub::learningmachine;
+ /************************************************************************/
+ bool Calibrator::computeSpatialTransformation()
+ {
+-    Matrix U,V; Vector S;
++    int m=spatialCompetence.A.rows();
++    int n=spatialCompetence.A.cols();
++    Matrix U(m,n),V(n,n); Vector S(n);
+     SVD(spatialCompetence.A,U,S,V);
+ 
+     spatialCompetence.radii.resize(3);

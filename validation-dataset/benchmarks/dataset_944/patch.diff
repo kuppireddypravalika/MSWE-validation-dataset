@@ -1,0 +1,30 @@
+From b9bef75a4b8cad70c9f93ae1927b035e59ceaa96 Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Tue, 13 Sep 2016 21:20:03 -0400
+Subject: [PATCH] [kde] RomThumbCreator: Use unique_ptr<rp_image> for dl_img.
+
+dl_img wasn't being deleted, resulting in a memory leak.
+unique_ptr<> ensures that it gets deleted when it goes out of scope.
+
+This fixes Coverity#1358688.
+---
+ src/kde/RomThumbCreator.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/kde/RomThumbCreator.cpp b/src/kde/RomThumbCreator.cpp
+index c18ab4a875..b0ffbb1e80 100644
+--- a/src/kde/RomThumbCreator.cpp
++++ b/src/kde/RomThumbCreator.cpp
+@@ -133,10 +133,10 @@ bool RomThumbCreator::create(const QString &path, int width, int height, QImage
+ 				// Attempt to load the image.
+ 				unique_ptr<IRpFile> file(new RpFile(cache_filename, RpFile::FM_OPEN_READ));
+ 				if (file && file->isOpen()) {
+-					rp_image *dl_img = RpImageLoader::load(file.get());
++					unique_ptr<rp_image> dl_img(RpImageLoader::load(file.get()));
+ 					if (dl_img && dl_img->isValid()) {
+ 						// Image loaded successfully.
+-						QImage qdl_img = rpToQImage(dl_img);
++						QImage qdl_img = rpToQImage(dl_img.get());
+ 						if (!qdl_img.isNull()) {
+ 							// Image converted successfully.
+ 							// TODO: Width/height and transparency processing?

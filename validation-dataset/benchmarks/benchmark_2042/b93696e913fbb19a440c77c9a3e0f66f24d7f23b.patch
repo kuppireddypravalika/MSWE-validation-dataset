@@ -1,0 +1,25 @@
+From b93696e913fbb19a440c77c9a3e0f66f24d7f23b Mon Sep 17 00:00:00 2001
+From: Rafael Espindola <rafael.espindola@gmail.com>
+Date: Wed, 6 Dec 2017 18:56:22 +0000
+Subject: [PATCH] Replace one use of check with checkLazy.
+
+Reduce total allocation when linking clang from 320.04MB to 300.82MB.
+---
+ lld/ELF/InputFiles.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/lld/ELF/InputFiles.cpp b/lld/ELF/InputFiles.cpp
+index 7bd8a814959e..52b30f722f4b 100644
+--- a/lld/ELF/InputFiles.cpp
++++ b/lld/ELF/InputFiles.cpp
+@@ -595,8 +595,8 @@ InputSectionBase *ObjFile<ELFT>::createInputSection(const Elf_Shdr &Sec) {
+ 
+ template <class ELFT>
+ StringRef ObjFile<ELFT>::getSectionName(const Elf_Shdr &Sec) {
+-  return check(this->getObj().getSectionName(&Sec, SectionStringTable),
+-               toString(this));
++  return checkLazy(this->getObj().getSectionName(&Sec, SectionStringTable),
++                   [=]() { return toString(this); });
+ }
+ 
+ template <class ELFT> void ObjFile<ELFT>::initializeSymbols() {

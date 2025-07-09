@@ -1,0 +1,37 @@
+From 641e6df1f4867b08ea07b5926ab9003334a17b82 Mon Sep 17 00:00:00 2001
+From: paulc <paulc@acf43c95-373e-0410-b603-e72c3f656dc1>
+Date: Tue, 11 May 2010 11:43:53 +0000
+Subject: [PATCH] Match local endpoint names like */*/* or prefix/*/* for MGCP
+ messages from GW. Use static regexps to speed up matching (avoid compiling
+ every time).
+
+git-svn-id: http://yate.null.ro/svn/yate/trunk@3305 acf43c95-373e-0410-b603-e72c3f656dc1
+---
+ modules/server/mgcpca.cpp | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/modules/server/mgcpca.cpp b/modules/server/mgcpca.cpp
+index 39cd1254e..08b75766a 100644
+--- a/modules/server/mgcpca.cpp
++++ b/modules/server/mgcpca.cpp
+@@ -993,9 +993,18 @@ bool MGCPSpan::matchEndpoint(const MGCPEndpointId& ep)
+ 	return true;
+     if (findCircuit(ep.id()))
+ 	return true;
++    // check for wildcards like */*/*
++    static Regexp s_termsAll("^\\*[/*]\\+\\*$");
++    if (s_termsAll.matches(ep.user()))
++	return true;
+     String tmp = ep.user();
+-    Regexp r("^\\(.*\\)\\[\\([0-9]\\+\\)-\\([0-9]\\+\\)\\]$");
+-    if (!(tmp.matches(r) && m_epId.user().startsWith(tmp.matchString(1),false,true)))
++    // check for prefix/*/*
++    static Regexp s_finalAll("^\\([^*]\\+/\\)[/*]\\+$");
++    if (tmp.matches(s_finalAll) && m_epId.user().startsWith(tmp.matchString(1),false,true))
++	return true;
++    // check for prefix[min-max]
++    static Regexp s_finalRange("^\\(.*\\)\\[\\([0-9]\\+\\)-\\([0-9]\\+\\)\\]$");
++    if (!(tmp.matches(s_finalRange) && m_epId.user().startsWith(tmp.matchString(1),false,true)))
+ 	return false;
+     int idx = m_epId.user().substr(tmp.matchLength(1)).toInteger(-1,10);
+     if (idx < 0)

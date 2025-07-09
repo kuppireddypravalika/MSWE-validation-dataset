@@ -1,0 +1,38 @@
+From be3c6ae0815f772afc93ca3911a31525463b9561 Mon Sep 17 00:00:00 2001
+From: Dmitry Mikushin <dmitry@kernelgen.org>
+Date: Tue, 20 Feb 2018 17:41:47 +0300
+Subject: [PATCH] Get faster operation with multithreaded requests
+
+---
+ bitrader.cpp | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/bitrader.cpp b/bitrader.cpp
+index bdd3356..4194515 100644
+--- a/bitrader.cpp
++++ b/bitrader.cpp
+@@ -272,6 +272,7 @@ int main()
+ 
+ 		while (1)
+ 		{
++			#pragma omp parallel for num_threads(2)
+ 			for (int i = 0; i < btcPairs.size(); i++)
+ 			{
+ 				const string& pair = btcPairs[i];
+@@ -279,8 +280,14 @@ int main()
+ 				if (pair == "BNB_BTC") continue;
+ 	
+ 				// Get Klines / CandleStick for each "*BTC" pair.
+-				if (market.getKlines(pair.c_str(), "1m", 10, 0, 0, result) != binanceSuccess)
+-					continue;
++				while (1)
++				{
++					binanceError_t status = market.getKlines(pair.c_str(), "1m", 10, 0, 0, result);
++					
++					if (status == binanceSuccess) break;
++					
++					fprintf(stderr, "%s\n", binanceGetErrorString(status));
++				}
+ 				
+ 				// Find update for the current time stamp.
+ 				int buy = -1;

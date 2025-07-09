@@ -1,0 +1,25 @@
+From 701871a8e0722f546e105926aefc1bc0fe4e0049 Mon Sep 17 00:00:00 2001
+From: Dobiasd <editgym@gmail.com>
+Date: Thu, 19 Oct 2017 13:20:00 +0100
+Subject: [PATCH] reduce memory usage during model import
+
+---
+ include/fdeep/import_model.hpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/include/fdeep/import_model.hpp b/include/fdeep/import_model.hpp
+index db81cc39..4e5f1f36 100644
+--- a/include/fdeep/import_model.hpp
++++ b/include/fdeep/import_model.hpp
+@@ -72,8 +72,9 @@ inline float_vec decode_floats(const nlohmann::json& data)
+     assertion(std::numeric_limits<float>::is_iec559,
+         "The floating-point format of your system is not supported.");
+ 
+-    const std::vector<std::string> strs = data;
+-    const auto res = Base64_decode(fplus::concat(strs));
++    std::vector<std::string> strs = data;
++    const auto res = Base64_decode(fplus::concat(std::move(strs)));
++    strs.clear(); // free RAM
+     float_vec out;
+     assertion(res.size() % 4 == 0, "invalid float vector data");
+     out.reserve(res.size() / 4);

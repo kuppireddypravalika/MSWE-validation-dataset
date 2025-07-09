@@ -1,0 +1,45 @@
+From b6bdb8be9e19276c187b69e22e28446428380e5c Mon Sep 17 00:00:00 2001
+From: Alexander Block <ablock84@gmail.com>
+Date: Thu, 26 Mar 2020 13:24:06 +0100
+Subject: [PATCH] Faster opening of masternode connections (#3375)
+
+Only sleep 100ms when we previously tried to connect a MN. The back-off
+logic in ThreadOpenMasternodeConnections will prevent too many unsuccessful
+connects to offline/bad nodes.
+---
+ src/net.cpp | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/src/net.cpp b/src/net.cpp
+index b25e572946..2505bbd49c 100644
+--- a/src/net.cpp
++++ b/src/net.cpp
+@@ -2103,11 +2103,18 @@ void CConnman::ThreadOpenMasternodeConnections()
+ 
+     auto& chainParams = Params();
+ 
++    bool didConnect = false;
+     while (!interruptNet)
+     {
+-        if (!interruptNet.sleep_for(std::chrono::milliseconds(1000)))
++        int sleepTime = 1000;
++        if (didConnect) {
++            sleepTime = 100;
++        }
++        if (!interruptNet.sleep_for(std::chrono::milliseconds(sleepTime)))
+             return;
+ 
++        didConnect = false;
++
+         std::set<CService> connectedNodes;
+         std::set<uint256> connectedProRegTxHashes;
+         ForEachNode([&](const CNode* pnode) {
+@@ -2171,6 +2178,8 @@ void CConnman::ThreadOpenMasternodeConnections()
+             continue;
+         }
+ 
++        didConnect = true;
++
+         mmetaman.GetMetaInfo(connectToDmn->proTxHash)->SetLastOutboundAttempt(nANow);
+ 
+         OpenMasternodeConnection(CAddress(connectToDmn->pdmnState->addr, NODE_NETWORK));

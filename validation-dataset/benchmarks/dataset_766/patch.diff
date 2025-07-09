@@ -1,0 +1,22 @@
+From f23c01f91f3776fd39853ec8738ab12801f7d9fa Mon Sep 17 00:00:00 2001
+From: Peter Vanroose <peter_vanroose@users.sourceforge.net>
+Date: Mon, 9 Dec 2002 00:56:42 -0500
+Subject: [PATCH] new method "superiors_list()" to return the superiors_
+ pointer directly, thus avoiding the creation of a new list
+
+---
+ contrib/gel/vtol/vtol_topology_object.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/contrib/gel/vtol/vtol_topology_object.h b/contrib/gel/vtol/vtol_topology_object.h
+index cf0681d7c6f..012d5b4a69f 100644
+--- a/contrib/gel/vtol/vtol_topology_object.h
++++ b/contrib/gel/vtol/vtol_topology_object.h
+@@ -256,6 +256,7 @@ class vtol_topology_object
+   //: Return the superiors list (must be deallocated after use)
+   //---------------------------------------------------------------------------
+   const topology_list *superiors(void) const;
++  const vcl_list<vtol_topology_object*> *superiors_list(void) const {return &superiors_;}
+ 
+   //---------------------------------------------------------------------------
+   //: Return the inferiors list

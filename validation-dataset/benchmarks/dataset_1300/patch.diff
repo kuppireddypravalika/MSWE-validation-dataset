@@ -1,0 +1,41 @@
+From c90c36ce88a451f7086ac8101ab67a9c3fbe095d Mon Sep 17 00:00:00 2001
+From: Stefan Eilemann <Stefan.Eilemann@epfl.ch>
+Date: Tue, 13 Dec 2016 14:09:35 +0100
+Subject: [PATCH] Use unordered_map in brion::Circuit
+
+---
+ brion/circuit.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/brion/circuit.cpp b/brion/circuit.cpp
+index 911c4dfc..5654c412 100644
+--- a/brion/circuit.cpp
++++ b/brion/circuit.cpp
+@@ -24,8 +24,8 @@
+ #include <boost/filesystem.hpp>
+ #include <boost/tokenizer.hpp>
+ #include <lunchbox/log.h>
+-#include <lunchbox/stdExt.h>
+ #include <fstream>
++#include <unordered_map>
+ 
+ namespace brion
+ {
+@@ -55,7 +55,7 @@ class Circuit::Impl
+             LBTHROW( std::runtime_error( "Expecting mvd file format for "
+                                          " circuit file " + source ));
+ 
+-        typedef stde::hash_map< std::string, Section > LookUp;
++        typedef std::unordered_map< std::string, Section > LookUp;
+         LookUp sections;
+         sections.insert( std::make_pair( "Neurons Loaded", SECTION_NEURONS ));
+         sections.insert( std::make_pair( "MicroBox Data", SECTION_MICROBOX ));
+@@ -202,7 +202,7 @@ class Circuit::Impl
+ private:
+     std::ifstream _file;
+ 
+-    typedef stde::hash_map< uint32_t, Strings > CircuitTable;
++    typedef std::unordered_map< uint32_t, Strings > CircuitTable;
+     CircuitTable _table;
+ };
+ 

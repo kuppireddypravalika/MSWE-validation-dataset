@@ -1,0 +1,30 @@
+From 13ea7798309c6c9fd0218e8b9e8a49c643aafc25 Mon Sep 17 00:00:00 2001
+From: Victor Coda <magma.github@gmail.com>
+Date: Wed, 31 Jan 2018 21:04:08 +0200
+Subject: [PATCH] Perform 16-byte alignment check only on x64 build
+
+---
+ helpers/alignedMemcpy.h | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/helpers/alignedMemcpy.h b/helpers/alignedMemcpy.h
+index a695100f1..05d7f965a 100644
+--- a/helpers/alignedMemcpy.h
++++ b/helpers/alignedMemcpy.h
+@@ -26,8 +26,16 @@ namespace magma
+         {
+             MAGMA_ASSERT(dst);
+             MAGMA_ASSERT(src);
++#ifdef _M_AMD64
++            /* On x64 platform all allocations should have 16-byte alignment.
++               On x86 it's hard to follow this restriction, as standard alignment 
++               there is 8 bytes: https://msdn.microsoft.com/en-us/library/ycsb6wwf.aspx
++               Standard std::vector also has 8-byte alignment, and using custom allocator 
++               for it means incompatibility with standard vectors. So 16-byte 
++               alignment check performed only in the case of x64 build. */
+             MAGMA_ASSERT(MAGMA_ALIGNED(dst));
+             MAGMA_ASSERT(MAGMA_ALIGNED(src));
++#endif // _M_AMD64
+             return memcpy(dst, src, size);
+         }
+     } // namespace helpers

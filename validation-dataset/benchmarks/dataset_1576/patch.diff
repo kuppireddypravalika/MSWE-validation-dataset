@@ -1,0 +1,33 @@
+From ed02b4dda58fec71c8186405abad1bf3b9a78b8f Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Marvin=20Gro=C3=9Fe=20Besselmann?= <grosse@fzi.de>
+Date: Thu, 5 May 2022 18:12:40 +0200
+Subject: [PATCH] Improved sampling of map section
+
+---
+ include/vdb_mapping/VDBMapping.hpp | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/include/vdb_mapping/VDBMapping.hpp b/include/vdb_mapping/VDBMapping.hpp
+index b3b03dc..f326b8b 100644
+--- a/include/vdb_mapping/VDBMapping.hpp
++++ b/include/vdb_mapping/VDBMapping.hpp
+@@ -131,15 +131,14 @@ VDBMapping<DataT, ConfigT>::getMapSection(const double min_x,
+                                  index_max_pt.y(),
+                                  index_max_pt.z());
+ 
+-
+-  for (auto iter = bouding_box.begin(); iter; ++iter)
++  for(auto iter = m_vdb_grid->cbeginValueOn(); iter; ++iter)
+   {
+-    if(acc.isValueOn(*iter))
++    if(bouding_box.isInside(iter.getCoord()))
+     {
+-      temp_acc.setValueOn(*iter, true);
++      temp_acc.setValueOn(iter.getCoord(), true);
+     }
+-    //temp_acc.setValueOn(*iter, acc.isValueOn(*iter));
+   }
++
+   return temp_grid;
+ }
+ 

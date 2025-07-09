@@ -1,0 +1,36 @@
+From 8bc830337c04176ef857f6010b9448e74b58c9d0 Mon Sep 17 00:00:00 2001
+From: Vadim Zeitlin <vadim@wxwidgets.org>
+Date: Mon, 16 Mar 2020 00:27:12 +0100
+Subject: [PATCH] Slightly optimize Shift/Control-clicking in wxTR_MULTIPLE
+ case
+
+Don't call GetSelections() unnecessarily if we're not going to use its
+result in any case because either Shift or Command/Control key was
+pressed when the mouse button was released.
+
+See #18680.
+---
+ src/generic/treectlg.cpp | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/src/generic/treectlg.cpp b/src/generic/treectlg.cpp
+index 948b8118b3dd..2473fb8c97c3 100644
+--- a/src/generic/treectlg.cpp
++++ b/src/generic/treectlg.cpp
+@@ -3790,14 +3790,10 @@ void wxGenericTreeCtrl::OnMouse( wxMouseEvent &event )
+             }
+ 
+             // this facilitates multiple-item drag-and-drop
+-            if ( HasFlag(wxTR_MULTIPLE))
++            if ( HasFlag(wxTR_MULTIPLE) && !(event.CmdDown() || event.ShiftDown()) )
+             {
+                 wxArrayTreeItemIds selections;
+-                size_t count = GetSelections(selections);
+-
+-                if (count > 1 &&
+-                    !event.CmdDown() &&
+-                    !event.ShiftDown())
++                if ( GetSelections(selections) > 1 )
+                 {
+                     DoSelectItem(item, true, false);
+                 }

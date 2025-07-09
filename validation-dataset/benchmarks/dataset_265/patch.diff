@@ -1,0 +1,28 @@
+From 83daae4158d95fae907b83316e5e151dd2c85f5b Mon Sep 17 00:00:00 2001
+From: Alexandros Frantzis <alexandros.frantzis@canonical.com>
+Date: Thu, 11 Apr 2013 16:47:11 +0300
+Subject: [PATCH] tests: Improve AndroidInputReceiverThreadSetup test run-time
+ under valgrind
+
+---
+ .../client/input/test_android_input_receiver_thread.cpp    | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/tests/unit-tests/client/input/test_android_input_receiver_thread.cpp b/tests/unit-tests/client/input/test_android_input_receiver_thread.cpp
+index 020f48d0472..35050e1675d 100644
+--- a/tests/unit-tests/client/input/test_android_input_receiver_thread.cpp
++++ b/tests/unit-tests/client/input/test_android_input_receiver_thread.cpp
+@@ -146,7 +146,12 @@ TEST_F(AndroidInputReceiverThreadSetup, input_callback_invoked_from_thread)
+     }
+ 
+     input_thread.start();
+-    while (handled == false) { } // We would block forever here were delivery not threaded
++
++    // We would block forever here were delivery not threaded.
++    // Yield to improve the run-time under valgrind.
++    while (handled == false)
++        std::this_thread::yield();
++
+     input_thread.join();
+ }
+ 

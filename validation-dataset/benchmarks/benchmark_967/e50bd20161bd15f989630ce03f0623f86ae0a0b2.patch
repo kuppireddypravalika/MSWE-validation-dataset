@@ -1,0 +1,22 @@
+From e50bd20161bd15f989630ce03f0623f86ae0a0b2 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@spatialys.com>
+Date: Tue, 2 Jan 2024 01:33:17 +0100
+Subject: [PATCH] EEDA: avoid CodeQL cpp/comparison-with-wider-type
+
+---
+ frmts/eeda/eedaidataset.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/frmts/eeda/eedaidataset.cpp b/frmts/eeda/eedaidataset.cpp
+index 284054d452b1..057d6b31e95a 100644
+--- a/frmts/eeda/eedaidataset.cpp
++++ b/frmts/eeda/eedaidataset.cpp
+@@ -519,7 +519,7 @@ bool GDALEEDAIRasterBand::DecodeGDALDataset(const GByte *pabyData, int nDataLen,
+                     GF_Read, iXBlock * nBlockXSize, iYBlock * nBlockYSize,
+                     nBlockActualXSize, nBlockActualYSize, pabyDstBuffer,
+                     nBlockActualXSize, nBlockActualYSize, eDT, nDTSize,
+-                    nDTSize * nBlockXSize, nullptr);
++                    static_cast<GSpacing>(nDTSize) * nBlockXSize, nullptr);
+ 
+                 if (poBlock)
+                     poBlock->DropLock();

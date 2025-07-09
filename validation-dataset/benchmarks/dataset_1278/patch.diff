@@ -1,0 +1,37 @@
+From f59982c55f0adc42a246ad89858433d8e537d3ca Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max.kellermann@gmail.com>
+Date: Wed, 23 Oct 2019 10:11:44 +0200
+Subject: [PATCH] Daemon: eliminate g_get_user_name() call, compare only uid
+
+---
+ src/Daemon.cxx | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
+
+diff --git a/src/Daemon.cxx b/src/Daemon.cxx
+index e939514..aa03fca 100644
+--- a/src/Daemon.cxx
++++ b/src/Daemon.cxx
+@@ -168,18 +168,17 @@ void
+ daemonize_init(const char *user, const char *_pidfile)
+ {
+ #ifndef _WIN32
+-	if (user != nullptr && strcmp(user, g_get_user_name()) != 0) {
+-		struct passwd *pwd;
+-
+-		user_name = g_strdup(user);
+-
+-		pwd = getpwnam(user_name);
++	if (user != nullptr) {
++		const auto *pwd = getpwnam(user_name);
+ 		if (pwd == nullptr)
+ 			throw FormatRuntimeError("no such user \"%s\"",
+ 						 user_name);
+ 
+ 		user_uid = pwd->pw_uid;
+ 		user_gid = pwd->pw_gid;
++
++		if (user_uid != getuid())
++			user_name = g_strdup(user);
+ 	}
+ 
+ 	pidfile = g_strdup(_pidfile);

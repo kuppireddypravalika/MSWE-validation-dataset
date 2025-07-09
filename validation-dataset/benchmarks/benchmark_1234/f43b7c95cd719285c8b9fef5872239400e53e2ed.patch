@@ -1,0 +1,29 @@
+From f43b7c95cd719285c8b9fef5872239400e53e2ed Mon Sep 17 00:00:00 2001
+From: Marcel Raad <raad@teamviewer.com>
+Date: Tue, 10 May 2016 11:58:55 +0200
+Subject: [PATCH] Check for SSE4 support before using SSE4.1 instruction In a
+ 32-bit Windows program compiled with Visual C++ 2013 Update 5, we sometimes
+ get crashes because of an exception "0xC000001D: Illegal Instruction" on the
+ pextrd (_mm_extract_epi32) instruction. Explicitly check for SSE4 support
+ instead of only AES-NI before using this SSE4.1 instruction.
+
+---
+ rijndael.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/rijndael.cpp b/rijndael.cpp
+index 71fa1b855..463962050 100644
+--- a/rijndael.cpp
++++ b/rijndael.cpp
+@@ -217,9 +217,9 @@ void Rijndael::Base::UncheckedSetKey(const byte *userKey, unsigned int keylen, c
+ 
+ 	word32 *rk = m_key;
+ 
+-#if (CRYPTOPP_BOOL_AESNI_INTRINSICS_AVAILABLE && (!defined(_MSC_VER) || _MSC_VER >= 1600 || CRYPTOPP_BOOL_X86 || CRYPTOPP_BOOL_X32))
++#if (CRYPTOPP_BOOL_AESNI_INTRINSICS_AVAILABLE && CRYPTOPP_BOOL_SSE4_INTRINSICS_AVAILABLE && (!defined(_MSC_VER) || _MSC_VER >= 1600 || CRYPTOPP_BOOL_X86 || CRYPTOPP_BOOL_X32))
+ 	// MSVC 2008 SP1 generates bad code for _mm_extract_epi32() when compiling for X64
+-	if (HasAESNI())
++	if (HasAESNI() && HasSSE4())
+ 	{
+ 		static const word32 rcLE[] = {
+ 			0x01, 0x02, 0x04, 0x08,

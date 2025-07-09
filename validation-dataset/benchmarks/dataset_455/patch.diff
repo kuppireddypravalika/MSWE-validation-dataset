@@ -1,0 +1,36 @@
+From b34fd905c8f7ce29cd1d2acae5d90fa8ad8b05ed Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@musicpd.org>
+Date: Sat, 21 Jul 2018 07:36:42 +0200
+Subject: [PATCH] SongFilter: simplify Parse() loop
+
+Consume the ConstBuffer instead of iterating it.  This will allow
+adding more complex parsers.
+---
+ src/SongFilter.cxx | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/src/SongFilter.cxx b/src/SongFilter.cxx
+index dd201d959d..ada5659716 100644
+--- a/src/SongFilter.cxx
++++ b/src/SongFilter.cxx
+@@ -216,11 +216,17 @@ SongFilter::Parse(const char *tag_string, const char *value, bool fold_case)
+ void
+ SongFilter::Parse(ConstBuffer<const char *> args, bool fold_case)
+ {
+-	if (args.size == 0 || args.size % 2 != 0)
++	if (args.empty())
+ 		throw std::runtime_error("Incorrect number of filter arguments");
+ 
+-	for (unsigned i = 0; i < args.size; i += 2)
+-		Parse(args[i], args[i + 1], fold_case);
++	do {
++		if (args.size < 2)
++			throw std::runtime_error("Incorrect number of filter arguments");
++
++		const char *tag = args.shift();
++		const char *value = args.shift();
++		Parse(tag, value, fold_case);
++	} while (!args.empty());
+ }
+ 
+ bool

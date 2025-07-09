@@ -1,0 +1,28 @@
+From 7dd46df954cd8e380b671bad31d010f54aef70d6 Mon Sep 17 00:00:00 2001
+From: Matthias Gehre <M.Gehre@gmx.de>
+Date: Tue, 30 Oct 2012 10:39:30 +0100
+Subject: [PATCH] Remove unnecessary close_device_and_disk()
+
+1) lp_disk is not used and assigned NULL so doesn't need closing.
+2) lp_device is already ped_device_open()ed and ped_device_close()d
+within the above while loop.  lp_device will be set to NULL when the
+while loop ends so this doesn't need closing either.  Hence
+close_device_and_disk() is always passed with two NULL pointers and is a
+no operation so can be removed.
+---
+ src/GParted_Core.cc | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/src/GParted_Core.cc b/src/GParted_Core.cc
+index ad702487..fedc2e48 100644
+--- a/src/GParted_Core.cc
++++ b/src/GParted_Core.cc
+@@ -240,8 +240,6 @@ void GParted_Core::set_devices( std::vector<Device> & devices )
+ 			}
+ 			lp_device = ped_device_get_next( lp_device ) ;
+ 		}
+-		PedDisk* lp_disk = NULL ;
+-		close_device_and_disk( lp_device, lp_disk ) ;
+ 
+ 		std::sort( device_paths .begin(), device_paths .end() ) ;
+ 	}

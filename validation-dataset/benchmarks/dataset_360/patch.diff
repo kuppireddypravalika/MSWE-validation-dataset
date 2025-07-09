@@ -1,0 +1,39 @@
+From 36c9efd6ea9ec7610feecdca3946f0ee54325b74 Mon Sep 17 00:00:00 2001
+From: Kai Pastor <dg0yt@darc.de>
+Date: Sun, 29 Sep 2019 16:43:07 +0200
+Subject: [PATCH] XmlElementWriter: Write coords more efficiently
+
+Circumvent QXmlStreamWriter when writing coordinates in compact form
+to QIODevice. We can convert them directly to the UTF-8 format which
+needs to go to the output device. Thus we can avoid the extra effort
+for escaping special XML characters and for converting the UTF-16
+QString to UTF-8 for output.
+In CoordXmlTest::writeFastImplementation(), this change gives double
+speed. This is significant enough to justify the unusual approach
+which is tightly coupled to the actual implementation of
+QXmlStreamWriter.
+---
+ src/util/xml_stream_util.cpp | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/src/util/xml_stream_util.cpp b/src/util/xml_stream_util.cpp
+index 36e1ca778..9919b08b5 100644
+--- a/src/util/xml_stream_util.cpp
++++ b/src/util/xml_stream_util.cpp
+@@ -183,6 +183,16 @@ void XmlElementWriter::write(const MapCoordVector& coords)
+ 		for (auto& coord : coords)
+ 			coord.save(xml);
+ 	}
++	else if (auto* device = xml.device())
++	{
++		// Default: efficient plain text format
++		// Direct UTF-8 writing without unnecessary allocations, escaping or
++		// conversions, but also without handling of device errors.
++		xml.writeCharacters({});  // Finish the start element
++		MapCoord::StringBuffer<char> buffer;
++		for (auto& coord : coords)
++			device->write(coord.toUtf8(buffer));
++	}
+ 	else
+ 	{
+ 		// Default: efficient plain text format

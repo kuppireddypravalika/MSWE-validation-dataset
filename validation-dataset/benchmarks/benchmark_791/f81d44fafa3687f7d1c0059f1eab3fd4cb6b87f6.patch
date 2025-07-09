@@ -1,0 +1,36 @@
+From f81d44fafa3687f7d1c0059f1eab3fd4cb6b87f6 Mon Sep 17 00:00:00 2001
+From: Adam Cozzette <acozzette@gmail.com>
+Date: Wed, 21 Sep 2016 10:39:23 -0700
+Subject: [PATCH] Fixed quadratic behavior in JSPB deserialization of repeated
+ fields (#2117) (#2146)
+
+Currently deserialization of a non-packed binary repeated field is quadratic in
+the number of elements, because each time we parse a new element we copy over
+all elements we have parsed so far. This CL fixes the performance problem by
+having the generated deserialization code just call addX() instead of using
+getX() and setX().
+---
+ src/google/protobuf/compiler/js/js_generator.cc | 10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
+
+diff --git a/src/google/protobuf/compiler/js/js_generator.cc b/src/google/protobuf/compiler/js/js_generator.cc
+index 1a882057368f3..fec465fef7907 100755
+--- a/src/google/protobuf/compiler/js/js_generator.cc
++++ b/src/google/protobuf/compiler/js/js_generator.cc
+@@ -2850,13 +2850,9 @@ void Generator::GenerateClassDeserializeBinaryField(
+     }
+ 
+     if (field->is_repeated() && !field->is_packed()) {
+-      // Repeated fields receive a |value| one at at a time; append to array
+-      // returned by get$name$(). Annoyingly, we have to call 'set' after
+-      // changing the array.
+-      printer->Print("      msg.get$name$().push(value);\n", "name",
+-                     JSGetterName(options, field));
+-      printer->Print("      msg.set$name$(msg.get$name$());\n", "name",
+-                     JSGetterName(options, field));
++      printer->Print(
++          "      msg.add$name$(value);\n", "name",
++          JSGetterName(options, field, BYTES_DEFAULT, /* drop_list = */ true));
+     } else {
+       // Singular fields, and packed repeated fields, receive a |value| either
+       // as the field's value or as the array of all the field's values; set

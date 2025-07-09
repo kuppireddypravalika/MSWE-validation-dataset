@@ -1,0 +1,32 @@
+From 24fc33b712a8b9d761e6377d32cc40a97e479df2 Mon Sep 17 00:00:00 2001
+From: Gheorghita MUTU <gheorghitamutu@gmail.com>
+Date: Sat, 4 Jun 2022 21:24:49 +0300
+Subject: [PATCH] ^ PE - bool vector instead unique_ptr
+
+Signed-off-by: Gheorghita MUTU <gheorghitamutu@gmail.com>
+---
+ Types/PE/src/PEFile.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Types/PE/src/PEFile.cpp b/Types/PE/src/PEFile.cpp
+index 51f146880..fa89c2822 100644
+--- a/Types/PE/src/PEFile.cpp
++++ b/Types/PE/src/PEFile.cpp
+@@ -506,7 +506,7 @@ bool PEFile::BuildExport()
+     uint64 faddr, oaddr, naddr;
+     uint32 RVA, export_RVA;
+     uint16 exportOrdinal;
+-    std::unique_ptr<bool[]> ordinals(nullptr);
++    std::vector<bool> ordinals;
+ 
+     exp.clear();
+ 
+@@ -572,7 +572,7 @@ bool PEFile::BuildExport()
+ 
+     if (exportDir.NumberOfNames < exportDir.NumberOfFunctions)
+     {
+-        ordinals.reset(new bool[exportDir.NumberOfFunctions]);
++        ordinals.resize(exportDir.NumberOfFunctions);
+         for (uint32 tr = 0; tr < exportDir.NumberOfFunctions; tr++)
+             ordinals[tr] = false;
+     }

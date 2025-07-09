@@ -1,0 +1,30 @@
+From 5771b371f25d3ed4cbbcd210c358c251544af7d2 Mon Sep 17 00:00:00 2001
+From: Paul Cornett <paulcor@users.noreply.github.com>
+Date: Sat, 2 Feb 2019 11:01:05 -0800
+Subject: [PATCH] Use memset rather than a loop to set memory to a fixed value
+
+---
+ src/common/imagpng.cpp | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
+
+diff --git a/src/common/imagpng.cpp b/src/common/imagpng.cpp
+index 79ff17bdacb9..89d0413dfdd1 100644
+--- a/src/common/imagpng.cpp
++++ b/src/common/imagpng.cpp
+@@ -216,13 +216,10 @@ unsigned char *InitAlpha(wxImage *image, png_uint_32 x, png_uint_32 y)
+ 
+     // set alpha for the pixels we had so far
+     png_uint_32 end = y * image->GetWidth() + x;
+-    for ( png_uint_32 i = 0; i < end; i++ )
+-    {
+-        // all the previous pixels were opaque
+-        *alpha++ = 0xff;
+-    }
++    // all the previous pixels were opaque
++    memset(alpha, 0xff, end);
+ 
+-    return alpha;
++    return alpha + end;
+ }
+ 
+ // ----------------------------------------------------------------------------

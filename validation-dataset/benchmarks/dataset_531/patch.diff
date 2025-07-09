@@ -1,0 +1,49 @@
+From 1cf07bfa40183177b4171cb677f6edff6515b35f Mon Sep 17 00:00:00 2001
+From: Warren Dukes <warren.dukes@gmail.com>
+Date: Fri, 5 Mar 2004 13:06:31 +0000
+Subject: [PATCH] skip over all bad frames
+
+git-svn-id: https://svn.musicpd.org/mpd/trunk@203 09075e82-0dd4-0310-85a5-a0d7c8717e4f
+---
+ src/mp3_decode.c | 20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
+
+diff --git a/src/mp3_decode.c b/src/mp3_decode.c
+index 790f9db467..b041da3b9f 100644
+--- a/src/mp3_decode.c
++++ b/src/mp3_decode.c
+@@ -424,6 +424,7 @@ int mp3Read(mp3DecodeData * data, Buffer * cb, DecoderControl * dc) {
+ 	static int i;
+ 	static int ret;
+ 	static struct audio_dither dither;
++	static int skip;
+ 
+ 	if(data->currentFrame>=data->highestFrame && 
+ 			data->highestFrame<data->maxFrames) 
+@@ -501,15 +502,18 @@ int mp3Read(mp3DecodeData * data, Buffer * cb, DecoderControl * dc) {
+ 		}
+ 	}
+ 
+-	if(data->muteFrame) {
+-		while((ret=decodeNextFrameHeader(data))==DECODE_CONT || 
+-				ret==DECODE_SKIP);
+-	}
+-	else {
+-		while((ret=decodeNextFrame(data))==DECODE_CONT || 
+-				ret==DECODE_SKIP);
++	while(1) {
++		skip = 0;
++		while((ret = decodeNextFrameHeader(data))==DECODE_CONT);
++		if(ret==DECODE_SKIP) skip = 1;
++		else if(ret==DECODE_BREAK) return -1;
++		if(data->muteFrame) {
++			while((ret = decodeNextFrame(data))==DECODE_CONT);
++			if(ret==DECODE_BREAK) return -1;
++		}
++		if(!skip && ret==DECODE_OK) break;
+ 	}
+-	
++
+ 	return ret;
+ }
+ 

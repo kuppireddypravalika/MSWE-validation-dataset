@@ -1,0 +1,23 @@
+From b1308e278159230e5579f6a0e812c4b7af9ca34b Mon Sep 17 00:00:00 2001
+From: Hendrik Leppkes <h.leppkes@gmail.com>
+Date: Fri, 24 Feb 2012 14:13:58 +0100
+Subject: [PATCH] Increase analyze duration for mpeg-ts by factor 1.5
+
+---
+ demuxer/Demuxers/LAVFDemuxer.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/demuxer/Demuxers/LAVFDemuxer.cpp b/demuxer/Demuxers/LAVFDemuxer.cpp
+index 6046dccf5..7bc4b00e7 100644
+--- a/demuxer/Demuxers/LAVFDemuxer.cpp
++++ b/demuxer/Demuxers/LAVFDemuxer.cpp
+@@ -330,7 +330,8 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
+ 
+   // Increase default probe sizes
+   //m_avFormat->probesize            = 5 * 5000000;
+-  //m_avFormat->max_analyze_duration = 5 * (5*AV_TIME_BASE);
++  if (m_bMPEGTS)
++    m_avFormat->max_analyze_duration = (m_avFormat->max_analyze_duration * 3) / 2;
+ 
+   m_timeOpening = time(NULL);
+   int ret = avformat_find_stream_info(m_avFormat, NULL);

@@ -1,0 +1,27 @@
+From 4f17aafa2d640791f892f810765209e36e7c9a7c Mon Sep 17 00:00:00 2001
+From: tteuling <tteuling@users.sourceforge.net>
+Date: Sat, 19 Mar 2011 19:40:24 +0100
+Subject: [PATCH] Reduce data cache values, since the import doe snot gain but
+ loose speed (possibly bad cache hit rate?).
+
+---
+ libosmscout/src/osmscout/Import.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/libosmscout/src/osmscout/Import.cpp b/libosmscout/src/osmscout/Import.cpp
+index c23597bc3..759788121 100644
+--- a/libosmscout/src/osmscout/Import.cpp
++++ b/libosmscout/src/osmscout/Import.cpp
+@@ -62,10 +62,10 @@ namespace osmscout {
+      numericIndexPageSize(4096),
+      nodesLoadSize(10000000),
+      nodeIndexIntervalSize(50),
+-     nodeDataCacheSize(10000),
++     nodeDataCacheSize(100),
+      nodeIndexCacheSize(30000),
+      waysLoadSize(1000000),
+-     wayDataCacheSize(10000),
++     wayDataCacheSize(100),
+      wayIndexCacheSize(5000),
+      areaAreaIndexMaxMag(18),
+      areaAreaRelIndexMaxMag(18),

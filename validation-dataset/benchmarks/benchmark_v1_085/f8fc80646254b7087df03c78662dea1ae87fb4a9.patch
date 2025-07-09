@@ -1,0 +1,23 @@
+From f8fc80646254b7087df03c78662dea1ae87fb4a9 Mon Sep 17 00:00:00 2001
+From: Philippe Canal <pcanal@fnal.gov>
+Date: Wed, 3 Feb 2021 11:22:55 -0600
+Subject: [PATCH] TTree::MergeTrees pass options to first Cloning.
+
+This allow the fast cloning of the first tree in the list when using TTree::MergeTrees (rare)
+---
+ tree/tree/src/TTree.cxx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tree/tree/src/TTree.cxx b/tree/tree/src/TTree.cxx
+index 68c32796cdd94..b1f598ca570d6 100644
+--- a/tree/tree/src/TTree.cxx
++++ b/tree/tree/src/TTree.cxx
+@@ -6779,7 +6779,7 @@ TTree* TTree::MergeTrees(TList* li, Option_t* options)
+       Long64_t nentries = tree->GetEntries();
+       if (nentries == 0) continue;
+       if (!newtree) {
+-         newtree = (TTree*)tree->CloneTree();
++         newtree = (TTree*)tree->CloneTree(-1, options);
+          if (!newtree) continue;
+ 
+          // Once the cloning is done, separate the trees,

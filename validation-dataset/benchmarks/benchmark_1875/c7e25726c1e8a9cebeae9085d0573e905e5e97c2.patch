@@ -1,0 +1,23 @@
+From c7e25726c1e8a9cebeae9085d0573e905e5e97c2 Mon Sep 17 00:00:00 2001
+From: Christoph Oelckers <coelckers@users.noreply.github.com>
+Date: Tue, 20 Dec 2022 12:44:34 +0100
+Subject: [PATCH] - use memset to clear 'gs' in loadconst.
+
+MSVC compiled the old assignment to memsetting a local copy and then memcpying it to the destination, but this struct is far too large for that and was causing occasional stack errors when debugging.
+---
+ source/games/duke/src/gamedef.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/source/games/duke/src/gamedef.cpp b/source/games/duke/src/gamedef.cpp
+index 4fbf9632fd1..4fa3d0e0ecb 100644
+--- a/source/games/duke/src/gamedef.cpp
++++ b/source/games/duke/src/gamedef.cpp
+@@ -3174,7 +3174,7 @@ void ConCompiler::setmusic()
+ 
+ void loadcons()
+ {
+-	gs = {};
++	memset(&gs, 0, sizeof(gs));
+ 	gs.respawnactortime = 768;
+ 	gs.bouncemineblastradius = 2500;
+ 	gs.respawnitemtime = 768;

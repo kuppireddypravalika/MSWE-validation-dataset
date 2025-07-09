@@ -1,0 +1,37 @@
+From f57cec2a317be64128d5949df6830ff47b028750 Mon Sep 17 00:00:00 2001
+From: Nil Geisweiller <ngeiswei@gmail.com>
+Date: Wed, 21 Dec 2011 12:47:27 +0200
+Subject: [PATCH] re-add actually necessary double casts in log2.
+
+The computation of information_theoretic_bits is apparently alterned
+when using log2 over integers rather than double (effectily this
+result in a substantial slow down of MOSES). I'm surprised because I
+thought that std::log (which log2 relies on) would automatically cast
+integer inputs to double.
+---
+ opencog/learning/moses/optimization/optimization.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/opencog/learning/moses/optimization/optimization.h b/opencog/learning/moses/optimization/optimization.h
+index 35e184ea98..4684a8972a 100644
+--- a/opencog/learning/moses/optimization/optimization.h
++++ b/opencog/learning/moses/optimization/optimization.h
+@@ -51,15 +51,15 @@ inline double information_theoretic_bits(const field_set& fs)
+ {
+     double res = 0;
+     foreach(const field_set::disc_spec& d, fs.disc_and_bits())
+-        res += log2(d.multy);
++        res += log2<double>(d.multy);
+     foreach(const field_set::contin_spec& c, fs.contin()) {
+         // number of possible contins with depth d is 2^(d+1)-1 because
+         // after a Stop only Stop is allowed which is why it is not 3^d
+         unsigned contin_count = pow2(c.depth + 1) - 1;
+-        res += log2(contin_count);
++        res += log2<double>(contin_count);
+     }
+     foreach(const field_set::onto_spec& o, fs.onto())
+-        res += log2(o.branching) * double(o.depth);
++        res += log2<double>(o.branching) * double(o.depth);
+     return res;
+ }
+ 

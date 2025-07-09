@@ -1,0 +1,26 @@
+From 5d363e8f0dbcf7b3be638660000151c52dc58860 Mon Sep 17 00:00:00 2001
+From: Morwenn <morwenn29@hotmail.fr>
+Date: Thu, 19 May 2016 20:42:47 +0200
+Subject: [PATCH] Early return for vergesort when the data is sorted.
+
+One of the first functions called by vergesort is is_sorted_until since it
+easily allows to find the length of the first ascending run. This commit
+uses the information to check whether the collection is already sorted
+with a cheap iterator comparison and makes vergesort return early if it is
+the case.
+---
+ include/cpp-sort/detail/vergesort.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/include/cpp-sort/detail/vergesort.h b/include/cpp-sort/detail/vergesort.h
+index 019b15e3..b6d4c7dd 100644
+--- a/include/cpp-sort/detail/vergesort.h
++++ b/include/cpp-sort/detail/vergesort.h
+@@ -208,6 +208,7 @@ namespace detail
+ 
+         // Pair of iterators to iterate through the collection
+         RandomAccessIterator next = is_sorted_until(first, last, compare, projection);
++        if (next == last) return;
+         RandomAccessIterator current = std::prev(next);
+ 
+         auto&& proj = utility::as_function(projection);

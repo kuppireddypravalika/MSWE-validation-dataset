@@ -1,0 +1,29 @@
+From 12184ebe7f50440ec0f73d5786782ba1c067b437 Mon Sep 17 00:00:00 2001
+From: Anton Kudryavtsev <anton.kudryavtsev@vk.team>
+Date: Fri, 25 Aug 2023 18:27:13 +0300
+Subject: [PATCH] QAuthenticator: use QSB more
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+avoid temp allocations
+
+Change-Id: I8ca4d4b748f79d1c7a4455a5105998c58c91c7a4
+Reviewed-by: Mårten Nordheim <marten.nordheim@qt.io>
+---
+ src/network/kernel/qauthenticator.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/network/kernel/qauthenticator.cpp b/src/network/kernel/qauthenticator.cpp
+index 91660cf2f7c4..432dfa7877c2 100644
+--- a/src/network/kernel/qauthenticator.cpp
++++ b/src/network/kernel/qauthenticator.cpp
+@@ -555,7 +555,7 @@ QByteArray QAuthenticatorPrivate::calculateResponse(QByteArrayView requestMethod
+         break;
+     case QAuthenticatorPrivate::Basic:
+         methodString = "Basic";
+-        response = user.toLatin1() + ':' + password.toLatin1();
++        response = (user + ':'_L1 + password).toLatin1();
+         response = response.toBase64();
+         phase = Done;
+         break;

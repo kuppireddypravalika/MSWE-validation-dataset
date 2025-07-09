@@ -1,0 +1,29 @@
+From 9741ade8ee761f78291e249ea17ad5e3e2c904d2 Mon Sep 17 00:00:00 2001
+From: wangmeng28 <wangmeng28@baidu.com>
+Date: Tue, 17 Oct 2017 16:53:54 +0800
+Subject: [PATCH] Change pow to square in factorization machine layer
+
+---
+ paddle/gserver/layers/FactorizationMachineLayer.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/paddle/gserver/layers/FactorizationMachineLayer.cpp b/paddle/gserver/layers/FactorizationMachineLayer.cpp
+index 09128eeeef1430..8d9dcbaea7f752 100644
+--- a/paddle/gserver/layers/FactorizationMachineLayer.cpp
++++ b/paddle/gserver/layers/FactorizationMachineLayer.cpp
+@@ -57,12 +57,12 @@ void FactorizationMachineLayer::forward(PassType passType) {
+ 
+   REGISTER_TIMER_INFO("FwMulTimer", getName().c_str());
+   tmpMul_->mul(*inputV, *latentVectors_->getW());
+-  tmpOut_->pow2(*tmpMul_, 2);
++  tmpMul_->square2(*tmpOut_);
+   outV->sumRows(*tmpOut_, 0.5, 0);
+ 
+   x2_ = inputV->clone(0, 0, useGpu_);
+-  x2_->pow2(*inputV, 2);
+-  v2_->pow2(*latentVectors_->getW(), 2);
++  inputV->square2(*x2_);
++  latentVectors_->getW()->square2(*v2_);
+   tmpOut_->mul(*x2_, *v2_);
+   outV->sumRows(*tmpOut_, -0.5, 1.0);
+ 

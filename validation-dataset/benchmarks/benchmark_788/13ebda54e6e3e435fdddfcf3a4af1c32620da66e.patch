@@ -1,0 +1,26 @@
+From 13ebda54e6e3e435fdddfcf3a4af1c32620da66e Mon Sep 17 00:00:00 2001
+From: Andreas Gal <gal@mozilla.com>
+Date: Mon, 26 Jan 2009 18:15:39 -0800
+Subject: [PATCH] LirNameMap gets large over time and searching it with binary
+ search is slow (475127, r=shaver).
+
+---
+ js/src/jstracer.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/js/src/jstracer.cpp b/js/src/jstracer.cpp
+index 7567b2c7321..f1520ff8acb 100644
+--- a/js/src/jstracer.cpp
++++ b/js/src/jstracer.cpp
+@@ -1239,8 +1239,9 @@ void TraceRecorder::removeFragmentoReferences()
+ inline LIns*
+ TraceRecorder::addName(LIns* ins, const char* name)
+ {
+-#ifdef DEBUG
+-    lirbuf->names->addName(ins, name);
++#ifdef JS_JIT_SPEW
++    if (js_verboseDebug)
++        lirbuf->names->addName(ins, name);
+ #endif
+     return ins;
+ }

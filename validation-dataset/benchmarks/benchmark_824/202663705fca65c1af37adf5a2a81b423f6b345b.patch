@@ -1,0 +1,25 @@
+From 202663705fca65c1af37adf5a2a81b423f6b345b Mon Sep 17 00:00:00 2001
+From: "Matthew \"strager\" Glazar" <strager.nds@gmail.com>
+Date: Fri, 22 Apr 2022 02:12:13 -0700
+Subject: [PATCH] perf: avoid inlining parse_current_token; reduce code bloat
+
+lexer::parse_current_token is called from many places in the parser.
+Clang loves to inline this function, adding code bloat. Mark the
+function as not inlinable to reduce code bloat.
+---
+ src/lex.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/lex.cpp b/src/lex.cpp
+index 5cf2ce6e72..8e3319dc0e 100644
+--- a/src/lex.cpp
++++ b/src/lex.cpp
+@@ -164,7 +164,7 @@ void lexer::parse_bom_before_shebang() {
+   }
+ }
+ 
+-void lexer::parse_current_token() {
++[[gnu::noinline]] void lexer::parse_current_token() {
+   this->last_last_token_end_ = const_cast<char8*>(this->last_token_.end);
+   this->last_token_.has_leading_newline = false;
+   this->skip_whitespace();

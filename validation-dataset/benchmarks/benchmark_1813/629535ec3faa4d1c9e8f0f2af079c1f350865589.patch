@@ -1,0 +1,24 @@
+From 629535ec3faa4d1c9e8f0f2af079c1f350865589 Mon Sep 17 00:00:00 2001
+From: Peter Vanroose <peter_vanroose@users.sourceforge.net>
+Date: Tue, 4 Nov 2003 12:02:58 -0500
+Subject: [PATCH] better use VCL_HAS_RTTI instead of VCL_HAS_DYNAMIC_CAST: the
+ former indicates whether typeid() can be used, the latter whether
+ dynamic_cast<T> is allowed
+
+---
+ contrib/mul/vimt/vimt_image.cxx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/contrib/mul/vimt/vimt_image.cxx b/contrib/mul/vimt/vimt_image.cxx
+index 556e102f8f5..bb1ce9142c7 100644
+--- a/contrib/mul/vimt/vimt_image.cxx
++++ b/contrib/mul/vimt/vimt_image.cxx
+@@ -25,7 +25,7 @@ short vimt_image::version_no() const
+ bool vimt_image::operator==(const vimt_image &im) const
+ {
+ // Use as a proxy for existence of RTTI support.
+-#if VCL_HAS_DYNAMIC_CAST && VCL_CXX_HAS_HEADER_TYPEINFO
++#if VCL_HAS_RTTI && VCL_CXX_HAS_HEADER_TYPEINFO
+   if (typeid(*this) == typeid(im))
+ #else
+   if (this->is_class(im.is_a()))

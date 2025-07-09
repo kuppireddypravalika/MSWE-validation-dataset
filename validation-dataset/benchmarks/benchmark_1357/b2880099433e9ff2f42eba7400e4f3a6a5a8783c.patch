@@ -1,0 +1,24 @@
+From b2880099433e9ff2f42eba7400e4f3a6a5a8783c Mon Sep 17 00:00:00 2001
+From: Mikhail Yakshin <greycat@altlinux.org>
+Date: Wed, 8 Feb 2017 22:36:30 +0300
+Subject: [PATCH] Return value optimization, according to
+ https://github.com/kaitai-io/kaitai_struct_cpp_stl_runtime/issues/8
+
+---
+ kaitai/kaitaistream.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/kaitai/kaitaistream.cpp b/kaitai/kaitaistream.cpp
+index b1d8850..bed8759 100644
+--- a/kaitai/kaitaistream.cpp
++++ b/kaitai/kaitaistream.cpp
+@@ -497,8 +497,7 @@ std::string kaitai::kstream::to_string(int val) {
+     if (got_len > sizeof(buf))
+         throw std::invalid_argument("integer is longer than string buffer");
+ 
+-    std::string ret(buf);
+-    return ret;
++    return std::string(buf);
+ }
+ 
+ #include <algorithm>

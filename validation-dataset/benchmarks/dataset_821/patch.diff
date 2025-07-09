@@ -1,0 +1,23 @@
+From a3f1d9b717b2dadf12bc76c95bfd39dbdeeb8839 Mon Sep 17 00:00:00 2001
+From: Giles Bathgate <gilesbathgate@gmail.com>
+Date: Wed, 29 Nov 2017 12:37:42 +0000
+Subject: [PATCH] Use loop subdivision by default since it produces
+ triangulated meshes
+
+---
+ src/nodeevaluator.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/nodeevaluator.cpp b/src/nodeevaluator.cpp
+index 745206b2d..cda20b7f9 100644
+--- a/src/nodeevaluator.cpp
++++ b/src/nodeevaluator.cpp
+@@ -520,7 +520,7 @@ void NodeEvaluator::visit(SubDivisionNode* n)
+ #if defined(USE_CGAL) && defined(USE_SUBDIV)
+ 	auto* cp=static_cast<CGALPrimitive*>(result);
+ 	CGAL::Polyhedron3& p=*cp->getPolyhedron();
+-	CGAL::Subdivision_method_3::CatmullClark_subdivision(p,n->getLevel());
++	CGAL::Subdivision_method_3::Loop_subdivision(p,n->getLevel());
+ 	result=new CGALPrimitive(p);
+ #endif
+ }

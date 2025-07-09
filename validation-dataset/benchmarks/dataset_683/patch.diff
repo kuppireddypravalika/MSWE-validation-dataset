@@ -1,0 +1,38 @@
+From 13af61f046e9dd63623d79562baa6b58e7e88130 Mon Sep 17 00:00:00 2001
+From: Lukas Rusak <lorusak@gmail.com>
+Date: Sat, 24 Apr 2021 17:41:38 -0700
+Subject: [PATCH] CApplication: use std::chrono to measure skin load time
+
+---
+ xbmc/Application.cpp | 12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
+
+diff --git a/xbmc/Application.cpp b/xbmc/Application.cpp
+index 459547575c810..e75fc8b260d99 100644
+--- a/xbmc/Application.cpp
++++ b/xbmc/Application.cpp
+@@ -1136,19 +1136,17 @@ bool CApplication::LoadSkin(const std::string& skinID)
+ 
+   g_localizeStrings.LoadSkinStrings(langPath, settings->GetString(CSettings::SETTING_LOCALE_LANGUAGE));
+ 
+-
+-  int64_t start;
+-  start = CurrentHostCounter();
++  const auto start = std::chrono::steady_clock::now();
+ 
+   CLog::Log(LOGINFO, "  load new skin...");
+ 
+   // Load custom windows
+   LoadCustomWindows();
+ 
+-  int64_t end, freq;
+-  end = CurrentHostCounter();
+-  freq = CurrentHostFrequency();
+-  CLog::Log(LOGDEBUG, "Load Skin XML: {:.2f}ms", 1000.f * (end - start) / freq);
++  const auto end = std::chrono::steady_clock::now();
++  std::chrono::duration<double, std::milli> duration = end - start;
++
++  CLog::Log(LOGDEBUG, "Load Skin XML: {:.2f} ms", duration.count());
+ 
+   CLog::Log(LOGINFO, "  initialize new skin...");
+   CServiceBroker::GetGUI()->GetWindowManager().AddMsgTarget(this);

@@ -1,0 +1,23 @@
+From e25fe1ecc9ba1d52c2441b17623a9e5766dc5e33 Mon Sep 17 00:00:00 2001
+From: Gunnar Beutner <gunnar.beutner@netways.de>
+Date: Thu, 7 Nov 2013 11:11:44 +0100
+Subject: [PATCH] Optimize ObjectImpl<>::GetDefault*().
+
+Refs #2710
+---
+ tools/mkclass/classcompiler.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tools/mkclass/classcompiler.cpp b/tools/mkclass/classcompiler.cpp
+index 0d651af0bba..4aff41c0610 100644
+--- a/tools/mkclass/classcompiler.cpp
++++ b/tools/mkclass/classcompiler.cpp
+@@ -349,7 +349,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo& locp)
+ 					  << "\t" << "{" << std::endl;
+ 
+ 			if (it->DefaultAccessor.empty())
+-				std::cout << "\t\t" << "return Empty;" << std::endl;
++				std::cout << "\t\t" << "return " << it->Type << "();" << std::endl;
+ 			else
+ 				std::cout << it->DefaultAccessor << std::endl;
+ 

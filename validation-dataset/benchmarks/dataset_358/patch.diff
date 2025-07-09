@@ -1,0 +1,49 @@
+From 2a2526a7c1919bd55ab0ed01922688b9f2bb5f6a Mon Sep 17 00:00:00 2001
+From: Kai Pastor <dg0yt@darc.de>
+Date: Mon, 29 Aug 2016 20:33:54 +0200
+Subject: [PATCH] XMLFileImporter: Use a QBuffer for recovery
+
+The QBuffer replaces the importer's current `stream` QIODevice. The buffer's
+lifetime is bound to the importer by QObject's parent/child relationship.
+This replacement could be repeated and thus allows for (future) recovery
+from multiple errors.
+---
+ src/file_format_xml.cpp | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
+
+diff --git a/src/file_format_xml.cpp b/src/file_format_xml.cpp
+index 04cfd6f4f..963d91eba 100644
+--- a/src/file_format_xml.cpp
++++ b/src/file_format_xml.cpp
+@@ -22,6 +22,7 @@
+ #include "file_format_xml.h"
+ #include "file_format_xml_p.h"
+ 
++#include <QBuffer>
+ #include <QDebug>
+ #include <QFile>
+ #include <QScopedValueRollback>
+@@ -524,14 +525,18 @@ void XMLFileImporter::importMapNotes()
+ 		// Try to recover from not well-formed map notes
+ 		if (stream->seek(0))
+ 		{
+-			const auto data = stream->readAll();
+-			const auto start = data.indexOf("<notes>");
++			auto buffer = new QBuffer(this);
++			auto& data = buffer->buffer();
++			data = stream->readAll();
++			const auto start = data.indexOf("<notes>") + 7;
+ 			const auto end = data.indexOf("</notes>", start);
+-			if (start > 0 && end > 0)
++			if (start > 7 && end > 0)
+ 			{
++				data.remove(start, end - start);
++				stream = buffer;
++				stream->open(QIODevice::ReadOnly);
+ 				xml.clear();
+-				xml.addData(QByteArray::fromRawData(data.data(), start + 7));
+-				xml.addData(QByteArray::fromRawData(data.data() + end, data.length() - end));
++				xml.setDevice(stream);
+ 				while (!xml.atEnd()
+ 				       && xml.name() != literal::notes)
+ 				{

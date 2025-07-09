@@ -1,0 +1,34 @@
+From d40606c97f03c1694434f17a0994171b0f75e142 Mon Sep 17 00:00:00 2001
+From: Frank Warmerdam <warmerdam@pobox.com>
+Date: Fri, 19 Mar 2004 06:30:06 +0000
+Subject: [PATCH] Changed to compute exact min/max for -mm instead of
+ approximate.
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@5959 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ apps/gdalinfo.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/apps/gdalinfo.c b/apps/gdalinfo.c
+index 3975bebeb8bf..84db29f17233 100644
+--- a/apps/gdalinfo.c
++++ b/apps/gdalinfo.c
+@@ -26,6 +26,9 @@
+  * serves as an early test harnass.
+  *
+  * $Log$
++ * Revision 1.31  2004/03/19 06:30:06  warmerda
++ * Changed to compute exact min/max for -mm instead of approximate.
++ *
+  * Revision 1.30  2003/11/24 17:46:58  warmerda
+  * Report full geotransform when image is not northup.
+  *
+@@ -388,7 +391,7 @@ int main( int argc, char ** argv )
+         
+             if( bComputeMinMax )
+             {
+-                GDALComputeRasterMinMax( hBand, TRUE, adfCMinMax );
++                GDALComputeRasterMinMax( hBand, FALSE, adfCMinMax );
+                 printf( "  Computed Min/Max=%.3f,%.3f", 
+                         adfCMinMax[0], adfCMinMax[1] );
+             }

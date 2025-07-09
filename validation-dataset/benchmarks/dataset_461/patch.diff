@@ -1,0 +1,22 @@
+From 88ee99db824cf3204e57d05d311e6b6451c0642f Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Manuel=20V=C3=B6gele?= <develop@manuel-voegele.de>
+Date: Sun, 18 Sep 2016 11:48:44 +0200
+Subject: [PATCH] Replaced (1 << 6) with constant GAME_COMMAND_FLAG_GHOST
+
+---
+ src/world/footpath.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/world/footpath.c b/src/world/footpath.c
+index 80126a3ad32e..c60c1e4a5086 100644
+--- a/src/world/footpath.c
++++ b/src/world/footpath.c
+@@ -220,7 +220,7 @@ static money32 footpath_element_insert(int type, int x, int y, int z, int slope,
+ 		mapElement->properties.path.additions = pathItemType;
+ 		mapElement->properties.path.addition_status = 255;
+ 		mapElement->flags &= ~MAP_ELEMENT_FLAG_BROKEN;
+-		if (flags & (1 << 6))
++		if (flags & GAME_COMMAND_FLAG_GHOST)
+ 			mapElement->flags |= MAP_ELEMENT_FLAG_GHOST;
+ 
+ 		footpath_queue_chain_reset();

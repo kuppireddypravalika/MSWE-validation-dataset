@@ -1,0 +1,31 @@
+From b61cd4cf5535ecfd76d5c923ea7421a8282bf98b Mon Sep 17 00:00:00 2001
+From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
+Date: Wed, 8 Jan 2014 21:28:08 +0100
+Subject: [PATCH] In the demo application, reset the FPS counter every hundred
+ frames.
+
+Gives much, much better FPS counts for benchmarking.
+---
+ demo.cpp | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/demo.cpp b/demo.cpp
+index 0083f68..cd9fe9f 100644
+--- a/demo.cpp
++++ b/demo.cpp
+@@ -303,6 +303,15 @@ int main(int argc, char **argv)
+ 		printf("%d frames in %.3f seconds = %.1f fps (%.1f ms/frame)\n",
+ 			frame, elapsed, frame / elapsed,
+ 			1e3 * elapsed / frame);
++
++		// Reset every 100 frames, so that local variations in frame times
++		// (especially for the first few frames, when the shaders are
++		// compiled etc.) don't make it hard to measure for the entire
++		// remaining duration of the program.
++		if (frame == 100) {
++			frame = 0;
++			start = now;
++		}
+ #endif
+ 	}
+ 	return 0; 

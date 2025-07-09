@@ -1,0 +1,24 @@
+From 0a54135c7fdeb862c03b62a5d21f614d4dbb01e7 Mon Sep 17 00:00:00 2001
+From: Eugene Golushkov <e.golushkov@nospam-gmail.com>
+Date: Fri, 19 Nov 2021 20:39:01 +0200
+Subject: [PATCH] WireAabb::_updateTracking is called when
+ _getCurrentSceneManager() == nullptr, so isVisible is effectively getVisible,
+ just less efficient.
+
+---
+ OgreMain/src/OgreWireAabb.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/OgreMain/src/OgreWireAabb.cpp b/OgreMain/src/OgreWireAabb.cpp
+index c6a88ff5fff..5c9afb55f50 100644
+--- a/OgreMain/src/OgreWireAabb.cpp
++++ b/OgreMain/src/OgreWireAabb.cpp
+@@ -116,7 +116,7 @@ namespace Ogre
+         }
+         else
+         {
+-            this->setVisible( mTrackedObject->isVisible() );
++            this->setVisible( mTrackedObject->getVisible() );
+             Aabb trackedAabb = mTrackedObject->getWorldAabb();
+             mParentNode->setPosition( trackedAabb.mCenter );
+             mParentNode->setScale( trackedAabb.mHalfSize );

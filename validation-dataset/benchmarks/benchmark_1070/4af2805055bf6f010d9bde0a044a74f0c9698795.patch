@@ -1,0 +1,23 @@
+From 4af2805055bf6f010d9bde0a044a74f0c9698795 Mon Sep 17 00:00:00 2001
+From: David Mandelin <dmandelin@mozilla.com>
+Date: Fri, 14 Aug 2009 15:36:50 -0700
+Subject: [PATCH] Bug 509982 followup: simpler faster test for presence of
+ upvars in a flat closure, sr=brendan
+
+---
+ js/src/jstracer.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/js/src/jstracer.cpp b/js/src/jstracer.cpp
+index 9bf2133c362..e7409654031 100644
+--- a/js/src/jstracer.cpp
++++ b/js/src/jstracer.cpp
+@@ -11836,7 +11836,7 @@ TraceRecorder::record_JSOP_LAMBDA_FC()
+           OOM_EXIT);
+     stack(0, call_ins);
+ 
+-    if (fun->u.i.script->upvarsOffset) {
++    if (fun->u.i.nupvars) {
+         JSUpvarArray *uva = JS_SCRIPT_UPVARS(fun->u.i.script);
+         for (uint32 i = 0, n = uva->length; i < n; i++) {
+             jsval v;

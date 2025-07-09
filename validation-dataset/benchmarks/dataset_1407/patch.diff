@@ -1,0 +1,23 @@
+From 3881a4c4e139ee94c09424e13e3ebfacc51f1322 Mon Sep 17 00:00:00 2001
+From: Ethan Burns <burns.ethan@gmail.com>
+Date: Wed, 31 Aug 2011 17:31:54 -0700
+Subject: [PATCH] std::string::append instead of allocating a bunch of
+ temporary strings.
+
+---
+ utils/testing.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/utils/testing.cc b/utils/testing.cc
+index fb344711..69822988 100644
+--- a/utils/testing.cc
++++ b/utils/testing.cc
+@@ -57,7 +57,7 @@ void testpr(const char *fmt, ...) {
+ 	vsnprintf(buf, Bufsz, fmt, ap);
+ 	va_end(ap);
+ 
+-	msg += buf;
++	msg.append(buf);
+ }
+ 
+ static bool runtest(const Test &t) {

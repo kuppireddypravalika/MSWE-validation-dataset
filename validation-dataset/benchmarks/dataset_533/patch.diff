@@ -1,0 +1,27 @@
+From 5327a8f421bacb06d2a82b336a2053a8ddb9422b Mon Sep 17 00:00:00 2001
+From: Warren Dukes <warren.dukes@gmail.com>
+Date: Mon, 14 Feb 2005 00:52:29 +0000
+Subject: [PATCH] when filling mp3 buffer, check if its already full.  If it
+ is, then give up trying to read in a potential mp3 frame, cause no mp3 frame
+ should be bigger than the input buffer
+
+git-svn-id: https://svn.musicpd.org/mpd/trunk@2950 09075e82-0dd4-0310-85a5-a0d7c8717e4f
+---
+ src/inputPlugins/mp3_plugin.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/inputPlugins/mp3_plugin.c b/src/inputPlugins/mp3_plugin.c
+index cdb2a74c0f..33087e1342 100644
+--- a/src/inputPlugins/mp3_plugin.c
++++ b/src/inputPlugins/mp3_plugin.c
+@@ -187,6 +187,10 @@ int fillMp3InputBuffer(mp3DecodeData * data) {
+ 		remaining = 0;
+ 	}
+ 
++	/* we've exhausted the read buffer, so give up!, these potential
++	 * mp3 frames are way too big, and thus unlikely to be mp3 frames */
++	if(readSize == 0) return -1;
++
+ 	readed = readFromInputStream(data->inStream, readStart, (size_t)1, 
+ 			readSize);
+ 	if(readed <= 0 && inputStreamAtEOF(data->inStream)) return -1;

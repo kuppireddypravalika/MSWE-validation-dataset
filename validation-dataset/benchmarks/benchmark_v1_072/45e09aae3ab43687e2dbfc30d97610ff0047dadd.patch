@@ -1,0 +1,22 @@
+From 45e09aae3ab43687e2dbfc30d97610ff0047dadd Mon Sep 17 00:00:00 2001
+From: Takanori Nakane <nakane.t@gmail.com>
+Date: Thu, 7 Oct 2021 05:34:33 +0100
+Subject: [PATCH] fixed a typo in the most important loop!
+
+---
+ src/ml_optimiser.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/ml_optimiser.cpp b/src/ml_optimiser.cpp
+index 1bede5ca4..25613c3a1 100644
+--- a/src/ml_optimiser.cpp
++++ b/src/ml_optimiser.cpp
+@@ -3922,7 +3922,7 @@ void MlOptimiser::expectationSomeParticles(long int my_first_part_id, long int m
+ 		// process multiple particles at once
+ 		exp_ipart_ThreadTaskDistributor->resize(my_last_part_id - my_first_part_id + 1, 1);
+ 		exp_ipart_ThreadTaskDistributor->reset();
+-		#pragma omp prallel for num_threads(nr_threads)
++		#pragma omp parallel for num_threads(nr_threads)
+ 		for (int thread_id = 0; thread_id < nr_threads; thread_id++)
+ 			globalThreadExpectationSomeParticles(this, thread_id);
+ 	}

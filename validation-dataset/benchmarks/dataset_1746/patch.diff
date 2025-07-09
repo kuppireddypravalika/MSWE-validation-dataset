@@ -1,0 +1,28 @@
+From 4025fd1ba17a49774efa9bce3e923e9433cdd05b Mon Sep 17 00:00:00 2001
+From: Christian Kandeler <christian.kandeler@theqtcompany.com>
+Date: Fri, 7 Aug 2015 12:42:06 +0200
+Subject: [PATCH] Do not clear the imports cache in getProcessEnvironment().
+
+Because:
+    - I don't know why that should be necessary.
+    - Things seem to work without it.
+    - Clearing the cache massively slows down the null build.
+
+Change-Id: Ia1bff1a3e6eda1184619bcf6255c12d57e37fdf8
+Reviewed-by: Joerg Bornemann <joerg.bornemann@theqtcompany.com>
+---
+ src/lib/corelib/language/language.cpp | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/src/lib/corelib/language/language.cpp b/src/lib/corelib/language/language.cpp
+index 18f7024f11..b6a62b79a3 100644
+--- a/src/lib/corelib/language/language.cpp
++++ b/src/lib/corelib/language/language.cpp
+@@ -635,7 +635,6 @@ static QProcessEnvironment getProcessEnvironment(ScriptEngine *engine, EnvType e
+         engine->setProperty("_qbs_procenv", v);
+     }
+ 
+-    engine->clearImportsCache();
+     QScriptValue scope = engine->newObject();
+ 
+     const QScriptValue getEnvValue = engine->newFunction(js_getEnv, 1);

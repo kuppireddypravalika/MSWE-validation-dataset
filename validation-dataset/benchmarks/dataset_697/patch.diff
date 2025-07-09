@@ -1,0 +1,42 @@
+From 3459df385e4ec0f9161177a6271bc05b51cc505c Mon Sep 17 00:00:00 2001
+From: thexai <58434170+thexai@users.noreply.github.com>
+Date: Sat, 4 Mar 2023 11:53:50 +0100
+Subject: [PATCH] NFSFile: use 128K read/write chunk size in NFSv4
+
+NFSv4 not has maximun chunk size limitation at server side (used
+TCP vs UDP in NFSv3, etc.) then 'nfs_get_readmax' returns zero or not
+implemented.
+
+Clients must set the chunk size they want to use.
+---
+ xbmc/filesystem/NFSFile.cpp | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/xbmc/filesystem/NFSFile.cpp b/xbmc/filesystem/NFSFile.cpp
+index b22bba8030ae2..5e0c148770ca2 100644
+--- a/xbmc/filesystem/NFSFile.cpp
++++ b/xbmc/filesystem/NFSFile.cpp
+@@ -329,10 +329,22 @@ bool CNfsConnection::Connect(const CURL& url, std::string &relativePath)
+     }
+     m_exportPath = exportPath;
+     m_hostName = url.GetHostName();
+-    //read chunksize only works after mount
++
++    // read chunksize only works after mount
+     m_readChunkSize = nfs_get_readmax(m_pNfsContext);
+     m_writeChunkSize = nfs_get_writemax(m_pNfsContext);
+ 
++    if (m_readChunkSize == 0)
++    {
++      CLog::Log(LOGDEBUG, "NFS Server did not return max read chunksize - Using 128K default");
++      m_readChunkSize = 128 * 1024; // 128K
++    }
++    if (m_writeChunkSize == 0)
++    {
++      CLog::Log(LOGDEBUG, "NFS Server did not return max write chunksize - Using 128K default");
++      m_writeChunkSize = 128 * 1024; // 128K
++    }
++
+     if (contextRet == CNfsConnection::ContextStatus::NEW)
+     {
+       CLog::Log(LOGDEBUG, "NFS: chunks: r/w {}/{}", (int)m_readChunkSize, (int)m_writeChunkSize);

@@ -1,0 +1,43 @@
+From d466df3b62986fb4f7f7b0f3ef24f9016a4a130f Mon Sep 17 00:00:00 2001
+From: Philippe Canal <pcanal@fnal.gov>
+Date: Fri, 31 Jan 2014 18:25:38 -0600
+Subject: [PATCH] Always go through a TClass to search for base class.
+
+To solve ROOT-6020, use TClass::GetClass to resolve the string
+being passed so that we completely and properly resolve the
+classname (and reduce the cost of the search).
+---
+ core/meta/src/TClass.cxx | 19 +++++--------------
+ 1 file changed, 5 insertions(+), 14 deletions(-)
+
+diff --git a/core/meta/src/TClass.cxx b/core/meta/src/TClass.cxx
+index 0e7415553383a..fd55004e1f1fb 100644
+--- a/core/meta/src/TClass.cxx
++++ b/core/meta/src/TClass.cxx
+@@ -2289,21 +2289,12 @@ TClass *TClass::GetBaseClass(const char *classname)
+ 
+    if (!fClassInfo) return 0;
+ 
+-   TObjLink *lnk = GetListOfBases() ? fBase->FirstLink() : 0;
++   // Make sure we deal with possible aliases, we could also have normalized
++   // the name.
++   TClass *search = TClass::GetClass(classname);
+ 
+-   // otherwise look at inheritance tree
+-   while (lnk) {
+-      TClass     *c, *c1;
+-      TBaseClass *base = (TBaseClass*) lnk->GetObject();
+-      c = base->GetClassPointer();
+-      if (c) {
+-         if (strcmp(c->GetName(), classname) == 0) return c;
+-         c1 = c->GetBaseClass(classname);
+-         if (c1) return c1;
+-      }
+-      lnk = lnk->Next();
+-   }
+-   return 0;
++   if (search) return GetBaseClass(search);
++   else return 0;
+ }
+ 
+ //______________________________________________________________________________

@@ -1,0 +1,33 @@
+From b3aea1d93fd2d7e1fb7376696dca71cac535f0e1 Mon Sep 17 00:00:00 2001
+From: Hanna K <hanna.knutsson@protonmail.com>
+Date: Thu, 23 Jun 2022 09:34:45 +0200
+Subject: [PATCH] Free memory (primarily delete all ExpressionItem objects)
+ when Calculator object is deleted (issue #444)
+
+---
+ libqalculate/Calculator.cc | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/libqalculate/Calculator.cc b/libqalculate/Calculator.cc
+index 5d509294..a862f0e3 100644
+--- a/libqalculate/Calculator.cc
++++ b/libqalculate/Calculator.cc
+@@ -596,8 +596,18 @@ Calculator::~Calculator() {
+ 	closeGnuplot();
+ 	abort();
+ 	terminateThreads();
++	clearRPNStack();
++	for(unordered_map<Unit*, MathStructure*>::iterator it = priv->composite_unit_base.begin(); it != priv->composite_unit_base.end(); ++it) it->second->unref();
++	for(unordered_map<size_t, MathStructure*>::iterator it = priv->id_structs.begin(); it != priv->id_structs.end(); ++it) it->second->unref();
++	for(size_t i = 0; i < functions.size(); i++) delete functions[i];
++	for(size_t i = 0; i < variables.size(); i++) delete variables[i];
++	for(size_t i = 0; i < units.size(); i++) delete units[i];
++	for(size_t i = 0; i < prefixes.size(); i++) delete prefixes[i];
++	for(size_t i = 0; i < data_sets.size(); i++) delete data_sets[i];
++	if(default_assumptions) delete default_assumptions;
+ 	delete priv;
+ 	delete calculate_thread;
++	calculator = NULL;
+ 	gmp_randclear(randstate);
+ #ifdef HAVE_ICU
+ 	if(ucm) ucasemap_close(ucm);

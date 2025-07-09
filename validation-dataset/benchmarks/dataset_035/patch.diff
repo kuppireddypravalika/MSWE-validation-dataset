@@ -1,0 +1,22 @@
+From 758aaffbd00cd7246b908690a5554a9b2f24f5df Mon Sep 17 00:00:00 2001
+From: csoler <csoler@users.sourceforge.net>
+Date: Wed, 9 Dec 2020 22:55:15 +0100
+Subject: [PATCH] fixed missing delete in generic_sendData() causing a memory
+ leak
+
+---
+ libretroshare/src/gxs/rsgxsnetservice.cc | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/libretroshare/src/gxs/rsgxsnetservice.cc b/libretroshare/src/gxs/rsgxsnetservice.cc
+index 6590e3043e..bdf03ff832 100644
+--- a/libretroshare/src/gxs/rsgxsnetservice.cc
++++ b/libretroshare/src/gxs/rsgxsnetservice.cc
+@@ -769,6 +769,7 @@ void RsGxsNetService::generic_sendItem(RsNxsItem *si)
+ 		ser.serialise(si,mem,&size) ;
+ 
+ 		mGxsNetTunnel->sendTunnelData(mServType,mem,size,static_cast<RsGxsNetTunnelVirtualPeerId>(si->PeerId()));
++        delete si;
+ 	}
+ 	else
+ 		sendItem(si) ;

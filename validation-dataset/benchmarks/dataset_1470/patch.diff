@@ -1,0 +1,42 @@
+From 8b0f1bda3bcbcd9464aaf569766c4b9b912b299b Mon Sep 17 00:00:00 2001
+From: Alexey Rochev <equeim@gmail.com>
+Date: Thu, 10 Dec 2015 14:41:59 +0300
+Subject: [PATCH] PlaylistModel: faster removing tracks if all are selected
+
+---
+ src/playlistmodel.cpp | 22 ++++++++++++++++------
+ 1 file changed, 16 insertions(+), 6 deletions(-)
+
+diff --git a/src/playlistmodel.cpp b/src/playlistmodel.cpp
+index a0dd442..a29d665 100644
+--- a/src/playlistmodel.cpp
++++ b/src/playlistmodel.cpp
+@@ -172,12 +172,22 @@ QVariantMap PlaylistModel::get(int trackIndex) const
+ 
+ void PlaylistModel::removeAtIndexes(const QList<int> &trackIndexes)
+ {
+-    for (int i = 0, indexesCount = trackIndexes.size(); i < indexesCount; i++) {
+-        int trackIndex = trackIndexes.at(i) - i;
+-        beginRemoveRows(QModelIndex(), trackIndex, trackIndex);
+-        delete m_tracks.takeAt(trackIndex);
+-        m_rowCount--;
+-        endRemoveRows();
++    int indexesCount = trackIndexes.size();
++
++    if (indexesCount == m_tracks.size()) {
++        beginResetModel();
++        qDeleteAll(m_tracks);
++        m_tracks.clear();
++        m_rowCount = 0;
++        endResetModel();
++    } else {
++        for (int i = 0, indexesCount = trackIndexes.size(); i < indexesCount; i++) {
++            int trackIndex = trackIndexes.at(i) - i;
++            beginRemoveRows(QModelIndex(), trackIndex, trackIndex);
++            delete m_tracks.takeAt(trackIndex);
++            m_rowCount--;
++            endRemoveRows();
++        }
+     }
+ }
+ 

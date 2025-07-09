@@ -1,0 +1,39 @@
+From a60c54558268e32e3b6b82208e9c4c4da6b13465 Mon Sep 17 00:00:00 2001
+From: Christoph Cullmann <cullmann@kde.org>
+Date: Sun, 7 Jul 2019 13:04:35 +0200
+Subject: [PATCH] avoid deprecated sort algo + use stable sorting
+
+---
+ addons/lspclient/lspclientcompletion.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/addons/lspclient/lspclientcompletion.cpp b/addons/lspclient/lspclientcompletion.cpp
+index 5e2f6abf44..e6367c074d 100644
+--- a/addons/lspclient/lspclientcompletion.cpp
++++ b/addons/lspclient/lspclientcompletion.cpp
+@@ -31,6 +31,7 @@
+ #include <QIcon>
+ #include <QUrl>
+ 
++#include <algorithm>
+ 
+ #define RETURN_CACHED_ICON(name) \
+ { \
+@@ -263,7 +264,7 @@ class LSPClientCompletionImpl : public LSPClientCompletion
+             qCInfo(LSPCLIENT) << "adding completions " << compl.size();
+             for (const auto & item : compl)
+                 m_matches.push_back(item);
+-            qSort(m_matches.begin(), m_matches.end(), compare_match);
++            std::stable_sort(m_matches.begin(), m_matches.end(), compare_match);
+             setRowCount(m_matches.size());
+             endResetModel();
+         };
+@@ -283,7 +284,7 @@ class LSPClientCompletionImpl : public LSPClientCompletion
+                 m_matches.push_back({item, active, QString(QStringLiteral("%1").arg(sortIndex, 3, 10))});
+                 ++index;
+             }
+-            qSort(m_matches.begin(), m_matches.end(), compare_match);
++            std::stable_sort(m_matches.begin(), m_matches.end(), compare_match);
+             setRowCount(m_matches.size());
+             endResetModel();
+         };

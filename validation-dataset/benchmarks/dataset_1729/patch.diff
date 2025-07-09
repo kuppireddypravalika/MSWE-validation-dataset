@@ -1,0 +1,27 @@
+From f15cfbfdee9e756bb70b6c2bd10d1479fb52afcb Mon Sep 17 00:00:00 2001
+From: Alex Trotsenko <alex1973tr@gmail.com>
+Date: Wed, 13 Apr 2016 20:21:10 +0300
+Subject: [PATCH] Improve QHttpNetworkReplyPrivate::readStatus()
+
+Check HTTP signature only once in cycle.
+
+Change-Id: I06f6b778429243ed17cd4175e532ef201f1e5551
+Reviewed-by: Timur Pocheptsov <timur.pocheptsov@theqtcompany.com>
+---
+ src/network/access/qhttpnetworkreply.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/network/access/qhttpnetworkreply.cpp b/src/network/access/qhttpnetworkreply.cpp
+index 3601c36bc2cc..9476cf87154e 100644
+--- a/src/network/access/qhttpnetworkreply.cpp
++++ b/src/network/access/qhttpnetworkreply.cpp
+@@ -484,8 +484,7 @@ qint64 QHttpNetworkReplyPrivate::readStatus(QAbstractSocket *socket)
+         }
+ 
+         // is this a valid reply?
+-        if (fragment.length() >= 5 && !fragment.startsWith("HTTP/"))
+-        {
++        if (fragment.length() == 5 && !fragment.startsWith("HTTP/")) {
+             fragment.clear();
+             return -1;
+         }

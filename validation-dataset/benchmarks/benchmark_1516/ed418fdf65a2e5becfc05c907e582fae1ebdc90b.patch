@@ -1,0 +1,35 @@
+From ed418fdf65a2e5becfc05c907e582fae1ebdc90b Mon Sep 17 00:00:00 2001
+From: Zak Middleton <Zak.Middleton@epicgames.com>
+Date: Mon, 25 Aug 2014 14:46:54 -0400
+Subject: [PATCH] #ue4 - AActor::PostEditChangeProperty() now uses static
+ FNames that use GET_MEMBER_NAME_CHECKED, for speed and safety.
+
+[CL 2270873 by Zak Middleton in Main branch]
+---
+ Engine/Source/Runtime/Engine/Private/ActorEditor.cpp | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/Engine/Source/Runtime/Engine/Private/ActorEditor.cpp b/Engine/Source/Runtime/Engine/Private/ActorEditor.cpp
+index 8ff3c4846f5..4992f9d9f6c 100644
+--- a/Engine/Source/Runtime/Engine/Private/ActorEditor.cpp
++++ b/Engine/Source/Runtime/Engine/Private/ActorEditor.cpp
+@@ -23,6 +23,10 @@ void AActor::PreEditChange(UProperty* PropertyThatWillChange)
+ 	UnregisterAllComponents();
+ }
+ 
++static FName Name_RelativeLocation = GET_MEMBER_NAME_CHECKED(USceneComponent, RelativeLocation);
++static FName Name_RelativeRotation = GET_MEMBER_NAME_CHECKED(USceneComponent, RelativeRotation);
++static FName Name_RelativeScale3D = GET_MEMBER_NAME_CHECKED(USceneComponent, RelativeScale3D);
++
+ void AActor::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+ {
+ 	UProperty* PropertyThatChanged = PropertyChangedEvent.Property;
+@@ -30,7 +34,7 @@ void AActor::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+ 	
+ 	bool bTransformationChanged = false;
+ 
+-	if ( PropertyName==FName(TEXT("RelativeLocation")) || PropertyName==FName(TEXT("RelativeRotation")) || PropertyName==FName(TEXT("RelativeScale3D")) )
++	if ( PropertyName==Name_RelativeLocation || PropertyName==Name_RelativeRotation || PropertyName==Name_RelativeScale3D )
+ 	{
+ 		bTransformationChanged = true;
+ 

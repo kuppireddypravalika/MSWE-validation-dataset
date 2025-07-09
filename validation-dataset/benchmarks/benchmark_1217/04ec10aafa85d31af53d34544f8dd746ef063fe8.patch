@@ -1,0 +1,21 @@
+From 04ec10aafa85d31af53d34544f8dd746ef063fe8 Mon Sep 17 00:00:00 2001
+From: Robby Stephenson <robby@periapsis.org>
+Date: Wed, 4 Oct 2017 22:36:04 -0400
+Subject: [PATCH] Optimize QRegularExpression on first usage in removeAccents
+
+---
+ src/utils/string_utils.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/utils/string_utils.cpp b/src/utils/string_utils.cpp
+index bb38db067..9647b24c1 100644
+--- a/src/utils/string_utils.cpp
++++ b/src/utils/string_utils.cpp
+@@ -142,6 +142,7 @@ QString Tellico::removeAccents(const QString& value_) {
+     pattern.chop(1);
+     pattern += QLatin1Char(')');
+     rx.setPattern(pattern);
++    rx.optimize();
+   }
+   // remove accents from table "Combining Diacritical Marks"
+   const QString value2 = value_.normalized(QString::NormalizationForm_D).remove(rx);

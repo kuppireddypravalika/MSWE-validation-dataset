@@ -1,0 +1,22 @@
+From 403918bc123da616863459b9de6ff5de770205e4 Mon Sep 17 00:00:00 2001
+From: Jean Pierre Cimalando <jp-dev@inbox.ru>
+Date: Sat, 11 Apr 2020 20:59:24 +0200
+Subject: [PATCH] More efficient FFT, slower startup
+
+---
+ sources/dsp/STFT.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sources/dsp/STFT.cpp b/sources/dsp/STFT.cpp
+index 25d7a7a..03665b2 100644
+--- a/sources/dsp/STFT.cpp
++++ b/sources/dsp/STFT.cpp
+@@ -126,7 +126,7 @@ fftwf_plan STFT::prepareFFT(uint32_t fftSize)
+     fftwf_real_vector real(fftSize);
+     fftwf_complex_vector cpx(fftSize / 2 + 1);
+ 
+-    constexpr int planFlags = FFTW_ESTIMATE; // FFTW_MEASURE
++    constexpr int planFlags = FFTW_MEASURE; // set FFTW_ESTIMATE for fast startup
+     fftwf_plan plan = fftwf_plan_dft_r2c_1d(fftSize, real.data(), (fftwf_complex *)cpx.data(), planFlags);
+     _fftPlans[fftSize] = fftwf_plan_u(plan);
+     return plan;

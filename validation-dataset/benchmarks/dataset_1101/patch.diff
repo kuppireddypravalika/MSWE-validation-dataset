@@ -1,0 +1,26 @@
+From bb2796494709717a1b886be1f2bfa09b7e382282 Mon Sep 17 00:00:00 2001
+From: Peter Caspers <peter.caspers@quaternion.com>
+Date: Sat, 10 Oct 2020 17:17:21 +0200
+Subject: [PATCH] [touch:1374]release instrument on reset
+
+otherwise trades will keep pricing engines attached to their ql
+instruments alive, which in turn keep yield term structures alive that
+might slow down xva simulations
+---
+ OREData/ored/portfolio/trade.hpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/OREData/ored/portfolio/trade.hpp b/OREData/ored/portfolio/trade.hpp
+index 758d7752ac..b626515cd7 100644
+--- a/OREData/ored/portfolio/trade.hpp
++++ b/OREData/ored/portfolio/trade.hpp
+@@ -91,8 +91,7 @@ class Trade : public XMLSerializable {
+ 
+     //! Reset trade, clear all base class data
+     void reset() {
+-        // This is now being done in the build() function.
+-        // instrument_ = boost::shared_ptr<QuantLib::Instrument>(); //TODO Wrapper
++        instrument_ = nullptr;
+         legs_.clear();
+         legCurrencies_.clear();
+         legPayers_.clear();

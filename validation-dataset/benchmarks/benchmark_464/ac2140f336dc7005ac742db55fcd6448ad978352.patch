@@ -1,0 +1,25 @@
+From ac2140f336dc7005ac742db55fcd6448ad978352 Mon Sep 17 00:00:00 2001
+From: Rui Ueyama <ruiu@google.com>
+Date: Tue, 10 Jul 2018 15:10:49 +0000
+Subject: [PATCH] Add CachedHashStringRef::data().
+
+This accessor is useful and could be slightly more efficient than
+Str.val().data() because you can avoid StringRef instantiation.
+
+Differential Revision: https://reviews.llvm.org/D49133
+---
+ llvm/include/llvm/ADT/CachedHashString.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/llvm/include/llvm/ADT/CachedHashString.h b/llvm/include/llvm/ADT/CachedHashString.h
+index a56a6213a073..d8f0e7afdd49 100644
+--- a/llvm/include/llvm/ADT/CachedHashString.h
++++ b/llvm/include/llvm/ADT/CachedHashString.h
+@@ -43,6 +43,7 @@ class CachedHashStringRef {
+   }
+ 
+   StringRef val() const { return StringRef(P, Size); }
++  const char *data() const { return P; }
+   uint32_t size() const { return Size; }
+   uint32_t hash() const { return Hash; }
+ };

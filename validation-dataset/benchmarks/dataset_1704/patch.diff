@@ -1,0 +1,32 @@
+From aae2b6f5acc5d91827f8545352dfeb05511314fe Mon Sep 17 00:00:00 2001
+From: Cameron White <cameronwhite91@gmail.com>
+Date: Sun, 21 Jul 2013 04:02:59 +0000
+Subject: [PATCH] Remove some unnecessary sorting of Positions that slowed down
+ the importing of v1.7 files.
+
+git-svn-id: http://svn.powertabs.org/svn/ptedev/trunk@1019 5b1460fe-822e-4aa1-ac1b-8a6412c92c8c
+---
+ source/score/utils.h | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/source/score/utils.h b/source/score/utils.h
+index e3d994b6e..89fffe9a4 100644
+--- a/source/score/utils.h
++++ b/source/score/utils.h
+@@ -53,8 +53,15 @@ namespace ScoreUtils {
+     template <typename T>
+     void insertObject(std::vector<T> &objects, const T &obj)
+     {
++        // Avoid sorting unless we actually need to. This improves performance
++        // quite a bit when, for example, we are importing from other file
++        // formats and inserting objects in order.
++        const bool needsSort = !objects.empty() &&
++                objects.back().getPosition() > obj.getPosition();
++
+         objects.push_back(obj);
+-        std::sort(objects.begin(), objects.end(), OrderByPosition<T>());
++        if (needsSort)
++            std::sort(objects.begin(), objects.end(), OrderByPosition<T>());
+     }
+ 
+     template <typename T>

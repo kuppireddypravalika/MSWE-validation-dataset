@@ -1,0 +1,26 @@
+From 0d6ef32a3216dd23002a6268606d53518c723510 Mon Sep 17 00:00:00 2001
+From: Tobias Klein <contact@tklein.info>
+Date: Sat, 28 Nov 2020 15:17:43 +0100
+Subject: [PATCH] ModuleHelper / Improve performance of
+ getBibleChapterVerseCounts by using SWORD API method VerseKey::getVerseMax
+
+---
+ src/sword_backend/module_helper.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/sword_backend/module_helper.cpp b/src/sword_backend/module_helper.cpp
+index 123067a..93ca17c 100644
+--- a/src/sword_backend/module_helper.cpp
++++ b/src/sword_backend/module_helper.cpp
+@@ -124,9 +124,9 @@ map<string, vector<int>> ModuleHelper::getBibleChapterVerseCounts(std::string mo
+                 currentChapterCount = 0;
+             }
+ 
+-            currentChapterCount++;
++            currentChapterCount = currentVerseKey.getVerseMax();
+ 
+-            module->increment();
++            module->increment(currentChapterCount);
+             lastChapter = currentChapter;
+             lastBookName = currentBookName;
+             lastKey = currentKey;

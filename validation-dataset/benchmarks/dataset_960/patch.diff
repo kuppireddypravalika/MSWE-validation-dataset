@@ -1,0 +1,38 @@
+From 26fbe6df55e97ab075d3f377b9f90d752c9d66c9 Mon Sep 17 00:00:00 2001
+From: Lisandro Dalcin <dalcinl@gmail.com>
+Date: Mon, 1 May 2017 22:40:47 +0300
+Subject: [PATCH] Use a larger socketserver backlog
+
+Increasing the backlog should help in servicing requests from clients
+running in parallel with large number of processes. While the value of
+128 is still relatively small (and not the definitive cure for parallel
+clients flooding the listening socket), it is usually the default maximum
+in Linux and Darwin kernels:
+
+$ uname
+Linux
+$ sysctl net.core.somaxconn
+net.core.somaxconn = 128
+
+$ uname
+Darwin
+$ sysctl kern.ipc.somaxconn
+kern.ipc.somaxconn: 128
+---
+ glvis.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/glvis.cpp b/glvis.cpp
+index 5b0f9abe..8d6c84bc 100644
+--- a/glvis.cpp
++++ b/glvis.cpp
+@@ -1365,7 +1365,8 @@ int main (int argc, char *argv[])
+       }
+ #endif
+ 
+-      socketserver server(portnum);
++      const int backlog = 128;
++      socketserver server(portnum, backlog);
+       if (server.good())
+       {
+          cout << "Waiting for data on port " << portnum << " ..." << endl;

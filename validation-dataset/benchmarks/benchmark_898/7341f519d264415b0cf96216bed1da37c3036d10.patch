@@ -1,0 +1,33 @@
+From 7341f519d264415b0cf96216bed1da37c3036d10 Mon Sep 17 00:00:00 2001
+From: Vishesh Handa <me@vhanda.in>
+Date: Wed, 6 Nov 2013 16:45:05 +0100
+Subject: [PATCH] EmailQuery: Use AND for each term in the match and subject
+ match string
+
+Currently the EmailQuery is just being used as a filter in the KDEPIM
+Message List. When using it as a filter it makes sense to have an
+All/None approach.
+---
+ src/search/emailquery.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/search/emailquery.cpp b/src/search/emailquery.cpp
+index a1f0cf13f..f5b47484c 100644
+--- a/src/search/emailquery.cpp
++++ b/src/search/emailquery.cpp
+@@ -195,6 +195,7 @@ ResultIterator EmailQuery::exec()
+         Xapian::QueryParser parser;
+         parser.set_database(db);
+         parser.add_prefix("", "S");
++        parser.set_default_op(Xapian::Query::OP_AND);
+ 
+         m_queries << parser.parse_query(m_subjectMatchString.toStdString(),
+                                         Xapian::QueryParser::FLAG_PARTIAL);
+@@ -230,6 +231,7 @@ ResultIterator EmailQuery::exec()
+     if (m_matchString.size()) {
+         Xapian::QueryParser parser;
+         parser.set_database(db);
++        parser.set_default_op(Xapian::Query::OP_AND);
+ 
+         m_queries << parser.parse_query(m_matchString.toStdString(),
+                                         Xapian::QueryParser::FLAG_PARTIAL);

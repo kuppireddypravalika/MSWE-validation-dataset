@@ -1,0 +1,24 @@
+From bb67c3d69402e8c8f985150bc06ee5b8ab1c5b7e Mon Sep 17 00:00:00 2001
+From: Mathieu Gaillard <gaillard.mathieu.39@gmail.com>
+Date: Wed, 6 Jun 2018 16:29:18 +0200
+Subject: [PATCH] Rollback lerp implementation.
+
+On G++, it is faster when march is not native
+---
+ Noise/Include/utils.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/Noise/Include/utils.h b/Noise/Include/utils.h
+index cfe4890..177c61a 100644
+--- a/Noise/Include/utils.h
++++ b/Noise/Include/utils.h
+@@ -44,7 +44,8 @@ constexpr const T& clamp(const T& v, const T& lo, const T& hi)
+ template<typename T>
+ constexpr T lerp(const T& a, const T& b, const T& x)
+ {
+-	return (1 - x) * a + x * b;
++	// Equivalent to (1 - x) * a + x * b;
++	return fma(x, b, fma(-x, a, a));
+ }
+ 
+ template<typename T>

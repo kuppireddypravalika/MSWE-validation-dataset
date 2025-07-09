@@ -1,0 +1,31 @@
+From 8a46cdb9eb00f68db759162a00ae864d2ae2c4f4 Mon Sep 17 00:00:00 2001
+From: tteuling <tteuling@users.sourceforge.net>
+Date: Sat, 14 Oct 2017 18:10:18 +0200
+Subject: [PATCH] Small speed improvement and code cleanup.
+
+---
+ libosmscout/src/osmscout/util/FileWriter.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/libosmscout/src/osmscout/util/FileWriter.cpp b/libosmscout/src/osmscout/util/FileWriter.cpp
+index 872ac9ae0..478e05cfe 100644
+--- a/libosmscout/src/osmscout/util/FileWriter.cpp
++++ b/libosmscout/src/osmscout/util/FileWriter.cpp
+@@ -1331,14 +1331,15 @@ namespace osmscout {
+ 
+   bool IsValidToWrite(const std::vector<Point>& nodes)
+   {
+-    if (nodes.size()<=1) {
++    size_t nodeSize=nodes.size();
++    if (nodeSize<=1) {
+       return true;
+     }
+ 
+     uint32_t lastLat=(uint32_t)round((nodes[0].GetLat()+90.0)*latConversionFactor);
+     uint32_t lastLon=(uint32_t)round((nodes[0].GetLon()+180.0)*lonConversionFactor);
+ 
+-    for (size_t i=1; i<nodes.size(); i++) {
++    for (size_t i=1; i<nodeSize; i++) {
+       uint32_t currentLat=(uint32_t)round((nodes[i].GetLat()+90.0)*latConversionFactor);
+       uint32_t currentLon=(uint32_t)round((nodes[i].GetLon()+180.0)*lonConversionFactor);
+ 

@@ -1,0 +1,47 @@
+From 217e09c79da008e15bd789260e8b2513689c90bd Mon Sep 17 00:00:00 2001
+From: yg2f <yoann@terminajones.com>
+Date: Tue, 20 Sep 2016 13:54:17 +0200
+Subject: [PATCH] Fixes #6487, GDscript compiler ignores OPCODE_LINE and
+ OPCODE_BREAKPOINT in Release mode
+
+When godot is in release mode, GDscript compiler does not generate
+bytecodes for OPCODE_LINE and OPCODE_BREAKPOINT anymore.
+
+This optimizes GDscript execution speed when the script contains a lot
+of comments in blocs executed in loops.
+
+Fixes #6487
+---
+ modules/gdscript/gd_compiler.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/modules/gdscript/gd_compiler.cpp b/modules/gdscript/gd_compiler.cpp
+index 2e2cbe7b2..b75b13551 100644
+--- a/modules/gdscript/gd_compiler.cpp
++++ b/modules/gdscript/gd_compiler.cpp
+@@ -1005,12 +1005,12 @@ Error GDCompiler::_parse_block(CodeGen& codegen,const GDParser::BlockNode *p_blo
+ 
+ 		switch(s->type) {
+ 			case GDParser::Node::TYPE_NEWLINE: {
+-
++#ifdef DEBUG_ENABLED
+ 				const GDParser::NewLineNode *nl = static_cast<const GDParser::NewLineNode*>(s);
+ 				codegen.opcodes.push_back(GDFunction::OPCODE_LINE);
+ 				codegen.opcodes.push_back(nl->line);
+ 				codegen.current_line=nl->line;
+-
++#endif
+ 			} break;
+ 			case GDParser::Node::TYPE_CONTROL_FLOW: {
+ 				// try subblocks
+@@ -1201,8 +1201,10 @@ Error GDCompiler::_parse_block(CodeGen& codegen,const GDParser::BlockNode *p_blo
+ 				codegen.opcodes.push_back(ret);
+ 			} break;
+ 			case GDParser::Node::TYPE_BREAKPOINT: {
++#ifdef DEBUG_ENABLED
+ 				// try subblocks
+ 				codegen.opcodes.push_back(GDFunction::OPCODE_BREAKPOINT);
++#endif
+ 			} break;
+ 			case GDParser::Node::TYPE_LOCAL_VAR: {
+ 

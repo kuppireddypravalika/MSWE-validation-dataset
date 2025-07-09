@@ -1,0 +1,33 @@
+From 8eb721468e9462605368d0469d404c0ee6fab854 Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Tue, 23 Feb 2016 23:01:11 +0100
+Subject: [PATCH] QMimeTypeParser: replace a QString::arg() chain with
+ QString::asprintf()
+
+Saves ~250b in text size on optimized GCC 5.3 Linux AMD64 builds.
+
+Change-Id: Ic92c4ac1bb20230cfbb929bdf5c7f385d7b604e5
+Reviewed-by: David Faure <david.faure@kdab.com>
+---
+ src/corelib/mimetypes/qmimetypeparser.cpp | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/src/corelib/mimetypes/qmimetypeparser.cpp b/src/corelib/mimetypes/qmimetypeparser.cpp
+index 63e8f14018a..535fa51c921 100644
+--- a/src/corelib/mimetypes/qmimetypeparser.cpp
++++ b/src/corelib/mimetypes/qmimetypeparser.cpp
+@@ -326,8 +326,12 @@ bool QMimeTypeParserBase::parse(QIODevice *dev, const QString &fileName, QString
+     }
+ 
+     if (Q_UNLIKELY(reader.hasError())) {
+-        if (errorMessage)
+-            *errorMessage = QString::fromLatin1("An error has been encountered at line %1 of %2: %3:").arg(reader.lineNumber()).arg(fileName, reader.errorString());
++        if (errorMessage) {
++            *errorMessage = QString::asprintf("An error has been encountered at line %lld of %ls: %ls:",
++                                              reader.lineNumber(),
++                                              qUtf16Printable(fileName),
++                                              qUtf16Printable(reader.errorString()));
++        }
+         return false;
+     }
+ 

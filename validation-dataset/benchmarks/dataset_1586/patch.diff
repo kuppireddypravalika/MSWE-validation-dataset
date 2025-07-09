@@ -1,0 +1,31 @@
+From bb7576079a23c82e8e8c8cddd7a8659ada5a8295 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Micha=C5=82=20=27Griwes=27=20Dominiak?= <griwes@griwes.info>
+Date: Fri, 16 Nov 2012 14:25:46 +0100
+Subject: [PATCH] Terminal: boost scrolling speed by scrolling 5 lines at once.
+
+---
+ loader/booter/screen/console.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/loader/booter/screen/console.cpp b/loader/booter/screen/console.cpp
+index c13b4a7..6d0da3d 100644
+--- a/loader/booter/screen/console.cpp
++++ b/loader/booter/screen/console.cpp
+@@ -204,13 +204,13 @@ void screen::console::_clear()
+ 
+ void screen::console::_scroll()
+ {
+-    memory::copy((uint8_t *)_backbuffer + _mode.bytes_per_line * 16, (uint8_t *)_backbuffer, (_mode.resolution_y - 16 
++    memory::copy((uint8_t *)_backbuffer + _mode.bytes_per_line * 5 * 16, (uint8_t *)_backbuffer, (_mode.resolution_y - 16 * 5
+         - _mode.resolution_y % 16) * _mode.bytes_per_line);
+-    memory::zero((uint8_t *)_backbuffer + _mode.bytes_per_line * (_mode.resolution_y - 16 - _mode.resolution_y % 16), 
+-        _mode.bytes_per_line * 16);
++    memory::zero((uint8_t *)_backbuffer + _mode.bytes_per_line * (_mode.resolution_y - 5 *16 - _mode.resolution_y % 16), 
++        _mode.bytes_per_line * 5 * 16);
+     memory::copy((uint8_t *)_backbuffer, (uint8_t *)_mode.addr, _mode.bytes_per_line * _mode.resolution_y);
+     
+-    _y--;
++    _y -= 5;
+ }
+ 
+ void screen::console::print_mode_info()

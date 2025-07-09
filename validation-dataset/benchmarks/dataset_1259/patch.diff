@@ -1,0 +1,27 @@
+From 74380d2ae434eaa5d42c79ee154c35a2b6f46d36 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@musicpd.org>
+Date: Tue, 11 Jun 2019 19:26:24 +0200
+Subject: [PATCH] playlist/Registry: use initializer instead of memset()
+
+---
+ src/playlist/PlaylistRegistry.cxx | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/src/playlist/PlaylistRegistry.cxx b/src/playlist/PlaylistRegistry.cxx
+index ce34b1136b..e90ea8d725 100644
+--- a/src/playlist/PlaylistRegistry.cxx
++++ b/src/playlist/PlaylistRegistry.cxx
+@@ -165,12 +165,10 @@ playlist_list_open_uri(const char *uri, Mutex &mutex)
+ {
+ 	/** this array tracks which plugins have already been tried by
+ 	    playlist_list_open_uri_scheme() */
+-	bool tried[n_playlist_plugins];
++	bool tried[n_playlist_plugins]{};
+ 
+ 	assert(uri != nullptr);
+ 
+-	memset(tried, false, sizeof(tried));
+-
+ 	auto playlist = playlist_list_open_uri_scheme(uri, mutex, tried);
+ 	if (playlist == nullptr)
+ 		playlist = playlist_list_open_uri_suffix(uri, mutex,

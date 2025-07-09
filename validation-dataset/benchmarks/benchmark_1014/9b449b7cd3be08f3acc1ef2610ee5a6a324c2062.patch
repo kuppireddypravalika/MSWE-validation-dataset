@@ -1,0 +1,34 @@
+From 9b449b7cd3be08f3acc1ef2610ee5a6a324c2062 Mon Sep 17 00:00:00 2001
+From: Rob Trangucci <robert.trangucci@gmail.com>
+Date: Fri, 5 May 2017 17:09:56 -0400
+Subject: [PATCH] Modified the function note, and added explicit Lower
+ instantiation for LLT
+
+---
+ stan/math/rev/mat/fun/cholesky_decompose.hpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/stan/math/rev/mat/fun/cholesky_decompose.hpp b/stan/math/rev/mat/fun/cholesky_decompose.hpp
+index 2bc0c942895..a62125d60d6 100644
+--- a/stan/math/rev/mat/fun/cholesky_decompose.hpp
++++ b/stan/math/rev/mat/fun/cholesky_decompose.hpp
+@@ -230,8 +230,8 @@ namespace stan {
+     /**
+      * Reverse mode specialization of cholesky decomposition
+      *
+-     * Internally calls llt rather than using cholesky_decompose in order to
+-     * use selfadjointView<Lower> optimization.
++     * Internally calls Eigen::LLT rather than using
++     * stan::math::cholesky_decompose in order to use an inplace decomposition.
+      *
+      * Note chainable stack varis are created below in Matrix<var, -1, -1>
+      *
+@@ -244,7 +244,7 @@ namespace stan {
+       check_symmetric("cholesky_decompose", "A", A);
+ 
+       Eigen::Matrix<double, -1, -1> L_A(value_of_rec(A));
+-      Eigen::LLT<Eigen::Ref<Eigen::MatrixXd> > L_factor(L_A);
++      Eigen::LLT<Eigen::Ref<Eigen::MatrixXd>, Eigen::Lower> L_factor(L_A);
+       check_pos_definite("cholesky_decompose", "m", L_factor);
+ 
+       // Memory allocated in arena.

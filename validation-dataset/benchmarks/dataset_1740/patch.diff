@@ -1,0 +1,42 @@
+From 6c9c12c8a18a7d3a5807a181ca9bc8a1c1b02854 Mon Sep 17 00:00:00 2001
+From: Tony Liao <tonyliaoss@google.com>
+Date: Thu, 10 Oct 2024 14:01:12 -0700
+Subject: [PATCH] Let ArenaStringPtr debug-fail if it ever attempts to clear a
+ default string.
+
+As an optimization, we maintain a default instance of a string in memory, and
+messages with uninitialized fields will be constructed with a pointer to this
+default string object. The destructor should clear the field only when it is
+"set" to a nondefault object.
+
+If `ClearNonDefaultToEmpty()` is ever called on a default string...
+- It will result in undefined behaviour. Most likely, it results in overwriting
+  an object in memory (which is already full of zeros) with another bunch of
+  zeros.
+- It's quite bad for a number of reasons:
+  1. It can confuse TSAN.
+  2. It blocks us from moving the default instance of the string into the
+     `.data` section. Having the default instance of the string live in
+     read-only memory would be beneficial for memory safety. It would play well
+     with hugepages. It would also eliminate some runtime cost of instantiating
+     the default instance of the string.
+
+This change adds a debug-fail so that users don't call this function "unsafely".
+
+PiperOrigin-RevId: 684569674
+---
+ src/google/protobuf/arenastring.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/google/protobuf/arenastring.h b/src/google/protobuf/arenastring.h
+index 7758760ae0d9e..e8b417f06e9b3 100644
+--- a/src/google/protobuf/arenastring.h
++++ b/src/google/protobuf/arenastring.h
+@@ -523,6 +523,7 @@ inline PROTOBUF_NDEBUG_INLINE void ArenaStringPtr::InternalSwap(
+ 
+ inline void ArenaStringPtr::ClearNonDefaultToEmpty() {
+   // Unconditionally mask away the tag.
++  ABSL_DCHECK(!tagged_ptr_.IsDefault());
+   tagged_ptr_.Get()->clear();
+ }
+ 

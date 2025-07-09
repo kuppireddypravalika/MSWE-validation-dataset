@@ -1,0 +1,41 @@
+From b0183966755eb092d15f04ddd4479285fe611524 Mon Sep 17 00:00:00 2001
+From: Matt Arsenault <Matthew.Arsenault@amd.com>
+Date: Thu, 7 Jun 2018 19:42:27 +0000
+Subject: [PATCH] DAG: Avoid bitcast/ext/build_vector combine
+
+This avoids regressions in a future AMDGPU change
+to make v4i16/v4f16 legal. For these types, build_vector
+is implemented as bitcasted operations on v2i32. This
+combine was creating v4i16s out of what would have been
+already been a v2i32 build_vector, creating a mess
+of nodes that never get cleaned up.
+
+I'm not sure this is the right condition to check.
+I initially tried just checking for the legality of the
+new build_vector. This works for my case, but breaks dozens
+of x86 tests. A Mips test seems to show some improvement
+or at least a neutral change. I don't want to think
+about how long it would take to analyze the set of
+different x86 vector operations impacted.
+
+Test included in future commit.
+---
+ llvm/lib/CodeGen/SelectionDAG/DAGCombiner.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/llvm/lib/CodeGen/SelectionDAG/DAGCombiner.cpp b/llvm/lib/CodeGen/SelectionDAG/DAGCombiner.cpp
+index 6d59f330048a..715f203ba474 100644
+--- a/llvm/lib/CodeGen/SelectionDAG/DAGCombiner.cpp
++++ b/llvm/lib/CodeGen/SelectionDAG/DAGCombiner.cpp
+@@ -14918,7 +14918,10 @@ SDValue DAGCombiner::reduceBuildVecExtToExtBuildVec(SDNode *N) {
+   assert(VecVT.getSizeInBits() == VT.getSizeInBits() &&
+          "Invalid vector size");
+   // Check if the new vector type is legal.
+-  if (!isTypeLegal(VecVT)) return SDValue();
++  if (!isTypeLegal(VecVT) ||
++      (!TLI.isOperationLegal(ISD::BUILD_VECTOR, VecVT) &&
++       TLI.isOperationLegal(ISD::BUILD_VECTOR, VT)))
++    return SDValue();
+ 
+   // Make the new BUILD_VECTOR.
+   SDValue BV = DAG.getBuildVector(VecVT, DL, Ops);

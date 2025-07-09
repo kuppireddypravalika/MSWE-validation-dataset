@@ -1,0 +1,24 @@
+From ec7e30b0e27fd4db2502fd64b64c7b76ffa93b2b Mon Sep 17 00:00:00 2001
+From: Matthew Fioravante <fmatthew5876@gmail.com>
+Date: Wed, 18 Sep 2019 22:37:13 -0400
+Subject: [PATCH] Game_Picture: Don't reallocate Sprite
+
+---
+ src/game_picture.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/game_picture.cpp b/src/game_picture.cpp
+index 583966f549..5d7a7f7ef5 100644
+--- a/src/game_picture.cpp
++++ b/src/game_picture.cpp
+@@ -260,7 +260,9 @@ void Game_Picture::OnPictureSpriteReady(FileRequestResult*) {
+ 
+ 	whole_bitmap = Cache::Picture(data.name, data.use_transparent_color);
+ 
+-	sprite.reset(new Sprite());
++	if (!sprite) {
++		sprite.reset(new Sprite());
++	}
+ 	sprite->SetBitmap(whole_bitmap);
+ 
+ 	UpdateSprite();

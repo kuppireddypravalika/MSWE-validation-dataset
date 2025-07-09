@@ -1,0 +1,23 @@
+From 2dd7a8d16d580c4aecd0686db813c29f9aafaa5a Mon Sep 17 00:00:00 2001
+From: Ryan Houdek <Sonicadvance1@gmail.com>
+Date: Mon, 13 Jul 2020 10:27:48 -0700
+Subject: [PATCH] Disables CLMUL in CPUID
+
+This would be a pain to support in NEON since it requires a 128bit
+resulting multiply
+---
+ External/FEXCore/Source/Interface/Core/CPUID.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/External/FEXCore/Source/Interface/Core/CPUID.cpp b/External/FEXCore/Source/Interface/Core/CPUID.cpp
+index c6ca5d847f..a63742bedd 100644
+--- a/External/FEXCore/Source/Interface/Core/CPUID.cpp
++++ b/External/FEXCore/Source/Interface/Core/CPUID.cpp
+@@ -39,6 +39,7 @@ CPUIDEmu::FunctionResults CPUIDEmu::Function_01h() {
+   Res.Res[3] = ~0U; // Let's say we support every feature for fun
+ 
+   Res.Res[3]  &= ~(
++      (1 << 1) |  // Remove CLMUL
+       (3 << 26) | // Let's say that XSAVE isn't enabled by the OS. Prevents glibc from using XSAVE/XGETBV
+       (1 << 9)  | // Remove SSSE3
+       (1 << 19) | // Remove SSE4.1

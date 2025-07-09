@@ -1,0 +1,29 @@
+From 3161aa284e2477286f07016ba97da063f089d62e Mon Sep 17 00:00:00 2001
+From: Anna Thomas <anna@azul.com>
+Date: Tue, 27 Jun 2017 14:14:35 +0000
+Subject: [PATCH] [LoopUnrollRuntime] Use SCEV exit count for calculating trip
+ count. NFCI
+
+Instead of getBackEdgeTakenCount, use getExitCount on the latch exiting block
+(which is proven to be the only exiting block in the loop to be unrolled).
+---
+ llvm/lib/Transforms/Utils/LoopUnrollRuntime.cpp | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/llvm/lib/Transforms/Utils/LoopUnrollRuntime.cpp b/llvm/lib/Transforms/Utils/LoopUnrollRuntime.cpp
+index 5f85e17927fa..d91583136c63 100644
+--- a/llvm/lib/Transforms/Utils/LoopUnrollRuntime.cpp
++++ b/llvm/lib/Transforms/Utils/LoopUnrollRuntime.cpp
+@@ -495,7 +495,11 @@ bool llvm::UnrollRuntimeLoopRemainder(Loop *L, unsigned Count,
+ 
+   // Only unroll loops with a computable trip count, and the trip count needs
+   // to be an int value (allowing a pointer type is a TODO item).
+-  const SCEV *BECountSC = SE->getBackedgeTakenCount(L);
++  // We calculate the backedge count by using getExitCount on the Latch block,
++  // which is proven to be the only exiting block in this loop. This is same as
++  // calculating getBackedgeTakenCount on the loop (which computes SCEV for all
++  // exiting blocks).
++  const SCEV *BECountSC = SE->getExitCount(L, Latch);
+   if (isa<SCEVCouldNotCompute>(BECountSC) ||
+       !BECountSC->getType()->isIntegerTy())
+     return false;

@@ -1,0 +1,56 @@
+From 7457d832f8877eb63e35e69844ed5f5f8c7f7f8a Mon Sep 17 00:00:00 2001
+From: Uleat <uleat.charismata@gmail.com>
+Date: Tue, 12 Jul 2016 20:22:14 -0400
+Subject: [PATCH] Changed query in BotDatabase::LoadGroupedBotsByGroupID() to
+ use standard table query over view use (should help in cases where players
+ time-out when zoning)
+
+---
+ zone/bot_database.cpp | 26 +++++++++++++++++++-------
+ 1 file changed, 19 insertions(+), 7 deletions(-)
+
+diff --git a/zone/bot_database.cpp b/zone/bot_database.cpp
+index 0fade9c9d0..300f4c8b49 100644
+--- a/zone/bot_database.cpp
++++ b/zone/bot_database.cpp
+@@ -2390,21 +2390,33 @@ bool BotDatabase::LoadBotGroupsListByOwnerID(const uint32 owner_id, std::list<st
+ }
+ 
+ 
+-/* Bot group functions   */
++/* Bot owner group functions   */
+ bool BotDatabase::LoadGroupedBotsByGroupID(const uint32 group_id, std::list<uint32>& group_list)
+ {
+ 	if (!group_id)
+ 		return false;
+ 
+ 	query = StringFormat(
+-		"SELECT g.`mob_id` AS bot_id"
+-		" FROM `vw_groups` AS g"
+-		" JOIN `bot_data` AS b"
+-		" ON g.`mob_id` = b.`bot_id`"
+-		" AND g.`mob_type` = 'B'"
+-		" WHERE g.`group_id` = '%u'",
++		"SELECT `charid`"
++		" FROM `group_id`"
++		" WHERE `groupid` = '%u'"
++		" AND `charid` IN ("
++		"  SELECT `bot_id`"
++		"  FROM `bot_data`"
++		"  WHERE `owner_id` IN ("
++		"   SELECT `charid`"
++		"   FROM `group_id`"
++		"   WHERE `groupid` = '%u'"
++		"   AND `name` IN ("
++		"    SELECT `name`"
++		"    FROM `character_data`"
++		"   )"
++		"  )"
++		" )",
++		group_id,
+ 		group_id
+ 	);
++
+ 	auto results = QueryDatabase(query);
+ 	if (!results.Success())
+ 		return false;

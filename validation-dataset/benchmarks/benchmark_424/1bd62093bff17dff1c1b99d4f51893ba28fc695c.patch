@@ -1,0 +1,22 @@
+From 1bd62093bff17dff1c1b99d4f51893ba28fc695c Mon Sep 17 00:00:00 2001
+From: Peter Vanroose <peter_vanroose@users.sourceforge.net>
+Date: Wed, 6 Nov 2002 11:55:11 -0500
+Subject: [PATCH] perform division in type T
+
+---
+ core/vnl/tests/test_svd.cxx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/core/vnl/tests/test_svd.cxx b/core/vnl/tests/test_svd.cxx
+index 64ceadf9b88..9dfd525508d 100644
+--- a/core/vnl/tests/test_svd.cxx
++++ b/core/vnl/tests/test_svd.cxx
+@@ -33,7 +33,7 @@ void test_hilbert(T /*dummy*/, char const* type, S residual)
+   vnl_matrix<T> H(5,5);
+   for (int i = 0; i < 5; ++i)
+     for (int j = 0; j < 5; ++j)
+-      H(i,j) = T( 1.0 / (i+j+1) ); // sic, because i,j are zero based
++      H(i,j) = T(1) / T(i+j+1); // sic, because i,j are zero based
+ 
+   vcl_cout << "H = <"<<type<<">[ " << H << "]\n";
+ 

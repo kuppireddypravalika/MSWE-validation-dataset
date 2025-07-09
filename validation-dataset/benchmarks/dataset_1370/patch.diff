@@ -1,0 +1,41 @@
+From 761ced31f016970f71e963d007af9008e06610b5 Mon Sep 17 00:00:00 2001
+From: Lennart Braun <lenerd@posteo.de>
+Date: Sat, 30 May 2020 01:25:10 +0200
+Subject: [PATCH] yao: optimize inv gates
+
+---
+ src/motioncore/protocols/yao/yao_provider.cpp | 18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
+
+diff --git a/src/motioncore/protocols/yao/yao_provider.cpp b/src/motioncore/protocols/yao/yao_provider.cpp
+index d94f8296..63c5cb8c 100644
+--- a/src/motioncore/protocols/yao/yao_provider.cpp
++++ b/src/motioncore/protocols/yao/yao_provider.cpp
+@@ -294,17 +294,19 @@ std::vector<std::shared_ptr<NewWire>> YaoProvider::make_binary_gate(
+ }
+ 
+ YaoWireVector YaoProvider::make_inv_gate(YaoWireVector &&in_a) {
+-  YaoWireVector output;
+-  auto gate_id = gate_register_.get_next_gate_id();
+-  std::unique_ptr<detail::BasicYaoUnaryGate> gate;
+   if (role_ == Role::garbler) {
+-    gate = std::make_unique<YaoINVGateGarbler>(gate_id, *this, std::move(in_a));
++    auto num_wires = in_a.size();
++    auto num_simd = in_a.at(0)->get_num_simd();
++    YaoWireVector output(num_wires);
++    for (std::size_t wire_i = 0; wire_i < num_wires; ++wire_i) {
++      auto wire = std::make_shared<YaoWire>(num_simd);
++      wire->get_keys() = in_a.at(wire_i)->get_keys() ^ get_global_offset();
++      output.at(wire_i) = std::move(wire);
++    }
++    return output;
+   } else {
+-    gate = std::make_unique<YaoINVGateEvaluator>(gate_id, *this, std::move(in_a));
++    return std::move(in_a);
+   }
+-  output = gate->get_output_wires();
+-  gate_register_.register_gate(std::move(gate));
+-  return output;
+ }
+ 
+ YaoWireVector YaoProvider::make_xor_gate(YaoWireVector &&in_a, YaoWireVector &&in_b) {

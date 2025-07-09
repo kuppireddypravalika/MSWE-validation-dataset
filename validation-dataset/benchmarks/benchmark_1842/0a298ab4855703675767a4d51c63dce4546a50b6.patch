@@ -1,0 +1,48 @@
+From 0a298ab4855703675767a4d51c63dce4546a50b6 Mon Sep 17 00:00:00 2001
+From: Rohan McGovern <rohan.mcgovern@nokia.com>
+Date: Wed, 23 May 2012 12:53:57 +1000
+Subject: [PATCH] tst_qmetatype: avoid slow compilation with some MSVC2010
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+MSVC2010 32-bit (with and without service pack 1) takes about 1 hour to
+compile this file in some builds, since
+1c7421ad14f9321422cdfeede3902552a34ccf3b.
+
+Avoid the relevant portion of the code just for these compilers.
+
+Change-Id: Icbb4fa12a6d563a7cdc882c30cdb5705675bedb0
+Reviewed-by: Toby Tomkins <toby.tomkins@nokia.com>
+Reviewed-by: Stephen Kelly <stephen.kelly@kdab.com>
+Reviewed-by: Jędrzej Nowacki <jedrzej.nowacki@nokia.com>
+---
+ tests/auto/corelib/kernel/qmetatype/tst_qmetatype.cpp | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/tests/auto/corelib/kernel/qmetatype/tst_qmetatype.cpp b/tests/auto/corelib/kernel/qmetatype/tst_qmetatype.cpp
+index c3e2bd299d..d82f7560e3 100644
+--- a/tests/auto/corelib/kernel/qmetatype/tst_qmetatype.cpp
++++ b/tests/auto/corelib/kernel/qmetatype/tst_qmetatype.cpp
+@@ -47,6 +47,12 @@
+ # include <pthread.h>
+ #endif
+ 
++// At least these specific versions of MSVC2010 has a severe performance problem with this file,
++// taking about 1 hour to compile if the portion making use of variadic macros is enabled.
++#if defined(_MSC_FULL_VER) && (_MSC_FULL_VER >= 160030319) && (_MSC_FULL_VER <= 160040219)
++# define TST_QMETATYPE_BROKEN_COMPILER
++#endif
++
+ Q_DECLARE_METATYPE(QMetaType::Type)
+ 
+ class tst_QMetaType: public QObject
+@@ -1332,7 +1338,7 @@ void tst_QMetaType::automaticTemplateRegistration()
+     QVERIFY(qRegisterMetaType<UnregisteredTypeList>("UnregisteredTypeList") > 0);
+   }
+ 
+-#ifdef Q_COMPILER_VARIADIC_MACROS
++#if defined(Q_COMPILER_VARIADIC_MACROS) && !defined(TST_QMETATYPE_BROKEN_COMPILER)
+ 
+     #define FOR_EACH_STATIC_PRIMITIVE_TYPE(F, ...) \
+         F(bool, __VA_ARGS__) \

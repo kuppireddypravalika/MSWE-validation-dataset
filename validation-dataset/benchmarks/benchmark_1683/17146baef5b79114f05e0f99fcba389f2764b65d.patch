@@ -1,0 +1,27 @@
+From 17146baef5b79114f05e0f99fcba389f2764b65d Mon Sep 17 00:00:00 2001
+From: Dan Gohman <gohman@apple.com>
+Date: Fri, 5 Feb 2010 19:20:15 +0000
+Subject: [PATCH] Use a SmallSetVector instead of a SetVector; this code showed
+ up as a malloc caller in a profile.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@95407 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Transforms/Utils/LoopSimplify.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/lib/Transforms/Utils/LoopSimplify.cpp b/lib/Transforms/Utils/LoopSimplify.cpp
+index e81b77974ab..57bab60e6b1 100644
+--- a/lib/Transforms/Utils/LoopSimplify.cpp
++++ b/lib/Transforms/Utils/LoopSimplify.cpp
+@@ -176,8 +176,9 @@ bool LoopSimplify::ProcessLoop(Loop *L, LPPassManager &LPM) {
+   SmallVector<BasicBlock*, 8> ExitBlocks;
+   L->getExitBlocks(ExitBlocks);
+     
+-  SetVector<BasicBlock*> ExitBlockSet(ExitBlocks.begin(), ExitBlocks.end());
+-  for (SetVector<BasicBlock*>::iterator I = ExitBlockSet.begin(),
++  SmallSetVector<BasicBlock *, 8> ExitBlockSet(ExitBlocks.begin(),
++                                               ExitBlocks.end());
++  for (SmallSetVector<BasicBlock *, 8>::iterator I = ExitBlockSet.begin(),
+          E = ExitBlockSet.end(); I != E; ++I) {
+     BasicBlock *ExitBlock = *I;
+     for (pred_iterator PI = pred_begin(ExitBlock), PE = pred_end(ExitBlock);

@@ -1,0 +1,22 @@
+From ef47087d88dd51ce8b2dca54c05709dc754cf7e1 Mon Sep 17 00:00:00 2001
+From: ReinUsesLisp <reinuseslisp@airmail.cc>
+Date: Fri, 1 Nov 2019 05:12:54 -0300
+Subject: [PATCH] literal_number: Use static_cast instead of dynamic_cast
+
+---
+ src/literal_number.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/literal_number.cpp b/src/literal_number.cpp
+index a1c3103..f204dd3 100644
+--- a/src/literal_number.cpp
++++ b/src/literal_number.cpp
+@@ -29,7 +29,7 @@ u16 LiteralNumber::GetWordCount() const {
+ 
+ bool LiteralNumber::operator==(const Operand& other) const {
+     if (operand_type == other.GetType()) {
+-        const auto& o{dynamic_cast<const LiteralNumber&>(other)};
++        const auto& o{static_cast<const LiteralNumber&>(other)};
+         return o.type == type && o.raw == raw;
+     }
+     return false;

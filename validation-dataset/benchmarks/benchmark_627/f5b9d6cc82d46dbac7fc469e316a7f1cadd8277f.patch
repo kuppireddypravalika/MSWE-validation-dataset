@@ -1,0 +1,45 @@
+From f5b9d6cc82d46dbac7fc469e316a7f1cadd8277f Mon Sep 17 00:00:00 2001
+From: Evan Cheng <evan.cheng@apple.com>
+Date: Sat, 20 Mar 2010 02:58:15 +0000
+Subject: [PATCH] If call result is in ST0 and it is not being passed to the
+ caller's caller, then it is not safe to optimize the call into a sibcall
+ since the call result has to be popped off the x87 stack.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@99032 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Target/X86/X86ISelLowering.cpp | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+
+diff --git a/lib/Target/X86/X86ISelLowering.cpp b/lib/Target/X86/X86ISelLowering.cpp
+index 7d2140bf4d9..704f9c65a59 100644
+--- a/lib/Target/X86/X86ISelLowering.cpp
++++ b/lib/Target/X86/X86ISelLowering.cpp
+@@ -2310,6 +2310,28 @@ X86TargetLowering::IsEligibleForTailCallOptimization(SDValue Callee,
+   if (isCalleeStructRet || isCallerStructRet)
+     return false;
+ 
++  // If the call result is in ST0 / ST1, it needs to be popped off the x87 stack.
++  // Therefore if it's not used by the call it is not safe to optimize this into
++  // a sibcall.
++  bool Unused = false;
++  for (unsigned i = 0, e = Ins.size(); i != e; ++i) {
++    if (!Ins[i].Used) {
++      Unused = true;
++      break;
++    }
++  }
++  if (Unused) {
++    SmallVector<CCValAssign, 16> RVLocs;
++    CCState CCInfo(CalleeCC, false, getTargetMachine(),
++                   RVLocs, *DAG.getContext());
++    CCInfo.AnalyzeCallResult(Ins, RetCC_X86);
++    for (unsigned i = 0; i != RVLocs.size(); ++i) {
++      CCValAssign &VA = RVLocs[i];
++      if (VA.getLocReg() == X86::ST0 || VA.getLocReg() == X86::ST1)
++        return false;
++    }
++  }
++
+   // If the callee takes no arguments then go on to check the results of the
+   // call.
+   if (!Outs.empty()) {

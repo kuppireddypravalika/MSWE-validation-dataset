@@ -1,0 +1,37 @@
+From 2eff4b41adf2d377b1913c8d24cb81445e428d50 Mon Sep 17 00:00:00 2001
+From: Avi Kivity <avi@scylladb.com>
+Date: Sun, 28 Jul 2024 22:13:43 +0300
+Subject: [PATCH] repair: row_level: coroutinize working_row_hashes()
+
+It uses do_with, so it allocates unconditionally. Might as well use
+the allocation for a nice coroutine.
+
+Closes scylladb/scylladb#19915
+---
+ repair/row_level.cc | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
+
+diff --git a/repair/row_level.cc b/repair/row_level.cc
+index f1ccb41f7489..4b1d720823ae 100644
+--- a/repair/row_level.cc
++++ b/repair/row_level.cc
+@@ -979,13 +979,12 @@ class repair_meta {
+     // Get a list of row hashes in _working_row_buf
+     future<repair_hash_set>
+     working_row_hashes() {
+-        return do_with(repair_hash_set(), [this] (repair_hash_set& hashes) {
+-            return do_for_each(_working_row_buf, [&hashes] (repair_row& r) mutable {
+-                hashes.emplace(r.hash());
+-            }).then([&hashes] () mutable {
+-                return std::move(hashes);
+-            });
+-        });
++        auto hashes = repair_hash_set();
++        for (auto& r : _working_row_buf) {
++            hashes.emplace(r.hash());
++            co_await coroutine::maybe_yield();
++        }
++        co_return std::move(hashes);
+     }
+ 
+     std::pair<std::optional<repair_sync_boundary>, bool>

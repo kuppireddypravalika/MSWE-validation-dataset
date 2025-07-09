@@ -1,0 +1,39 @@
+From 78a2e8ab20f27958f35aab48db9a0ec28bf4c14f Mon Sep 17 00:00:00 2001
+From: David Gobbi <david.gobbi@gmail.com>
+Date: Thu, 23 Aug 2018 10:11:02 -0600
+Subject: [PATCH] Implement clamp with ternary for better optimization
+
+Both clang and MSVC are very good at optimizing this ternary into
+minsd, maxsd compiler instructions.  For gcc, this optimizes best
+if -ffast-math is used (since gcc might otherwise be pedantic about
+the handling of inf, nan, and negative zero).
+---
+ Common/Core/vtkMath.h | 15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
+
+diff --git a/Common/Core/vtkMath.h b/Common/Core/vtkMath.h
+index 913df0d0f0b..ad8d04ccd44 100644
+--- a/Common/Core/vtkMath.h
++++ b/Common/Core/vtkMath.h
+@@ -1513,17 +1513,10 @@ inline T vtkMath::ClampValue(const T & value, const T & min, const T & max)
+ #if __cplusplus >= 201703L
+   return std::clamp(value, min, max);
+ #else
+-  if (value < min)
+-  {
+-    return min;
+-  }
+-
+-  if (max < value)
+-  {
+-    return max;
+-  }
+-
+-  return value;
++  // compilers are good at optimizing the ternary operator,
++  // use '<' since it is preferred by STL for custom types
++  T v = (min < value ? value : min);
++  return (v < max ? v : max);
+ #endif
+ }
+ 

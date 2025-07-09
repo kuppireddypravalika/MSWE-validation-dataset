@@ -1,0 +1,29 @@
+From 33210426721c026eba3f1e1769c59acb1126a7ed Mon Sep 17 00:00:00 2001
+From: "FeRD (Frank Dana)" <ferdnyc@gmail.com>
+Date: Tue, 14 Jan 2020 00:42:30 -0500
+Subject: [PATCH] Raise preview cache to CPUs*8 frames, max 64
+
+---
+ src/Qt/VideoCacheThread.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/Qt/VideoCacheThread.cpp b/src/Qt/VideoCacheThread.cpp
+index 46b6f030a..6cff46ba8 100644
+--- a/src/Qt/VideoCacheThread.cpp
++++ b/src/Qt/VideoCacheThread.cpp
+@@ -29,13 +29,14 @@
+  */
+ 
+ #include "../../include/Qt/VideoCacheThread.h"
++#include <algorithm>
+ 
+ namespace openshot
+ {
+ 	// Constructor
+ 	VideoCacheThread::VideoCacheThread()
+ 	: Thread("video-cache"), speed(1), is_playing(false), position(1)
+-	, reader(NULL), max_frames(OPEN_MP_NUM_PROCESSORS * 2), current_display_frame(1)
++	, reader(NULL), max_frames(std::min(OPEN_MP_NUM_PROCESSORS * 8, 64)), current_display_frame(1)
+     {
+     }
+ 

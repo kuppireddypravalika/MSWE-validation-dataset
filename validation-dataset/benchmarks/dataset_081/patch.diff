@@ -1,0 +1,25 @@
+From 523304537345dd17c6ebba538a185023cb1d8f98 Mon Sep 17 00:00:00 2001
+From: Alexander Block <ablock84@gmail.com>
+Date: Mon, 27 May 2019 13:43:57 +0200
+Subject: [PATCH] Don't check for posInBlock when updating pindexMined
+
+ProcessNewTransaction is now only called with pindex != nullptr when a
+block is connected but never when it is disconnected, so there is no need
+to check for posInBlock anymore (we don't even have it now).
+---
+ src/llmq/quorums_instantsend.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/llmq/quorums_instantsend.cpp b/src/llmq/quorums_instantsend.cpp
+index cb2fa1d327..1e5333e0f9 100644
+--- a/src/llmq/quorums_instantsend.cpp
++++ b/src/llmq/quorums_instantsend.cpp
+@@ -986,7 +986,7 @@ void CInstantSendManager::ProcessNewTransaction(const CTransactionRef& tx, const
+     if (!chainlocked && islockHash.IsNull()) {
+         // TX is not locked, so make sure it is tracked
+         AddNonLockedTx(tx);
+-        nonLockedTxs.at(tx->GetHash()).pindexMined = posInBlock != -1 ? pindex : nullptr;
++        nonLockedTxs.at(tx->GetHash()).pindexMined = pindex;
+     } else {
+         // TX is locked, so make sure we don't track it anymore
+         RemoveNonLockedTx(tx->GetHash(), true);

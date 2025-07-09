@@ -1,0 +1,35 @@
+From 21d092ab082586afcd6f9c38ef18a2360b40c4d7 Mon Sep 17 00:00:00 2001
+From: Rui Ueyama <ruiu@google.com>
+Date: Wed, 14 Jun 2017 04:02:40 +0000
+Subject: [PATCH] Use StringRef::split instead of StringRef::find and
+ StringRef::substr.
+
+Summary: Pointed out by Yuka Takahashi.
+
+Differential Revision: https://reviews.llvm.org/D34192
+---
+ lld/ELF/Driver.cpp | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
+
+diff --git a/lld/ELF/Driver.cpp b/lld/ELF/Driver.cpp
+index 1534c7e0c76e..4bc69dc428c4 100644
+--- a/lld/ELF/Driver.cpp
++++ b/lld/ELF/Driver.cpp
+@@ -306,13 +306,11 @@ static bool hasZOption(opt::InputArgList &Args, StringRef Key) {
+ static uint64_t getZOptionValue(opt::InputArgList &Args, StringRef Key,
+                                 uint64_t Default) {
+   for (auto *Arg : Args.filtered(OPT_z)) {
+-    StringRef Value = Arg->getValue();
+-    size_t Pos = Value.find("=");
+-    if (Pos != StringRef::npos && Key == Value.substr(0, Pos)) {
+-      Value = Value.substr(Pos + 1);
++    std::pair<StringRef, StringRef> KV = StringRef(Arg->getValue()).split('=');
++    if (KV.first == Key) {
+       uint64_t Result;
+-      if (!to_integer(Value, Result))
+-        error("invalid " + Key + ": " + Value);
++      if (!to_integer(KV.second, Result))
++        error("invalid " + Key + ": " + KV.second);
+       return Result;
+     }
+   }

@@ -1,0 +1,32 @@
+From bf1ae5e254f8f6f6f3dfe9438d14bef9b955f01f Mon Sep 17 00:00:00 2001
+From: Dale Johannesen <dalej@apple.com>
+Date: Tue, 20 Jul 2010 00:50:13 +0000
+Subject: [PATCH] Don't hoist things out of a large switch inside a loop, for
+ the reasons in the comments.  This is a major win on 253.perlbmk on ARM
+ Darwin.  I expect it to be a good heuristic in general, but it's possible
+ some things will regress; I'll be watching. 7940152.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@108792 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/CodeGen/MachineLICM.cpp | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/lib/CodeGen/MachineLICM.cpp b/lib/CodeGen/MachineLICM.cpp
+index 4c054f51f3a..83f66ce0948 100644
+--- a/lib/CodeGen/MachineLICM.cpp
++++ b/lib/CodeGen/MachineLICM.cpp
+@@ -489,8 +489,12 @@ void MachineLICM::HoistRegion(MachineDomTreeNode *N) {
+   }
+ 
+   const std::vector<MachineDomTreeNode*> &Children = N->getChildren();
+-  for (unsigned I = 0, E = Children.size(); I != E; ++I)
+-    HoistRegion(Children[I]);
++  // Don't hoist things out of a large switch statement.  This often causes
++  // code to be hoisted that wasn't going to be executed, and increases
++  // register pressure in a situation where it's likely to matter.
++  if (Children.size() < 10)
++    for (unsigned I = 0, E = Children.size(); I != E; ++I)
++      HoistRegion(Children[I]);
+ }
+ 
+ /// IsLICMCandidate - Returns true if the instruction may be a suitable

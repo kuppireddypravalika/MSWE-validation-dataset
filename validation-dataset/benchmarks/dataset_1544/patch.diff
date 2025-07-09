@@ -1,0 +1,25 @@
+From 821b6c14af0ea9aefc29c8e7b187d995cfea74c0 Mon Sep 17 00:00:00 2001
+From: Quentin <quentinvcher@gmail.com>
+Date: Thu, 23 Nov 2023 10:51:42 +0100
+Subject: [PATCH] change updateBestScoreLastGen method for performance
+
+---
+ gegelatilib/src/learn/learningAgent.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/gegelatilib/src/learn/learningAgent.cpp b/gegelatilib/src/learn/learningAgent.cpp
+index 0473225f..49544066 100644
+--- a/gegelatilib/src/learn/learningAgent.cpp
++++ b/gegelatilib/src/learn/learningAgent.cpp
+@@ -403,9 +403,8 @@ void Learn::LearningAgent::updateBestScoreLastGen(
+     std::multimap<std::shared_ptr<Learn::EvaluationResult>,
+                   const TPG::TPGVertex*>& results)
+ {
+-    auto iter = results.begin();
+-    std::advance(iter, results.size() - 1);
+-    bestScoreLastGen = iter->first->getResult();
++    auto iterator = --results.end();
++    bestScoreLastGen = iterator->first->getResult();
+ }
+ 
+ double Learn::LearningAgent::getBestScoreLastGen() const

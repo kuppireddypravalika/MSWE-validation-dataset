@@ -1,0 +1,29 @@
+From 0171dc424149660354fbf283bb55ec363c2b77c9 Mon Sep 17 00:00:00 2001
+From: Connor McLaughlin <stenzek@gmail.com>
+Date: Thu, 5 Dec 2019 02:03:00 +1000
+Subject: [PATCH] CPU/Recompiler: Prevent vixl from using scratch registers
+
+This took too long to find that it was trashing one of our register
+cache values. Let it abort instead, until we use the base assembler
+instead of the macro assembler.
+---
+ src/core/cpu_recompiler_code_generator_aarch64.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/src/core/cpu_recompiler_code_generator_aarch64.cpp b/src/core/cpu_recompiler_code_generator_aarch64.cpp
+index 44cbb5582..3fd43ca2d 100644
+--- a/src/core/cpu_recompiler_code_generator_aarch64.cpp
++++ b/src/core/cpu_recompiler_code_generator_aarch64.cpp
+@@ -86,6 +86,12 @@ CodeGenerator::CodeGenerator(Core* cpu, JitCodeBuffer* code_buffer, const ASMFun
+                   a64::PositionDependentCode),
+     m_emit(&m_near_emitter)
+ {
++  // remove the temporaries from vixl's list to prevent it from using them.
++  // eventually we won't use the macro assembler and this won't be a problem...
++  m_near_emitter.GetScratchRegisterList()->Remove(16);
++  m_near_emitter.GetScratchRegisterList()->Remove(17);
++  m_far_emitter.GetScratchRegisterList()->Remove(16);
++  m_far_emitter.GetScratchRegisterList()->Remove(17);
+   InitHostRegs();
+ }
+ 

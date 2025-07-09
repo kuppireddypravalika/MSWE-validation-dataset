@@ -1,0 +1,31 @@
+From 764f564c0cf5b58262a34bb7d556f5e856fa448d Mon Sep 17 00:00:00 2001
+From: Magne Sjaastad <magne.sjaastad@ceetronsolutions.com>
+Date: Mon, 30 Sep 2013 07:55:26 +0200
+Subject: [PATCH] Performance: Access memory directly instead of using access
+ functions.
+
+---
+ Fwk/VizFwk/LibRender/cvfTextureImage.cpp | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/Fwk/VizFwk/LibRender/cvfTextureImage.cpp b/Fwk/VizFwk/LibRender/cvfTextureImage.cpp
+index 2b5da3aae55..46e081c0bc2 100644
+--- a/Fwk/VizFwk/LibRender/cvfTextureImage.cpp
++++ b/Fwk/VizFwk/LibRender/cvfTextureImage.cpp
+@@ -217,10 +217,12 @@ void TextureImage::setPixel(uint x, uint y, const Color4ub& clr)
+     CVF_TIGHT_ASSERT(y < m_height);
+ 
+     const uint idx = 4*(y*m_width + x);
+-    m_dataRgba[idx]     = clr.r();
+-    m_dataRgba[idx + 1] = clr.g(); 
+-    m_dataRgba[idx + 2] = clr.b(); 
+-    m_dataRgba[idx + 3] = clr.a(); 
++    const ubyte* data = clr.ptr();
++
++    m_dataRgba[idx]     = data[0];
++    m_dataRgba[idx + 1] = data[1]; 
++    m_dataRgba[idx + 2] = data[2]; 
++    m_dataRgba[idx + 3] = data[3]; 
+ }
+ 
+ 

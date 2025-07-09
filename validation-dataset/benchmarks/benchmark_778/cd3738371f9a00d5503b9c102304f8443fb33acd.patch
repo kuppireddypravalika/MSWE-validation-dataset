@@ -1,0 +1,27 @@
+From cd3738371f9a00d5503b9c102304f8443fb33acd Mon Sep 17 00:00:00 2001
+From: Aleksandar Micic <amicic@ca.ibm.com>
+Date: Sun, 12 Apr 2020 18:42:17 -0400
+Subject: [PATCH] Enable CS Exhaustive Termination by default
+
+Enabling the low pause optimization by default. High level description
+and a series of PRs that implements the optimization can be found here:
+https://github.com/eclipse/omr/issues/4787
+
+Signed-off-by: Aleksandar Micic <amicic@ca.ibm.com>
+---
+ gc/base/GCExtensionsBase.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gc/base/GCExtensionsBase.hpp b/gc/base/GCExtensionsBase.hpp
+index 630ed8f3a9..b8095f585e 100644
+--- a/gc/base/GCExtensionsBase.hpp
++++ b/gc/base/GCExtensionsBase.hpp
+@@ -1535,7 +1535,7 @@ class MM_GCExtensionsBase : public MM_BaseVirtual {
+ 		, concurrentScavengerBackgroundThreadsForced(false)
+ 		, concurrentScavengerSlack(0)
+ 		, concurrentScavengerAllocDeviationBoost(2.0)
+-		, concurrentScavengeExhaustiveTermination(false)
++		, concurrentScavengeExhaustiveTermination(true)
+ #endif /* defined(OMR_GC_CONCURRENT_SCAVENGER) */
+ 		, scavengerFailedTenureThreshold(0)
+ 		, maxScavengeBeforeGlobal(0)

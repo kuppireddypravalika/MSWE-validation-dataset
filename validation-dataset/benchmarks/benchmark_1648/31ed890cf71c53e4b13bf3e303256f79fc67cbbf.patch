@@ -1,0 +1,44 @@
+From 31ed890cf71c53e4b13bf3e303256f79fc67cbbf Mon Sep 17 00:00:00 2001
+From: Andrew Craik <ajcraik@ca.ibm.com>
+Date: Fri, 10 Jan 2020 16:31:09 -0500
+Subject: [PATCH] Enhance Simplifier to minimize child PassThroughs
+
+This change adds a check in the simplifier helper logic to see if
+a child, which has been simplified, has become a PassThrough. If
+the root node does not answer true to isNullChk() then attach the
+child of the PassThrough to minimize the number of PassThrough
+nodes and maximize opportunities for optimization.
+
+Signed-off-by: Andrew Craik <ajcraik@ca.ibm.com>
+---
+ compiler/optimizer/OMRSimplifierHelpers.cpp | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/compiler/optimizer/OMRSimplifierHelpers.cpp b/compiler/optimizer/OMRSimplifierHelpers.cpp
+index 19149cec4a..24f21278db 100644
+--- a/compiler/optimizer/OMRSimplifierHelpers.cpp
++++ b/compiler/optimizer/OMRSimplifierHelpers.cpp
+@@ -1,5 +1,5 @@
+ /*******************************************************************************
+- * Copyright (c) 2000, 2019 IBM Corp. and others
++ * Copyright (c) 2000, 2020 IBM Corp. and others
+  *
+  * This program and the accompanying materials are made available under
+  * the terms of the Eclipse Public License 2.0 which accompanies this
+@@ -121,6 +121,16 @@ void simplifyChildren(TR::Node * node, TR::Block * block, TR::Simplifier * s)
+          child = s->simplify(child, block);
+          node->setChild(i, child);
+          }
++      // if simplification produced a PassThrough attach the child of the PassThrough here
++      // to keep the trees clean unless we are dealing with a node where a PassThrough is
++      // important - a null check or GlRegtDeps
++      if (!node->getOpCode().isNullCheck()
++          && node->getOpCodeValue() != TR::GlRegDeps
++          && child->getOpCodeValue() == TR::PassThrough)
++         {
++         node->setAndIncChild(i, child->getFirstChild());
++         child->recursivelyDecReferenceCount();
++         }
+       }
+    }
+ 

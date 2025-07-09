@@ -1,0 +1,21 @@
+From ead7be10d12f73e412ca3cb34cc3ecb3994ef3ad Mon Sep 17 00:00:00 2001
+From: Andreas Gal <gal@mozilla.com>
+Date: Mon, 23 Feb 2009 11:31:20 -0800
+Subject: [PATCH] Improve blacklisting algorithm (479109, r=graydon).
+
+---
+ nanojit/Fragmento.cpp | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/nanojit/Fragmento.cpp b/nanojit/Fragmento.cpp
+index 1c81fa4..cb10713 100644
+--- a/nanojit/Fragmento.cpp
++++ b/nanojit/Fragmento.cpp
+@@ -590,7 +590,6 @@ namespace nanojit
+ 		GC *gc = _core->gc;
+         Fragment *f = NJ_NEW(gc, Fragment)(ip);
+ 		f->blacklistLevel = 5;
+-        f->recordAttempts = 0;
+         return f;
+     }
+ 

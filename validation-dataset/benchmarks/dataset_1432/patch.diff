@@ -1,0 +1,27 @@
+From 16296ea61aae8ccf72c4955721c24c2762bcac04 Mon Sep 17 00:00:00 2001
+From: Lyve <lyve2909+github@gmail.com>
+Date: Sat, 22 Jan 2022 16:06:07 +0100
+Subject: [PATCH] skip empty rep loop
+
+---
+ source/dsp56kEmu/jitops.cpp | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/source/dsp56kEmu/jitops.cpp b/source/dsp56kEmu/jitops.cpp
+index 3c7d79a2..37cda588 100644
+--- a/source/dsp56kEmu/jitops.cpp
++++ b/source/dsp56kEmu/jitops.cpp
+@@ -765,6 +765,13 @@ namespace dsp56k
+ 				return;
+ 			}
+ 		}
++		else if(!opA)
++		{
++			// rep nop => do nothing
++			m_block.getEncodedInstructionCount() += _lc;
++			m_opSize++;
++			return;
++		}
+ 
+ 		// regular processing
+ 		RegGP lc(m_block);

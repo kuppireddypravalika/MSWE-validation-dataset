@@ -1,0 +1,24 @@
+From e858b733707503f0a9463d5463e86c484765975e Mon Sep 17 00:00:00 2001
+From: Michael Neunert <neunertm@gmail.com>
+Date: Mon, 11 Dec 2017 21:36:24 +0000
+Subject: [PATCH] svd decomposition now uses dynamic size matrices as required
+ to compute thin U and thin V (see
+ https://eigen.tuxfamily.org/dox/classEigen_1_1JacobiSVD.html)
+
+---
+ include/kindr/math/LinearAlgebra.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/kindr/math/LinearAlgebra.hpp b/include/kindr/math/LinearAlgebra.hpp
+index 44ec3717..f713f3b1 100644
+--- a/include/kindr/math/LinearAlgebra.hpp
++++ b/include/kindr/math/LinearAlgebra.hpp
+@@ -80,7 +80,7 @@ bool static pseudoInverse(const _Matrix_TypeA_ &a, _Matrix_TypeB_ &result,
+   // If one dimension is dynamic, compute everything as dynamic size
+   constexpr auto m = Eigen::JacobiSVD< _Matrix_TypeA_ >::DiagSizeAtCompileTime;
+ 
+-  Eigen::JacobiSVD< _Matrix_TypeA_ > svd = a.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
++  Eigen::JacobiSVD< Eigen::Matrix<typename _Matrix_TypeA_::Scalar, Eigen::Dynamic, Eigen::Dynamic> > svd(a, Eigen::ComputeThinU | Eigen::ComputeThinV);
+ 
+   typename _Matrix_TypeA_::Scalar tolerance =
+     epsilon * std::max(a.cols(), a.rows()) * svd.singularValues().array().abs().maxCoeff();

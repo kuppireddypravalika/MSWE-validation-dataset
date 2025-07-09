@@ -1,0 +1,22 @@
+From fb3124e7293e60482393cdb7827c50d8bb53749b Mon Sep 17 00:00:00 2001
+From: fyulingi <fyulingi@gmail.com>
+Date: Tue, 2 Jan 2024 10:58:09 +0800
+Subject: [PATCH] Improve queries like "select * where {?s ?p ?o.} limit k".
+
+---
+ Database/Optimizer.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Database/Optimizer.cpp b/Database/Optimizer.cpp
+index 73126e28..1e06f9af 100644
+--- a/Database/Optimizer.cpp
++++ b/Database/Optimizer.cpp
+@@ -103,7 +103,7 @@ tuple<bool, IntermediateResult> Optimizer:: ExecutionDepthFirst(shared_ptr<BGPQu
+   IntermediateResult first_table;
+   if(first_operation->op_type_ ==StepOperation::StepOpType::Extend)
+   {
+-    auto first_result = InitialTable(bgp_query,id_caches,first_operation, gstore::Executor::NO_LIMIT_OUTPUT);
++    auto first_result = InitialTable(bgp_query,id_caches,first_operation, query_plan->join_order_->size()==1 ? query_info.limit_num_ : gstore::Executor::NO_LIMIT_OUTPUT);
+     first_table = get<1>(first_result);
+     if( query_plan->join_order_->size()==1 || first_table.values_->empty())
+       return make_tuple(true, first_table);

@@ -1,0 +1,22 @@
+From 902e419200a111dae25a8bdf952b0e1de1a5ece5 Mon Sep 17 00:00:00 2001
+From: Bill Lorensen <lorensen@crd.ge.com>
+Date: Sat, 13 Jul 1996 17:01:21 -0400
+Subject: [PATCH] PERF: Replaced for loop with memcpy.
+
+---
+ src/vtkAPixmap.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/vtkAPixmap.cc b/src/vtkAPixmap.cc
+index 6f6782a226c..32320192462 100644
+--- a/src/vtkAPixmap.cc
++++ b/src/vtkAPixmap.cc
+@@ -72,7 +72,7 @@ void vtkAPixmap::GetColor(int id, unsigned char rgba[4])
+ void vtkAPixmap::SetColor(int id, unsigned char rgba[4])
+ {
+   id *= 4;
+-  for(int j=0; j<4; j++) this->S[id+j] = rgba[j];
++  memcpy (&(this->S[id]), rgba, 4);
+ }
+ 
+ // Description:

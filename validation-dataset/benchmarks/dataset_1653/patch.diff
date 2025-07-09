@@ -1,0 +1,40 @@
+From bcd04af4e8c6bbd4aba19369ac718df78cf88e9c Mon Sep 17 00:00:00 2001
+From: Giuseppe D'Angelo <giuseppe.dangelo@kdab.com>
+Date: Wed, 30 Jan 2013 22:38:48 +0000
+Subject: [PATCH] QRegularExpression: don't use study data when getting the
+ pattern info
+
+Information about the pattern (number of capturing groups, newline
+settings, etc.) are grabbed when the pattern is compiled the first time.
+
+Studying (=> optimizing) is always done later, after a certain amount
+of usages. In case this ever changes, add an assert.
+
+Besides, we're not grabbing any info that require studying the pattern
+first.
+
+Change-Id: Ica15fa21f7bf13213288d7090d3396a89900078e
+Reviewed-by: Thiago Macieira <thiago.macieira@intel.com>
+---
+ src/corelib/tools/qregularexpression.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/corelib/tools/qregularexpression.cpp b/src/corelib/tools/qregularexpression.cpp
+index 510b7112afa3..706856c70bc2 100644
+--- a/src/corelib/tools/qregularexpression.cpp
++++ b/src/corelib/tools/qregularexpression.cpp
+@@ -979,12 +979,13 @@ void QRegularExpressionPrivate::compilePattern()
+ void QRegularExpressionPrivate::getPatternInfo()
+ {
+     Q_ASSERT(compiledPattern);
++    Q_ASSERT(studyData == 0);
+ 
+     pcre16_fullinfo(compiledPattern, 0, PCRE_INFO_CAPTURECOUNT, &capturingCount);
+ 
+     // detect the settings for the newline
+     unsigned long int patternNewlineSetting;
+-    pcre16_fullinfo(compiledPattern, studyData, PCRE_INFO_OPTIONS, &patternNewlineSetting);
++    pcre16_fullinfo(compiledPattern, 0, PCRE_INFO_OPTIONS, &patternNewlineSetting);
+     patternNewlineSetting &= PCRE_NEWLINE_CR  | PCRE_NEWLINE_LF | PCRE_NEWLINE_CRLF
+             | PCRE_NEWLINE_ANY | PCRE_NEWLINE_ANYCRLF;
+     if (patternNewlineSetting == 0) {

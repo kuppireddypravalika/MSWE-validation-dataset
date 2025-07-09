@@ -1,0 +1,31 @@
+From 293a88c42726c9f62d523c599240d2df1efdd8b9 Mon Sep 17 00:00:00 2001
+From: Johnny Willemsen <jwillemsen@remedy.nl>
+Date: Wed, 5 Apr 2017 16:45:13 +0200
+Subject: [PATCH] More efficient deserialization
+
+    * dds/DCPS/Definitions.h:
+---
+ dds/DCPS/Definitions.h | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/dds/DCPS/Definitions.h b/dds/DCPS/Definitions.h
+index 58b50fbe366..d60d63213db 100644
+--- a/dds/DCPS/Definitions.h
++++ b/dds/DCPS/Definitions.h
+@@ -212,10 +212,12 @@ inline ACE_CDR::Boolean
+ operator>>(Serializer& s, SequenceNumber& x) {
+   ACE_INT32 high;
+   ACE_UINT32 low;
+-  s >> high;
+-  if (!s.good_bit()) return false;
+-  s >> low;
+-  if (!s.good_bit()) return false;
++  if (!(s >> high)) {
++    return false;
++  }
++  if (!(s >> low)) {
++    return false;
++  }
+   x = SequenceNumber(high, low);
+   return true;
+ }

@@ -1,0 +1,27 @@
+From 38ecdbea67bf22065b7e5f0099ffcc360669e6f8 Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@intel.com>
+Date: Fri, 4 May 2018 17:39:08 +0000
+Subject: [PATCH] [LoopIdiomRecognize] Don't create an IRBuilder just to call
+ getTrue/getFalse.
+
+We can call the methods in ConstantInt directly. We just need a context.
+---
+ llvm/lib/Transforms/Scalar/LoopIdiomRecognize.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/llvm/lib/Transforms/Scalar/LoopIdiomRecognize.cpp b/llvm/lib/Transforms/Scalar/LoopIdiomRecognize.cpp
+index 1e3bf915b741..5bfb44bc151f 100644
+--- a/llvm/lib/Transforms/Scalar/LoopIdiomRecognize.cpp
++++ b/llvm/lib/Transforms/Scalar/LoopIdiomRecognize.cpp
+@@ -1415,9 +1415,9 @@ bool LoopIdiomRecognize::recognizeAndInsertCTLZ() {
+   //  %inc = add nsw %i.0, 1
+   //  br i1 %tobool
+ 
+-  IRBuilder<> Builder(PH->getTerminator());
+   const Value *Args[] =
+-      {InitX, ZeroCheck ? Builder.getTrue() : Builder.getFalse()};
++      {InitX, ZeroCheck ? ConstantInt::getTrue(InitX->getContext())
++                        : ConstantInt::getFalse(InitX->getContext())};
+   if (CurLoop->getHeader()->size() != 6 &&
+       TTI->getIntrinsicCost(Intrinsic::ctlz, InitX->getType(), Args) >
+           TargetTransformInfo::TCC_Basic)

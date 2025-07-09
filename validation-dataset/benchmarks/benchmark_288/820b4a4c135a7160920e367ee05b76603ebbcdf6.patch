@@ -1,0 +1,24 @@
+From 820b4a4c135a7160920e367ee05b76603ebbcdf6 Mon Sep 17 00:00:00 2001
+From: Stewart Smith <stewart@mysql.com>
+Date: Thu, 9 Oct 2008 01:17:08 +1100
+Subject: [PATCH]  use explicit uint32 casts for 1xuint64 ot 2xuint32
+
+---
+ storage/ndb/src/kernel/blocks/pgman.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/storage/ndb/src/kernel/blocks/pgman.cpp b/storage/ndb/src/kernel/blocks/pgman.cpp
+index 0f62288ea51..83faafb9ad9 100644
+--- a/storage/ndb/src/kernel/blocks/pgman.cpp
++++ b/storage/ndb/src/kernel/blocks/pgman.cpp
+@@ -1359,8 +1359,8 @@ Pgman::pageout(Signal* signal, Ptr<Page_entry> ptr)
+   m_global_page_pool.getPtr(pagePtr, ptr.p->m_real_page_i);
+   File_formats::Datafile::Data_page* page =
+     (File_formats::Datafile::Data_page*)pagePtr.p;
+-  page->m_page_header.m_page_lsn_hi = ptr.p->m_lsn >> 32;
+-  page->m_page_header.m_page_lsn_lo = ptr.p->m_lsn & 0xFFFFFFFF;
++  page->m_page_header.m_page_lsn_hi = (Uint32)(ptr.p->m_lsn >> 32);
++  page->m_page_header.m_page_lsn_lo = (Uint32)(ptr.p->m_lsn & 0xFFFFFFFF);
+ 
+   // undo WAL
+   Logfile_client::Request req;

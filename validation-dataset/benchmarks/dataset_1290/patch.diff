@@ -1,0 +1,36 @@
+From 66a8e1ec1949110f107887d0d6a7e22760a88b6a Mon Sep 17 00:00:00 2001
+From: Barath Kannan <barathsotd@gmail.com>
+Date: Sun, 31 Jul 2016 11:33:59 +1000
+Subject: [PATCH] Branch on thread safety check earlier in thread pooled mode
+
+This grants significant performance improvements when using thread pooled mode, as the overhead of the function invocation lambda capture is reduced when not using a thread safe signal
+---
+ inc/BSignals/details/SignalImpl.hpp | 14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/inc/BSignals/details/SignalImpl.hpp b/inc/BSignals/details/SignalImpl.hpp
+index d4ef744..0218b12 100755
+--- a/inc/BSignals/details/SignalImpl.hpp
++++ b/inc/BSignals/details/SignalImpl.hpp
+@@ -276,10 +276,18 @@ class SignalImpl {
+     }
+ 
+     inline void runThreadPooled(const uint32_t& id, const std::function<void(Args...)> &function, const Args &... p) const {
+-        WheeledThreadPool::run([this, &id, &function, p...](){
+-            if (!enableEmissionGuard || getIsStillConnectedFromExecutor(id))
++        if (enableEmissionGuard){
++            WheeledThreadPool::run([this, &id, &function, p...](){
++                if (getIsStillConnectedFromExecutor(id)){
++                    function(p...);
++                }
++            });
++        }
++        else{
++            WheeledThreadPool::run([&function, p...](){
+                 function(p...);
+-        });
++            });
++        }
+     }
+     
+     inline void runAsynchronous(const uint32_t& id, const std::function<void(Args...)>& function, const Args& ... p){

@@ -1,0 +1,32 @@
+From f5b4a18b563ddab2026f217e4c8c45ce394a631e Mon Sep 17 00:00:00 2001
+From: Anton Kudryavtsev <anton.kudryavtsev@vk.team>
+Date: Wed, 23 Aug 2023 16:27:20 +0300
+Subject: [PATCH] qnetworkcookie: replace QString with QL1S
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+to save allocation
+
+Change-Id: I7726d2e9d165ec3ebdd4a6dd7dd98bcd16c50bc6
+Reviewed-by: Mårten Nordheim <marten.nordheim@qt.io>
+---
+ src/network/access/qnetworkcookie.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/network/access/qnetworkcookie.cpp b/src/network/access/qnetworkcookie.cpp
+index 44542057cac9..7ecc9c0b6c4e 100644
+--- a/src/network/access/qnetworkcookie.cpp
++++ b/src/network/access/qnetworkcookie.cpp
+@@ -992,9 +992,9 @@ QList<QNetworkCookie> QNetworkCookiePrivate::parseSetCookieHeaderLine(const QByt
+                     QByteArray rawDomain = field.second;
+                     //empty domain should be ignored (RFC6265 section 5.2.3)
+                     if (!rawDomain.isEmpty()) {
+-                        QString maybeLeadingDot;
++                        QLatin1StringView maybeLeadingDot;
+                         if (rawDomain.startsWith('.')) {
+-                            maybeLeadingDot = u'.';
++                            maybeLeadingDot = "."_L1;
+                             rawDomain = rawDomain.mid(1);
+                         }
+ 

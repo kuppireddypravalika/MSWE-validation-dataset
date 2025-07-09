@@ -1,0 +1,22 @@
+From 55eaa4b7554b882af42d76deb5e8c948c07a7708 Mon Sep 17 00:00:00 2001
+From: jimingquan <mingquan.ji@vesoft.com>
+Date: Mon, 29 Mar 2021 18:13:20 +0800
+Subject: [PATCH] replace multimap with unordered_multimap (#894)
+
+---
+ src/executor/algo/BFSShortestPathExecutor.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/executor/algo/BFSShortestPathExecutor.cpp b/src/executor/algo/BFSShortestPathExecutor.cpp
+index 45975574dcd..b0dd9cd6588 100644
+--- a/src/executor/algo/BFSShortestPathExecutor.cpp
++++ b/src/executor/algo/BFSShortestPathExecutor.cpp
+@@ -20,7 +20,7 @@ folly::Future<Status> BFSShortestPathExecutor::execute() {
+ 
+     DataSet ds;
+     ds.colNames = node()->colNames();
+-    std::multimap<Value, Value> interim;
++    std::unordered_multimap<Value, Value> interim;
+ 
+     for (; iter->valid(); iter->next()) {
+         auto edgeVal = iter->getEdge();

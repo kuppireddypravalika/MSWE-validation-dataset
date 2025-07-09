@@ -1,0 +1,31 @@
+From ee07695cce4e960d2359faef1dec9340a4d244b5 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Micha=C5=82=20Janiszewski?= <janisozaur@gmail.com>
+Date: Thu, 20 Jul 2017 19:36:37 +0200
+Subject: [PATCH] Manually hoist consts before the loop
+
+It is optimised in release builds, but it will help in debug mode
+---
+ src/openrct2/drawing/X8DrawingEngine.cpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/src/openrct2/drawing/X8DrawingEngine.cpp b/src/openrct2/drawing/X8DrawingEngine.cpp
+index bf167c8ce7b5..359a25da21b9 100644
+--- a/src/openrct2/drawing/X8DrawingEngine.cpp
++++ b/src/openrct2/drawing/X8DrawingEngine.cpp
+@@ -710,11 +710,14 @@ void X8DrawingContext::FilterRect(FILTER_PALETTE_ID palette, sint32 left, sint32
+     rct_g1_element * g1Element = &g1Elements[g1Index];
+     uint8 *          g1Bits = g1Element->offset;
+ 
++    const sint32 scaled_width = width >> dpi->zoom_level;
++    const sint32 step = ((dpi->width >> dpi->zoom_level) + dpi->pitch);
++
+     // Fill the rectangle with the colours from the colour table
+     for (sint32 i = 0; i < height >> dpi->zoom_level; i++)
+     {
+-        uint8 * nextdst = dst + ((dpi->width >> dpi->zoom_level) + dpi->pitch) * i;
+-        for (sint32 j = 0; j < (width >> dpi->zoom_level); j++)
++        uint8 * nextdst = dst + step * i;
++        for (sint32 j = 0; j < scaled_width; j++)
+         {
+             *(nextdst + j) = g1Bits[*(nextdst + j)];
+         }

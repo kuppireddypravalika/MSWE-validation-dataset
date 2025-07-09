@@ -1,0 +1,31 @@
+From 9f270c05ff3f1484de998c8d9ef408b6dbf82c4c Mon Sep 17 00:00:00 2001
+From: Vadim Zeitlin <vadim@wxwidgets.org>
+Date: Thu, 3 Jan 2019 23:15:54 +0100
+Subject: [PATCH] Micro optimization in wxInternetFSHandler::OpenFile()
+
+Avoid copying the content type string unnecessarily and avoid even
+calling GetContentType() in the first place in case of an error.
+---
+ src/common/fs_inet.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/common/fs_inet.cpp b/src/common/fs_inet.cpp
+index 23f23fd010a3..b32aa269507a 100644
+--- a/src/common/fs_inet.cpp
++++ b/src/common/fs_inet.cpp
+@@ -105,7 +105,6 @@ wxFSFile* wxInternetFSHandler::OpenFile(wxFileSystem& WXUNUSED(fs),
+     if (url.GetError() == wxURL_NOERR)
+     {
+         wxInputStream *s = url.GetInputStream();
+-        wxString content = url.GetProtocol().GetContentType();
+         if (s)
+         {
+             wxString tmpfile =
+@@ -120,6 +119,7 @@ wxFSFile* wxInternetFSHandler::OpenFile(wxFileSystem& WXUNUSED(fs),
+             // Content-Type header, as defined by the RFC 2045, has the form of
+             // "type/subtype" optionally followed by (multiple) "; parameter"
+             // and we need just the MIME type here.
++            const wxString& content = url.GetProtocol().GetContentType();
+             wxString mimetype = content.BeforeFirst(';');
+             mimetype.Trim();
+ 

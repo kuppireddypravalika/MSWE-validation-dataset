@@ -1,0 +1,22 @@
+From 971f4f5bbbd704979a714b3b60861b5491a5c27e Mon Sep 17 00:00:00 2001
+From: Kevin DuBois <kevin.dubois@canonical.com>
+Date: Wed, 12 Feb 2014 10:20:21 -0800
+Subject: [PATCH] use layers = std::move(new_layers) instead of std::swap
+
+---
+ src/platform/graphics/android/hwc_layerlist.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/platform/graphics/android/hwc_layerlist.cpp b/src/platform/graphics/android/hwc_layerlist.cpp
+index 03755d11e98..def218d3924 100644
+--- a/src/platform/graphics/android/hwc_layerlist.cpp
++++ b/src/platform/graphics/android/hwc_layerlist.cpp
+@@ -65,7 +65,7 @@ void mga::LayerListBase::update_representation(size_t needed_size)
+         {
+             new_layers.emplace_back(mga::HWCLayer(hwc_representation, i));
+         }
+-        std::swap(new_layers, layers);
++        layers = std::move(new_layers);
+     }
+ }
+ 

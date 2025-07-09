@@ -1,0 +1,25 @@
+From ce9e08b22a97fbfccad7c236d08e3394c8356d51 Mon Sep 17 00:00:00 2001
+From: Marc Rousavy <marcrousavy@hotmail.com>
+Date: Thu, 5 Oct 2017 08:28:21 +0200
+Subject: [PATCH] Faster Initializer list cloning -> rvalue
+
+---
+ BrabeNetz/Network.cpp | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/BrabeNetz/Network.cpp b/BrabeNetz/Network.cpp
+index 1ba7cb0..c31da44 100644
+--- a/BrabeNetz/Network.cpp
++++ b/BrabeNetz/Network.cpp
+@@ -17,10 +17,7 @@ network::network(initializer_list<int> initializer_list)
+ 		throw
+ 		"Initializer List can't contain less than 3 elements. E.g: { 2, 3, 4, 1 }: 2 Input, 3 Hidden, 4 Hidden, 1 Output";
+ 
+-	vector<int> input_vector; // clone initializer list to vector
+-	input_vector.insert(input_vector.end(), initializer_list.begin(), initializer_list.end());
+-
+-	this->topology_ = network_topology::random(input_vector);
++	this->topology_ = network_topology::random(vector<int>{ initializer_list });
+ 	init(this->topology_);
+ }
+ 

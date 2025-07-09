@@ -1,0 +1,40 @@
+From 4ec00ca6d87ae2ba20258fc4ba581eb5788c442f Mon Sep 17 00:00:00 2001
+From: Garrett Brown <themagnificentmrb@gmail.com>
+Date: Mon, 30 Jan 2023 18:18:27 -0800
+Subject: [PATCH] Game OSD: Speed up new savestate creation now that it renders
+ instantly
+
+---
+ xbmc/games/dialogs/osd/DialogInGameSaves.cpp | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/xbmc/games/dialogs/osd/DialogInGameSaves.cpp b/xbmc/games/dialogs/osd/DialogInGameSaves.cpp
+index 534b40f8687af..9f66fd5c8bbb4 100644
+--- a/xbmc/games/dialogs/osd/DialogInGameSaves.cpp
++++ b/xbmc/games/dialogs/osd/DialogInGameSaves.cpp
+@@ -264,7 +264,25 @@ void CDialogInGameSaves::OnNewSave()
+     // "Error"
+     // "An unknown error has occurred."
+     CGUIDialogOK::ShowAndGetInput(257, 24071);
++    return;
+   }
++
++  // Create a simulated savestate to update the GUI faster. We will be notified
++  // of the real savestate info via OnMessage() when the savestate creation
++  // completes.
++  auto savestate = RETRO::CSavestateDatabase::AllocateSavestate();
++
++  savestate->SetType(SAVE_TYPE::MANUAL);
++  savestate->SetCreated(CDateTime::GetUTCDateTime());
++
++  savestate->Finalize();
++
++  CFileItemPtr item = std::make_shared<CFileItem>();
++  CSavestateDatabase::GetSavestateItem(*savestate, savestatePath, *item);
++
++  m_savestateItems.AddFront(std::move(item), 0);
++
++  RefreshList();
+ }
+ 
+ void CDialogInGameSaves::OnLoad(CFileItem& focusedItem)

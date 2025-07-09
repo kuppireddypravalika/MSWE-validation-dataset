@@ -1,0 +1,28 @@
+From b4a5c2680f3a638a0a22af0a8dfea94b622e394c Mon Sep 17 00:00:00 2001
+From: Maciej Mroz <maciej.mroz@epicgames.com>
+Date: Wed, 7 May 2014 07:08:54 -0400
+Subject: [PATCH] ScriptStructs are initialized faster when
+ STRUCT_ZeroConstructor flag is set.
+
+#codereview Robert.Manuszewski, Nick.Whiting
+
+[CL 2065456 by Maciej Mroz in Main branch]
+---
+ Engine/Source/Runtime/CoreUObject/Private/UObject/Class.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/Engine/Source/Runtime/CoreUObject/Private/UObject/Class.cpp b/Engine/Source/Runtime/CoreUObject/Private/UObject/Class.cpp
+index d5904f2e33d..65f3f5e9e65 100644
+--- a/Engine/Source/Runtime/CoreUObject/Private/UObject/Class.cpp
++++ b/Engine/Source/Runtime/CoreUObject/Private/UObject/Class.cpp
+@@ -2038,6 +2038,10 @@ void UScriptStruct::InitializeScriptStruct(void* InDest, int32 ArrayDim)
+ 
+ 	//@todo UE4 optimize
+ 	FMemory::Memzero(Dest, ArrayDim * Stride);
++	if (StructFlags & STRUCT_ZeroConstructor)
++	{
++		return;
++	}
+ 
+ 	int32 InitializedSize = 0;
+ 	UScriptStruct::ICppStructOps* TheCppStructOps = GetCppStructOps();

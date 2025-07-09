@@ -1,0 +1,29 @@
+From f08a6b5ba75689585c39a7fca71e9ed5d42768e8 Mon Sep 17 00:00:00 2001
+From: Hendrik Leppkes <h.leppkes@gmail.com>
+Date: Mon, 3 Sep 2012 21:19:05 +0200
+Subject: [PATCH] Try to keep the existing buffer, if possible, avoiding one
+ memcpy
+
+---
+ decoder/LAVAudio/LAVAudio.cpp | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/decoder/LAVAudio/LAVAudio.cpp b/decoder/LAVAudio/LAVAudio.cpp
+index ead4853d0..fea7bf7af 100644
+--- a/decoder/LAVAudio/LAVAudio.cpp
++++ b/decoder/LAVAudio/LAVAudio.cpp
+@@ -2013,8 +2013,13 @@ HRESULT CLAVAudio::QueueOutput(BufferDetails &buffer)
+   else if (m_OutputQueue.rtStart == AV_NOPTS_VALUE && buffer.rtStart != AV_NOPTS_VALUE)
+     m_OutputQueue.rtStart = buffer.rtStart - (REFERENCE_TIME)((double)m_OutputQueue.nSamples / m_OutputQueue.dwSamplesPerSec * 10000000.0);
+ 
++  // Try to retain the buffer, if possible
++  if (m_OutputQueue.nSamples == 0) {
++    FFSWAP(GrowableArray<BYTE>*, m_OutputQueue.bBuffer, buffer.bBuffer);
++  } else {
++    m_OutputQueue.bBuffer->Append(buffer.bBuffer);
++  }
+   m_OutputQueue.nSamples += buffer.nSamples;
+-  m_OutputQueue.bBuffer->Append(buffer.bBuffer);
+ 
+   buffer.bBuffer->SetSize(0);
+   buffer.nSamples = 0;

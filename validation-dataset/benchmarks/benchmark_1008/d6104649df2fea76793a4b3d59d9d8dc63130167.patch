@@ -1,0 +1,37 @@
+From d6104649df2fea76793a4b3d59d9d8dc63130167 Mon Sep 17 00:00:00 2001
+From: Jonas Hahnfeld <jonas.hahnfeld@cern.ch>
+Date: Fri, 4 Mar 2022 19:27:00 +0100
+Subject: [PATCH] [cling] Skip relocations to unknown functions (#10050)
+
+With optimizations in Cling on Apple M1, it happens that RuntimeDyld
+sees subtraction relocations for minuends in functions that are not
+in the GlobalSymbolTable. Skip over them and do nothing instead of
+dereferencing an end() iterator and crashing.
+
+Disclaimer: This is a hack that likely addresses a symptom instead of
+the cause - there really shouldn't be such relocations. However, this
+approach is definitely better than crashing and works for the test
+cases that run into this.
+---
+ .../RuntimeDyld/Targets/RuntimeDyldMachOAArch64.h         | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/interpreter/llvm/src/lib/ExecutionEngine/RuntimeDyld/Targets/RuntimeDyldMachOAArch64.h b/interpreter/llvm/src/lib/ExecutionEngine/RuntimeDyld/Targets/RuntimeDyldMachOAArch64.h
+index f2ee1b06d4943..1cc3c6e84dee0 100644
+--- a/interpreter/llvm/src/lib/ExecutionEngine/RuntimeDyld/Targets/RuntimeDyldMachOAArch64.h
++++ b/interpreter/llvm/src/lib/ExecutionEngine/RuntimeDyld/Targets/RuntimeDyldMachOAArch64.h
+@@ -504,6 +504,14 @@ class RuntimeDyldMachOAArch64
+     if (!MinuendNameOrErr)
+       return MinuendNameOrErr.takeError();
+     auto MinuendI = GlobalSymbolTable.find(*MinuendNameOrErr);
++    // FIXME: This is a hack that likely addresses a symptom instead of the
++    // cause - there really shouldn't be relocations that reference functions
++    // not in the global symbol table. However, skipping the relocation and
++    // doing nothing is definitely better than dereferencing an end() iterator
++    // and works for the test cases that run into this.
++    if (MinuendI == GlobalSymbolTable.end()) {
++      return ++RelI;
++    }
+     unsigned SectionAID = MinuendI->second.getSectionID();
+     uint64_t SectionAOffset = MinuendI->second.getOffset();
+ 

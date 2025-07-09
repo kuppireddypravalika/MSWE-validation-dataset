@@ -1,0 +1,51 @@
+From 5f908fcd88271a299f1e1d55a32c02e530bba9e1 Mon Sep 17 00:00:00 2001
+From: joshua <joshua_39@live.fr>
+Date: Sun, 21 Feb 2021 09:44:38 +0100
+Subject: [PATCH] ElementCollectionWidgetWidget : Set search start when text to
+ search have at least 3 letters.
+
+The goal is to avoid gui freeze when search for 1 or 2 letters (in this
+case qet search for every item and take a lot of time).
+---
+ .../ElementsCollection/elementscollectionwidget.cpp | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
+
+diff --git a/sources/ElementsCollection/elementscollectionwidget.cpp b/sources/ElementsCollection/elementscollectionwidget.cpp
+index 4e348c9be9..249fc40c96 100644
+--- a/sources/ElementsCollection/elementscollectionwidget.cpp
++++ b/sources/ElementsCollection/elementscollectionwidget.cpp
+@@ -741,17 +741,22 @@ void ElementsCollectionWidget::search()
+ 		return;
+ 	}
+ 
++		//start the search when text have at least 3 letters.
++	if (text.count() < 3) {
++		return;
++	}
++
+ 	hideCollection(true);
+ #if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)	// ### Qt 6: remove
+-	QStringList text_list = text.split("+", QString::SkipEmptyParts);
++	const QStringList text_list = text.split("+", QString::SkipEmptyParts);
+ #else
+ #if TODO_LIST
+ #pragma message("@TODO remove code for QT 5.14 or later")
+ #endif
+-	QStringList text_list = text.split("+", Qt::SkipEmptyParts);
++	const QStringList text_list = text.split("+", Qt::SkipEmptyParts);
+ #endif
+ 	QModelIndexList match_index;
+-	foreach (QString txt, text_list) {
++	for (QString txt : text_list) {
+ 		match_index << m_model->match(m_showed_index.isValid()
+ 					      ? m_model->index(0,0,m_showed_index)
+ 					      : m_model->index(0,0),
+@@ -762,7 +767,7 @@ void ElementsCollectionWidget::search()
+ 					      | Qt::MatchRecursive);
+ 	}
+ 
+-	foreach(QModelIndex index, match_index)
++	for(QModelIndex index : match_index)
+ 		showAndExpandItem(index);
+ }
+ 

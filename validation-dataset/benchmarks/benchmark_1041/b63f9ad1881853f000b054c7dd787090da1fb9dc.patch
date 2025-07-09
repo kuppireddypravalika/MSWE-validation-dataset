@@ -1,0 +1,37 @@
+From b63f9ad1881853f000b054c7dd787090da1fb9dc Mon Sep 17 00:00:00 2001
+From: Lucian Plesea <lucianpls@gmail.com>
+Date: Sat, 17 Feb 2024 13:09:53 -0800
+Subject: [PATCH] Use ZSTD streaming API for compression (#9230)
+
+It is considerably faster and slightly better compression for normal (2-9) ZSTD levels, due to use of different parameters.
+---
+ frmts/mrf/mrf_band.cpp | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/frmts/mrf/mrf_band.cpp b/frmts/mrf/mrf_band.cpp
+index 97783fa3fb6a..d3eade863d2f 100644
+--- a/frmts/mrf/mrf_band.cpp
++++ b/frmts/mrf/mrf_band.cpp
+@@ -379,10 +379,20 @@ static void *ZstdCompBlock(buf_mgr &src, size_t extrasize, int c_level,
+         dst = dbuff.data();
+     }
+ 
+-    size_t val =
+-        ZSTD_compressCCtx(cctx, dst, size, src.buffer, src.size, c_level);
++    // Use the streaming interface, it's faster and better
++    // See discussion at https://github.com/facebook/zstd/issues/3729
++    ZSTD_outBuffer output = {dst, size, 0};
++    ZSTD_inBuffer input = {src.buffer, src.size, 0};
++    // Set level
++    ZSTD_CCtx_setParameter(cctx, ZSTD_c_compressionLevel, c_level);
++    // First, pass a continue flag, otherwise it will compress in one go
++    size_t val = ZSTD_compressStream2(cctx, &output, &input, ZSTD_e_continue);
++    // If it worked, pass the end flag to flush the buffer
++    if (val == 0)
++        val = ZSTD_compressStream2(cctx, &output, &input, ZSTD_e_end);
+     if (ZSTD_isError(val))
+         return nullptr;
++    val = output.pos;
+ 
+     // If we didn't need the buffer, packed data is already in the user buffer
+     if (dbuff.empty())

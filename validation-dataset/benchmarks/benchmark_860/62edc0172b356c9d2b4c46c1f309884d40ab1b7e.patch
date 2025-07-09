@@ -1,0 +1,24 @@
+From 62edc0172b356c9d2b4c46c1f309884d40ab1b7e Mon Sep 17 00:00:00 2001
+From: Marshall Clow <mclow@qualcomm.com>
+Date: Tue, 3 Jan 2012 23:10:20 +0000
+Subject: [PATCH] Don't allocate TLS storage when checking to see if an
+ exception has been thrown
+
+git-svn-id: https://llvm.org/svn/llvm-project/libcxxabi/trunk@147492 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ src/cxa_exception.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/cxa_exception.cpp b/src/cxa_exception.cpp
+index 9d9d764..1887c5a 100644
+--- a/src/cxa_exception.cpp
++++ b/src/cxa_exception.cpp
+@@ -387,6 +387,8 @@ __cxa_current_primary_exception() throw()
+ {
+ //  get the current exception
+     __cxa_eh_globals* globals = __cxa_get_globals();
++    if (NULL == globals)
++        return NULL;        //  Never has been an exception
+     __cxa_exception* current_exception = globals->caughtExceptions;
+     if (NULL == current_exception)
+         return NULL;        //  No current exception

@@ -1,0 +1,21 @@
+From f7b845d49c10806d1d076915c8fbb0c834532ef5 Mon Sep 17 00:00:00 2001
+From: Eladash <elad3356p@gmail.com>
+Date: Tue, 11 May 2021 22:09:46 +0300
+Subject: [PATCH] fs: Optimize filesystem handle reconstruction
+
+---
+ Utilities/File.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/Utilities/File.h b/Utilities/File.h
+index 3749069a4db27..d97931bfd57c3 100644
+--- a/Utilities/File.h
++++ b/Utilities/File.h
+@@ -220,6 +220,7 @@ namespace fs
+ 		template <typename... Args>
+ 		bool open(Args&&... args)
+ 		{
++			m_file.reset();
+ 			*this = fs::file(std::forward<Args>(args)...);
+ 			return m_file.operator bool();
+ 		}

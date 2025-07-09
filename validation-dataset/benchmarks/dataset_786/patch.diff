@@ -1,0 +1,22 @@
+From f7192c1d670d1629eb70e564b8d72389854a54e4 Mon Sep 17 00:00:00 2001
+From: Martin Suda <martin.suda@gmail.com>
+Date: Mon, 8 Jun 2020 14:45:02 +0200
+Subject: [PATCH] Giles discovered an inefficiency
+
+---
+ Kernel/RobSubstitution.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Kernel/RobSubstitution.cpp b/Kernel/RobSubstitution.cpp
+index 7a9bd61aab..915191699d 100644
+--- a/Kernel/RobSubstitution.cpp
++++ b/Kernel/RobSubstitution.cpp
+@@ -419,7 +419,7 @@ bool RobSubstitution::unify(TermSpec t1, TermSpec t2)
+       }
+     }
+ 
+-    if(toDo.isEmpty()) {
++    if(toDo.isEmpty() || mismatch) {
+       break;
+     }
+     t1=toDo.top().first;

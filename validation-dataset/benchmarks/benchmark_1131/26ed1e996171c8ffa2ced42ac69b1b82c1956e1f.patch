@@ -1,0 +1,32 @@
+From 26ed1e996171c8ffa2ced42ac69b1b82c1956e1f Mon Sep 17 00:00:00 2001
+From: Josh Haberman <jhaberman@gmail.com>
+Date: Sat, 24 Mar 2012 12:58:15 -0700
+Subject: [PATCH] Got our performance back by tweaking AssignToString.
+
+plain.parsetoproto2_googlemessage1.upb_jit: 254 -> 324 (27.56)
+omitfp.parsetoproto2_googlemessage1.upb_jit: 220 -> 332 (50.91)
+---
+ bindings/cpp/upb/bytestream.hpp | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/bindings/cpp/upb/bytestream.hpp b/bindings/cpp/upb/bytestream.hpp
+index 81134b95a6598..8b48690f42730 100644
+--- a/bindings/cpp/upb/bytestream.hpp
++++ b/bindings/cpp/upb/bytestream.hpp
+@@ -207,11 +207,12 @@ class ByteRegion : public upb_byteregion {
+ 
+   template <typename T> void AssignToString(T* str) {
+     uint64_t ofs = start_ofs();
+-    str->clear();
+-    str->reserve(Length());
++    size_t len;
++    const char *ptr = GetPtr(ofs, &len);
++    str->assign(ptr, len);
++    ofs += len;
+     while (ofs < end_ofs()) {
+-      size_t len;
+-      const char *ptr = GetPtr(ofs, &len);
++      ptr = GetPtr(ofs, &len);
+       str->append(ptr, len);
+       ofs += len;
+     }

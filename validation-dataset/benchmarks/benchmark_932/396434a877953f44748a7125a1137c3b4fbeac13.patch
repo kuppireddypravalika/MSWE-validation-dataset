@@ -1,0 +1,28 @@
+From 396434a877953f44748a7125a1137c3b4fbeac13 Mon Sep 17 00:00:00 2001
+From: Ye Luo <yeluo@anl.gov>
+Date: Fri, 24 Mar 2017 19:26:26 -0500
+Subject: [PATCH] Avoid slow sincosf on BGQ.
+
+---
+ src/config/stdlib/math.h | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/src/config/stdlib/math.h b/src/config/stdlib/math.h
+index 8f68c96702..7e19dbb1a2 100644
+--- a/src/config/stdlib/math.h
++++ b/src/config/stdlib/math.h
+@@ -33,7 +33,14 @@ inline float round(float x)
+ #if defined(HAVE_SINCOS)
+ inline void sincos(float a, float* s, float* c)
+ {
++#ifdef BGQPX
++  // BGQ has no sincosf in libmass
++  double ds,dc;
++  sincos((double)a,&ds,&dc);
++  *s=ds; *c=dc;
++#else
+   sincosf(a,s,c);
++#endif
+ }
+ #else
+ template<typename T>

@@ -1,0 +1,25 @@
+From 3435c60a7bba700fcfbff7597ee8b9df146f236e Mon Sep 17 00:00:00 2001
+From: Rahil Shah <rahil@ca.ibm.com>
+Date: Wed, 15 May 2024 10:48:55 -0400
+Subject: [PATCH] Set nodeCountThreshold to 16k for >= hot compilations
+
+Set nodeCountThreshold to 16k for hot or above method compilations.
+
+Signed-off-by: Rahil Shah <rahil@ca.ibm.com>
+---
+ compiler/optimizer/Inliner.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/compiler/optimizer/Inliner.cpp b/compiler/optimizer/Inliner.cpp
+index 30bd3da34c..77f00f3e5a 100644
+--- a/compiler/optimizer/Inliner.cpp
++++ b/compiler/optimizer/Inliner.cpp
+@@ -319,7 +319,7 @@ TR_InlinerBase::setInlineThresholds(TR::ResolvedMethodSymbol *callerSymbol)
+ 
+    _callerWeightLimit -= size;
+ 
+-   _nodeCountThreshold = comp()->getOption(TR_NotCompileTimeSensitive) ? 16000: 3000;
++   _nodeCountThreshold = (comp()->getOption(TR_NotCompileTimeSensitive) || comp()->getMethodHotness() >= hot ) ? 16000 : 3000;
+    _methodInWarmBlockByteCodeSizeThreshold = _methodByteCodeSizeThreshold = 155;
+    _methodInColdBlockByteCodeSizeThreshold = 30;
+    _maxInliningCallSites = 4095;

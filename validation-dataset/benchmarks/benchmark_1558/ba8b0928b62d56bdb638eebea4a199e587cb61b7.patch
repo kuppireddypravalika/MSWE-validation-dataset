@@ -1,0 +1,30 @@
+From ba8b0928b62d56bdb638eebea4a199e587cb61b7 Mon Sep 17 00:00:00 2001
+From: Rahil Shah <rahil@ca.ibm.com>
+Date: Fri, 21 Sep 2018 17:01:46 -0400
+Subject: [PATCH] Check register properties for generating load
+
+While resolving register dependencies at split point (GlRegDeps)
+we check type of the node to decide whether if we need 32 Bit or
+64 Bit load instruction. If we have evaluated this node to use
+64 Bit register it should use 64 Bit load instruction to generate
+necessary instruction to satisfy register dependencies at split
+point.
+
+Signed-off-by: Rahil Shah <rahil@ca.ibm.com>
+---
+ compiler/z/codegen/OMRRegisterDependency.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/compiler/z/codegen/OMRRegisterDependency.cpp b/compiler/z/codegen/OMRRegisterDependency.cpp
+index ca694e004a..6c8088d2eb 100644
+--- a/compiler/z/codegen/OMRRegisterDependency.cpp
++++ b/compiler/z/codegen/OMRRegisterDependency.cpp
+@@ -424,7 +424,7 @@ void OMR::Z::RegisterDependencyConditions::resolveSplitDependencies(
+          case TR_GPR:
+             opCode = TR::InstOpCode::getLoadRegOpCode();
+             if (cg->supportsHighWordFacility() && !comp->getOption(TR_DisableHighWordRA) &&
+-                  (child->getDataType() == TR::Int32 ||
++                  (!reg->is64BitReg() ||
+                   child->getOpCodeValue() == TR::icall ||
+                   child->getOpCodeValue() == TR::icalli ||
+                   TR::RealRegister::isHPR(regNum)))

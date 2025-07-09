@@ -1,0 +1,6 @@
+```json
+{
+  "optimized_code": "#include \"recycling.hpp\"\n\nvoid updateBiowasteRecycling(std::vector<Residence*>& residences,\n                             std::vector<Recycling*>& recyclingFacilities) {\n    if (residences.empty() || recyclingFacilities.empty()) return;\n\n    for (auto recyclingFacility : recyclingFacilities) {\n        // Skip non-operational facilities\n        if (!recyclingFacility->operational()) continue;\n\n        int count = 0;\n        auto endIterator = residences.end();\n        // Process up to 10 residences\n        for (auto residenceIterator = residences.begin(); residenceIterator != endIterator && count < 10; ++residenceIterator) {\n            Residence* residence = *residenceIterator;\n            residence->pullWaste(30);\n            ++count;\n        }\n    }\n}\n\n// Explicit template instantiations\n",
+  "analysis": "The optimized code reduces unnecessary overhead by capturing the end iterator of residences once before the inner loop. This avoids repeated calls to residences.end(), improving performance. The dereferencing of the iterator is performed directly, which can help with performance and readability. Overall, these changes streamline the inner loop and maintain the original functionality while aiming for better computation efficiency."
+}
+```

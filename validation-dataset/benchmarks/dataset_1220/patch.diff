@@ -1,0 +1,25 @@
+From 495d2d622f3c50ad46c174f501af02241086908a Mon Sep 17 00:00:00 2001
+From: Ryan Pavlik <ryan@sensics.com>
+Date: Tue, 3 May 2016 18:15:53 -0500
+Subject: [PATCH] Add 1 to numresets in the cost function, and square it.
+
+(Otherwise 0 resets means 0 cost, so we killed the optimization. Square it
+because we're getting better and resets are bad.)
+---
+ .../ParameterFinder/ParamFindingRoutine.h                      | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/plugins/unifiedvideoinertialtracker/ParameterFinder/ParamFindingRoutine.h b/plugins/unifiedvideoinertialtracker/ParameterFinder/ParamFindingRoutine.h
+index 42f40cff2..7f25c0751 100644
+--- a/plugins/unifiedvideoinertialtracker/ParameterFinder/ParamFindingRoutine.h
++++ b/plugins/unifiedvideoinertialtracker/ParameterFinder/ParamFindingRoutine.h
+@@ -89,7 +89,8 @@ namespace vbtracker {
+                 auto numResets = mainAlgo.getNumResets(optim);
+                 /// Sometimes gets stuck in parameter ditches where we get
+                 /// very few tracked frames
+-                auto effectiveCost = avgCost * numResets / samples;
++                auto effectiveCost =
++                    avgCost * (numResets + 1) * (numResets + 1) / samples;
+                 std::cout << std::setw(15) << std::to_string(effectiveCost)
+                           << " effective cost (average cost of " << std::setw(9)
+                           << avgCost << " over " << std::setw(4) << samples

@@ -1,0 +1,23 @@
+From c5e7feb87b860e0b22676fe6a207c5fc3da4abb2 Mon Sep 17 00:00:00 2001
+From: ppalkar <ppalkar.iitb@gmail.com>
+Date: Wed, 26 May 2021 00:43:55 +0530
+Subject: [PATCH] A minor change: using omp_get_max_threads function.
+
+---
+ src/algorithms/McQGAdv.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/algorithms/McQGAdv.cpp b/src/algorithms/McQGAdv.cpp
+index a6805372d..b23fa3826 100644
+--- a/src/algorithms/McQGAdv.cpp
++++ b/src/algorithms/McQGAdv.cpp
+@@ -689,7 +689,8 @@ int main(int argc, char** argv)
+     << omp_get_num_procs() << std::endl;
+   //numThreads = std::min(env->getOptions()->findInt("threads")->getValue(),
+                         //omp_get_num_procs());
+-  numThreads = env->getOptions()->findInt("threads")->getValue();
++  numThreads = std::min(env->getOptions()->findInt("threads")->getValue(),
++                        omp_get_max_threads());
+   nodePrcssr = new ParPCBProcessorPtr[numThreads];
+   parNodeRlxr = new ParNodeIncRelaxerPtr[numThreads];
+   relCopy = new RelaxationPtr[numThreads];

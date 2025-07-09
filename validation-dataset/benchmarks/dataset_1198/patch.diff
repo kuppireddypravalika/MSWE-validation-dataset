@@ -1,0 +1,28 @@
+From 51d40f6c17772efa9d3cdc832824324c4591d093 Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Fri, 10 Jul 2020 00:39:59 -0600
+Subject: [PATCH] Re-order to make better use of caching
+
+---
+ OPHD/States/MapViewStateHelper.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/OPHD/States/MapViewStateHelper.cpp b/OPHD/States/MapViewStateHelper.cpp
+index 7181c8c4b..5b187625e 100644
+--- a/OPHD/States/MapViewStateHelper.cpp
++++ b/OPHD/States/MapViewStateHelper.cpp
+@@ -315,12 +315,12 @@ bool selfSustained(StructureID id)
+  */
+ bool outOfCommRange(Point<int>& ccLocation, TileMap* /*tileMap*/, Tile* currentTile)
+ {
++	const auto currentPosition = currentTile->position();
+ 	const auto maxCcRangeSquared = constants::ROBOT_COM_RANGE * constants::ROBOT_COM_RANGE;
+-	const auto ccDistance = currentTile->position() - ccLocation;
++	const auto ccDistance = currentPosition - ccLocation;
+ 	if (ccDistance.lengthSquared() <= maxCcRangeSquared)
+ 		return false;
+ 
+-	const auto currentPosition = currentTile->position();
+ 	const auto maxTowerRangeSquared = constants::COMM_TOWER_BASE_RANGE * constants::COMM_TOWER_BASE_RANGE;
+ 	auto structureManager = Utility<StructureManager>::get();
+ 	for (auto tower : structureManager.structureList(Structure::StructureClass::CLASS_COMM))

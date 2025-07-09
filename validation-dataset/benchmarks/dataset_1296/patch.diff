@@ -1,0 +1,25 @@
+From e1b155daae97ed12cf2277cd03e0c2847a23a844 Mon Sep 17 00:00:00 2001
+From: MRFarhadi <mor.farhadi@gmail.com>
+Date: Fri, 17 May 2013 16:06:14 -0400
+Subject: [PATCH] Skipping the functions which are smaller than the window
+ size.
+
+---
+ CloneSearcher/CloneSearcherLib/CSAssemblyFile.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/CloneSearcher/CloneSearcherLib/CSAssemblyFile.cpp b/CloneSearcher/CloneSearcherLib/CSAssemblyFile.cpp
+index 6e90e78..42ae8c1 100644
+--- a/CloneSearcher/CloneSearcherLib/CSAssemblyFile.cpp
++++ b/CloneSearcher/CloneSearcherLib/CSAssemblyFile.cpp
+@@ -267,6 +267,10 @@ bool CCSAssemblyFile::extractRegions(CCSDatabaseMgr* pDBMgr, const CCSParam& par
+ 	for (int fcnIdx = 0; fcnIdx < m_functions.GetSize(); ++fcnIdx) {
+ 		CCSAssemblyFunction* pFcn = m_functions.GetAt(fcnIdx);
+ 		pFcn->resetNumRegions();
++		// skip this function if its size is smaller than the window size
++		int fcnSize = (pFcn->m_endIdx -1) - (pFcn->m_startIdx +1) + 1;
++		if (fcnSize < param.m_windowSize)
++			continue;
+ 		for (int sIdx = pFcn->m_startIdx + 1; sIdx < pFcn->m_endIdx; sIdx += param.m_stride) {
+ 			// ensure the endIdx does not go beyond the limit
+ 			int eIdx = sIdx + param.m_windowSize - 1;

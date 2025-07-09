@@ -1,0 +1,42 @@
+From 8e7dc25380dceebca094e092d9feb21ad167ba91 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Tor=20Arne=20Vestb=C3=B8?= <tor.arne.vestbo@digia.com>
+Date: Wed, 9 Oct 2013 16:26:44 +0200
+Subject: [PATCH] qmake: Load extra variables only if also loading pre-files
+
+The extra variables only need to be applied once, when we
+are loading the pro file (and hence are loding pre files),
+not for every single pri/prf that's loaded as a result of that
+(which do not load pre files themselves).
+
+Change-Id: I3118694a8eeccf2dc32c4f62df754033fad13528
+Reviewed-by: Oswald Buddenhagen <oswald.buddenhagen@digia.com>
+---
+ qmake/library/qmakeevaluator.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/qmake/library/qmakeevaluator.cpp b/qmake/library/qmakeevaluator.cpp
+index 9bf870ce397..c4b8c150e75 100644
+--- a/qmake/library/qmakeevaluator.cpp
++++ b/qmake/library/qmakeevaluator.cpp
+@@ -1365,10 +1365,6 @@ QMakeEvaluator::VisitReturn QMakeEvaluator::visitProFile(
+             loadDefaults();
+     }
+ 
+-    for (ProValueMap::ConstIterator it = m_extraVars.constBegin();
+-         it != m_extraVars.constEnd(); ++it)
+-        m_valuemapStack.first().insert(it.key(), it.value());
+-
+     VisitReturn vr;
+ 
+     m_handler->aboutToEval(currentProFile(), pro, type);
+@@ -1377,6 +1373,10 @@ QMakeEvaluator::VisitReturn QMakeEvaluator::visitProFile(
+     if (flags & LoadPreFiles) {
+         setupProject();
+ 
++        for (ProValueMap::ConstIterator it = m_extraVars.constBegin();
++             it != m_extraVars.constEnd(); ++it)
++            m_valuemapStack.first().insert(it.key(), it.value());
++
+         if ((vr = evaluateFeatureFile(QLatin1String("default_pre.prf"))) == ReturnError)
+             goto failed;
+ 

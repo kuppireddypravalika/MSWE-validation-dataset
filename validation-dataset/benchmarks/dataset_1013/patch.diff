@@ -1,0 +1,27 @@
+From 4897c1e80cbd1e99975f0c25d04bc700fbe87466 Mon Sep 17 00:00:00 2001
+From: Ryan Houdek <Sonicadvance1@gmail.com>
+Date: Sun, 22 Sep 2024 08:45:02 -0700
+Subject: [PATCH] Config: Fixes stack usage in EnvLoader
+
+EnvLoader::Load was generating strings on the stack and then copying
+them to the FEXCore::Config state. FEXCore::Config::Set supports
+string_views directly which will emplace in to the map directly.
+
+This improves this functions stack usage from ~4464 bytes to ~288 bytes.
+---
+ Source/Common/Config.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Source/Common/Config.cpp b/Source/Common/Config.cpp
+index fa22dc1bdb..1db96287d6 100644
+--- a/Source/Common/Config.cpp
++++ b/Source/Common/Config.cpp
+@@ -243,7 +243,7 @@ void EnvLoader::Load() {
+   // Walk all the environment options and corresponding config option.
+ #define OPT_BASE(type, group, enum, json, default) \
+   Value = GetVar(EnvMap, "FEX_" #enum);            \
+-  if (Value.has_value()) Set(FEXCore::Config::ConfigOption::CONFIG_##enum, fextl::string(*Value));
++  if (Value.has_value()) Set(FEXCore::Config::ConfigOption::CONFIG_##enum, *Value);
+ #include <FEXCore/Config/ConfigValues.inl>
+ }
+ 

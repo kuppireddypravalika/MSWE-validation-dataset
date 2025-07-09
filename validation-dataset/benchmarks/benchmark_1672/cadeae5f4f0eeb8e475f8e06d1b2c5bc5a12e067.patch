@@ -1,0 +1,44 @@
+From cadeae5f4f0eeb8e475f8e06d1b2c5bc5a12e067 Mon Sep 17 00:00:00 2001
+From: David Gobbi <david.gobbi@gmail.com>
+Date: Sun, 17 May 2020 10:07:58 -0600
+Subject: [PATCH] Use dynamic array track wrapped instantions
+
+The icc compiler was giving a "possible uninitialized variable use"
+for the array of template instantitions that were to be wrapped. I
+hope that this change will clear the warning.  Dynamic allocation
+is better than hard limits, anyway.
+---
+ Wrapping/Tools/vtkWrapPythonTemplate.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/Wrapping/Tools/vtkWrapPythonTemplate.c b/Wrapping/Tools/vtkWrapPythonTemplate.c
+index 4928704e107..baa5d64807d 100644
+--- a/Wrapping/Tools/vtkWrapPythonTemplate.c
++++ b/Wrapping/Tools/vtkWrapPythonTemplate.c
+@@ -196,7 +196,7 @@ int vtkWrapPython_WrapTemplatedClass(
+   FILE* fp, ClassInfo* data, FileInfo* file_info, HierarchyInfo* hinfo)
+ {
+   char classname[1024];
+-  const char* instantiations[1024];
++  const char** instantiations = NULL;
+   int ninstantiations = 0;
+   int i, j, k, nargs;
+   ClassInfo* sdata;
+@@ -332,7 +332,7 @@ int vtkWrapPython_WrapTemplatedClass(
+           }
+           if (k == ninstantiations)
+           {
+-            instantiations[ninstantiations++] = name_with_args;
++            vtkParse_AddStringToArray(&instantiations, &ninstantiations, name_with_args);
+           }
+           else
+           {
+@@ -422,6 +422,8 @@ int vtkWrapPython_WrapTemplatedClass(
+       "}\n"
+       "\n");
+ 
++    free((char**)instantiations);
++
+     return 1;
+   }
+ 

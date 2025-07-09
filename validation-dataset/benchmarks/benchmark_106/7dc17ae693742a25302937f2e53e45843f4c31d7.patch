@@ -1,0 +1,23 @@
+From 7dc17ae693742a25302937f2e53e45843f4c31d7 Mon Sep 17 00:00:00 2001
+From: DennisOSRM <luxen@kit.edu>
+Date: Tue, 4 Oct 2011 15:07:25 +0200
+Subject: [PATCH] Making find() return a const_iterator ensures that the
+ function is const and does not allocate any unnecessary RAM.
+
+---
+ DataStructures/ExtractorCallBacks.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/DataStructures/ExtractorCallBacks.h b/DataStructures/ExtractorCallBacks.h
+index 9996269afad..a4688b5e45f 100644
+--- a/DataStructures/ExtractorCallBacks.h
++++ b/DataStructures/ExtractorCallBacks.h
+@@ -183,7 +183,7 @@ class ExtractorCallbacks{
+         }
+ 
+         if ( w.useful && w.access && w.path.size() > 1 ) {
+-            StringMap::iterator strit = stringMap->find(w.name);
++            StringMap::const_iterator strit = stringMap->find(w.name);
+             if(strit == stringMap->end()) {
+                 w.nameID = externalMemory->nameVector.size();
+                 externalMemory->nameVector.push_back(w.name);

@@ -1,0 +1,35 @@
+From 68cdf3f88cbcbe0e46c95692dc0ab47a953aaaed Mon Sep 17 00:00:00 2001
+From: Philippe Canal <pcanal@fnal.gov>
+Date: Fri, 20 Nov 2020 18:44:04 -0600
+Subject: [PATCH] TClass::GetClass now create a synthetic instance only if pair
+ hints are provided.
+
+Since getting the right alignment and padding is hard (either use Cling/Clang with the associated memory cost and potential
+autoparsing or duplicating the platform dependent code that calculates it), we now only creates the synthetic TClass instance
+that represent and std::pair ***if and only*** the call is provided the actual offset of second and sizeof the pair.
+
+This information is known to compiled (and later interpreted) CollectionProxy, to TClass for class containing an std::pair
+(via their list of RealData which is recorded in the rootpcm) and to TClass::GetClass templated on the actual type
+(since the pair's data members are public)
+---
+ core/meta/src/TClass.cxx | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/core/meta/src/TClass.cxx b/core/meta/src/TClass.cxx
+index 579edea7ebe9c..6553de48e71dc 100644
+--- a/core/meta/src/TClass.cxx
++++ b/core/meta/src/TClass.cxx
+@@ -3093,12 +3093,11 @@ TClass *TClass::GetClass(const char *name, Bool_t load, Bool_t silent, size_t hi
+    // TClass if we have one.
+    if (cl) return cl;
+ 
+-   if (ispair) {
++   if (ispair &&  hint_pair_offset && hint_pair_size) {
+       auto pairinfo = TVirtualStreamerInfo::Factory()->GenerateInfoForPair(normalizedName, silent, hint_pair_offset, hint_pair_size);
+       //return pairinfo ? pairinfo->GetClass() : nullptr;
+       if (pairinfo)
+          return pairinfo->GetClass();
+-
+    } else if (TClassEdit::IsSTLCont( normalizedName.c_str() )) {
+ 
+       return gInterpreter->GenerateTClass(normalizedName.c_str(), kTRUE, silent);

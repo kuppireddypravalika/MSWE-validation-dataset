@@ -1,0 +1,22 @@
+From 6a8f8a29ad094d6ac14775c888494013dc32a002 Mon Sep 17 00:00:00 2001
+From: Norbyte <infernorb@gmail.com>
+Date: Wed, 14 Aug 2024 23:25:32 +0200
+Subject: [PATCH] Fix minor performance gotcha when pushing values
+
+---
+ BG3Extender/Lua/Shared/Proxies/LuaPropertyMapHelpers.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/BG3Extender/Lua/Shared/Proxies/LuaPropertyMapHelpers.h b/BG3Extender/Lua/Shared/Proxies/LuaPropertyMapHelpers.h
+index 1785360b..89b57a19 100644
+--- a/BG3Extender/Lua/Shared/Proxies/LuaPropertyMapHelpers.h
++++ b/BG3Extender/Lua/Shared/Proxies/LuaPropertyMapHelpers.h
+@@ -19,7 +19,7 @@ PropertyOperationResult GenericGetOffsetProperty(lua_State* L, LifetimeHandle co
+ 	}
+ 
+ 	auto* value = (T*)((std::uintptr_t)obj + prop.Offset);
+-	push(L, value, lifetime);
++	push(L, *value, lifetime);
+ 	return PropertyOperationResult::Success;
+ }
+ 

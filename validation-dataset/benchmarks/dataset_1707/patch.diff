@@ -1,0 +1,38 @@
+From 520afea6b7f1cb89eda0c6a773ef545991f3f4c2 Mon Sep 17 00:00:00 2001
+From: Anton Kudryavtsev <a.kudryavtsev@netris.ru>
+Date: Mon, 25 Jan 2016 16:11:27 +0300
+Subject: [PATCH] QTzTimeZonePrivate: optimize container usage in init().
+
+Iteration over node-based containers is so slow that the number of passes
+should be minimized.
+
+Replace QList with QVector. Saves ~0.2 KBytes in text size with gcc 4.9.
+
+Change-Id: I93298b29b06e4a38a6f716d85f127e0af4385461
+Reviewed-by: Marc Mutz <marc.mutz@kdab.com>
+---
+ src/corelib/tools/qtimezoneprivate_tz.cpp | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/src/corelib/tools/qtimezoneprivate_tz.cpp b/src/corelib/tools/qtimezoneprivate_tz.cpp
+index 0b5f6bb80e9d..3fcc8833e854 100644
+--- a/src/corelib/tools/qtimezoneprivate_tz.cpp
++++ b/src/corelib/tools/qtimezoneprivate_tz.cpp
+@@ -627,8 +627,15 @@ void QTzTimeZonePrivate::init(const QByteArray &ianaId)
+     // Translate the TZ file into internal format
+ 
+     // Translate the array index based tz_abbrind into list index
+-    m_abbreviations = abbrevMap.values();
+-    QList<int> abbrindList = abbrevMap.keys();
++    const int size = abbrevMap.size();
++    m_abbreviations.clear();
++    m_abbreviations.reserve(size);
++    QVector<int> abbrindList;
++    abbrindList.reserve(size);
++    for (auto it = abbrevMap.cbegin(), end = abbrevMap.cend(); it != end; ++it) {
++        m_abbreviations.append(it.value());
++        abbrindList.append(it.key());
++    }
+     for (int i = 0; i < typeList.size(); ++i)
+         typeList[i].tz_abbrind = abbrindList.indexOf(typeList.at(i).tz_abbrind);
+ 

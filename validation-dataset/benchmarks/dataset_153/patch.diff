@@ -1,0 +1,31 @@
+From 2d3b5a27f97408c189b5cee69be5f9b4f4449e47 Mon Sep 17 00:00:00 2001
+From: Fionn Malone <fionn.malone@gmail.com>
+Date: Sun, 21 Jul 2019 18:46:47 -0700
+Subject: [PATCH] Simpler determination of wavefunction type from hdf5.
+
+Just read an integer rather than a string.
+---
+ src/AFQMC/Utilities/readWfn.cpp | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/src/AFQMC/Utilities/readWfn.cpp b/src/AFQMC/Utilities/readWfn.cpp
+index 7b4dee841d..530ac402c0 100644
+--- a/src/AFQMC/Utilities/readWfn.cpp
++++ b/src/AFQMC/Utilities/readWfn.cpp
+@@ -610,10 +610,15 @@ void read_ph_wavefunction_hdf(hdf_archive& dump, std::vector<ComplexType>& ci_co
+   if(walker_type != COLLINEAR)
+     APP_ABORT(" Error: walker_type!=COLLINEAR not yet implemented in read_ph_wavefunction.\n");
+ 
+-  if(!dump.readEntry(type,"type")) {
++  int type_;
++  if(!dump.readEntry(type_,"type")) {
+     app_error()<<" Error in WavefunctionFactory::fromHDF5(): Problems reading type. \n";
+     APP_ABORT("");
+   }
++  if(type_ == 0)
++    type = "occ";
++  else
++    type = "mixed";
+   if(type == "mixed") mixed = true;
+ 
+   if(mixed) { // read reference

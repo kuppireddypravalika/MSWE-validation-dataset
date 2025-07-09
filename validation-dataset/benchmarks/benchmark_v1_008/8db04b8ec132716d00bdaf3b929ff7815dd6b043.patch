@@ -1,0 +1,24 @@
+From 8db04b8ec132716d00bdaf3b929ff7815dd6b043 Mon Sep 17 00:00:00 2001
+From: Paul Beckingham <paul@beckingham.net>
+Date: Sun, 1 Nov 2015 21:53:07 -0500
+Subject: [PATCH] sort: Converted from strtof to std::stof
+
+---
+ src/sort.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/sort.cpp b/src/sort.cpp
+index f99ada61c..95cfd6c31 100644
+--- a/src/sort.cpp
++++ b/src/sort.cpp
+@@ -202,8 +202,8 @@ static bool sort_compare (int left, int right)
+       std::string type = column->type ();
+       if (type == "numeric")
+       {
+-        const float left_real  = strtof (((*global_data)[left].get_ref  (field)).c_str (), NULL);
+-        const float right_real = strtof (((*global_data)[right].get_ref (field)).c_str (), NULL);
++        const float left_real  = std::stof ((*global_data)[left].get_ref  (field));
++        const float right_real = std::stof ((*global_data)[right].get_ref (field));
+ 
+         if (left_real == right_real)
+           continue;

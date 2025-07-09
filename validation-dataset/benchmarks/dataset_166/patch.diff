@@ -1,0 +1,21 @@
+From 4d55aca40e534563f387cbbab19f530b49ac490e Mon Sep 17 00:00:00 2001
+From: Sylwester Fraczek <sylwester.fraczek@intel.com>
+Date: Mon, 9 Jul 2018 17:20:37 +0200
+Subject: [PATCH] reserve vector space before loop in top-k
+
+---
+ paddle/fluid/operators/top_k_op.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/paddle/fluid/operators/top_k_op.h b/paddle/fluid/operators/top_k_op.h
+index 7ddb82ef6ff063..054dd481994d03 100644
+--- a/paddle/fluid/operators/top_k_op.h
++++ b/paddle/fluid/operators/top_k_op.h
+@@ -60,6 +60,7 @@ class TopkKernel : public framework::OpKernel<T> {
+ #endif
+     for (size_t i = 0; i < row; i++) {
+       std::vector<std::pair<T, size_t>> vec;
++      vec.reserve(col);
+       for (size_t j = 0; j < col; j++) {
+         vec.push_back(std::pair<T, size_t>(eg_input(i, j), j));
+       }

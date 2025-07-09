@@ -1,0 +1,33 @@
+From 420c879dd65e1cafe3492f076f7f41bffd438b37 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@duempel.org>
+Date: Thu, 11 Sep 2008 07:50:11 +0200
+Subject: [PATCH] output: don't initialize inAudioFormat, outAudioFormat
+
+As long as the device isn't open, both attributes are not used.  Since
+they will both be initialized in audio_output_open(), we do not need
+the initialization in audio_output_init().
+---
+ src/output_init.c | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/src/output_init.c b/src/output_init.c
+index 00226f7d8e..f6d3799c4b 100644
+--- a/src/output_init.c
++++ b/src/output_init.c
+@@ -89,16 +89,12 @@ int audio_output_init(struct audio_output *ao, ConfigParam * param)
+ 	ao->convBuffer = NULL;
+ 	ao->convBufferLen = 0;
+ 
+-	memset(&ao->inAudioFormat, 0, sizeof(ao->inAudioFormat));
+-	memset(&ao->outAudioFormat, 0, sizeof(ao->outAudioFormat));
+ 	memset(&ao->convState, 0, sizeof(ConvState));
+ 
+ 	if (format) {
+ 		if (0 != parseAudioConfig(&ao->reqAudioFormat, format)) {
+ 			FATAL("error parsing format at line %i\n", bp->line);
+ 		}
+-
+-		ao->outAudioFormat = ao->reqAudioFormat;
+ 	} else
+ 		audio_format_clear(&ao->reqAudioFormat);
+ 

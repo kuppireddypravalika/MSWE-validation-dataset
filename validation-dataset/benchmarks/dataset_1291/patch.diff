@@ -1,0 +1,24 @@
+From c6e81cb3685291a649bca8fe93a8adf599be09f3 Mon Sep 17 00:00:00 2001
+From: Dan Cody <dtydc5@users.noreply.github.com>
+Date: Tue, 9 Nov 2010 21:46:30 +0000
+Subject: [PATCH] Modified log::RealTimeWriter to limit the flush-to-disk
+ period to a maximum of 1 second. Before, the period could easily be as high
+ as 60 seconds, which means shutting the thread down would take 30 seconds on
+ average.
+
+---
+ include/barrett/log/detail/real_time_writer-inl.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/include/barrett/log/detail/real_time_writer-inl.h b/include/barrett/log/detail/real_time_writer-inl.h
+index 0265d9a3..032336f5 100644
+--- a/include/barrett/log/detail/real_time_writer-inl.h
++++ b/include/barrett/log/detail/real_time_writer-inl.h
+@@ -38,6 +38,7 @@ RealTimeWriter<T, Traits>::RealTimeWriter(const char* fileName, double recordPer
+ 	if (period < 3000) {
+ 		throw(std::logic_error("(log::RealTimeWriter::RealTimeWriter()): This constructor was not designed for data rates this high."));
+ 	}
++	period = std::min(period, (size_t)1000000u);  // limit period to a maximum of 1 second
+ 
+ 	init(recordsInSingleBuffer);
+ }

@@ -1,0 +1,28 @@
+From 509dc6e414b8d0b64231fc88460f271edb7e0395 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Wed, 30 Dec 2015 12:09:02 +0000
+Subject: [PATCH] GDALRasterBand::InitBlockInfo(): avoid (normally harmless)
+ int32 overflow to occur, so as to please afl-clang-fast
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@32533 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/gcore/gdalrasterband.cpp | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/gdal/gcore/gdalrasterband.cpp b/gdal/gcore/gdalrasterband.cpp
+index 27fc0348f733..06d8b10cb63e 100644
+--- a/gdal/gcore/gdalrasterband.cpp
++++ b/gdal/gcore/gdalrasterband.cpp
+@@ -757,11 +757,8 @@ int GDALRasterBand::InitBlockInfo()
+         /* (reasonably) assumed in many places (GDALRasterBlock::Internalize(), */
+         /* GDALRasterBand::Fill(), many drivers...) */
+         /* As 10000 * 10000 * 16 < INT_MAX, we don't need to do the multiplication in other cases */
+-
+-        int nSizeInBytes = nBlockXSize * nBlockYSize * (GDALGetDataTypeSize(eDataType) / 8);
+-
+         GIntBig nBigSizeInBytes = (GIntBig)nBlockXSize * nBlockYSize * (GDALGetDataTypeSize(eDataType) / 8);
+-        if ((GIntBig)nSizeInBytes != nBigSizeInBytes)
++        if( nBigSizeInBytes > INT_MAX )
+         {
+             ReportError( CE_Failure, CPLE_NotSupported, "Too big block : %d * %d",
+                         nBlockXSize, nBlockYSize );

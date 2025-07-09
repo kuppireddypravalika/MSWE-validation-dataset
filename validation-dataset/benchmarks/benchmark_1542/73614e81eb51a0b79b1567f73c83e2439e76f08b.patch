@@ -1,0 +1,24 @@
+From 73614e81eb51a0b79b1567f73c83e2439e76f08b Mon Sep 17 00:00:00 2001
+From: Guido Tack <guido.tack@monash.edu>
+Date: Tue, 17 Mar 2015 18:17:58 +1100
+Subject: [PATCH] Check for array bounds when optimising fixed element
+ constraint
+
+---
+ lib/optimize_constraints.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/lib/optimize_constraints.cpp b/lib/optimize_constraints.cpp
+index 24dd51b16..939bf9e2a 100644
+--- a/lib/optimize_constraints.cpp
++++ b/lib/optimize_constraints.cpp
+@@ -195,6 +195,9 @@ namespace MiniZinc {
+       if (c->args()[0]->isa<IntLit>()) {
+         IntVal idx = eval_int(env,c->args()[0]);
+         ArrayLit* al = eval_array_lit(env,c->args()[1]);
++        if (idx < 1 || idx > al->v().size()) {
++          return OptimizeRegistry::CS_FAILED;
++        }
+         Expression* result = al->v()[idx.toInt()-1];
+         std::vector<Expression*> args(2);
+         args[0] = result;

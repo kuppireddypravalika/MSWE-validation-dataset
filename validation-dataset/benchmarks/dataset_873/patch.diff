@@ -1,0 +1,22 @@
+From b082cd55d8b60fb5cc3b091bfdf68531ca94ee01 Mon Sep 17 00:00:00 2001
+From: Dobiasd <harry@daiw.de>
+Date: Thu, 13 Oct 2016 14:53:27 +0200
+Subject: [PATCH] reduce reserved memory in split_at_idxs
+
+---
+ include/fplus/split.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/fplus/split.hpp b/include/fplus/split.hpp
+index 1063cff1..7c220130 100644
+--- a/include/fplus/split.hpp
++++ b/include/fplus/split.hpp
+@@ -399,7 +399,7 @@ ContainerOut split_at_idxs(const ContainerIdxs& idxsIn, const ContainerIn& xs)
+     auto idxs = concat(containerIdxss);
+     auto idxsClean = sort(idxs);
+     ContainerOut result;
+-    internal::prepare_container(result, size_of_cont(idxsClean) + 1);
++    internal::prepare_container(result, size_of_cont(idxsClean) - 1);
+     auto itOut = internal::get_back_inserter(result);
+     auto idxPairs = overlapping_pairs(idxsClean);
+     for (const auto& idxPair : idxPairs)

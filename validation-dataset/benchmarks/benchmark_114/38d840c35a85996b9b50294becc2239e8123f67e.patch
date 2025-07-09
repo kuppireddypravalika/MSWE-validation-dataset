@@ -1,0 +1,30 @@
+From 38d840c35a85996b9b50294becc2239e8123f67e Mon Sep 17 00:00:00 2001
+From: "henrik.lundin" <henrik.lundin@webrtc.org>
+Date: Thu, 18 Aug 2016 03:49:32 -0700
+Subject: [PATCH] NetEq: Changing checked_cast to saturated_cast
+
+The cast involves packet_len_samp, which is derived from the timestamps
+and sequence numbers of incoming packets. Being values from the outside,
+these should be treated as if any value is possible, making a
+checked_cast unsuitable. Changing instead to saturated_cast to avoid
+overflow with out-of-bounds values.
+
+Review-Url: https://codereview.webrtc.org/2243403007
+Cr-Commit-Position: refs/heads/master@{#13815}
+---
+ webrtc/modules/audio_coding/neteq/delay_manager.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/webrtc/modules/audio_coding/neteq/delay_manager.cc b/webrtc/modules/audio_coding/neteq/delay_manager.cc
+index 84bda7cf69..5ccb81c3f1 100644
+--- a/webrtc/modules/audio_coding/neteq/delay_manager.cc
++++ b/webrtc/modules/audio_coding/neteq/delay_manager.cc
+@@ -98,7 +98,7 @@ int DelayManager::Update(uint16_t sequence_number,
+         static_cast<uint32_t>(timestamp - last_timestamp_) /
+         static_cast<uint16_t>(sequence_number - last_seq_no_);
+     packet_len_ms =
+-        rtc::checked_cast<int>(1000 * packet_len_samp / sample_rate_hz);
++        rtc::saturated_cast<int>(1000 * packet_len_samp / sample_rate_hz);
+   }
+ 
+   if (packet_len_ms > 0) {

@@ -1,0 +1,31 @@
+From ab2728ceec3a896c990747cf0a4bce82bb2be71d Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@gmail.com>
+Date: Mon, 8 May 2017 04:55:13 +0000
+Subject: [PATCH] [SCEV] Use APInt::operator*=(uint64_t) to avoid a temporary
+ APInt for a constant.
+
+---
+ llvm/lib/Analysis/ScalarEvolution.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/llvm/lib/Analysis/ScalarEvolution.cpp b/llvm/lib/Analysis/ScalarEvolution.cpp
+index b1ab65653718..01dca0793145 100644
+--- a/llvm/lib/Analysis/ScalarEvolution.cpp
++++ b/llvm/lib/Analysis/ScalarEvolution.cpp
+@@ -7376,7 +7376,6 @@ SolveQuadraticEquation(const SCEVAddRecExpr *AddRec, ScalarEvolution &SE) {
+   const APInt &M = MC->getAPInt();
+   const APInt &N = NC->getAPInt();
+   APInt Two(BitWidth, 2);
+-  APInt Four(BitWidth, 4);
+ 
+   {
+     using namespace APIntOps;
+@@ -7392,7 +7391,7 @@ SolveQuadraticEquation(const SCEVAddRecExpr *AddRec, ScalarEvolution &SE) {
+     // Compute the B^2-4ac term.
+     APInt SqrtTerm(B);
+     SqrtTerm *= B;
+-    SqrtTerm -= Four * (A * C);
++    SqrtTerm -= 4 * (A * C);
+ 
+     if (SqrtTerm.isNegative()) {
+       // The loop is provably infinite.

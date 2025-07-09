@@ -1,0 +1,32 @@
+From 7473b4a7154a078c12fca870eef107a6032fc920 Mon Sep 17 00:00:00 2001
+From: Rosen Penev <rosenp@gmail.com>
+Date: Wed, 12 Jul 2023 17:52:48 -0700
+Subject: [PATCH] optimize toAscii function with early exit
+
+GCC is able to see that the branch is useless as it can be done at
+compile time. Produces shorter assembly with both -O2 and -O3.
+
+https://godbolt.org/z/ejhfxh8Tx
+
+Signed-off-by: Rosen Penev <rosenp@gmail.com>
+---
+ src/jp2image.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/jp2image.cpp b/src/jp2image.cpp
+index 0fbd4d22f9..f878ab6a27 100644
+--- a/src/jp2image.cpp
++++ b/src/jp2image.cpp
+@@ -100,9 +100,10 @@ Jp2Image::Jp2Image(BasicIo::UniquePtr io, bool create) : Image(ImageType::jp2, m
+ // Obtains the ascii version from the box.type
+ std::string Jp2Image::toAscii(uint32_t n) {
+   const auto p = reinterpret_cast<const char*>(&n);
++  if (isBigEndianPlatform())
++    return std::string(p, p + 4);
+   std::string result(p, p + 4);
+-  if (!isBigEndianPlatform())
+-    std::reverse(result.begin(), result.end());
++  std::reverse(result.begin(), result.end());
+   return result;
+ }
+ 

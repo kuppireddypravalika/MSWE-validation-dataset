@@ -1,0 +1,41 @@
+From 3b69b430cc08a30aebd1d7aba0338cb35eba8746 Mon Sep 17 00:00:00 2001
+From: Nicolai Haehnle <nhaehnle@gmail.com>
+Date: Wed, 21 Mar 2018 17:13:10 +0000
+Subject: [PATCH] TableGen: Remove redundant loop in
+ ListInit::resolveReferences
+
+Summary:
+Recursive lookups are handled by the Resolver, so the loop was purely
+a waste of runtime.
+
+Change-Id: I2bd23a68b478aea0bbac1a86ca7635adffa28688
+
+Reviewers: arsenm, craig.topper, tra, MartinO
+
+Subscribers: wdng, llvm-commits
+
+Differential Revision: https://reviews.llvm.org/D44624
+---
+ llvm/lib/TableGen/Record.cpp | 9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
+
+diff --git a/llvm/lib/TableGen/Record.cpp b/llvm/lib/TableGen/Record.cpp
+index 81c75cd847d1..30889b1e6e49 100644
+--- a/llvm/lib/TableGen/Record.cpp
++++ b/llvm/lib/TableGen/Record.cpp
+@@ -634,13 +634,8 @@ Init *ListInit::resolveReferences(Resolver &R) const {
+   bool Changed = false;
+ 
+   for (Init *CurElt : getValues()) {
+-    Init *E;
+-
+-    do {
+-      E = CurElt;
+-      CurElt = CurElt->resolveReferences(R);
+-      Changed |= E != CurElt;
+-    } while (E != CurElt);
++    Init *E = CurElt->resolveReferences(R);
++    Changed |= E != CurElt;
+     Resolved.push_back(E);
+   }
+ 

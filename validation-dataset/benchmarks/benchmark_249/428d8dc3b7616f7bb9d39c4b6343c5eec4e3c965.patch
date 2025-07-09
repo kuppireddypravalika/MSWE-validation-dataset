@@ -1,0 +1,31 @@
+From 428d8dc3b7616f7bb9d39c4b6343c5eec4e3c965 Mon Sep 17 00:00:00 2001
+From: Gosha <284210+Lordron@users.noreply.github.com>
+Date: Mon, 18 Apr 2022 22:41:31 +0300
+Subject: [PATCH] Core/Vmaps: Use provided invDirection from G3D::Ray instead
+ of calculating it ourselves (#27883)
+
+Do not calculate inv direction, Ray has one
+---
+ src/common/Collision/BoundingIntervalHierarchy.h | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/src/common/Collision/BoundingIntervalHierarchy.h b/src/common/Collision/BoundingIntervalHierarchy.h
+index b5ce289f905ce..59423581af85f 100644
+--- a/src/common/Collision/BoundingIntervalHierarchy.h
++++ b/src/common/Collision/BoundingIntervalHierarchy.h
+@@ -117,12 +117,11 @@ class TC_COMMON_API BIH
+         {
+             float intervalMin = -1.f;
+             float intervalMax = -1.f;
+-            G3D::Vector3 org = r.origin();
+-            G3D::Vector3 dir = r.direction();
+-            G3D::Vector3 invDir;
++            G3D::Vector3 const& org = r.origin();
++            G3D::Vector3 const& dir = r.direction();
++            G3D::Vector3 const& invDir = r.invDirection();
+             for (int i=0; i<3; ++i)
+             {
+-                invDir[i] = 1.f / dir[i];
+                 if (G3D::fuzzyNe(dir[i], 0.0f))
+                 {
+                     float t1 = (bounds.low()[i]  - org[i]) * invDir[i];

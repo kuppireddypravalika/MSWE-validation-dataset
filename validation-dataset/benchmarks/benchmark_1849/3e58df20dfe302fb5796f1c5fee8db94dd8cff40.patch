@@ -1,0 +1,31 @@
+From 3e58df20dfe302fb5796f1c5fee8db94dd8cff40 Mon Sep 17 00:00:00 2001
+From: tensor-tang <tangjian03@baidu.com>
+Date: Thu, 14 Jun 2018 14:11:52 +0800
+Subject: [PATCH] initial with only 1 mkl/openblas threads for each pthreads
+
+---
+ paddle/fluid/framework/init.cc | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/paddle/fluid/framework/init.cc b/paddle/fluid/framework/init.cc
+index 85beae775b96c3..a1094976f6c096 100644
+--- a/paddle/fluid/framework/init.cc
++++ b/paddle/fluid/framework/init.cc
+@@ -18,6 +18,7 @@ limitations under the License. */
+ 
+ #include "paddle/fluid/framework/init.h"
+ #include "paddle/fluid/framework/operator.h"
++#include "paddle/fluid/operators/math/blas.h"
+ #include "paddle/fluid/platform/device_context.h"
+ #include "paddle/fluid/platform/place.h"
+ #include "paddle/fluid/string/piece.h"
+@@ -113,6 +114,9 @@ void InitDevices(bool init_p2p, const std::vector<int> devices) {
+   }
+   places.emplace_back(platform::CPUPlace());
+   platform::DeviceContextPool::Init(places);
++#ifndef PADDLE_WITH_MKLDNN
++  operators::math::SetNumThreads(1);
++#endif
+ }
+ 
+ void InitGLOG(const std::string &prog_name) {

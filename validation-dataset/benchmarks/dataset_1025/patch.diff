@@ -1,0 +1,37 @@
+From 1fd7145f3f1b2dd3e3a03c1a65ace728c4c29d42 Mon Sep 17 00:00:00 2001
+From: Mikael Mortensen <mikaem@math.uio.no>
+Date: Thu, 9 Jan 2014 11:26:20 +0100
+Subject: [PATCH] Replacing vector clear() with swap() such that memory is
+ freed when cleaning mesh topology connections.
+
+---
+ dolfin/mesh/MeshConnectivity.cpp | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/dolfin/mesh/MeshConnectivity.cpp b/dolfin/mesh/MeshConnectivity.cpp
+index f2ab19169ff..69df22faa9c 100644
+--- a/dolfin/mesh/MeshConnectivity.cpp
++++ b/dolfin/mesh/MeshConnectivity.cpp
+@@ -15,8 +15,10 @@
+ // You should have received a copy of the GNU Lesser General Public License
+ // along with DOLFIN. If not, see <http://www.gnu.org/licenses/>.
+ //
++// Modified by Mikael Mortensen 2014
++//
+ // First added:  2006-05-09
+-// Last changed: 2010-11-25
++// Last changed: 2014-01-09
+ 
+ #include <boost/functional/hash.hpp>
+ #include <dolfin/log/log.h>
+@@ -59,8 +61,8 @@ const MeshConnectivity& MeshConnectivity::operator= (const MeshConnectivity& con
+ //-----------------------------------------------------------------------------
+ void MeshConnectivity::clear()
+ {
+-  _connections.clear();
+-  index_to_position.clear();
++  std::vector<unsigned int>().swap(_connections);
++  std::vector<unsigned int>().swap(index_to_position);  
+ }
+ //-----------------------------------------------------------------------------
+ void MeshConnectivity::init(std::size_t num_entities, std::size_t num_connections)

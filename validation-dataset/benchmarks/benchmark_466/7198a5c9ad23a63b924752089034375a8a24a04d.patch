@@ -1,0 +1,31 @@
+From 7198a5c9ad23a63b924752089034375a8a24a04d Mon Sep 17 00:00:00 2001
+From: Nicholas Coughlin <cnic@ca.ibm.com>
+Date: Tue, 7 Nov 2017 12:05:07 -0500
+Subject: [PATCH] Disable recomp in MimicInterpreterFrameShape
+
+Full speed debug compilations, implemented
+using MimicInterpreterFrameShape, must use
+the no-opt optimization level. Therefore,
+they do not support recompilations.
+
+This change disables recompilations for
+any methods compiled in such a configuration.
+
+Signed-off-by: Nicholas Coughlin <cnic@ca.ibm.com>
+---
+ compiler/control/OMROptions.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/compiler/control/OMROptions.cpp b/compiler/control/OMROptions.cpp
+index 0c3fe2f848..fe0b7003dd 100644
+--- a/compiler/control/OMROptions.cpp
++++ b/compiler/control/OMROptions.cpp
+@@ -1882,6 +1882,8 @@ OMR::Options::Options(
+          {
+          optimizationPlan->setOptLevel(noOpt);
+          self()->setOption (TR_DisableInterpreterProfiling, true);
++         if (self()->allowRecompilation())
++            self()->setAllowRecompilation(false); // disable recompilation for this method
+          optimizationPlan->setOptLevelDowngraded(false);
+          }
+       }

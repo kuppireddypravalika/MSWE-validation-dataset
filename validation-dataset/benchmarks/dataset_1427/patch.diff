@@ -1,0 +1,37 @@
+From 5d548e9bead8260b4868a0a94752c88671873c62 Mon Sep 17 00:00:00 2001
+From: Marcos Bento <Marcos.Bento@ecmwf.int>
+Date: Thu, 29 Aug 2024 09:18:44 +0000
+Subject: [PATCH] Ensure the map used to cache VConfigLoaders is released
+
+This effectively replaces the use of a raw pointer with a managed
+pointer (i.e. std::unique_ptr)
+
+Re ECFLOW-1969
+---
+ Viewer/ecflowUI/src/VConfigLoader.cpp | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/Viewer/ecflowUI/src/VConfigLoader.cpp b/Viewer/ecflowUI/src/VConfigLoader.cpp
+index b34710464..07dab5f34 100644
+--- a/Viewer/ecflowUI/src/VConfigLoader.cpp
++++ b/Viewer/ecflowUI/src/VConfigLoader.cpp
+@@ -11,14 +11,16 @@
+ #include "VConfigLoader.hpp"
+ 
+ #include <map>
++#include <memory>
+ 
+ using Map = std::multimap<std::string, VConfigLoader*>;
+ 
+-static Map* makers = nullptr;
++static std::unique_ptr<Map> makers = nullptr;
+ 
+ VConfigLoader::VConfigLoader(const std::string& name) {
+-    if (makers == nullptr)
+-        makers = new Map();
++    if (!makers) {
++        makers = std::make_unique<Map>();
++    }
+ 
+     makers->insert(Map::value_type(name, this));
+ }

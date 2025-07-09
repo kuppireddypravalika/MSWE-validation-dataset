@@ -1,0 +1,33 @@
+From 9667e45ba36b587c7bed32fca88ae9c0a11d2bcd Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Matthias=20K=C3=BChlewein?= <github@kuehlewein.de>
+Date: Tue, 9 Feb 2021 07:20:57 +0100
+Subject: [PATCH] GeoreferencingDialog: Add marker to OSM lookup
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+OpenStreetMap lookup of the reference point now
+shows a marker. Improved arithmethic precision.
+Pull request: GH-1871
+
+Co-authored-by: Matthias Kühlewein <dl3sdo@darc.de>
+Co-authored-by: Kai Pastor <dg0yt@darc.de>
+---
+ src/gui/georeferencing_dialog.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/gui/georeferencing_dialog.cpp b/src/gui/georeferencing_dialog.cpp
+index b5b671dfd..51fd0086d 100644
+--- a/src/gui/georeferencing_dialog.cpp
++++ b/src/gui/georeferencing_dialog.cpp
+@@ -393,8 +393,8 @@ void GeoreferencingDialog::projectionChanged()
+ 	setValueIfChanged(lat_edit, latitude);
+ 	setValueIfChanged(lon_edit, longitude);
+ 	QString osm_link =
+-	  QString::fromLatin1("http://www.openstreetmap.org/?lat=%1&lon=%2&zoom=18&layers=M").
+-	  arg(latitude).arg(longitude);
++	  QString::fromLatin1("https://www.openstreetmap.org/?mlat=%1&mlon=%2&zoom=18&layers=M").
++	  arg(latitude, 0, 'g', 10).arg(longitude, 0, 'g', 10);
+ 	QString worldofo_link =
+ 	  QString::fromLatin1("http://maps.worldofo.com/?zoom=15&lat=%1&lng=%2").
+ 	  arg(latitude).arg(longitude);

@@ -1,0 +1,21 @@
+From 6d4c2671f9b633a20ec1542b05632e0213caf38c Mon Sep 17 00:00:00 2001
+From: Hendrik Leppkes <h.leppkes@gmail.com>
+Date: Sat, 6 Jul 2013 09:00:32 +0200
+Subject: [PATCH] Reduce read buffer size for network streams
+
+---
+ demuxer/LAVSplitter/InputPin.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/demuxer/LAVSplitter/InputPin.cpp b/demuxer/LAVSplitter/InputPin.cpp
+index 05725e178..7355419ba 100644
+--- a/demuxer/LAVSplitter/InputPin.cpp
++++ b/demuxer/LAVSplitter/InputPin.cpp
+@@ -188,6 +188,7 @@ HRESULT CLAVInputPin::GetAVIOContext(AVIOContext** ppContext)
+       DbgLog((LOG_TRACE, 10, L"CLAVInputPin::GetAVIOContext(): getting file length failed, disabling seeking"));
+       m_pAVIOContext->seekable = 0;
+       m_pAVIOContext->seek = NULL;
++      m_pAVIOContext->buffer_size = READ_BUFFER_SIZE / 4;
+     }
+   }
+   *ppContext = m_pAVIOContext;

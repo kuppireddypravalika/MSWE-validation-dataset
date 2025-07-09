@@ -1,0 +1,44 @@
+From d5d427bd0ab9beb3f74bcc87fd52aef5f5bc2686 Mon Sep 17 00:00:00 2001
+From: Olly Betts <olly@survex.com>
+Date: Thu, 17 Mar 2022 17:30:28 +1300
+Subject: [PATCH] Optimise when value slot bounds are subset of range
+
+Unless the value slot frequency equals the document count (in which
+case we can replace this with a MatchAll postlist, and already do)
+we still need to iterate the value list to know which documents
+it matches, but we can replace the lower bound with an empty string
+to make the bounds check very cheap.
+---
+ xapian-core/api/queryinternal.cc | 19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
+
+diff --git a/xapian-core/api/queryinternal.cc b/xapian-core/api/queryinternal.cc
+index f2f913be38c..0ed5131fd0f 100644
+--- a/xapian-core/api/queryinternal.cc
++++ b/xapian-core/api/queryinternal.cc
+@@ -1186,13 +1186,18 @@ QueryValueRange::postlist(QueryOptimiser *qopt, double factor) const
+ 	RETURN(NULL);
+     }
+     if (end >= ub) {
+-	// If begin <= lb too, then the range check isn't needed, but we do
+-	// still need to consider which documents have a value set in this
+-	// slot.  If this value is set for all documents, we can replace it
+-	// with the MatchAll postlist, which is especially efficient if
+-	// there are no gaps in the docids.
+-	if (begin <= lb && db.get_value_freq(slot) == db.get_doccount()) {
+-	    RETURN(db.open_post_list(string()));
++	if (begin <= lb) {
++	    // The range check isn't needed, but we do still need to consider
++	    // which documents have a value set in this slot.  If this value is
++	    // set for all documents, we can replace it with the MatchAll
++	    // postlist, which is especially efficient if there are no gaps in
++	    // the docids.
++	    if (db.get_value_freq(slot) == db.get_doccount()) {
++		RETURN(db.open_post_list(string()));
++	    }
++	    // Otherwise we can at least replace the lower bound with an empty
++	    // string for a small efficiency gain.
++	    RETURN(new ValueGePostList(&db, slot, string()));
+ 	}
+ 	RETURN(new ValueGePostList(&db, slot, begin));
+     }

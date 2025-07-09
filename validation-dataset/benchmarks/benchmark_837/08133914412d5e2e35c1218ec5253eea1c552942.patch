@@ -1,0 +1,37 @@
+From 08133914412d5e2e35c1218ec5253eea1c552942 Mon Sep 17 00:00:00 2001
+From: maekitalo <maekitalo@8dd45c8f-be11-0410-86c3-e0da43b70fc1>
+Date: Fri, 13 Feb 2009 20:13:16 +0000
+Subject: [PATCH] optimize tnt::Component::toString() by caching result
+
+git-svn-id: svn://svn.code.sf.net/p/tntnet/code/trunk@1103 8dd45c8f-be11-0410-86c3-e0da43b70fc1
+---
+ tntnet/framework/common/tnt/compident.h | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/tntnet/framework/common/tnt/compident.h b/tntnet/framework/common/tnt/compident.h
+index a5063c27..d0dbd85e 100644
+--- a/tntnet/framework/common/tnt/compident.h
++++ b/tntnet/framework/common/tnt/compident.h
+@@ -44,6 +44,11 @@ struct Compident
+   std::string libname;
+   std::string compname;
+ 
++private:
++  mutable std::string compident;
++
++public:
++
+   bool operator< (const Compident& ci) const
+   {
+     return libname < ci.libname
+@@ -63,8 +68,8 @@ struct Compident
+   explicit Compident(const std::string& ident);
+ 
+   /// return component identifyer as a string
+-  std::string toString() const
+-  { return libname.empty() ? compname : (compname + '@' + libname); }
++  const std::string& toString() const
++  { return libname.empty() ? compname : (compident.empty() ? (compident = compname + '@' + libname) : compident); }
+ 
+   bool empty() const
+     { return libname.empty() && compname.empty(); }

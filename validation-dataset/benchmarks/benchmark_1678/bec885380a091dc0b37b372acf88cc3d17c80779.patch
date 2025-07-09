@@ -1,0 +1,37 @@
+From bec885380a091dc0b37b372acf88cc3d17c80779 Mon Sep 17 00:00:00 2001
+From: Oswald Buddenhagen <oswald.buddenhagen@theqtcompany.com>
+Date: Wed, 18 Feb 2015 10:54:24 +0100
+Subject: [PATCH] don't write pointless TokAnd at start of control scopes
+
+a colon after else/for is non-AND-ing, i.e., it's no logical operator,
+but "punctuation". therefore, putting an operator into the token stream
+is bogus. it didn't hurt execution, so it went unnoticed, but it still
+wasted some bytes and cpu cycles.
+
+Change-Id: If5578074257feed299bda1630bf0dfe72eb395ae
+Reviewed-by: Joerg Bornemann <joerg.bornemann@theqtcompany.com>
+---
+ qmake/library/qmakeparser.cpp | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/qmake/library/qmakeparser.cpp b/qmake/library/qmakeparser.cpp
+index 4d389b94927..8094e3a9a7f 100644
+--- a/qmake/library/qmakeparser.cpp
++++ b/qmake/library/qmakeparser.cpp
+@@ -910,8 +910,14 @@ void QMakeParser::flushCond(ushort *&tokPtr)
+ 
+ void QMakeParser::putOperator(ushort *&tokPtr)
+ {
+-    if (m_operator != NoOperator) {
+-        putTok(tokPtr, (m_operator == AndOperator) ? TokAnd : TokOr);
++    if (m_operator== AndOperator) {
++        // A colon must be used after else and for() if no brace is used,
++        // but in this case it is obviously not a binary operator.
++        if (m_state == StCond)
++            putTok(tokPtr, TokAnd);
++        m_operator = NoOperator;
++    } else if (m_operator == OrOperator) {
++        putTok(tokPtr, TokOr);
+         m_operator = NoOperator;
+     }
+ }

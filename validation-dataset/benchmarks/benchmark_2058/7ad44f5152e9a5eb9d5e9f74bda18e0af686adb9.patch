@@ -1,0 +1,23 @@
+From 7ad44f5152e9a5eb9d5e9f74bda18e0af686adb9 Mon Sep 17 00:00:00 2001
+From: Thomas Harte <thomas.harte@gmail.com>
+Date: Mon, 31 Oct 2016 22:17:18 -0400
+Subject: [PATCH] Flipped order of conditional so as negligibly to improve
+ prediction.
+
+---
+ Processors/6502/CPU6502.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Processors/6502/CPU6502.hpp b/Processors/6502/CPU6502.hpp
+index 9609210648..3d6903f24f 100644
+--- a/Processors/6502/CPU6502.hpp
++++ b/Processors/6502/CPU6502.hpp
+@@ -1109,7 +1109,7 @@ template <class T> class Processor {
+ 							continue;
+ 						}
+ 
+-						if(isReadOperation(nextBusOperation) && _ready_line_is_enabled) {
++						if(_ready_line_is_enabled && isReadOperation(nextBusOperation)) {
+ 							_ready_is_active = true;
+ 							break;
+ 						}

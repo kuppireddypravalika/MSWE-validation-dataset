@@ -1,0 +1,21 @@
+From 006215c540a1ce7f5ce72574e8fd3f66800f244c Mon Sep 17 00:00:00 2001
+From: zachglick <glickzachary@gmail.com>
+Date: Mon, 10 Dec 2018 15:44:12 -0500
+Subject: [PATCH] explicitly reduce vector capacity (after reducing size)
+
+---
+ psi4/src/psi4/libmints/eribase.cc | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/psi4/src/psi4/libmints/eribase.cc b/psi4/src/psi4/libmints/eribase.cc
+index e5ea4fd1eb6..6b08b33f792 100644
+--- a/psi4/src/psi4/libmints/eribase.cc
++++ b/psi4/src/psi4/libmints/eribase.cc
+@@ -2182,6 +2182,7 @@ void TwoElectronInt::init_shell_pairs12() {
+ 
+             total_prim_pairs += np_i * np_j;
+             spsc.nonzeroPrimPairs.resize(nprim_sig);
++            spsc.nonzeroPrimPairs.shrink_to_fit();
+             (*screenpairs12_)[si][sj] = spsc;
+         }
+     }

@@ -1,0 +1,41 @@
+From 0bb74592904fcc733123c5e6f68f127c9ea1ae70 Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Sun, 3 Jun 2018 15:40:42 -0400
+Subject: [PATCH] [librpbase/tests] UnPremultiplyTest: Initialize the image
+ with 0x55.
+
+The un-premultiply functions have short-circuit code for 0x00 and 0xFF,
+so we should initialize it to a non-zero value to properly test it.
+
+Benchmark results: (gcc-8.1.0, 64-bit Linux)
+
+|        Function        |   Debug   |  Release |
+|------------------------|-----------|----------|
+|   un_premultiply_cpp() | 10,127 ms | 8,534 ms |
+| un_premultiply_sse41() |  6,410 ms | 4,386 ms |
+|       un_premultiply() |  6,407 ms | 4,388 ms |
+
+TODO: Try switching the pixel function methods back and forth to see
+if this is still the most optimal version.
+---
+ src/librpbase/tests/img/UnPremultiplyTest.cpp | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/src/librpbase/tests/img/UnPremultiplyTest.cpp b/src/librpbase/tests/img/UnPremultiplyTest.cpp
+index f9e85f155a..6dd38799fe 100644
+--- a/src/librpbase/tests/img/UnPremultiplyTest.cpp
++++ b/src/librpbase/tests/img/UnPremultiplyTest.cpp
+@@ -50,7 +50,12 @@ class UnPremultiplyTest : public ::testing::Test
+ 	protected:
+ 		UnPremultiplyTest()
+ 			: m_img(new rp_image(512, 512, rp_image::FORMAT_ARGB32))
+-		{ }
++		{
++			// Initialize the image with non-zero data.
++			size_t sz = m_img->row_bytes() * (m_img->height() - 1);
++			sz += (m_img->width() * sizeof(uint32_t));
++			memset(m_img->bits(), 0x55, sz);
++		}
+ 
+ 		~UnPremultiplyTest()
+ 		{

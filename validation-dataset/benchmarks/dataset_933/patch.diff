@@ -1,0 +1,48 @@
+From 652ca89ed404461e3fc4f4a6bc2961dbc7820a50 Mon Sep 17 00:00:00 2001
+From: Christian Schulte <schulte@gecode.org>
+Date: Mon, 24 Jan 2011 10:55:07 +0000
+Subject: [PATCH] Simpler algorithm to compute upper bound
+
+git-svn-id: file:///Users/tack/GecodeGitMigration/gecode-svn-mirror/gecode/trunk@11558 e85b7adc-8362-4630-8c63-7469d557c915
+---
+ examples/bin-packing.cpp | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/examples/bin-packing.cpp b/examples/bin-packing.cpp
+index 1f68c7aed1..0bc61cb226 100644
+--- a/examples/bin-packing.cpp
++++ b/examples/bin-packing.cpp
+@@ -40,6 +40,8 @@
+ #include <gecode/int.hh>
+ #include <gecode/minimodel.hh>
+ 
++#include <algorithm>
++
+ using namespace Gecode;
+ 
+ // Instance data
+@@ -137,17 +139,15 @@ namespace {
+       
+       int u=0;
+       for (int i=0; i<n; i++) {
+-        // Pack item i if it fits in a bin between 0...u-1
+-        for (int j=0; j<u; j++)
+-          if (f[j] >= size(i)) {
+-            f[j] -= size(i); goto packed;
+-          }
+-        // Pack in new bin
+-        f[u++] -= size(i);
+-      packed: ;
++        // Skip bins with insufficient free space
++        int j=0;
++        while (f[j] < size(i))
++          j++;
++        f[j] -= size(i);
++        u = std::max(u,j);
+       }
+       delete [] f;
+-      return u;
++      return u+1;
+     }
+   public:
+     /// Initialize

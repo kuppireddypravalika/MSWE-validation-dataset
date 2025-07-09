@@ -1,0 +1,31 @@
+From 83be0a4f001ec8bf083eaa56a92d14b58234c490 Mon Sep 17 00:00:00 2001
+From: Rene Brun <Rene.Brun@cern.ch>
+Date: Fri, 24 Sep 2004 20:24:50 +0000
+Subject: [PATCH] From Maarten - Force order of slaves in list to be
+ deterministic (sort on performance   *and* ordinal) parallel startup could
+ lead to random order which   complicates the use of Parallel()
+
+git-svn-id: http://root.cern.ch/svn/root/trunk@10169 27541ba8-7e3a-0410-8455-c3a389f83636
+---
+ proof/src/TSlave.cxx | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/proof/src/TSlave.cxx b/proof/src/TSlave.cxx
+index ccc7e2e83bdc2..1977cba5b37a5 100644
+--- a/proof/src/TSlave.cxx
++++ b/proof/src/TSlave.cxx
+@@ -1,4 +1,4 @@
+-// @(#)root/proof:$Name:  $:$Id: TSlave.cxx,v 1.30 2004/06/25 17:27:09 rdm Exp $
++// @(#)root/proof:$Name:  $:$Id: TSlave.cxx,v 1.31 2004/09/08 10:21:40 brun Exp $
+ // Author: Fons Rademakers   14/02/97
+ 
+ /*************************************************************************
+@@ -227,6 +227,8 @@ Int_t TSlave::Compare(const TObject *obj) const
+ 
+    if (fPerfIdx > sl->GetPerfIdx()) return 1;
+    if (fPerfIdx < sl->GetPerfIdx()) return -1;
++   if (fOrdinal < sl->GetOrdinal()) return 1;
++   if (fOrdinal > sl->GetOrdinal()) return -1;
+    return 0;
+ }
+ 

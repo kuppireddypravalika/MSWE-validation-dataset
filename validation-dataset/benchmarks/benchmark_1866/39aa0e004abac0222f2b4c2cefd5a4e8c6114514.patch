@@ -1,0 +1,25 @@
+From 39aa0e004abac0222f2b4c2cefd5a4e8c6114514 Mon Sep 17 00:00:00 2001
+From: mfasel <markus.fasel@cern.ch>
+Date: Wed, 7 Nov 2018 11:12:35 +0100
+Subject: [PATCH] [EMCAL-33] Apply energy cut on the clusters for invariant
+ mass
+
+Invariant mass distribution dominated by background, particularly
+for most central collisions, energy cut needed to enhance the
+signal/background.
+---
+ HLT/EMCAL/AliHLTEMCALClusterMonitor.cxx | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/HLT/EMCAL/AliHLTEMCALClusterMonitor.cxx b/HLT/EMCAL/AliHLTEMCALClusterMonitor.cxx
+index c308612af97..b48e4963d9a 100644
+--- a/HLT/EMCAL/AliHLTEMCALClusterMonitor.cxx
++++ b/HLT/EMCAL/AliHLTEMCALClusterMonitor.cxx
+@@ -148,6 +148,7 @@ Int_t AliHLTEMCALClusterMonitor::MakeHisto(AliHLTCaloClusterDataStruct *caloClus
+   for(Int_t i=0; i<nClusters; i++)
+     for(Int_t j=0; j<i; j++)
+     {
++      if(lorentzVecs[i].E() < 2. || lorentzVecs[j].E() < 2. ) continue;
+       TVector3 clusterVector_1(lorentzVecs[i].X(), lorentzVecs[i].Y(), lorentzVecs[i].Z());
+       TVector3 clusterVector_2(lorentzVecs[j].X(), lorentzVecs[j].Y(), lorentzVecs[j].Z());
+       Float_t invMass = TMath::Sqrt(2*TMath::Abs(lorentzVecs[i].E())*TMath::Abs(lorentzVecs[j].E())*(1-TMath::Cos(clusterVector_1.Angle(clusterVector_2))));

@@ -1,0 +1,23 @@
+From f677d6d60082dcd1430b57dc4b85aaf3895869fa Mon Sep 17 00:00:00 2001
+From: Magne Sjaastad <magne.sjaastad@ceetronsolutions.com>
+Date: Wed, 20 Dec 2023 10:21:33 +0100
+Subject: [PATCH] Performance: Compute depth related results in parallell
+
+---
+ .../ReservoirDataModel/RigCaseCellResultsData.cpp              | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/ApplicationLibCode/ReservoirDataModel/RigCaseCellResultsData.cpp b/ApplicationLibCode/ReservoirDataModel/RigCaseCellResultsData.cpp
+index b6e186c2113..9f4ab991a0d 100644
+--- a/ApplicationLibCode/ReservoirDataModel/RigCaseCellResultsData.cpp
++++ b/ApplicationLibCode/ReservoirDataModel/RigCaseCellResultsData.cpp
+@@ -1845,7 +1845,8 @@ void RigCaseCellResultsData::computeDepthRelatedResults()
+         }
+     }
+ 
+-    for ( size_t cellIdx = 0; cellIdx < m_ownerMainGrid->globalCellArray().size(); cellIdx++ )
++#pragma omp parallel for
++    for ( long cellIdx = 0; cellIdx < static_cast<long>( m_ownerMainGrid->globalCellArray().size() ); cellIdx++ )
+     {
+         const RigCell& cell = m_ownerMainGrid->globalCellArray()[cellIdx];
+ 

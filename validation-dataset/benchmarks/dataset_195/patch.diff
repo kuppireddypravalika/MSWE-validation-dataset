@@ -1,0 +1,23 @@
+From aba1dffdfed68561d51b3896b09767f57f81fb3c Mon Sep 17 00:00:00 2001
+From: Kunal Tyagi <tyagi.kunal@live.com>
+Date: Thu, 9 Jan 2020 16:13:50 +0900
+Subject: [PATCH] gfpfh.hpp: Using algorithms and Eigen functions for better
+ code
+
+---
+ features/include/pcl/features/impl/gfpfh.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/features/include/pcl/features/impl/gfpfh.hpp b/features/include/pcl/features/impl/gfpfh.hpp
+index 9a5888408ba..08a99213531 100644
+--- a/features/include/pcl/features/impl/gfpfh.hpp
++++ b/features/include/pcl/features/impl/gfpfh.hpp
+@@ -130,7 +130,7 @@ pcl::GFPFHEstimation<PointInT, PointNT, PointOutT>::computeFeature (PointCloudOu
+   output.width = 1;
+   output.height = 1;
+   output.points.resize (1);
+-  std::copy (gfpfh_histogram.begin (), gfpfh_histogram.end (), output.points[0].histogram);
++  std::copy (gfpfh_histogram.cbegin (), gfpfh_histogram.cend (), output.points[0].histogram);
+ }
+ 
+ //////////////////////////////////////////////////////////////////////////////////////////////

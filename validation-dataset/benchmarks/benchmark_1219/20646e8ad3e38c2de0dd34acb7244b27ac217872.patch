@@ -1,0 +1,22 @@
+From 20646e8ad3e38c2de0dd34acb7244b27ac217872 Mon Sep 17 00:00:00 2001
+From: Guido Tack <guido.tack@monash.edu>
+Date: Fri, 2 May 2014 12:13:53 +1000
+Subject: [PATCH] Flatten annotations instead of evaluating them
+
+---
+ lib/flatten.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/flatten.cpp b/lib/flatten.cpp
+index 65c24ca18..fb8d9f42e 100644
+--- a/lib/flatten.cpp
++++ b/lib/flatten.cpp
+@@ -3734,7 +3734,7 @@ namespace MiniZinc {
+       EnvI& env;
+       FV(EnvI& env0) : env(env0) {}
+       void vVarDeclI(VarDeclI* v) {
+-        if (v->e()->type().isvar()) {
++        if (v->e()->type().isvar() || v->e()->type().isann()) {
+           (void) flat_exp(env,Ctx(),v->e()->id(),NULL,constants().var_true);
+         } else {
+           if (v->e()->e()==NULL) {

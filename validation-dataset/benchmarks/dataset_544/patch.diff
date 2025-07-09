@@ -1,0 +1,35 @@
+From bc20b6430218b62da9e9146fc07940eb3191d6fd Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@duempel.org>
+Date: Sat, 12 Apr 2008 04:13:30 +0000
+Subject: [PATCH] use sizeof(chunk.data) instead of CHUNK_SIZE
+
+sizeof() is the more "natural" or "direct" access to the buffer size,
+instead of a macro happening to be used to the buffer declaration.
+
+git-svn-id: https://svn.musicpd.org/mpd/trunk@7270 09075e82-0dd4-0310-85a5-a0d7c8717e4f
+---
+ src/outputBuffer.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/outputBuffer.c b/src/outputBuffer.c
+index ad584c8c86..48e9598f6d 100644
+--- a/src/outputBuffer.c
++++ b/src/outputBuffer.c
+@@ -188,7 +188,7 @@ int sendDataToOutputBuffer(OutputBuffer * cb, InputStream * inStream,
+ 
+ 		chunk = outputBufferGetChunk(cb, chunk_index);
+ 
+-		chunkLeft = CHUNK_SIZE - chunk->chunkSize;
++		chunkLeft = sizeof(chunk->data) - chunk->chunkSize;
+ 		dataToSend = datalen > chunkLeft ? chunkLeft : datalen;
+ 
+ 		memcpy(chunk->data + chunk->chunkSize, data, dataToSend);
+@@ -196,7 +196,7 @@ int sendDataToOutputBuffer(OutputBuffer * cb, InputStream * inStream,
+ 		datalen -= dataToSend;
+ 		data += dataToSend;
+ 
+-		if (chunk->chunkSize == CHUNK_SIZE) {
++		if (chunk->chunkSize == sizeof(chunk->data)) {
+ 			flushOutputBuffer(cb);
+ 		}
+ 	}

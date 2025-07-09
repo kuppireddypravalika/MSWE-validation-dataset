@@ -1,0 +1,27 @@
+From a5c3c7d2e53253decd04db36a3a2adfd5f4c3c8a Mon Sep 17 00:00:00 2001
+From: Eladash <elad3356p@gmail.com>
+Date: Sun, 18 Jul 2021 22:08:04 +0300
+Subject: [PATCH] cellSaveData/UNIX: Optimize IO (#10574)
+
+---
+ rpcs3/Emu/Cell/Modules/cellSaveData.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/rpcs3/Emu/Cell/Modules/cellSaveData.cpp b/rpcs3/Emu/Cell/Modules/cellSaveData.cpp
+index 11be05c692347..beaa72d1999db 100644
+--- a/rpcs3/Emu/Cell/Modules/cellSaveData.cpp
++++ b/rpcs3/Emu/Cell/Modules/cellSaveData.cpp
+@@ -1951,9 +1951,13 @@ static NEVER_INLINE error_code savedata_op(ppu_thread& ppu, u32 operation, u32 v
+ 			if (auto file = pair.second.release())
+ 			{
+ 				auto&& fvec = static_cast<fs::container_stream<std::vector<uchar>>&>(*file);
++#ifdef _WIN32
+ 				fs::pending_file f(new_path + vfs::escape(pair.first));
+ 				f.file.write(fvec.obj);
+ 				ensure(f.commit());
++#else
++				ensure(fs::write_file(new_path + vfs::escape(pair.first), fs::rewrite, fvec.obj));
++#endif
+ 			}
+ 		}
+ 

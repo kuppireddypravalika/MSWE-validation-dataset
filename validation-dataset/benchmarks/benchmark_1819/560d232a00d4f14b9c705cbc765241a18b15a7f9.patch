@@ -1,0 +1,39 @@
+From 560d232a00d4f14b9c705cbc765241a18b15a7f9 Mon Sep 17 00:00:00 2001
+From: Andrew Adams <andrew.b.adams@gmail.com>
+Date: Wed, 25 Sep 2013 17:07:22 -0700
+Subject: [PATCH] Workaround for an llvm performance bug
+
+loop-strength-reduce was choking on long chains of select ir nodes. This
+uses bitmasking for integer min and max instead of select. They get converted
+to select anyway, but apparently the form they appear in no longer tickles
+the bug?
+
+
+Former-commit-id: af0a3c30309242c0c6b1d2062b2d6bda2c6f6012
+---
+ src/CodeGen.cpp | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/src/CodeGen.cpp b/src/CodeGen.cpp
+index d927ae193a..3e4b54c0fa 100644
+--- a/src/CodeGen.cpp
++++ b/src/CodeGen.cpp
+@@ -878,6 +878,18 @@ void CodeGen::visit(const Select *op) {
+         phi->addIncoming(false_value, false_bb);
+ 
+         value = phi;
++    } else if (op->type == Int(32)) {
++        // llvm has a performance bug inside of loop strength
++        // reduction that barfs on long chains of selects. To avoid
++        // it, we use bit-masking instead.
++        Value *cmp = codegen(op->condition);
++        Value *a = codegen(op->true_value);
++        Value *b = codegen(op->false_value);
++        cmp = builder->CreateIntCast(cmp, i32, true);
++        a = builder->CreateAnd(a, cmp);
++        cmp = builder->CreateNot(cmp);
++        b = builder->CreateAnd(b, cmp);
++        value = builder->CreateOr(a, b);
+     } else {
+         value = builder->CreateSelect(codegen(op->condition),
+                                       codegen(op->true_value),

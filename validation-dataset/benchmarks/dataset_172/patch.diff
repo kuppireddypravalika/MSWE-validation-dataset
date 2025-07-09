@@ -1,0 +1,24 @@
+From 2c857dc4c74c195a9725889b3b9e5a0d71884eb2 Mon Sep 17 00:00:00 2001
+From: Jochen Sprickerhof <jochen@sprickerhof.de>
+Date: Tue, 18 Sep 2012 10:05:06 +0000
+Subject: [PATCH] Use size_t instead of old-style cast in
+ pcd_organized_edge_detection
+
+git-svn-id: svn+ssh://svn.pointclouds.org/pcl/trunk@7189 a9d63959-f2ad-4865-b262-bf0e56cfafb6
+---
+ apps/src/pcd_organized_edge_detection.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/apps/src/pcd_organized_edge_detection.cpp b/apps/src/pcd_organized_edge_detection.cpp
+index b872937e412..c5158785ad0 100644
+--- a/apps/src/pcd_organized_edge_detection.cpp
++++ b/apps/src/pcd_organized_edge_detection.cpp
+@@ -165,7 +165,7 @@ compute (const sensor_msgs::PointCloud2::ConstPtr &input, sensor_msgs::PointClou
+   print_info ("Detecting all edges... [done, "); print_value ("%g", tt.toc ()); print_info (" ms]\n");
+ 
+   // Make gray point clouds
+-  for (int idx = 0; idx < (int)cloud->points.size (); idx++)
++  for (size_t idx = 0; idx < cloud->points.size (); idx++)
+   {
+     uint8_t gray = (cloud->points[idx].r + cloud->points[idx].g + cloud->points[idx].b)/3;
+     cloud->points[idx].r = cloud->points[idx].g = cloud->points[idx].b = gray;

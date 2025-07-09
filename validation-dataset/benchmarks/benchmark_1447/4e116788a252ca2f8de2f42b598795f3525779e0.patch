@@ -1,0 +1,29 @@
+From 4e116788a252ca2f8de2f42b598795f3525779e0 Mon Sep 17 00:00:00 2001
+From: Vadim Zeitlin <vadim@wxwidgets.org>
+Date: Fri, 1 Jun 2012 11:01:34 +0000
+Subject: [PATCH] Use float instead of double division in wxHashMap code.
+
+We don't need double precision for determining the hash table fill rate and
+using double constant also results in float-to-double promotion warnings from
+gcc 4.7.
+
+See #14362.
+
+git-svn-id: https://svn.wxwidgets.org/svn/wx/wxWidgets/trunk@71628 c3d73ce0-8a6f-49c7-b76d-6d57e0e08775
+---
+ include/wx/hashmap.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/wx/hashmap.h b/include/wx/hashmap.h
+index a2cc550e0f44..9a25f8e183a2 100644
+--- a/include/wx/hashmap.h
++++ b/include/wx/hashmap.h
+@@ -467,7 +467,7 @@ inline bool never_grow( size_t, size_t ) { return false; }
+ inline bool never_shrink( size_t, size_t ) { return false; }
+ inline bool grow_lf70( size_t buckets, size_t items )
+ {
+-    return float(items)/float(buckets) >= 0.85;
++    return float(items)/float(buckets) >= 0.85f;
+ }
+ 
+ #endif // various hash map implementations

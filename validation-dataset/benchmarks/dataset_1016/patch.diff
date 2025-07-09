@@ -1,0 +1,29 @@
+From 5650b8dbdce7cdaf6e8bfd305f756f29a686d327 Mon Sep 17 00:00:00 2001
+From: "Garth N. Wells" <gnw20@cam.ac.uk>
+Date: Fri, 1 May 2009 22:27:57 +0100
+Subject: [PATCH] Fix memory clean up in FunctionSpace::Scratch::init.
+
+---
+ dolfin/function/FunctionSpace.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/dolfin/function/FunctionSpace.cpp b/dolfin/function/FunctionSpace.cpp
+index 3867c6e1659..57aa74775ff 100644
+--- a/dolfin/function/FunctionSpace.cpp
++++ b/dolfin/function/FunctionSpace.cpp
+@@ -319,13 +319,13 @@ void FunctionSpace::Scratch::init(const FiniteElement& element)
+     dofs[i] = 0;
+ 
+   // Initialize local array for expansion coefficients
+-  delete coefficients;
++  delete [] coefficients;
+   coefficients = new double[element.space_dimension()];
+   for (uint i = 0; i < element.space_dimension(); i++)
+     coefficients[i] = 0.0;
+ 
+   // Initialize local array for values
+-  delete values;
++  delete [] values;
+   values = new double[size];
+   for (uint i = 0; i < size; i++)
+     values[i] = 0.0;

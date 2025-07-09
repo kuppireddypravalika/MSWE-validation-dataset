@@ -1,0 +1,29 @@
+From e3dbf0b0afcbe26fbd0947b1e53aa52d72f000bb Mon Sep 17 00:00:00 2001
+From: Mark Kendall <mkendall@mythtv.org>
+Date: Mon, 4 Oct 2010 14:59:00 +0000
+Subject: [PATCH] Don't clear the video buffers immediately after starting
+ playback.
+
+This should result in a cleaner startup with less av sync chatter but
+more importantly it ensures we do not discard the only video frame we
+have (and need) when a DVD starts with a still frame.
+
+
+git-svn-id: http://svn.mythtv.org/svn/trunk@26632 7dbf422c-18fa-0310-86e9-fd20926502f2
+---
+ mythtv/libs/libmythtv/mythplayer.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/mythtv/libs/libmythtv/mythplayer.cpp b/mythtv/libs/libmythtv/mythplayer.cpp
+index 0617cbd5803..ea028532c60 100644
+--- a/mythtv/libs/libmythtv/mythplayer.cpp
++++ b/mythtv/libs/libmythtv/mythplayer.cpp
+@@ -1997,7 +1997,7 @@ void MythPlayer::VideoStart(void)
+     }
+ 
+     SetPlaying(true);
+-    ClearAfterSeek();
++    ClearAfterSeek(false);
+ 
+     avsync_delay = 0;
+     avsync_avg = 0;

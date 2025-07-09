@@ -1,0 +1,28 @@
+From 5549096cf746a9739eaed30ed2388abc958f4015 Mon Sep 17 00:00:00 2001
+From: drmortalwombat <90205530+drmortalwombat@users.noreply.github.com>
+Date: Mon, 29 Nov 2021 22:07:35 +0100
+Subject: [PATCH] Limit binary and, or and xor of byte operands to byte
+ operations
+
+---
+ oscar64/InterCodeGenerator.cpp | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/oscar64/InterCodeGenerator.cpp b/oscar64/InterCodeGenerator.cpp
+index 0dc8029..c241742 100644
+--- a/oscar64/InterCodeGenerator.cpp
++++ b/oscar64/InterCodeGenerator.cpp
+@@ -1427,6 +1427,13 @@ InterCodeGenerator::ExValue InterCodeGenerator::TranslateExpression(Declaration*
+ 				Declaration* dtype;
+ 				if (vr.mType->mType == DT_TYPE_FLOAT || vl.mType->mType == DT_TYPE_FLOAT)
+ 					dtype = TheFloatTypeDeclaration;
++				else if ((exp->mToken == TK_BINARY_AND || exp->mToken == TK_BINARY_OR || exp->mToken == TK_BINARY_XOR) && vl.mType->mSize == 1 && vr.mType->mSize == 1)
++				{
++					if (vl.mType->mFlags & DTF_SIGNED)
++						dtype = vl.mType;
++					else
++						dtype = vr.mType;
++				}
+ 				else if (vr.mType->mSize < vl.mType->mSize && (vl.mType->mFlags & DTF_SIGNED))
+ 				{
+ 					if (vl.mType->mSize == 4)

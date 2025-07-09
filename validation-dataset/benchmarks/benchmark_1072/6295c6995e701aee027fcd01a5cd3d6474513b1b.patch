@@ -1,0 +1,24 @@
+From 6295c6995e701aee027fcd01a5cd3d6474513b1b Mon Sep 17 00:00:00 2001
+From: Porteries Tristan <republicthunderbolt9@gmail.com>
+Date: Mon, 22 Aug 2016 16:07:54 +0000
+Subject: [PATCH] UPBGE: Set function RAS_OpenGLRasterizer::ScreenPlane::Render
+ inlined.
+
+This can improve performance nby avoiding indirect calls.
+---
+ .../Rasterizer/RAS_OpenGLRasterizer/RAS_OpenGLRasterizer.cpp    | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/source/gameengine/Rasterizer/RAS_OpenGLRasterizer/RAS_OpenGLRasterizer.cpp b/source/gameengine/Rasterizer/RAS_OpenGLRasterizer/RAS_OpenGLRasterizer.cpp
+index 982c1a63df54..14612229b488 100644
+--- a/source/gameengine/Rasterizer/RAS_OpenGLRasterizer/RAS_OpenGLRasterizer.cpp
++++ b/source/gameengine/Rasterizer/RAS_OpenGLRasterizer/RAS_OpenGLRasterizer.cpp
+@@ -171,7 +171,7 @@ RAS_OpenGLRasterizer::ScreenPlane::~ScreenPlane()
+ 	glDeleteBuffersARB(1, &m_ibo);
+ }
+ 
+-void RAS_OpenGLRasterizer::ScreenPlane::Render()
++inline void RAS_OpenGLRasterizer::ScreenPlane::Render()
+ {
+ 	// Bind screen plane VBO/IBO
+ 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, m_vbo);

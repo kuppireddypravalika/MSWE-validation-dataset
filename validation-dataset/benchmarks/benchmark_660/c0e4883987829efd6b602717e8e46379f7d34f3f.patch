@@ -1,0 +1,42 @@
+From c0e4883987829efd6b602717e8e46379f7d34f3f Mon Sep 17 00:00:00 2001
+From: Stenzek <stenzek@gmail.com>
+Date: Mon, 8 Jan 2024 22:41:08 +1000
+Subject: [PATCH] GS: Make GSVertex POD
+
+Same code is generated with optimization (256-bit store in AVX2).
+---
+ pcsx2/GS/Renderers/Common/GSVertex.h | 21 ---------------------
+ 1 file changed, 21 deletions(-)
+
+diff --git a/pcsx2/GS/Renderers/Common/GSVertex.h b/pcsx2/GS/Renderers/Common/GSVertex.h
+index 56ba05dbccd63..470c8efd1a319 100644
+--- a/pcsx2/GS/Renderers/Common/GSVertex.h
++++ b/pcsx2/GS/Renderers/Common/GSVertex.h
+@@ -26,27 +26,6 @@ struct alignas(32) GSVertex
+ #endif
+ 		__m128i m[2];
+ 	};
+-
+-	GSVertex() = default; // Warning object is potentially used in hot path
+-
+-#if _M_SSE >= 0x500
+-	GSVertex(const GSVertex& v)
+-	{
+-		mx = v.mx;
+-	}
+-	void operator=(const GSVertex& v) { mx = v.mx; }
+-#else
+-	GSVertex(const GSVertex& v)
+-	{
+-		m[0] = v.m[0];
+-		m[1] = v.m[1];
+-	}
+-	void operator=(const GSVertex& v)
+-	{
+-		m[0] = v.m[0];
+-		m[1] = v.m[1];
+-	}
+-#endif
+ };
+ 
+ static_assert(sizeof(GSVertex) == 32);

@@ -1,0 +1,21 @@
+From efbccf0cee29da3b3da39331150d474a5c5dbaee Mon Sep 17 00:00:00 2001
+From: yinlin09 <yinlin09@gmail.com>
+Date: Sun, 24 Jun 2012 06:44:24 -0700
+Subject: [PATCH] minor optimization of halo effect
+
+---
+ src/ui/uiUtils.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/ui/uiUtils.cpp b/src/ui/uiUtils.cpp
+index 617ab130bc..e3eb84e971 100644
+--- a/src/ui/uiUtils.cpp
++++ b/src/ui/uiUtils.cpp
+@@ -45,6 +45,7 @@ QImage QSanUiUtils::produceShadow(const QImage &image, QColor shadowColor, int r
+                     int wy = y + dy;
+                     int dist = dx * dx + dy * dy;
+                     if (wx < 0 || wy < 0 || wx >= cols || wy >= rows) continue;
++                    if (dx * dx + dy * dy > radius * radius) continue;
+                     int newVal = alpha - decade * dist;
+                     Q_ASSERT((wy * cols + wx) * 4 < cols * rows * 4);
+                     _NEW_PIXEL(wx, wy) = (uchar)qMax((int)_NEW_PIXEL(wx, wy), newVal); 

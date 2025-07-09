@@ -1,0 +1,39 @@
+From 8efffe7e924e69faaea9a0e646ffc1a00ab02ce6 Mon Sep 17 00:00:00 2001
+From: Lawrence Rust <lvr@softsystem.co.uk>
+Date: Sun, 4 Jan 2015 17:30:47 +0000
+Subject: [PATCH] MythGallery: Speed up thumb generation of mixed content
+ directories
+
+The current QImageReader autodetection of images in a directory with mixed
+content is slow and CPU intensive.
+
+This patch just finds the first file that matches the filename extensions
+supported by QImageReader.
+
+Signed-off-by: Roger Siddons <rsiddons@mythtv.org>
+---
+ mythplugins/mythgallery/mythgallery/thumbgenerator.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/mythplugins/mythgallery/mythgallery/thumbgenerator.cpp b/mythplugins/mythgallery/mythgallery/thumbgenerator.cpp
+index afd008e7c97..1394ebe1b69 100644
+--- a/mythplugins/mythgallery/mythgallery/thumbgenerator.cpp
++++ b/mythplugins/mythgallery/mythgallery/thumbgenerator.cpp
+@@ -242,14 +242,15 @@ void ThumbGenerator::loadDir(QImage& image, const QFileInfo& fi)
+     QDir dir(fi.absoluteFilePath());
+     dir.setFilter(QDir::Files);
+ 
++    QList<QByteArray> const fmts = QImageReader::supportedImageFormats();
++
+     QFileInfoList list = dir.entryInfoList();
+ 
+     for (QFileInfoList::const_iterator it = list.begin();
+          it != list.end() && !m_cancel; ++it)
+     {
+         const QFileInfo *f = &(*it);
+-        QImageReader testread(f->absoluteFilePath());
+-        if (testread.canRead())
++        if (fmts.contains(f->completeSuffix().toLower().toLatin1()))
+         {
+             loadFile(image, *f);
+             return;

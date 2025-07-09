@@ -1,0 +1,22 @@
+From 86b78f62d654a82ad0d2a87a7eaabbb9e6076d54 Mon Sep 17 00:00:00 2001
+From: erazortt <erazortt@web.de>
+Date: Thu, 25 Jan 2024 16:42:52 +0100
+Subject: [PATCH] very minor improvement of the 16>12 bits conversion
+
+---
+ DoViBaker/DoViEetf.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/DoViBaker/DoViEetf.h b/DoViBaker/DoViEetf.h
+index 87a10b3..4652a09 100644
+--- a/DoViBaker/DoViEetf.h
++++ b/DoViBaker/DoViEetf.h
+@@ -51,7 +51,7 @@ uint16_t DoViEetf<signalBitDepth>::signal2lut(uint16_t signal) {
+     return (s * 16381 + 32768) >> 16;
+   }
+   else if (signalBitDepth == 16) {
+-    return (s * 4095 + 34815) >> 16;
++    return (s * 4095 + 34822) >> 16;
+   }
+ }
+ 

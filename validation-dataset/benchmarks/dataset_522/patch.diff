@@ -1,0 +1,26 @@
+From da19de5894e42235edabde8ede6ce243c66b7a43 Mon Sep 17 00:00:00 2001
+From: Warboy1982 <neo_nihilist@hotmail.com>
+Date: Sun, 19 Apr 2015 10:14:42 +1000
+Subject: [PATCH] one less op per pixel on the flash frame
+
+not that it should make a huge difference
+---
+ src/Battlescape/Map.cpp | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/src/Battlescape/Map.cpp b/src/Battlescape/Map.cpp
+index f669d9ee4d..b20a8a038e 100644
+--- a/src/Battlescape/Map.cpp
++++ b/src/Battlescape/Map.cpp
+@@ -1210,10 +1210,7 @@ void Map::drawTerrain(Surface *surface)
+ 			for (int x = 0, y = 0; x < surface->getWidth() && y < surface->getHeight();)
+ 			{
+ 				Uint8 pixel = surface->getPixel(x, y);
+-				if (pixel != 0)
+-				{
+-					pixel = (pixel / 16) * 16;
+-				}
++				pixel = (pixel / 16) * 16;
+ 				surface->setPixelIterative(&x, &y, pixel);
+ 			}
+ 		}

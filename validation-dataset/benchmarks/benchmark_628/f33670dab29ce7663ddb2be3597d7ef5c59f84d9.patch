@@ -1,0 +1,33 @@
+From f33670dab29ce7663ddb2be3597d7ef5c59f84d9 Mon Sep 17 00:00:00 2001
+From: Berk Hess <hess@kth.se>
+Date: Mon, 12 Aug 2013 13:13:47 +0200
+Subject: [PATCH] mdrun without OpenMP with thread-MPI now uses all cores
+
+With the Verlet scheme, mdrun compiled without OpenMP would
+often run on a single MPI-thread only.
+Fixes #1317
+
+Change-Id: I8fc43fe933ba23047f0ee9368ad9105cfc62eb4a
+---
+ src/kernel/runner.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/src/kernel/runner.c b/src/kernel/runner.c
+index 285f926414..3ca6a4b579 100644
+--- a/src/kernel/runner.c
++++ b/src/kernel/runner.c
+@@ -775,6 +775,14 @@ static void check_and_update_hw_opt(gmx_hw_opt_t *hw_opt,
+     }
+ #endif
+ 
++#ifndef GMX_OPENMP
++    if (hw_opt->nthreads_omp > 1)
++    {
++        gmx_fatal(FARGS, "More than 1 OpenMP thread requested, but Gromacs was compiled without OpenMP support");
++    }
++    hw_opt->nthreads_omp = 1;
++#endif
++
+     if (hw_opt->nthreads_tot > 0 && hw_opt->nthreads_omp_pme <= 0)
+     {
+         /* We have the same number of OpenMP threads for PP and PME processes,

@@ -1,0 +1,23 @@
+From 05ba982f3148d7f2edafb462fcfb190e5f8c5916 Mon Sep 17 00:00:00 2001
+From: Christine Floysand <chflo@statoil.com>
+Date: Wed, 8 Jan 2014 21:48:36 +0100
+Subject: [PATCH] Moved call to free to avoid mem leak
+
+---
+ devel/libenkf/applications/ert_tui/enkf_tui_run.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/devel/libenkf/applications/ert_tui/enkf_tui_run.c b/devel/libenkf/applications/ert_tui/enkf_tui_run.c
+index 1365af32af..515a7a0a81 100644
+--- a/devel/libenkf/applications/ert_tui/enkf_tui_run.c
++++ b/devel/libenkf/applications/ert_tui/enkf_tui_run.c
+@@ -249,8 +249,8 @@ void enkf_tui_run_manual_load__( void * arg ) {
+     }
+ 
+     for (iens = 0; iens < ens_size; ++iens) {
++      stringlist_type * msg_list = realizations_msg_list[iens];
+       if (bool_vector_iget(iactive, iens)) {
+-        stringlist_type * msg_list = realizations_msg_list[iens];
+         if (stringlist_get_size( msg_list )) {
+           enkf_tui_display_load_msg( iens , msg_list );
+         }

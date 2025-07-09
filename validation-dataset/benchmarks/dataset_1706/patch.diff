@@ -1,0 +1,28 @@
+From 7ee1fc4c298575ee7f93a6b4c62faf79edffb5cb Mon Sep 17 00:00:00 2001
+From: Anton Kudryavtsev <a.kudryavtsev@netris.ru>
+Date: Sun, 24 Jan 2016 16:57:08 +0300
+Subject: [PATCH] QMimeData: use reserve in formats()
+
+... to optimize memory allocation.
+
+Change-Id: I039a6de6f97858f339b83ca7e3e361963eaa61ee
+Reviewed-by: Marc Mutz <marc.mutz@kdab.com>
+---
+ src/corelib/kernel/qmimedata.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/corelib/kernel/qmimedata.cpp b/src/corelib/kernel/qmimedata.cpp
+index 6b1e4d442681..84e680dbd928 100644
+--- a/src/corelib/kernel/qmimedata.cpp
++++ b/src/corelib/kernel/qmimedata.cpp
+@@ -628,7 +628,9 @@ QStringList QMimeData::formats() const
+ {
+     Q_D(const QMimeData);
+     QStringList list;
+-    for (int i=0; i<d->dataList.size(); i++)
++    const int size = d->dataList.size();
++    list.reserve(size);
++    for (int i = 0; i < size; ++i)
+         list += d->dataList.at(i).format;
+     return list;
+ }

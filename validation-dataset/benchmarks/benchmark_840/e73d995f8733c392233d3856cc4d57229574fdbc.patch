@@ -1,0 +1,44 @@
+From e73d995f8733c392233d3856cc4d57229574fdbc Mon Sep 17 00:00:00 2001
+From: jackarain <jack.wgm@gmail.com>
+Date: Sat, 23 Sep 2023 00:15:25 +0800
+Subject: [PATCH] Improve start socket listen
+
+---
+ proxy/include/proxy/proxy_server.hpp | 16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
+
+diff --git a/proxy/include/proxy/proxy_server.hpp b/proxy/include/proxy/proxy_server.hpp
+index 283c1fc8a5..5e8589e7c1 100644
+--- a/proxy/include/proxy/proxy_server.hpp
++++ b/proxy/include/proxy/proxy_server.hpp
+@@ -2619,8 +2619,11 @@ Connection: close
+ 	private:
+ 		inline net::awaitable<void> start_proxy_listen(tcp_acceptor& a)
+ 		{
+-			auto self = shared_from_this();
+ 			boost::system::error_code error;
++			net::socket_base::keep_alive keep_alive_opt(true);
++			net::ip::tcp::no_delay no_delay_opt(true);
++
++			auto self = shared_from_this();
+ 
+ 			while (!m_abort)
+ 			{
+@@ -2644,15 +2647,8 @@ Connection: close
+ 					continue;
+ 				}
+ 
+-				{
+-					net::socket_base::keep_alive option(true);
+-					socket.set_option(option, error);
+-				}
+-
+-				{
+-					net::ip::tcp::no_delay option(true);
+-					socket.set_option(option);
+-				}
++				socket.set_option(keep_alive_opt, error);
++				socket.set_option(no_delay_opt, error);
+ 
+ 				static std::atomic_size_t id{ 1 };
+ 				size_t connection_id = id++;

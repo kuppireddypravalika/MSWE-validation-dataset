@@ -1,0 +1,33 @@
+From 4cc98268e472c76bfb4a114dceaea836ec6b46f8 Mon Sep 17 00:00:00 2001
+From: Klaus Iglberger <klaus.iglberger@gmail.com>
+Date: Mon, 25 May 2015 14:38:48 +0200
+Subject: [PATCH] Optimize column-major sparse matrix/row-major sparse matrix
+ multiplications ('TSMatSMatMultExpr') for lower and upper triangular matrices
+
+---
+ blaze/math/expressions/TSMatSMatMultExpr.h | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/blaze/math/expressions/TSMatSMatMultExpr.h b/blaze/math/expressions/TSMatSMatMultExpr.h
+index c88b6ce5a..521d709b4 100644
+--- a/blaze/math/expressions/TSMatSMatMultExpr.h
++++ b/blaze/math/expressions/TSMatSMatMultExpr.h
+@@ -217,9 +217,15 @@ class TSMatSMatMultExpr : public SparseMatrix< TSMatSMatMultExpr<MT1,MT2>, true
+ 
+       ElementType tmp = ElementType();
+ 
+-      if( lhs_.columns() != 0UL ) {
+-         tmp = lhs_(i,0UL) * rhs_(0UL,j);
+-         for( size_t k=1UL; k<lhs_.columns(); ++k ) {
++      if( lhs_.columns() != 0UL )
++      {
++         const size_t kbegin( max( ( IsUpper<MT1>::value )?( i ):( 0UL ),
++                                   ( IsLower<MT2>::value )?( j ):( 0UL ) ) );
++         const size_t kend  ( min( ( IsLower<MT1>::value )?( i+1UL ):( lhs_.columns() ),
++                                   ( IsUpper<MT2>::value )?( j+1UL ):( lhs_.columns() ) ) );
++
++         tmp = lhs_(i,kbegin) * rhs_(kbegin,j);
++         for( size_t k=kbegin+1UL; k<kend; ++k ) {
+             tmp += lhs_(i,k) * rhs_(k,j);
+          }
+       }

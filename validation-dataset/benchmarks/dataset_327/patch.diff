@@ -1,0 +1,26 @@
+From 085280c2994cd883ed5bc630738393a17ee9b934 Mon Sep 17 00:00:00 2001
+From: Jean-Yves Avenard <jyavenard@mythtv.org>
+Date: Sat, 30 Jan 2016 20:39:50 +1100
+Subject: [PATCH] Don't scan mounted disk image.
+
+In 10.11 at least, a mounted Time Capsule volume is of type " Disk Image" when it used to be "Apple Disk Image". Scanning of such volume can take an extremely long time, which would cause hang when quitting as the MediaManager is waiting on the scan to complete before quitting
+---
+ mythtv/libs/libmyth/mediamonitor-darwin.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/mythtv/libs/libmyth/mediamonitor-darwin.cpp b/mythtv/libs/libmyth/mediamonitor-darwin.cpp
+index b1a870deb04..8c0e71a86bf 100644
+--- a/mythtv/libs/libmyth/mediamonitor-darwin.cpp
++++ b/mythtv/libs/libmyth/mediamonitor-darwin.cpp
+@@ -306,9 +306,9 @@ void diskAppearedCallback(DADiskRef disk, void *context)
+         return;
+     }
+ 
+-    model     = getModel(details);
++    model = getModel(details);
+ 
+-    if (model.contains("Apple Disk Image"))
++    if (model.contains("Disk Image"))
+     {
+         LOG(VB_MEDIA, LOG_INFO, msg + QString("DMG %1 mounted, ignoring")
+             .arg(BSDname));

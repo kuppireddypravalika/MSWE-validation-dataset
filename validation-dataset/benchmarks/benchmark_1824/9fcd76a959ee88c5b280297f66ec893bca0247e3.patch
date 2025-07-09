@@ -1,0 +1,22 @@
+From 9fcd76a959ee88c5b280297f66ec893bca0247e3 Mon Sep 17 00:00:00 2001
+From: Noel Berry <thenberry@gmail.com>
+Date: Fri, 10 Mar 2023 10:26:25 -0800
+Subject: [PATCH] use ::operator new[] to match ::operator delete[]
+
+---
+ include/blah_vector.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/blah_vector.h b/include/blah_vector.h
+index 2940b64..048bd24 100644
+--- a/include/blah_vector.h
++++ b/include/blah_vector.h
+@@ -177,7 +177,7 @@ namespace Blah
+ 			while (new_capacity < cap)
+ 				new_capacity *= 2;
+ 
+-			T* new_buffer = (T*)::operator new (sizeof(T) * new_capacity);
++			T* new_buffer = (T*)::operator new[] (sizeof(T) * new_capacity);
+ 
+ 			if constexpr (std::is_trivially_copyable<T>())
+ 			{

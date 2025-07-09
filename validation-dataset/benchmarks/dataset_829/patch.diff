@@ -1,0 +1,24 @@
+From dbe825ffd3bf5b0b7a0498b8a6e103a907ae4fea Mon Sep 17 00:00:00 2001
+From: Alexandre Courbot <gnurou@gmail.com>
+Date: Fri, 25 Feb 2011 18:15:00 +0900
+Subject: [PATCH] Fix performance problem when looking romaji
+
+---
+ src/core/jmdict/JMdictEntrySearcher.cc | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/core/jmdict/JMdictEntrySearcher.cc b/src/core/jmdict/JMdictEntrySearcher.cc
+index 9a0b2ad8..c129fd84 100644
+--- a/src/core/jmdict/JMdictEntrySearcher.cc
++++ b/src/core/jmdict/JMdictEntrySearcher.cc
+@@ -35,8 +35,9 @@ JMdictEntrySearcher::JMdictEntrySearcher() : EntrySearcher(JMDICTENTRY_GLOBALID)
+ 	QueryBuilder::Join::addTablePriority("jmdict.kanjiText", 35);
+ 	QueryBuilder::Join::addTablePriority("jmdict.kana", 30);
+ 	QueryBuilder::Join::addTablePriority("jmdict.kanaText", 25);
+-	foreach (const QString &lang, JMdictPlugin::instance()->attachedDBs()) {
++	foreach (const QString &lang, JMdictPlugin::instance()->attachedDBs().keys()) {
+ 		if (lang.isEmpty()) continue;
++		qDebug() << "jmdict_" + lang + ".gloss";
+ 		QueryBuilder::Join::addTablePriority("jmdict_" + lang + ".gloss", 20);
+ 		QueryBuilder::Join::addTablePriority("jmdict_" + lang + ".glossText", 15);
+ 	}

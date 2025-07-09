@@ -1,0 +1,31 @@
+From a1e967054157e8ad65142295868f2e5c9826ba08 Mon Sep 17 00:00:00 2001
+From: hjk <hjk@qt.io>
+Date: Fri, 24 Feb 2023 12:27:00 +0100
+Subject: [PATCH] Utils: Simplify tree view columns width computation
+
+... by using approximations of the value widths instead of precise
+comuptation.
+
+Change-Id: Ia7eefad8d79f09d1e0cfda32067d052f56b820a9
+Reviewed-by: David Schulz <david.schulz@qt.io>
+---
+ src/libs/utils/basetreeview.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/libs/utils/basetreeview.cpp b/src/libs/utils/basetreeview.cpp
+index 6ca4b6983cb..6473a7830dc 100644
+--- a/src/libs/utils/basetreeview.cpp
++++ b/src/libs/utils/basetreeview.cpp
+@@ -159,10 +159,11 @@ class BaseTreeViewPrivate : public QObject
+         a = a.sibling(a.row(), column);
+         QFontMetrics fm = q->fontMetrics();
+         const int ind = q->indentation();
++        const int avg = fm.averageCharWidth();
+         QAbstractItemModel *m = q->model();
+         for (int i = 0; i < 100 && a.isValid(); ++i) {
+             const QString s = m->data(a).toString();
+-            int w = fm.horizontalAdvance(s) + 10;
++            int w = avg * s.size() + 20;
+             if (column == 0) {
+                 for (QModelIndex b = a.parent(); b.isValid(); b = b.parent())
+                     w += ind;

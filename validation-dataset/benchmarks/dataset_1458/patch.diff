@@ -1,0 +1,30 @@
+From 21b75cc8c6af95de1381950d08d7af555cda46aa Mon Sep 17 00:00:00 2001
+From: Mark Callaghan <mcallaghan@fb.com>
+Date: Wed, 31 Aug 2011 09:30:05 -0700
+Subject: [PATCH] Really don't call ut_time_us in buf0buddy
+
+Summary:
+This finishes "Do not call gettimeofday while holding the buffer pool
+mutex" by removing the call to ut_time_us
+
+Test Plan: mtr
+
+Reviewers: nizamordulu
+
+Reviewed By: nizamordulu
+---
+ storage/innodb_plugin/buf/buf0buddy.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/storage/innodb_plugin/buf/buf0buddy.c b/storage/innodb_plugin/buf/buf0buddy.c
+index ee9ebbec..566df5c0 100644
+--- a/storage/innodb_plugin/buf/buf0buddy.c
++++ b/storage/innodb_plugin/buf/buf0buddy.c
+@@ -327,7 +327,6 @@ buf_buddy_relocate(
+ {
+ 	buf_page_t*	bpage;
+ 	const ulint	size	= BUF_BUDDY_LOW << i;
+-	ullint		usec	= ut_time_us(NULL);
+ 	my_fast_timer_t fast_timer;
+ 
+ 	mutex_t*	mutex;

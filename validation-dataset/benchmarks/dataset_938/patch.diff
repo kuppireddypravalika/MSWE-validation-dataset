@@ -1,0 +1,22 @@
+From a7eccdd52dbb7b1329932da594872212af4d5d36 Mon Sep 17 00:00:00 2001
+From: Arnaud Botella <arnaud.botella@geode-solutions.com>
+Date: Wed, 17 Jan 2024 15:55:04 +0100
+Subject: [PATCH] perf(CRS): convert exception to assertion
+
+---
+ src/geode/mesh/core/coordinate_reference_system_manager.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/geode/mesh/core/coordinate_reference_system_manager.cpp b/src/geode/mesh/core/coordinate_reference_system_manager.cpp
+index aa2317267..170c55ba1 100644
+--- a/src/geode/mesh/core/coordinate_reference_system_manager.cpp
++++ b/src/geode/mesh/core/coordinate_reference_system_manager.cpp
+@@ -58,7 +58,7 @@ namespace geode
+         const CoordinateReferenceSystem< dimension >&
+             active_coordinate_reference_system() const
+         {
+-            OPENGEODE_EXCEPTION( active_crs_.use_count() > 1,
++            OPENGEODE_ASSERT( active_crs_.use_count() > 1,
+                 "[CoordinateReferenceSystemManager::active_coordinate_"
+                 "reference_system] Active CRS not defined" );
+             return *active_crs_;

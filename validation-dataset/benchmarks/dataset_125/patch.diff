@@ -1,0 +1,25 @@
+From d6cf167d52b709854524b07f462790f90993de59 Mon Sep 17 00:00:00 2001
+From: Eladash <elad3356p@gmail.com>
+Date: Mon, 4 Jul 2022 22:59:50 +0300
+Subject: [PATCH] Savestates: Minor optimization of size
+
+---
+ rpcs3/Emu/Cell/PPUModule.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/rpcs3/Emu/Cell/PPUModule.cpp b/rpcs3/Emu/Cell/PPUModule.cpp
+index e1e289a3a2c68..684a25022bb50 100644
+--- a/rpcs3/Emu/Cell/PPUModule.cpp
++++ b/rpcs3/Emu/Cell/PPUModule.cpp
+@@ -364,6 +364,11 @@ static void ppu_initialize_modules(ppu_linkage_info* link, utils::serial* ar = n
+ 			{
+ 				const auto _module = pair.second;
+ 
++				if (_module->variables.empty())
++				{
++					continue;
++				}
++
+ 				ar(_module->name);
+ 
+ 				ar(_module->variables.size());

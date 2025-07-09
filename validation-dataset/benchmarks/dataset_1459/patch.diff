@@ -1,0 +1,52 @@
+From b32b5a270f3e0af57453106163fd2d718dcc3e9d Mon Sep 17 00:00:00 2001
+From: nizamordulu <nizamordulu@fb.com>
+Date: Fri, 4 Jan 2013 04:11:27 -0800
+Subject: [PATCH] Do not decompress the compressed-only pages of a table being
+ dropped
+
+Summary:
+InnoDB goes through the in-memory pages of the to-be-dropped compressed table
+in order to remove the table's records from adaptive hash index. While doing so
+it decompresses those pages whose uncompressed copy is not in the memory.
+
+This is wasteful and unnecessary because if the uncompressed copy of a page
+is not in the memory then its records can not be in AHI. The uncompressed copy
+of the page is removed by buf_LRU_free_block() and it already calls
+btr_search_drop_page_hash_index() to remove all the records of the page from
+AHI.
+
+If a page is compressed-only, then buf_page_get_gen() can not return a buf_block_t*
+without doing too much work so I decided to just return NULL. From the perspective
+of the caller this should not make any difference because if the page doesn't have
+any records in AHI then the caller doesn't do anything with the page.
+
+Test Plan: Create big tables and drop them. Drop big tables on a slave.
+
+Reviewers: mcallaghan, steaphan
+
+Reviewed By: steaphan
+---
+ storage/innodb_plugin/buf/buf0buf.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/storage/innodb_plugin/buf/buf0buf.c b/storage/innodb_plugin/buf/buf0buf.c
+index b075eefc..6317b7e2 100644
+--- a/storage/innodb_plugin/buf/buf0buf.c
++++ b/storage/innodb_plugin/buf/buf0buf.c
+@@ -1864,6 +1864,16 @@ buf_page_get_gen(
+ 
+ 	case BUF_BLOCK_ZIP_PAGE:
+ 	case BUF_BLOCK_ZIP_DIRTY:
++		if (mode == BUF_PEEK_IF_IN_POOL) {
++			/* Do not decompress a page if the caller is only peeking to
++			 * see if the page is in the buffer pool.
++			 * In this case, the block object is invalid because
++			 * buf_LRU_free_block() does not allocate a buf_block_t object
++			 * for the half-freed page. We therefore return NULL.
++			 */
++			buf_pool_mutex_exit();
++			return(NULL);
++		}
+ 		bpage = &block->page;
+ 		/* Protect bpage->buf_fix_count. */
+ 		mutex_enter(&buf_pool_zip_mutex);

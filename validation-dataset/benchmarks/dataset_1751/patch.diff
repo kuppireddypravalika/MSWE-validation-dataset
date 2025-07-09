@@ -1,0 +1,37 @@
+From 53276ef5c99aae0a24771d1f3197b1547d33c036 Mon Sep 17 00:00:00 2001
+From: Christian Kandeler <christian.kandeler@qt.io>
+Date: Wed, 3 Jan 2018 11:22:57 +0100
+Subject: [PATCH] Executor: Improve unbuilt products output
+
+It is helpful to print a list of unbuilt products after a failed build,
+but putting each one on a line of its own takes up too much space for
+larger projects, potentially scrolling the actual error message(s) out
+of view.
+Put the product names on one line instead. Also sort them, so users can
+easily look for a specific product.
+
+Change-Id: Ib21b987196350264462940dade2f6af2625a2e81
+Reviewed-by: Jake Petroules <jake.petroules@qt.io>
+---
+ src/lib/corelib/buildgraph/executor.cpp | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/src/lib/corelib/buildgraph/executor.cpp b/src/lib/corelib/buildgraph/executor.cpp
+index c109d9a018..d89f230f70 100644
+--- a/src/lib/corelib/buildgraph/executor.cpp
++++ b/src/lib/corelib/buildgraph/executor.cpp
+@@ -1020,8 +1020,12 @@ void Executor::checkForUnbuiltProducts()
+         m_logger.qbsInfo() << Tr::tr("Build done%1.").arg(configString());
+     } else {
+         m_error.append(Tr::tr("The following products could not be built%1:").arg(configString()));
+-        for (const ResolvedProductConstPtr &p : qAsConst(unbuiltProducts))
+-            m_error.append(Tr::tr("\t%1").arg(p->fullDisplayName()));
++        QStringList productNames;
++        std::transform(unbuiltProducts.cbegin(), unbuiltProducts.cend(),
++                       std::back_inserter(productNames),
++                       [](const ResolvedProductConstPtr &p) { return p->fullDisplayName(); });
++        std::sort(productNames.begin(), productNames.end());
++        m_error.append(productNames.join(QLatin1String(", ")));
+     }
+ }
+ 

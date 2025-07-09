@@ -1,0 +1,41 @@
+From 69e3a6165878255a71f0a7500bac392323a5b7ad Mon Sep 17 00:00:00 2001
+From: Dmitry Kashitsyn <korvin@deeptown.org>
+Date: Thu, 5 Mar 2015 00:30:42 +0600
+Subject: [PATCH] Adds optimization for PushArgument 0
+
+Self pointer is already stored in holder for quick access
+
+Issue: #32
+---
+ src/MethodCompiler.cpp | 15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
+
+diff --git a/src/MethodCompiler.cpp b/src/MethodCompiler.cpp
+index 7590545..f963f47 100644
+--- a/src/MethodCompiler.cpp
++++ b/src/MethodCompiler.cpp
+@@ -643,19 +643,14 @@ void MethodCompiler::doPushInstance(TJITContext& jit)
+ 
+ void MethodCompiler::doPushArgument(TJITContext& jit)
+ {
+-    /* const st::TNodeList& consumers = jit.currentNode->getConsumers();
+-    if (consumers.empty()) {
+-        assert(false);
++    const uint8_t index = jit.currentNode->getInstruction().getArgument();
++
++    if (index == 0) {
++        // Optimizing self
++        setNodeValue(jit, jit.currentNode, jit.selfHolder);
+         return;
+     }
+ 
+-    // If we have only one consumer it's better to encode instruction near it.
+-    // It would be consumer's responsibility to encode us before it's site.
+-    if (consumers.size() == 1)
+-        return; */
+-
+-    const uint8_t index = jit.currentNode->getInstruction().getArgument();
+-
+     Function* const getArgFromContext = m_JITModule->getFunction("getArgFromContext");
+     Value* const context  = jit.getCurrentContext();
+     Value* const argument = jit.builder->CreateCall2(getArgFromContext, context, jit.builder->getInt32(index));

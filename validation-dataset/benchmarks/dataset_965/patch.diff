@@ -1,0 +1,40 @@
+From 2504f8178d23035d07f837334099261b9ce2d9ab Mon Sep 17 00:00:00 2001
+From: Philip Chimento <philip.chimento@gmail.com>
+Date: Tue, 28 Sep 2021 23:33:39 -0700
+Subject: [PATCH] objectbox: Rewrite loop using potentially faster std::find_if
+
+This probably doesn't make any difference, but depending on the container
+type, it could.
+---
+ gjs/objectbox.cpp | 18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
+
+diff --git a/gjs/objectbox.cpp b/gjs/objectbox.cpp
+index 82984703d..99b2c6658 100644
+--- a/gjs/objectbox.cpp
++++ b/gjs/objectbox.cpp
+@@ -84,16 +84,14 @@ ObjectBox::ObjectBox(JSObject* obj)
+ ObjectBox::Ptr ObjectBox::boxed(JSContext* cx, JSObject* obj) {
+     ObjectBox* box = nullptr;
+ 
+-    for (auto* b : m_wrappers) {
+-        if (b->m_impl->m_root == obj) {
+-            box = b;
+-            box->m_impl->ref();
+-            box->m_impl->debug("Reusing box");
+-            break;
+-        }
+-    }
+-
+-    if (!box) {
++    ObjectBox** found =
++        std::find_if(m_wrappers.begin(), m_wrappers.end(),
++                     [obj](ObjectBox* b) { return b->m_impl->m_root == obj; });
++    if (found != m_wrappers.end()) {
++        box = *found;
++        box->m_impl->ref();
++        box->m_impl->debug("Reusing box");
++    } else {
+         box = new ObjectBox(obj);
+         if (!box->m_impl->init(cx))
+             return ObjectBox::Ptr(nullptr, [](ObjectBox*) {});

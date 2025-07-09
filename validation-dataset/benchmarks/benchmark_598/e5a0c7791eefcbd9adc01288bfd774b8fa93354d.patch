@@ -1,0 +1,44 @@
+From e5a0c7791eefcbd9adc01288bfd774b8fa93354d Mon Sep 17 00:00:00 2001
+From: Christian Kandeler <christian.kandeler@qt.io>
+Date: Wed, 1 Aug 2018 13:14:48 +0200
+Subject: [PATCH] Qt.core: Only gather included moc_*.cpp files if necessary
+
+We need to do this only for header files that generate an output.
+This makes a difference for products that have a Qt dependency, but no
+Q_OBJECT macros in header files.
+Benchmarker output for the qbs project:
+========== Performance data for Rule Execution ==========
+    Old instruction count: 2761252664
+    New instruction count: 2643706277
+    Relative change: -5 %
+    Old peak memory usage: 22237320 Bytes
+    New peak memory usage: 22492280 Bytes
+    Relative change: +1 %
+
+Change-Id: I2ab5558d9f012ed9a0a7d7c7c899b8a582402750
+Reviewed-by: Joerg Bornemann <joerg.bornemann@qt.io>
+---
+ src/lib/corelib/buildgraph/qtmocscanner.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/lib/corelib/buildgraph/qtmocscanner.cpp b/src/lib/corelib/buildgraph/qtmocscanner.cpp
+index e28545ed7f..8c165cb80f 100644
+--- a/src/lib/corelib/buildgraph/qtmocscanner.cpp
++++ b/src/lib/corelib/buildgraph/qtmocscanner.cpp
+@@ -219,8 +219,6 @@ QScriptValue QtMocScanner::apply(QScriptEngine *engine, const Artifact *artifact
+         m_cppScanner = scanners.front();
+     }
+ 
+-    findIncludedMocCppFiles();
+-
+     qCDebug(lcMocScan).noquote() << "scanning" << artifact->toString();
+ 
+     bool hasQObjectMacro = false;
+@@ -237,6 +235,7 @@ QScriptValue QtMocScanner::apply(QScriptEngine *engine, const Artifact *artifact
+                 hasQObjectMacro = true;
+                 hasPluginMetaDataMacro = true;
+             }
++            findIncludedMocCppFiles();
+             if (!m_includedMocCppFiles.contains(FileInfo::completeBaseName(artifact->fileName())))
+                 mustCompile = true;
+         } else {

@@ -1,0 +1,28 @@
+From 89815986eb70563da477643debc868464e480719 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?R=C3=A9mi=20Coulom?= <remi.coulom@gmail.com>
+Date: Sun, 22 Aug 2021 16:39:14 +0200
+Subject: [PATCH] TJFF: replace &data[current] by std::next(data.begin(),
+ current)
+
+---
+ src/joedb/journal/Memory_File.h | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/src/joedb/journal/Memory_File.h b/src/joedb/journal/Memory_File.h
+index f745086e..1dc4e9ec 100644
+--- a/src/joedb/journal/Memory_File.h
++++ b/src/joedb/journal/Memory_File.h
+@@ -28,12 +28,7 @@ namespace joedb
+    {
+     const size_t max_size = data.size() - current;
+     const size_t n = std::min(size, max_size);
+-#ifdef _DEBUG
+-    if (n > 0) // This is needed for debug mode with Visual C++
+-#endif
+-    {
+-     std::copy_n(&data[current], n, buffer);
+-    }
++    std::copy_n(std::next(data.begin(), current), n, buffer);
+     current += n;
+     return n;
+    }

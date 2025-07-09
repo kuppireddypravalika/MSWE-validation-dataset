@@ -1,0 +1,42 @@
+From 253d4c4aaaad04673fc79255ef8c6002a560acfc Mon Sep 17 00:00:00 2001
+From: Christophe Geuzaine <cgeuzaine@uliege.be>
+Date: Fri, 5 Jun 2020 09:18:42 +0200
+Subject: [PATCH] apply high-order optimizer (if requested) before subdividing
+ into quad/hexes.
+
+---
+ Mesh/meshRefine.cpp | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/Mesh/meshRefine.cpp b/Mesh/meshRefine.cpp
+index f24b4a246a..2da2a60442 100644
+--- a/Mesh/meshRefine.cpp
++++ b/Mesh/meshRefine.cpp
+@@ -19,6 +19,8 @@
+ #include "GmshMessage.h"
+ #include "OS.h"
+ #include "meshGFaceOptimize.h"
++#include "Generator.h"
++#include "Context.h"
+ 
+ typedef std::map<MFace, std::vector<MVertex *>, MFaceLessThan> faceContainer;
+ 
+@@ -472,6 +474,18 @@ void RefineMesh(GModel *m, bool linear, bool splitIntoQuads,
+   // generate vertex positions
+   SetOrderN(m, 2, linear, false);
+ 
++  // Optimize high order elements
++  if(CTX::instance()->mesh.hoOptimize == 2 ||
++     CTX::instance()->mesh.hoOptimize == 3)
++    OptimizeMesh(m, "HighOrderElastic");
++
++  if(CTX::instance()->mesh.hoOptimize == 1 ||
++     CTX::instance()->mesh.hoOptimize == 2)
++    OptimizeMesh(m, "HighOrder");
++
++  if(CTX::instance()->mesh.hoOptimize == 4)
++    OptimizeMesh(m, "HighOrderFastCurving");
++
+   // only used when splitting tets into hexes
+   faceContainer faceVertices;
+ 

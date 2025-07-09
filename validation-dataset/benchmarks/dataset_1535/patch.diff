@@ -1,0 +1,22 @@
+From bb3809637736f21e15d6e57673f8187a786749ff Mon Sep 17 00:00:00 2001
+From: Giso Grimm <g.grimm@uni-oldenburg.de>
+Date: Fri, 6 Sep 2013 11:57:25 +0200
+Subject: [PATCH] faster falloff for refraction
+
+---
+ src/acousticmodel.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/acousticmodel.cc b/src/acousticmodel.cc
+index 8266fa02..6bb44d9a 100644
+--- a/src/acousticmodel.cc
++++ b/src/acousticmodel.cc
+@@ -210,7 +210,7 @@ pos_t mirrorsource_t::get_effective_position(const pos_t& sinkp,double& gain)
+   pcut *= ratio;
+   pcut += pcut_sink;
+   pcut = reflector_->nearest(pcut);
+-  gain = (std::max(0.0,dot_prod((sinkp-pcut).normal(),(pcut-srcpos).normal())));
++  gain = pow(std::max(0.0,dot_prod((sinkp-pcut).normal(),(pcut-srcpos).normal())),2.7);
+   return srcpos;
+ }
+ 

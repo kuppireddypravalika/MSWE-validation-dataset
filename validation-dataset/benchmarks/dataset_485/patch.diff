@@ -1,0 +1,32 @@
+From 662b8840899f3efdd2df9e99f6fad48e0dac11af Mon Sep 17 00:00:00 2001
+From: Martin Preisler <mpreisle@redhat.com>
+Date: Fri, 10 Jan 2014 17:39:15 +0100
+Subject: [PATCH] Slight speedup when refreshing selected rules preview with
+ tons of items
+
+---
+ src/MainWindow.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/MainWindow.cpp b/src/MainWindow.cpp
+index 153919f3..8206c65e 100644
+--- a/src/MainWindow.cpp
++++ b/src/MainWindow.cpp
+@@ -870,6 +870,8 @@ void MainWindow::refreshSelectedRulesTree()
+ 
+     gatherAllSelectedRules(policy, xccdf_benchmark_to_item(benchmark), selectedRules);
+ 
++    mUI.selectedRulesTree->setUpdatesEnabled(false);
++
+     // we filter through a set to avoid duplicates and get a sensible ordering
+     for (std::set<struct xccdf_rule*>::const_iterator it = selectedRules.begin();
+          it != selectedRules.end(); ++it)
+@@ -885,6 +887,8 @@ void MainWindow::refreshSelectedRulesTree()
+         mUI.selectedRulesTree->addTopLevelItem(treeItem);
+     }
+ 
++    mUI.selectedRulesTree->setUpdatesEnabled(true);
++
+     xccdf_select_iterator_free(sel_it);
+ }
+ 

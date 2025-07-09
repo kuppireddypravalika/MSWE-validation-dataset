@@ -1,0 +1,23 @@
+From f8683017c52520477a11e4eb949e846a15a8fd88 Mon Sep 17 00:00:00 2001
+From: Christian Schulte <schulte@gecode.org>
+Date: Thu, 21 Feb 2013 15:37:47 +0000
+Subject: [PATCH] Restart honors parallel search
+
+git-svn-id: file:///Users/tack/GecodeGitMigration/gecode-svn-mirror/gecode/trunk@13370 e85b7adc-8362-4630-8c63-7469d557c915
+---
+ gecode/search/restart.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gecode/search/restart.hpp b/gecode/search/restart.hpp
+index 2fcacd70b8..70b5f020f0 100644
+--- a/gecode/search/restart.hpp
++++ b/gecode/search/restart.hpp
+@@ -54,7 +54,7 @@ namespace Gecode {
+       throw Search::UninitializedCutoff("Restart::Restart");
+     Search::Options e_opt;
+     e_opt.clone = true;
+-    e_opt.threads = 1.0;
++    e_opt.threads = m_opt.threads;
+     e_opt.c_d = m_opt.c_d;
+     e_opt.a_d = m_opt.a_d;
+     Search::MetaStop* ms = new Search::MetaStop(m_opt.stop);

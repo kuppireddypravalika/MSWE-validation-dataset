@@ -1,0 +1,48 @@
+From 944d64022320a5fea6592b743967b39e2c6e8a78 Mon Sep 17 00:00:00 2001
+From: Alexandre Courbot <gnurou@gmail.com>
+Date: Thu, 11 Aug 2011 20:32:57 +0900
+Subject: [PATCH] Populate JMdict entities and create indexes after parsing
+
+JMdict entities are not known until the database is parsed - the
+previous code would leave the entities tables all empty.
+
+Creating indexes after the tables are filled is faster than doing so
+before filling them and results in faster database construction.
+---
+ src/core/jmdict/BuildJMdictDB.cc | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/core/jmdict/BuildJMdictDB.cc b/src/core/jmdict/BuildJMdictDB.cc
+index e16cfd1a..b50f1410 100644
+--- a/src/core/jmdict/BuildJMdictDB.cc
++++ b/src/core/jmdict/BuildJMdictDB.cc
+@@ -465,13 +465,10 @@ int main(int argc, char *argv[])
+ 
+ 	parser.createMainDatabase();
+ 	parser.createMainTables();
+-	parser.createMainIndexes(); 
+ 	parser.prepareMainQueries();
+-	parser.populateEntitiesTable();
+ 	
+ 	parser.createLanguagesDatabases();
+ 	parser.createLanguagesTables();
+-	parser.createLanguagesIndexes();	
+ 	parser.prepareLanguagesQueries();
+ 	
+ 	QFile file(QDir(srcDir).absoluteFilePath("3rdparty/JMdict"));
+@@ -484,11 +481,14 @@ int main(int argc, char *argv[])
+ 	if (!parser.parse(reader)) {
+ 		return 1;
+ 	}
+-	file.close();	
++	file.close();
+ 	
+ 	parser.fillMainInfoTable();
+ 	parser.fillLanguagesInfoTable();
+ 	parser.insertJLPTLevels();
++	parser.populateEntitiesTable();
++	parser.createMainIndexes();
++	parser.createLanguagesIndexes();
+ 
+ 	parser.clearMainQueries();
+ 	parser.finalizeMainDatabase();

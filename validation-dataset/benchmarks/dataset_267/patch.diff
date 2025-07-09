@@ -1,0 +1,35 @@
+From d4f01de9f750ec9340d0902e699cc732fca3a70a Mon Sep 17 00:00:00 2001
+From: Kevin DuBois <kevin.dubois@canonical.com>
+Date: Wed, 16 Oct 2013 14:01:44 -0700
+Subject: [PATCH] use if instead of switch
+
+---
+ .../client/test_client_render.cpp                  | 14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
+
+diff --git a/tests/integration-tests/client/test_client_render.cpp b/tests/integration-tests/client/test_client_render.cpp
+index 36534ccc08f..70269c618a0 100644
+--- a/tests/integration-tests/client/test_client_render.cpp
++++ b/tests/integration-tests/client/test_client_render.cpp
+@@ -74,15 +74,13 @@ struct TestClient
+         for(int i=0u; i < num_frames; i++)
+         {
+             mir_surface_get_graphics_region(surface, &graphics_region);
+-            switch (i % 2)
++            if (i % 2)
+             {
+-                case 0:
+-                    draw_pattern0.draw(graphics_region);
+-                    break;
+-                case 1:
+-                default:
+-                    draw_pattern1.draw(graphics_region);
+-                    break; 
++                draw_pattern1.draw(graphics_region);
++            }
++            else
++            {
++                draw_pattern0.draw(graphics_region);
+             }
+             mir_surface_swap_buffers_sync(surface);
+         }

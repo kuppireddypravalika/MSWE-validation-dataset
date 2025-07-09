@@ -1,0 +1,22 @@
+From 07d9b811f6b371fabc3d503e29f0303d2af40d56 Mon Sep 17 00:00:00 2001
+From: Guillaume Klein <guillaume.klein@systrangroup.com>
+Date: Tue, 16 Nov 2021 11:26:36 +0100
+Subject: [PATCH] Simplify vector construction with single element
+
+---
+ python/translator.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/python/translator.cc b/python/translator.cc
+index 811cc1fe4..95dd03077 100644
+--- a/python/translator.cc
++++ b/python/translator.cc
+@@ -39,7 +39,7 @@ class ComputeTypeResolver {
+ 
+ struct DeviceIndexResolver {
+   std::vector<int> operator()(int device_index) const {
+-    return std::vector<int>(1, device_index);
++    return {device_index};
+   }
+ 
+   std::vector<int> operator()(const std::vector<int>& device_index) const {

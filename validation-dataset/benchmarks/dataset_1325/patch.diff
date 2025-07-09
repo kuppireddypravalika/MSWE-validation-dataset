@@ -1,0 +1,32 @@
+From b3d7aeb025b812224a4a5865da922343b8033530 Mon Sep 17 00:00:00 2001
+From: derselbst <tom.mbrt@googlemail.com>
+Date: Thu, 13 Oct 2016 18:45:10 +0200
+Subject: [PATCH] fluidsynth: fix multichannel output + disable threadsafe api
+
+for performance
+---
+ src/InputLibraryWrapper/FluidsynthWrapper.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/InputLibraryWrapper/FluidsynthWrapper.cpp b/src/InputLibraryWrapper/FluidsynthWrapper.cpp
+index 7225ce3f..aeff424c 100644
+--- a/src/InputLibraryWrapper/FluidsynthWrapper.cpp
++++ b/src/InputLibraryWrapper/FluidsynthWrapper.cpp
+@@ -54,14 +54,16 @@ void FluidsynthWrapper::open ()
+       this->Format.SampleRate = static_cast<unsigned int>(srate);
+       
+       int stereoChannels = Config::FluidsynthMultiChannel ? 16 : 1;
++      fluid_settings_setint(this->settings, "synth.audio-groups",    stereoChannels);
+       fluid_settings_setint(this->settings, "synth.audio-channels",  stereoChannels);
+       fluid_settings_getint(this->settings, "synth.audio-channels", &stereoChannels);
+       this->Format.Channels = stereoChannels * 2;
+     }
+     
+     // these maybe needed for fast renderer (even fluidsynth itself isnt sure about)
+-    fluid_settings_setstr(this->settings, "player.timing-source", "sample");  
++    fluid_settings_setstr(this->settings, "player.timing-source", "sample");
+     fluid_settings_setint(this->settings, "synth.parallel-render", 0);
++    fluid_settings_setint(this->settings, "synth.threadsafe-api", 0);
+     
+       /* Create the synthesizer */
+       this->synth = new_fluid_synth(this->settings);

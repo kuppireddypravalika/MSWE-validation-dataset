@@ -1,0 +1,29 @@
+From b30728b54d84d528e75f624497447471b4f849a6 Mon Sep 17 00:00:00 2001
+From: Matthias Wolf <matthias.wolf@epfl.ch>
+Date: Wed, 16 Mar 2022 14:55:19 +0100
+Subject: [PATCH] HDF5 morphologies: rebuild only when options are passed
+ (#392)
+
+Merge the two `if` conditions to avoid additonal work.  This brings the reading time down by a factor of ~4-5 when reading a lot of data
+---
+ src/morphology.cpp | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/src/morphology.cpp b/src/morphology.cpp
+index 32800254a..b6f949232 100644
+--- a/src/morphology.cpp
++++ b/src/morphology.cpp
+@@ -28,11 +28,9 @@ Morphology::Morphology(const Property::Properties& properties, unsigned int opti
+ 
+     // For SWC and ASC, sanitization and modifier application are already taken care of by
+     // their respective loaders
+-    if (properties._cellLevel.fileFormat() == "h5") {
++    if (properties._cellLevel.fileFormat() == "h5" && options) {
+         mut::Morphology mutable_morph(*this);
+-        if (options) {
+-            mutable_morph.applyModifiers(options);
+-        }
++        mutable_morph.applyModifiers(options);
+         properties_ = std::make_shared<Property::Properties>(mutable_morph.buildReadOnly());
+         buildChildren(properties_);
+     }

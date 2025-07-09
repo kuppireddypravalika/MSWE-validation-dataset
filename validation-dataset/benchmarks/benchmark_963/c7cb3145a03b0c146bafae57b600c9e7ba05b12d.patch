@@ -1,0 +1,41 @@
+From c7cb3145a03b0c146bafae57b600c9e7ba05b12d Mon Sep 17 00:00:00 2001
+From: Sean Callanan <scallanan@apple.com>
+Date: Tue, 4 Dec 2012 20:56:04 +0000
+Subject: [PATCH] In the data formatters, if we know the result type of an
+ Objective-C selector, don't bother making the expression parser resolve it
+ all over again.  Just send the message straight to the object pointer as if
+ it were an id, and cast the result.
+
+<rdar://problem/12799087>
+
+llvm-svn: 169300
+---
+ lldb/source/Core/CXXFormatterFunctions.cpp | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/lldb/source/Core/CXXFormatterFunctions.cpp b/lldb/source/Core/CXXFormatterFunctions.cpp
+index c458cf2e2ff..32bb29654b4 100644
+--- a/lldb/source/Core/CXXFormatterFunctions.cpp
++++ b/lldb/source/Core/CXXFormatterFunctions.cpp
+@@ -37,10 +37,8 @@ lldb_private::formatters::ExtractValueFromObjCExpression (ValueObject &valobj,
+         return false;
+     if (!selector || !*selector)
+         return false;
+-    StreamString expr_path_stream;
+-    valobj.GetExpressionPath(expr_path_stream, false);
+     StreamString expr;
+-    expr.Printf("(%s)[%s %s]",target_type,expr_path_stream.GetData(),selector);
++    expr.Printf("(%s)[(id)0x%llx %s]",target_type,valobj.GetPointerValue(),selector);
+     ExecutionContext exe_ctx (valobj.GetExecutionContextRef());
+     lldb::ValueObjectSP result_sp;
+     Target* target = exe_ctx.GetTargetPtr();
+@@ -51,8 +49,7 @@ lldb_private::formatters::ExtractValueFromObjCExpression (ValueObject &valobj,
+     EvaluateExpressionOptions options;
+     options.SetCoerceToId(false)
+     .SetUnwindOnError(true)
+-    .SetKeepInMemory(true)
+-    .SetUseDynamic(lldb::eDynamicCanRunTarget);
++    .SetKeepInMemory(true);
+     
+     target->EvaluateExpression(expr.GetData(),
+                                stack_frame,

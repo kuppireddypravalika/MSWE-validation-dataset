@@ -1,0 +1,25 @@
+From 5af3f6e20b287bc01829aae7876f3855ce22e718 Mon Sep 17 00:00:00 2001
+From: Juli Mallett <juli@clockworksquid.com>
+Date: Sat, 27 Nov 2010 08:30:45 +0000
+Subject: [PATCH] Don't call BufferSegment::end() over and over, just cache the
+ value.
+
+---
+ xcodec/xcodec_encoder.cc | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/xcodec/xcodec_encoder.cc b/xcodec/xcodec_encoder.cc
+index 30ff404..d02e242 100644
+--- a/xcodec/xcodec_encoder.cc
++++ b/xcodec/xcodec_encoder.cc
+@@ -99,8 +99,8 @@ XCodecEncoder::encode(Buffer *output, Buffer *input)
+ 		/*
+ 		 * And for every byte in this BufferSegment.
+ 		 */
+-		const uint8_t *p;
+-		for (p = seg->data(); p < seg->end(); p++) {
++		const uint8_t *p, *q = seg->end();
++		for (p = seg->data(); p < q; p++) {
+ 			/*
+ 			 * Add it to the rolling hash.
+ 			 */

@@ -1,0 +1,40 @@
+From 08954743b61c0441119ebed0098880fdafe07543 Mon Sep 17 00:00:00 2001
+From: Razakhel <romain.milbert@gmail.com>
+Date: Sat, 7 Sep 2024 11:43:41 +0200
+Subject: [PATCH] [Data/BoundingVolumeHierarchy] Querying a leaf checks the
+ triangle first
+
+- It allows avoiding doing useless operations further, since we know it can't hit anything
+
+- If the node is a leaf, the triangle is directly tested instead of first testing the AABB
+  - Performance-wise, it presumably is either the same or marginally more efficient, as there's supposedly a high probability of hitting the triangle when reaching a leaf
+  - The ray-AABB check can fill the hit structure with irrelevant data
+
+- These changes allow for a speedup of ~10%
+---
+ src/RaZ/Data/BoundingVolumeHierarchy.cpp | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/src/RaZ/Data/BoundingVolumeHierarchy.cpp b/src/RaZ/Data/BoundingVolumeHierarchy.cpp
+index 255fc5d5..70385fdf 100644
+--- a/src/RaZ/Data/BoundingVolumeHierarchy.cpp
++++ b/src/RaZ/Data/BoundingVolumeHierarchy.cpp
+@@ -22,11 +22,15 @@ Entity* BoundingVolumeHierarchyNode::query(const Ray& ray, RayHit* hit) const {
+   // The following call can produce way too many zones, *drastically* increasing the profiling time & memory consumption
+   //ZoneScopedN("BoundingVolumeHierarchyNode::query");
+ 
+-  if (!ray.intersects(m_boundingBox, hit))
++  if (isLeaf()) {
++    if (ray.intersects(m_triangleInfo.triangle, hit))
++      return m_triangleInfo.entity;
++
+     return nullptr;
++  }
+ 
+-  if (isLeaf() && ray.intersects(m_triangleInfo.triangle, hit))
+-    return m_triangleInfo.entity;
++  if (!ray.intersects(m_boundingBox, hit))
++    return nullptr;
+ 
+   RayHit leftHit;
+   RayHit rightHit;

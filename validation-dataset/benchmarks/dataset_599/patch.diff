@@ -1,0 +1,45 @@
+From 93fea9cd30c3535423fdd3c28e035d3d182b1bc6 Mon Sep 17 00:00:00 2001
+From: = <675973885@qq.com>
+Date: Wed, 6 Jul 2016 23:22:44 -0400
+Subject: [PATCH] Removing state machine seems to decrease performance ....
+
+---
+ src/bwtree.h | 15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
+
+diff --git a/src/bwtree.h b/src/bwtree.h
+index ec8295f..78eabe7 100644
+--- a/src/bwtree.h
++++ b/src/bwtree.h
+@@ -3968,12 +3968,9 @@ class BwTree {
+           }
+ 
+           bwt_printf("Successfully loading root node ID (RO)\n");
+-
+-          // root node must be an inner node
+-          // NOTE: We do not traverse down in this state, just hand it
+-          // to Inner state and let it do all generic job
++          
+           context_p->current_state = OpState::Inner;
+-
++          
+           break;
+         } // case Init
+         case OpState::Inner: {
+@@ -4016,12 +4013,12 @@ class BwTree {
+ 
+           if(snapshot_p->IsLeaf() == true) {
+             bwt_printf("The next node is a leaf (RO)\n");
+-
+-            // If there is an abort later on then we just go to
+-            // abort state
++            
+             context_p->current_state = OpState::Leaf;
++            
++            break;
+           }
+-
++          
+           break;
+         } // case Inner
+         case OpState::Leaf: {

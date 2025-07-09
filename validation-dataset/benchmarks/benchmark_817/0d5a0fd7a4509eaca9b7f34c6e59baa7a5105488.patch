@@ -1,0 +1,22 @@
+From 0d5a0fd7a4509eaca9b7f34c6e59baa7a5105488 Mon Sep 17 00:00:00 2001
+From: MITSUNARI Shigeo <herumi@nifty.com>
+Date: Thu, 21 Jun 2012 16:58:36 +0900
+Subject: [PATCH] C version is a little faster for table=512
+
+---
+ rank.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/rank.hpp b/rank.hpp
+index 9188542..16a869d 100644
+--- a/rank.hpp
++++ b/rank.hpp
+@@ -186,7 +186,7 @@ class SuccinctBitVector {
+ 	}
+ 	inline uint64_t rank1(size_t idx) const
+ 	{
+-#if 1
++#ifdef MIE_RANK_USE_TABLE_1024
+ 		return ((uint64_t (*)(const succ_impl::Block*, size_t))((char*)succ_impl::InstanceIsHere<>::buf))(&blk_[0], idx);
+ #else
+ 		const uint64_t mask = (uint64_t(2) << (idx & 63)) - 1;

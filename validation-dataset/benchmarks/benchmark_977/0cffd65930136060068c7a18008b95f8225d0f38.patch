@@ -1,0 +1,48 @@
+From 0cffd65930136060068c7a18008b95f8225d0f38 Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Mon, 29 Feb 2016 16:22:10 +0100
+Subject: [PATCH] Drop hand-rolled ASCII conversion from
+ QAbstractConcatenable::convertFromAscii()
+
+QUtf8::convertToUnicode() contains a SIMD-enabled
+ASCII fast-path already which is likely faster
+than what the compiler will emit for the old code
+here.
+
+Change-Id: I6afae9689424eb53a9f7c01359cc4f57ffcead26
+Reviewed-by: Olivier Goffart (Woboq GmbH) <ogoffart@woboq.com>
+---
+ src/corelib/tools/qstringbuilder.cpp | 16 +---------------
+ 1 file changed, 1 insertion(+), 15 deletions(-)
+
+diff --git a/src/corelib/tools/qstringbuilder.cpp b/src/corelib/tools/qstringbuilder.cpp
+index 85babbd698d..de12de19cb5 100644
+--- a/src/corelib/tools/qstringbuilder.cpp
++++ b/src/corelib/tools/qstringbuilder.cpp
+@@ -110,25 +110,11 @@ QT_BEGIN_NAMESPACE
+  */
+ void QAbstractConcatenable::convertFromAscii(const char *a, int len, QChar *&out) Q_DECL_NOTHROW
+ {
+-    if (len == -1) {
++    if (Q_UNLIKELY(len == -1)) {
+         if (!a)
+             return;
+-        while (*a && uchar(*a) < 0x80U)
+-            *out++ = QLatin1Char(*a++);
+-        if (!*a)
+-            return;
+         len = int(strlen(a));
+-    } else {
+-        int i;
+-        for (i = 0; i < len && uchar(a[i]) < 0x80U; ++i)
+-            *out++ = QLatin1Char(a[i]);
+-        if (i == len)
+-            return;
+-        a += i;
+-        len -= i;
+     }
+-
+-    // we need to complement with UTF-8 appending
+     out = QUtf8::convertToUnicode(out, a, len);
+ }
+ 

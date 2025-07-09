@@ -1,0 +1,24 @@
+From 56de8b41f24fda23eaba34dd6e034cf409966b17 Mon Sep 17 00:00:00 2001
+From: Ulf Hermann <ulf.hermann@qt.io>
+Date: Wed, 24 Jun 2020 17:20:24 +0200
+Subject: [PATCH] QQmlPropertyCache: Don't retrieve metaObjectOffset() twice
+
+Change-Id: I233fc368a26d7a571a32829dcd6149096dfe2e07
+Reviewed-by: Fabian Kosmale <fabian.kosmale@qt.io>
+---
+ src/qml/qml/qqmlpropertycache_p.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/qml/qml/qqmlpropertycache_p.h b/src/qml/qml/qqmlpropertycache_p.h
+index 460e6d9a851..8a958f7659f 100644
+--- a/src/qml/qml/qqmlpropertycache_p.h
++++ b/src/qml/qml/qqmlpropertycache_p.h
+@@ -415,7 +415,7 @@ bool QQmlPropertyCache::isAllowedInRevision(QQmlPropertyData *data) const
+ 
+     Q_ASSERT(offset >= 0);
+     Q_ASSERT(offset < allowedRevisionCache.length());
+-    const QTypeRevision allowed = allowedRevisionCache[data->metaObjectOffset()];
++    const QTypeRevision allowed = allowedRevisionCache[offset];
+ 
+     if (requested.hasMajorVersion()) {
+         if (requested.majorVersion() > allowed.majorVersion())

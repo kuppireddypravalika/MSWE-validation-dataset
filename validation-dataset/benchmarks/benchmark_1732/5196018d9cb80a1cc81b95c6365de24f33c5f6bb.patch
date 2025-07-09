@@ -1,0 +1,26 @@
+From 5196018d9cb80a1cc81b95c6365de24f33c5f6bb Mon Sep 17 00:00:00 2001
+From: Evan Cheng <evan.cheng@apple.com>
+Date: Mon, 8 Mar 2010 23:49:12 +0000
+Subject: [PATCH] Don't waste time trying to CSE labels, phis, inline asm.
+ Definitely avoid cse implicit-def for obvious performance reason.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@98009 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/CodeGen/MachineCSE.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/lib/CodeGen/MachineCSE.cpp b/lib/CodeGen/MachineCSE.cpp
+index ce8ebbc6010..a0023feb986 100644
+--- a/lib/CodeGen/MachineCSE.cpp
++++ b/lib/CodeGen/MachineCSE.cpp
+@@ -171,6 +171,10 @@ bool MachineCSE::hasLivePhysRegDefUse(MachineInstr *MI, MachineBasicBlock *MBB){
+ }
+ 
+ bool MachineCSE::isCSECandidate(MachineInstr *MI) {
++  if (MI->isLabel() || MI->isPHI() || MI->isImplicitDef() ||
++      MI->isKill() || MI->isInlineAsm())
++    return false;
++
+   // Ignore copies or instructions that read / write physical registers
+   // (except for dead defs of physical registers).
+   unsigned SrcReg, DstReg, SrcSubIdx, DstSubIdx;

@@ -1,0 +1,31 @@
+From c451dc635c795ff65c5ad10d84ca60e97ad04140 Mon Sep 17 00:00:00 2001
+From: Lucas Clemente Vella <lvella@gmail.com>
+Date: Mon, 29 Mar 2021 19:59:03 +0100
+Subject: [PATCH] Using std::max<float> instead of fmax.
+
+---
+ cmn/game.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/cmn/game.cpp b/cmn/game.cpp
+index 4cd3e6c..e47f12a 100644
+--- a/cmn/game.cpp
++++ b/cmn/game.cpp
+@@ -567,7 +567,7 @@ void GameObjects::level_reset(const Dim &worldDim,GameStyleP style) {
+       assert(maximums[weapons[n]->classId] == 0);
+ 
+       // Don't allow objectWorldPercent values that are too small.
+-      float objWPercent = (float)fmax(weapons[n]->objectWorldPercent,
++      float objWPercent = std::max<float>(weapons[n]->objectWorldPercent,
+ 			      OBJECT_WORLD_PERCENT_MIN);
+ 
+       maximums[weapons[n]->classId] = (int)ceil(areaFactor * objWPercent);
+@@ -580,7 +580,7 @@ void GameObjects::level_reset(const Dim &worldDim,GameStyleP style) {
+     for (n = 0; n < oItemsNum; n++) {
+       // Check not already set.
+       assert(maximums[oItems[n]->classId] == 0);
+-      float objWPercent = (float)fmax(oItems[n]->objectWorldPercent,
++      float objWPercent = std::max<float>(oItems[n]->objectWorldPercent,
+ 			      OBJECT_WORLD_PERCENT_MIN);
+ 
+       maximums[oItems[n]->classId] = (int)ceil(areaFactor * objWPercent);

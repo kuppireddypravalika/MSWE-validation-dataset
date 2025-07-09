@@ -1,0 +1,24 @@
+From afccb7f1d5e89cace31922e286886367c79c9438 Mon Sep 17 00:00:00 2001
+From: "bernard.parisse" <bernard.parisse@23ce0884-8a58-47d3-bc5c-ddf1cd5b9f9e>
+Date: Sat, 22 Dec 2018 19:17:26 +0000
+Subject: [PATCH] [giac] algebraic extension reduction: optimize choice in
+ solve output if there is no choice
+
+git-svn-id: https://dev.geogebra.org/svn/trunk/geogebra/giac@66086 23ce0884-8a58-47d3-bc5c-ddf1cd5b9f9e
+---
+ src/giac/cpp/sym2poly.cc | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/giac/cpp/sym2poly.cc b/src/giac/cpp/sym2poly.cc
+index 596f3b1e..fca7fb55 100644
+--- a/src/giac/cpp/sym2poly.cc
++++ b/src/giac/cpp/sym2poly.cc
+@@ -2297,6 +2297,8 @@ namespace giac {
+ 	vecteur w;
+ 	identificateur x(" x");
+ 	in_solve(symb_horner(*(r2sym(v,lt,ltend,contextptr)._VECTptr),x),x,w,1,contextptr); 
++	if (w.size()==1)
++	  return w.front();
+ #ifndef NO_STDEXCEPT
+ 	try {
+ #endif

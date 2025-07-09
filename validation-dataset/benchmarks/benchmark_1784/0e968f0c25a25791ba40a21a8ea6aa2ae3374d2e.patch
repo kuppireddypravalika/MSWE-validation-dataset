@@ -1,0 +1,58 @@
+From 0e968f0c25a25791ba40a21a8ea6aa2ae3374d2e Mon Sep 17 00:00:00 2001
+From: Kurt Schwehr <schwehr@gmail.com>
+Date: Fri, 28 Aug 2015 15:03:22 +0000
+Subject: [PATCH] Switch C cast to static_cast.
+
+CID 1074869
+
+Hopefully coverity will grok that we are checking for a sign flip from
+the cast to catch incorrect / accidental large allocations.  It would
+probably be better to check against 3e9 (3GB) of 32-bit size_t and
+1e15 (1PB) for 64-bit size_t, rather than a cast to get a check
+against INT_MAX.
+
+What if sizeof(size_t) != sizeof(long)?
+
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@29880 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/port/cpl_conv.cpp | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/gdal/port/cpl_conv.cpp b/gdal/port/cpl_conv.cpp
+index 7a72f6106d84..e086ff0b3929 100644
+--- a/gdal/port/cpl_conv.cpp
++++ b/gdal/port/cpl_conv.cpp
+@@ -186,27 +186,27 @@ void *CPLMalloc( size_t nSize )
+ void * CPLRealloc( void * pData, size_t nNewSize )
+ 
+ {
+-    void        *pReturn;
+-
+     if ( nNewSize == 0 )
+     {
+         VSIFree(pData);
+         return NULL;
+     }
+ 
+-    if( long(nNewSize) < 0 )
++    if( static_cast<long>(nNewSize) < 0 )
+     {
+         CPLError( CE_Failure, CPLE_AppDefined,
+                   "CPLRealloc(%ld): Silly size requested.\n",
+                   (long) nNewSize );
+         return NULL;
+     }
+-    
++
++    void        *pReturn;
++
+     if( pData == NULL )
+         pReturn = VSIMalloc( nNewSize );
+     else
+         pReturn = VSIRealloc( pData, nNewSize );
+-    
++
+     if( pReturn == NULL )
+     {
+         if( nNewSize > 0 && nNewSize < 2000 )

@@ -1,0 +1,29 @@
+From 569cdde4a6f01b898754a4a804c1d3846dafa176 Mon Sep 17 00:00:00 2001
+From: maceli <maceli@cimne.upc.edu>
+Date: Thu, 21 Apr 2016 14:13:11 +0000
+Subject: [PATCH] trying to improve thread balancing
+
+---
+ .../DEM_application/custom_utilities/dem_fem_search.h         | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/applications/DEM_application/custom_utilities/dem_fem_search.h b/applications/DEM_application/custom_utilities/dem_fem_search.h
+index 19b752fccca1..08b4f1758bea 100644
+--- a/applications/DEM_application/custom_utilities/dem_fem_search.h
++++ b/applications/DEM_application/custom_utilities/dem_fem_search.h
+@@ -298,13 +298,13 @@ class DEM_FEM_Search : public SpatialSearch
+       mBins = new GeometricalBinsType(BinsConditionPointerToGeometricalObjecPointerTemporalVector.begin(), BinsConditionPointerToGeometricalObjecPointerTemporalVector.end());       
+       
+       //7. PERFORM THE SEARCH ON THE SPHERES
+-      #pragma omp parallel
++      #pragma omp parallel 
+       {
+         GeometricalObjectType::ContainerType  localResults(MaxNumberOfElements);
+         DistanceType                          localResultsDistances(MaxNumberOfElements);
+         std::size_t                           NumberOfResults = 0;
+ 
+-        #pragma omp for
++        #pragma omp for schedule(dynamic, 100)
+         for (int p = 0; p < (int)elements_sear.size(); p++) {
+          
+           Elem_iter it = elements_sear.begin() + p;

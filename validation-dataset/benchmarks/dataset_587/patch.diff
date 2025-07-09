@@ -1,0 +1,23 @@
+From 552e1a6f0b62aa097feccb6fe75c278b856294a5 Mon Sep 17 00:00:00 2001
+From: Jonathan Poelen <jpoelen@wallix.com>
+Date: Wed, 10 Jul 2019 11:11:14 +0200
+Subject: [PATCH] len_from_av_or_char(char): return 1 instead of sizeof(char)
+
+---
+ src/utils/sugar/algostring.hpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/utils/sugar/algostring.hpp b/src/utils/sugar/algostring.hpp
+index ecabada647..498315fe50 100644
+--- a/src/utils/sugar/algostring.hpp
++++ b/src/utils/sugar/algostring.hpp
+@@ -85,7 +85,8 @@ namespace detail
+ 
+     inline std::size_t len_from_av_or_char(char c) noexcept
+     {
+-        return sizeof(c);
++        (void)c;
++        return 1;
+     }
+ 
+ 

@@ -1,0 +1,24 @@
+From 8cb42169d0c9d4e9e58cbfae31a8390e57e6cace Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Thu, 6 Aug 2020 16:54:35 -0600
+Subject: [PATCH] Remove now useless Slider::setSkins() optimization
+
+This method is called once from the constructor, so no need to check if
+it has already been called and skins are already setup.
+---
+ OPHD/UI/Core/Slider.cpp | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/OPHD/UI/Core/Slider.cpp b/OPHD/UI/Core/Slider.cpp
+index 84c71a8cf..bb4d56f9d 100644
+--- a/OPHD/UI/Core/Slider.cpp
++++ b/OPHD/UI/Core/Slider.cpp
+@@ -53,8 +53,6 @@ Slider::~Slider()
+  */
+ void Slider::setSkins()
+ {
+-	if (!mSkinButton1.empty()) { return; }
+-
+ 	if (mSliderType == SliderType::Vertical)
+ 	{
+ 		mSkinButton1 = {

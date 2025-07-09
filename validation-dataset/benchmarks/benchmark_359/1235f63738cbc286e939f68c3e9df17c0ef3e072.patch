@@ -1,0 +1,46 @@
+From 1235f63738cbc286e939f68c3e9df17c0ef3e072 Mon Sep 17 00:00:00 2001
+From: Tobias Grosser <tobias@grosser.es>
+Date: Wed, 7 Oct 2015 13:19:06 +0000
+Subject: [PATCH] IRBuilder: Ensure we do not add empty map elements
+
+Do not use "Map[Key] == nullptr" to check if a Key is in the map, but use
+"Map.find(Key) == Map.end()". Map[Key] always adds Key into the map, a
+side-effect we do not want.
+
+Found by inspection. This is hard to test outside of a targetted unit test,
+which seems too much overhead for this individual issue.
+---
+ polly/lib/CodeGen/IRBuilder.cpp | 18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
+
+diff --git a/polly/lib/CodeGen/IRBuilder.cpp b/polly/lib/CodeGen/IRBuilder.cpp
+index 7eb1e08c0bb6..fc9a718d8b85 100644
+--- a/polly/lib/CodeGen/IRBuilder.cpp
++++ b/polly/lib/CodeGen/IRBuilder.cpp
+@@ -146,12 +146,22 @@ void ScopAnnotator::annotate(Instruction *Inst) {
+   if (!BasePtr)
+     return;
+ 
+-  auto *AliasScope = AliasScopeMap[BasePtr];
++  auto AliasScopeIterator = AliasScopeMap.find(BasePtr);
+ 
+-  if (!AliasScope)
+-    BasePtr = AlternativeAliasBases[BasePtr];
++  if (AliasScopeIterator == AliasScopeMap.end()) {
++    auto I = AlternativeAliasBases.find(BasePtr);
++    if (I == AlternativeAliasBases.end())
++      return;
+ 
+-  AliasScope = AliasScopeMap[BasePtr];
++    BasePtr = I->second;
++    AliasScopeIterator = AliasScopeMap.find(BasePtr);
++    if (AliasScopeIterator == AliasScopeMap.end())
++      return;
++  }
++
++  auto AliasScope = AliasScopeIterator->second;
++  assert(OtherAliasScopeListMap.count(BasePtr) &&
++         "BasePtr either expected in AliasScopeMap and OtherAlias...Map");
+   auto *OtherAliasScopeList = OtherAliasScopeListMap[BasePtr];
+ 
+   Inst->setMetadata("alias.scope", AliasScope);

@@ -1,0 +1,36 @@
+From 598b24c6d1d6eecb558051d79d8b801542663e09 Mon Sep 17 00:00:00 2001
+From: Jakob Stoklund Olesen <stoklund@2pi.dk>
+Date: Thu, 11 Feb 2010 00:34:18 +0000
+Subject: [PATCH] Remove duplicate successors from indirectbr instructions
+ before building the machine CFG.
+
+This makes early tail duplication run 60 times faster when compiling the Firefox
+JavaScript interpreter, see PR6186.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@95831 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/CodeGen/SelectionDAG/SelectionDAGBuilder.cpp | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/lib/CodeGen/SelectionDAG/SelectionDAGBuilder.cpp b/lib/CodeGen/SelectionDAG/SelectionDAGBuilder.cpp
+index de17f904d90..477c1c70198 100644
+--- a/lib/CodeGen/SelectionDAG/SelectionDAGBuilder.cpp
++++ b/lib/CodeGen/SelectionDAG/SelectionDAGBuilder.cpp
+@@ -2062,9 +2062,15 @@ void SelectionDAGBuilder::visitSwitch(SwitchInst &SI) {
+ }
+ 
+ void SelectionDAGBuilder::visitIndirectBr(IndirectBrInst &I) {
+-  // Update machine-CFG edges.
++  // Update machine-CFG edges with unique successors.
++  std::vector<BasicBlock*> succs;
++  succs.reserve(I.getNumSuccessors());
+   for (unsigned i = 0, e = I.getNumSuccessors(); i != e; ++i)
+-    CurMBB->addSuccessor(FuncInfo.MBBMap[I.getSuccessor(i)]);
++    succs.push_back(I.getSuccessor(i));
++  std::sort(succs.begin(), succs.end());
++  succs.erase(std::unique(succs.begin(), succs.end()), succs.end());
++  for (unsigned i = 0, e = succs.size(); i != e; ++i)
++    CurMBB->addSuccessor(FuncInfo.MBBMap[succs[i]]);
+ 
+   DAG.setRoot(DAG.getNode(ISD::BRIND, getCurDebugLoc(),
+                           MVT::Other, getControlRoot(),

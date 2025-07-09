@@ -1,0 +1,24 @@
+From a76ee15783356c290b43e5dff5e764854ed26aed Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Sun, 18 May 2008 13:09:20 +0000
+Subject: [PATCH] Replace hard-coded 3 byte increment by iPixelByteSkip in
+ int24 gtiff decoding (https://trac.osgeo.org/gdal/ticket/2361)
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@14490 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/frmts/gtiff/geotiff.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gdal/frmts/gtiff/geotiff.cpp b/gdal/frmts/gtiff/geotiff.cpp
+index ca60ff1026d2..1bd01202e07f 100644
+--- a/gdal/frmts/gtiff/geotiff.cpp
++++ b/gdal/frmts/gtiff/geotiff.cpp
+@@ -1740,7 +1740,7 @@ CPLErr GTiffOddBitsBand::IReadBlock( int nBlockXOff, int nBlockYOff,
+                     | ((GUInt32)*(pabyImage + 1) << 8)
+                     | (GUInt32)*(pabyImage + 2);
+ #endif
+-                pabyImage += 3;
++                pabyImage += iPixelByteSkip;
+             }
+         }
+     }

@@ -1,0 +1,32 @@
+From 1fcfb69c85aefb67530f4d5fcbfd3ea403e4c12b Mon Sep 17 00:00:00 2001
+From: Vladimir Vukicevic <vladimir@pobox.com>
+Date: Wed, 11 Feb 2009 18:26:27 -0800
+Subject: [PATCH] b=475595; disable IsLowMemory on Windows CE until we can fix
+ it to be correct/performant; r=dougt
+
+---
+ xpcom/base/nsMemoryImpl.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/xpcom/base/nsMemoryImpl.cpp b/xpcom/base/nsMemoryImpl.cpp
+index 9ab4203e309..c7b6d098933 100644
+--- a/xpcom/base/nsMemoryImpl.cpp
++++ b/xpcom/base/nsMemoryImpl.cpp
+@@ -193,9 +193,17 @@ NS_IMETHODIMP
+ nsMemoryImpl::IsLowMemory(PRBool *result)
+ {
+ #if defined(WINCE)
++    *result = PR_FALSE;
++    // See bug 475595 -- this is incorrect right now, and causes a big
++    // perf hit since GlobalMemoryStatus has to grab a kernel VM lock
++    // and do a bunch of munging through VM pages to get the data
++    // that's requested.  We call IsLowMemory in some performance
++    // critical code (e.g. during painting), so that's bad.
++#if 0
+     MEMORYSTATUS stat;
+     GlobalMemoryStatus(&stat);
+     *result = ((float)stat.dwAvailPhys / stat.dwTotalPhys) < 0.1;
++#endif
+ #elif defined(XP_WIN)
+     MEMORYSTATUSEX stat;
+     stat.dwLength = sizeof stat;

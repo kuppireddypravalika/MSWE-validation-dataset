@@ -1,0 +1,24 @@
+From 14ed79a191ced90043c5a153de3dc759f8129bdd Mon Sep 17 00:00:00 2001
+From: Pilow <pierre.laupretre@gmail.com>
+Date: Wed, 17 Jul 2019 16:43:44 +0200
+Subject: [PATCH] [block] Improve assignments compilation
+
+---
+ src/compiler/value/Block.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/compiler/value/Block.cpp b/src/compiler/value/Block.cpp
+index 9ab9692a..42d71be1 100644
+--- a/src/compiler/value/Block.cpp
++++ b/src/compiler/value/Block.cpp
+@@ -201,8 +201,8 @@ Compiler::value Block::compile(Compiler& c) const {
+ 			}
+ 			for (const auto& assignment : assignments) {
+ 				// std::cout << "Store variable " << assignment.first << " = " << assignment.second << std::endl;
+-				assignment.first->val = c.create_entry(assignment.first->name, assignment.first->type);
+-				c.insn_store(assignment.first->val, c.insn_move_inc(c.insn_load(assignment.second->val)));
++				assignment.first->create_entry(c);
++				assignment.first->store_value(c, c.insn_move_inc(assignment.second->get_value(c)));
+ 			}
+ 			c.leave_block();
+ 			if (is_function_block) {

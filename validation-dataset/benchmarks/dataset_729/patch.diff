@@ -1,0 +1,38 @@
+From 0dfe0d0a9c65bb12ace967f43c6dcd2646a126f5 Mon Sep 17 00:00:00 2001
+From: Vadim Zeitlin <vadim@wxwidgets.org>
+Date: Fri, 5 Apr 2019 13:38:07 +0200
+Subject: [PATCH] Don't add extra padding in wxMSW wxToolBar best size
+ calculation
+
+DoGetBestSize() mistakenly added extra (half of) padding for each tool
+explicitly when the padding is already taken into account of by
+GetToolSize() itself, so this resulted in extra space at the end of the
+toolbar proportional to the number of buttons in it.
+---
+ src/msw/toolbar.cpp | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/src/msw/toolbar.cpp b/src/msw/toolbar.cpp
+index de9a1a35c830..bbe0786642ca 100644
+--- a/src/msw/toolbar.cpp
++++ b/src/msw/toolbar.cpp
+@@ -605,7 +605,7 @@ wxSize wxToolBar::DoGetBestSize() const
+         {
+             if ( !tool->IsControl() )
+             {
+-                sizeBest.y += sizeTool.y + m_toolPacking;
++                sizeBest.y += sizeTool.y;
+             }
+             //else: Controls are not shown in vertical toolbars at all.
+         }
+@@ -624,10 +624,6 @@ wxSize wxToolBar::DoGetBestSize() const
+             {
+                 sizeBest.x += sizeTool.x;
+             }
+-
+-            // As explained in MSWGetFittingtSizeForControl() above, the actual
+-            // margin used for a single tool is one half of the total packing.
+-            sizeBest.x += m_toolPacking / 2;
+         }
+     }
+ 

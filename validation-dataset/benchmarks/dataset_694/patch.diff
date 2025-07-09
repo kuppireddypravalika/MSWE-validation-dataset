@@ -1,0 +1,34 @@
+From ced9280e9bf8d2e3551628c3a60a01906e56e87f Mon Sep 17 00:00:00 2001
+From: thexai <58434170+thexai@users.noreply.github.com>
+Date: Tue, 7 Feb 2023 11:07:08 +0100
+Subject: [PATCH] ActiveAE: ignore "water level" in TrueHD, calculate a/v sync
+ error all the time
+
+As water level fluctuates more with TrueHD there are instants when a/v sync
+error is not calculated, i.e:
+
+GetWaterLevel() > MAX_WATER_LEVEL
+
+With this change a/v sync is calculated all the time.
+---
+ xbmc/cores/AudioEngine/Engines/ActiveAE/ActiveAE.cpp | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/xbmc/cores/AudioEngine/Engines/ActiveAE/ActiveAE.cpp b/xbmc/cores/AudioEngine/Engines/ActiveAE/ActiveAE.cpp
+index d6580af3c445d..8034ec2531c8a 100644
+--- a/xbmc/cores/AudioEngine/Engines/ActiveAE/ActiveAE.cpp
++++ b/xbmc/cores/AudioEngine/Engines/ActiveAE/ActiveAE.cpp
+@@ -1953,7 +1953,12 @@ bool CActiveAE::RunStages()
+     }
+   }
+ 
+-  if (m_stats.GetWaterLevel() < (MAX_WATER_LEVEL + 0.0001f) &&
++  // TrueHD is very jumpy, meaning the frames don't come in equidistantly. They are only smoothed
++  // at the end when the IEC packing happens. Therefore adjust earlier.
++  const bool ignoreWL =
++      (m_mode == MODE_RAW && m_sinkFormat.m_streamInfo.m_type == CAEStreamInfo::STREAM_TYPE_TRUEHD);
++
++  if ((m_stats.GetWaterLevel() < (MAX_WATER_LEVEL + 0.0001f) || ignoreWL) &&
+       (m_mode != MODE_TRANSCODE || (m_encoderBuffers && !m_encoderBuffers->m_freeSamples.empty())))
+   {
+     // calculate sync error

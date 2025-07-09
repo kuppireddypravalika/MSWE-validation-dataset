@@ -1,0 +1,48 @@
+From 180dc1bc3f5c89688c7a2fd0b29dbd4cad919554 Mon Sep 17 00:00:00 2001
+From: Masa Mizutani <mizutani@sfc.wide.ad.jp>
+Date: Sun, 6 Nov 2016 15:03:21 +0900
+Subject: [PATCH] replace inet_ntop() with own IPv4 address converter because
+ of performance in Value::ip4()
+
+---
+ src/object.cc | 27 +++++++++++++++++++++++++--
+ 1 file changed, 25 insertions(+), 2 deletions(-)
+
+diff --git a/src/object.cc b/src/object.cc
+index 507293e..d56c526 100644
+--- a/src/object.cc
++++ b/src/object.cc
+@@ -152,8 +152,31 @@ bool Value::hex(std::ostream &os) const {
+ bool Value::ip4(std::ostream &os) const {
+   if (this->is_ip4()) {
+     char addr[INET_ADDRSTRLEN];
+-    const char* p = inet_ntop(AF_INET, this->ptr_, addr, sizeof(addr));
+-    assert(p);
++    
++    /*
++      implement original inet_ntop below because of performance instead of:
++      const char* p = inet_ntop(AF_INET, this->ptr_, addr, sizeof(addr));
++    */
++    
++    char* p = &addr[0];
++    for (int i = 0; i < 4; i++) {
++      int n = this->ptr_[i];
++      if (n >= 100) {
++        *p = (n / 100) + '0';
++        p++;
++      }
++      if (n >= 10) {
++        *p = ((n / 10) % 10) + '0';
++        p++;
++      }
++      p[0] = (n % 10) + '0';
++      p[1] = '.';
++      p += 2;
++    }
++
++    p[-1] = '\0';
++    
++    // assert(p);
+     os << addr;
+     return true;
+   } else {

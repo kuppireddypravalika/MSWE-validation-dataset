@@ -1,0 +1,36 @@
+#include <vector>
+#include <cstddef>
+
+struct TemplateParameterList {
+    int min_required;
+    int total_size;
+    TemplateParameterList(int req = 1, int size = 1) : min_required(req), total_size(size) {}
+    int getMinRequiredArguments() const {
+        return min_required;
+    }
+    int size() const { return total_size; }
+};
+
+struct Decl {
+    TemplateParameterList tpl;
+    Decl(int req = 1, int sz = 1) : tpl(req, sz) {}
+    const TemplateParameterList* getTemplateParameters() const { return &tpl; }
+};
+
+size_t find_with_defaults(const std::vector<Decl>& chain, int repeat) {
+    size_t idx_sum = 0;
+    size_t chain_size = chain.size();
+    for (int r = 0; r < repeat; ++r) {
+        const Decl* result = &chain[0];
+        for (size_t i = 0; i < chain_size; ++i) {
+            const TemplateParameterList* tpl = chain[i].getTemplateParameters();
+            if (tpl->getMinRequiredArguments() < tpl->size()) {
+                result = &chain[i];
+            }
+        }
+        idx_sum += static_cast<size_t>(result - &chain[0]);
+    }
+    return idx_sum;
+}
+
+// Explicit template instantiation statements

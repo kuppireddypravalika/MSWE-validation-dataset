@@ -1,0 +1,33 @@
+From c8b7e355df50abef60a7e7b9aca477bddff2ce3f Mon Sep 17 00:00:00 2001
+From: John Esmet <esmet@tokutek.com>
+Date: Wed, 4 Dec 2013 01:52:16 -0500
+Subject: [PATCH] refs #801 Fix optimized build (did not get rid of enough
+ variables during cleanup)
+
+---
+ src/mongo/db/ops/update_internal.cpp | 5 -----
+ 1 file changed, 5 deletions(-)
+
+diff --git a/src/mongo/db/ops/update_internal.cpp b/src/mongo/db/ops/update_internal.cpp
+index f5efdcfe02..be2b2477ae 100644
+--- a/src/mongo/db/ops/update_internal.cpp
++++ b/src/mongo/db/ops/update_internal.cpp
+@@ -277,18 +277,13 @@ namespace mongo {
+                 bb.done();
+             }
+             else {
+-
+                 bool found = false;
+-                int pos = 0;
+-                int count = 0;
+                 while ( i.more() ) {
+                     BSONElement cur = i.next();
+                     bb.append( cur );
+                     if ( elt.woCompare( cur , false ) == 0 ) {
+                         found = true;
+-                        pos = count;
+                     }
+-                    count++;
+                 }
+ 
+                 if ( !found ) {

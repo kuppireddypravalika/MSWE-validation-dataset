@@ -1,0 +1,31 @@
+From e88bd9c5bd568a5602620cbb1c9e209c1d755293 Mon Sep 17 00:00:00 2001
+From: Kefu Chai <kefu.chai@scylladb.com>
+Date: Tue, 5 Dec 2023 10:46:06 +0800
+Subject: [PATCH] gms/inet_address: pass sstring param by std::move()
+
+less overhead this way. the caller of lookup() always passes
+a rvalue reference. and seastar::dns::get_host_by_name() actually
+moves away from the parameter, so let's pass by std::move() for
+slightly better performance, and to match the expectation of
+the underlying seastar API.
+
+Signed-off-by: Kefu Chai <kefu.chai@scylladb.com>
+
+Closes scylladb/scylladb#16280
+---
+ gms/inet_address.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gms/inet_address.cc b/gms/inet_address.cc
+index cf8cc1615042..0630d155bcd6 100644
+--- a/gms/inet_address.cc
++++ b/gms/inet_address.cc
+@@ -22,7 +22,7 @@ static_assert(std::is_nothrow_copy_constructible_v<gms::inet_address>);
+ static_assert(std::is_nothrow_move_constructible_v<gms::inet_address>);
+ 
+ future<gms::inet_address> gms::inet_address::lookup(sstring name, opt_family family, opt_family preferred) {
+-    return seastar::net::dns::get_host_by_name(name, family).then([preferred](seastar::net::hostent&& h) {
++    return seastar::net::dns::get_host_by_name(std::move(name), family).then([preferred](seastar::net::hostent&& h) {
+         for (auto& addr : h.addr_list) {
+             if (!preferred || addr.in_family() == preferred) {
+                 return gms::inet_address(addr);

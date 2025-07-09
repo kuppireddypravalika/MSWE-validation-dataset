@@ -1,0 +1,28 @@
+From 8f4b3572c0f2bf016866c268037a1874c9dd33ae Mon Sep 17 00:00:00 2001
+From: Henry Zongaro <zongaro@ca.ibm.com>
+Date: Sun, 7 Jan 2024 07:55:53 -0800
+Subject: [PATCH] Prevent commoning conversion to address operations in
+ LocalCSE
+
+OMR::LocalCSE::canBeAvailable was restricting l2a operations from being
+commoned to reduce the likelihood that a register holding the result of
+such an operation would be marked as a collected reference and kept live
+across a GC point by l2aEvaluator.  To be safest, all conversion to
+address types should be similarly prevented from being commoned.
+---
+ compiler/optimizer/OMRLocalCSE.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/compiler/optimizer/OMRLocalCSE.cpp b/compiler/optimizer/OMRLocalCSE.cpp
+index 0ad59ece33..53c977e75d 100644
+--- a/compiler/optimizer/OMRLocalCSE.cpp
++++ b/compiler/optimizer/OMRLocalCSE.cpp
+@@ -1186,7 +1186,7 @@ bool OMR::LocalCSE::canBeAvailable(TR::Node *parent, TR::Node *node, TR_BitVecto
+    if (node->getOpCodeValue() == TR::allocationFence)
+       return false;
+ 
+-   if (node->getOpCodeValue() == TR::l2a)
++   if (node->getOpCode().isConversion() && node->getOpCode().isRef())
+       return false;
+ 
+    if (node->getOpCode().isLoadReg() || node->getOpCode().isStoreReg() || (node->getOpCodeValue() == TR::PassThrough && parent->getOpCodeValue() != TR::GlRegDeps) || (node->getOpCodeValue() == TR::GlRegDeps))

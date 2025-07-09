@@ -1,0 +1,25 @@
+From 1b8e15fa4ec2bf705c7062b60a8585b12a6d624c Mon Sep 17 00:00:00 2001
+From: Protobuf Team Bot <protobuf-github-bot@google.com>
+Date: Tue, 21 Nov 2023 07:32:13 -0800
+Subject: [PATCH] Always inline call to `Destroy<>()` in `DestroyProtos()`.
+
+This reduces stack size in some builds where Destroy<> did not get inlined.
+
+PiperOrigin-RevId: 584320630
+---
+ src/google/protobuf/repeated_ptr_field.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/google/protobuf/repeated_ptr_field.cc b/src/google/protobuf/repeated_ptr_field.cc
+index 929131ce57ce6..1cc6bbe0d6c91 100644
+--- a/src/google/protobuf/repeated_ptr_field.cc
++++ b/src/google/protobuf/repeated_ptr_field.cc
+@@ -88,7 +88,7 @@ void RepeatedPtrFieldBase::Reserve(int capacity) {
+ }
+ 
+ void RepeatedPtrFieldBase::DestroyProtos() {
+-  Destroy<GenericTypeHandler<MessageLite>>();
++  PROTOBUF_ALWAYS_INLINE_CALL Destroy<GenericTypeHandler<MessageLite>>();
+ 
+   // TODO:  Eliminate this store when invoked from the destructor,
+   // since it is dead.

@@ -1,0 +1,24 @@
+From bc0ff89494f27331eae6a7fe12468326129621da Mon Sep 17 00:00:00 2001
+From: Austin Clements <amdragon@mit.edu>
+Date: Fri, 20 Apr 2012 14:20:03 -0400
+Subject: [PATCH] Free to our CPU's slab, not to CPU 0's slab
+
+Previously, ksfree passed the whole CPU array for a slab to
+kfree_pool, which expected a pointer to the specific kmem to free to.
+Since the array decayed to a pointer, this compiled and worked, but
+would always free to CPU 0's slab.
+---
+ kernel/kalloc.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/kernel/kalloc.cc b/kernel/kalloc.cc
+index 3e11d8df8..b7914c481 100644
+--- a/kernel/kalloc.cc
++++ b/kernel/kalloc.cc
+@@ -321,5 +321,5 @@ kfree(void *v)
+ void
+ ksfree(int slab, void *v)
+ {
+-  kfree_pool(slabmem[slab], (char*) v);
++  kfree_pool(&slabmem[slab][mycpuid()], (char*) v);
+ }

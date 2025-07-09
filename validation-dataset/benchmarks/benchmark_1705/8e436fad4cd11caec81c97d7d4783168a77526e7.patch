@@ -1,0 +1,38 @@
+From 8e436fad4cd11caec81c97d7d4783168a77526e7 Mon Sep 17 00:00:00 2001
+From: Nicolas Fella <nicolas.fella@gmx.de>
+Date: Thu, 2 Jan 2020 01:17:56 +0100
+Subject: [PATCH] Optimize ArchiveModel::cleanFileName
+
+Summary: Creating the QRegularExpression is expensive and cleanFileName is called for each entry. By not re-creating the regex we gain a significant archive load time improvement
+
+Test Plan:
+{F7786657}
+
+Left is before, right is after. Note the red block on the left that isn't present on the right
+
+Reviewers: #ark, elvisangelaccio
+
+Reviewed By: #ark, elvisangelaccio
+
+Subscribers: elvisangelaccio, kde-utils-devel
+
+Tags: #ark
+
+Differential Revision: https://phabricator.kde.org/D25565
+---
+ part/archivemodel.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/part/archivemodel.cpp b/part/archivemodel.cpp
+index 8abfcd2c0..fb4531335 100644
+--- a/part/archivemodel.cpp
++++ b/part/archivemodel.cpp
+@@ -341,7 +341,7 @@ QString ArchiveModel::cleanFileName(const QString& fileName)
+ {
+     // Skip entries with filename "/" or "//" or "."
+     // "." is present in ISO files.
+-    QRegularExpression pattern(QStringLiteral("/+|\\."));
++    static QRegularExpression pattern(QStringLiteral("/+|\\."));
+     QRegularExpressionMatch match;
+     if (fileName.contains(pattern, &match) && match.captured() == fileName) {
+         qCDebug(ARK) << "Skipping entry with filename" << fileName;

@@ -1,0 +1,28 @@
+From 540317ea2ba6a36f041364fb68ec6b8b43395d98 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@duempel.org>
+Date: Sun, 28 Sep 2014 18:25:51 +0200
+Subject: [PATCH] storage/nfs: use string::append() instead of string::insert()
+
+Swap the order of adding the URI and the slash, because appending is
+cheaper than inserting.
+---
+ src/storage/plugins/NfsStorage.cxx | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/src/storage/plugins/NfsStorage.cxx b/src/storage/plugins/NfsStorage.cxx
+index e8ac23ec05..2c331dde64 100644
+--- a/src/storage/plugins/NfsStorage.cxx
++++ b/src/storage/plugins/NfsStorage.cxx
+@@ -82,10 +82,9 @@ class NfsStorage final : public Storage {
+ static std::string
+ UriToNfsPath(const char *uri_utf8)
+ {
+-	std::string path(uri_utf8);
+-
+ 	/* libnfs paths must begin with a slash */
+-	path.insert(path.begin(), '/');
++	std::string path("/");
++	path.append(uri_utf8);
+ 
+ 	return path;
+ }

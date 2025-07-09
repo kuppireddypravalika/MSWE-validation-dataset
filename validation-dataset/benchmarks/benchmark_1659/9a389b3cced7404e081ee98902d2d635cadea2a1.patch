@@ -1,0 +1,32 @@
+From 9a389b3cced7404e081ee98902d2d635cadea2a1 Mon Sep 17 00:00:00 2001
+From: Chris Lattner <sabre@nondot.org>
+Date: Thu, 3 Oct 2002 21:08:20 +0000
+Subject: [PATCH] The wall clock timer (implementing using the RTC or cycle
+ counter on x86) is so much more accurate than the per process timers that we
+ get better results (less noise) by sorting according to wall time than
+ process time.
+
+llvm-svn: 4034
+---
+ llvm/include/Support/Timer.h | 8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
+
+diff --git a/llvm/include/Support/Timer.h b/llvm/include/Support/Timer.h
+index 93d9d166093..5d39fc0f12e 100644
+--- a/llvm/include/Support/Timer.h
++++ b/llvm/include/Support/Timer.h
+@@ -64,13 +64,7 @@ class Timer {
+ 
+   // operator< - Allow sorting...
+   bool operator<(const Timer &T) const {
+-    // Primary sort key is User+System time
+-    if (UserTime+SystemTime < T.UserTime+T.SystemTime)
+-      return true;
+-    if (UserTime+SystemTime > T.UserTime+T.SystemTime)
+-      return false;
+-    
+-    // Secondary sort key is Wall Time
++    // Sort by Wall Time elapsed, as it is the only thing really accurate
+     return Elapsed < T.Elapsed;
+   }
+   bool operator>(const Timer &T) const { return T.operator<(*this); }

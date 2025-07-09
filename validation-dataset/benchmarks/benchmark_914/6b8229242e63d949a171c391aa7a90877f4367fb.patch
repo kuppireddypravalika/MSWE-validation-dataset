@@ -1,0 +1,37 @@
+From 6b8229242e63d949a171c391aa7a90877f4367fb Mon Sep 17 00:00:00 2001
+From: Adriaan de Groot <groot@kde.org>
+Date: Tue, 26 May 2020 16:21:24 +0200
+Subject: [PATCH] Sanitize saltCharacter()
+
+ - the array of salt chars should be const, it's read-only
+ - the array of salt chars should be static, since it is
+   initialized to a constant value anyway and can live beyond
+   this one function
+ - sizeof(char) is 1 by the standard, so remove the weird
+   array-size calculation: here saltCharacters has type
+   (const) char[63], and its sizeof() is 63
+---
+ kcms/users/src/user.cpp | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/kcms/users/src/user.cpp b/kcms/users/src/user.cpp
+index 8c8427ce45..626cffc9c9 100644
+--- a/kcms/users/src/user.cpp
++++ b/kcms/users/src/user.cpp
+@@ -175,12 +175,11 @@ void User::setPath(const QDBusObjectPath &path) {
+ 
+ static char
+ saltCharacter() {
+-    char saltCharacters[] = "ABCDEFGHIJKLMNOPQRSTUVXYZ"
+-                       "abcdefghijklmnopqrstuvxyz"
+-                       "./0123456789";
++    static const char saltCharacters[] = "ABCDEFGHIJKLMNOPQRSTUVXYZ"
++                                         "abcdefghijklmnopqrstuvxyz"
++                                         "./0123456789";
+ 
+-    const quint32 index =
+-        QRandomGenerator::system()->bounded(0u, (sizeof(saltCharacters)/sizeof(*saltCharacters)));
++    const quint32 index = QRandomGenerator::system()->bounded(0u, sizeof(saltCharacters));
+ 
+     return saltCharacters[index];
+ }

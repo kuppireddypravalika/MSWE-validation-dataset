@@ -1,0 +1,22 @@
+From 40450401a68215fa86be900426ee54075371149e Mon Sep 17 00:00:00 2001
+From: tensor-tang <jian.j.tang@intel.com>
+Date: Fri, 17 Nov 2017 11:29:32 +0800
+Subject: [PATCH] change macro, can use omp when paddle use mklml
+
+---
+ paddle/parameter/ParameterUpdateFunctions.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/paddle/parameter/ParameterUpdateFunctions.cpp b/paddle/parameter/ParameterUpdateFunctions.cpp
+index 8b3be062b654a5..1898598e49652a 100644
+--- a/paddle/parameter/ParameterUpdateFunctions.cpp
++++ b/paddle/parameter/ParameterUpdateFunctions.cpp
+@@ -30,7 +30,7 @@ void sgdUpdateCpu(real learningRate,
+                   const real* grad,
+                   real* momentumVec) {
+   decayRate *= learningRate;
+-#ifdef PADDLE_USE_MKLDNN
++#ifdef PADDLE_USE_MKLML
+ #pragma omp parallel for
+ #endif
+   for (size_t i = 0; i < size; ++i) {

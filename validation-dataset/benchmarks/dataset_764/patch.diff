@@ -1,0 +1,28 @@
+From c97a7d7c0dfdb2270a496047953f21f533f45ea3 Mon Sep 17 00:00:00 2001
+From: Tara Khanal <tarakh99@gmail.com>
+Date: Wed, 21 Apr 2021 22:47:56 -0400
+Subject: [PATCH] Save result of the VuoListGetData function call to a variable
+ to avoid multiple calls
+
+---
+ node/vuo.list/vuo.list.get.range.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/node/vuo.list/vuo.list.get.range.c b/node/vuo.list/vuo.list.get.range.c
+index 3a71072f..24388e8d 100644
+--- a/node/vuo.list/vuo.list.get.range.c
++++ b/node/vuo.list/vuo.list.get.range.c
+@@ -35,11 +35,12 @@ void nodeEvent
+ 
+ 	*items = VuoListCreate_VuoGenericType1();
+ 
++	VuoGenericType1* listCopy = VuoListGetData_VuoGenericType1(list);
+ 	for(unsigned long i = 1; i <= rangeCount; ++i)
+ 	{
+ 		VuoIntegerRange range = VuoIntegerRange_getOrderedRange(VuoListGetValue_VuoIntegerRange(ranges, i));
+ 
+ 		for(VuoInteger n = MAX(range.minimum, 1); n <= MIN(range.maximum, listCount); n++)
+-			VuoListAppendValue_VuoGenericType1(*items, VuoListGetData_VuoGenericType1(list)[n-1]);
++			VuoListAppendValue_VuoGenericType1(*items, listCopy[n-1]);
+ 	}
+ }

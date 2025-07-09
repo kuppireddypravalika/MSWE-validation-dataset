@@ -1,0 +1,27 @@
+From 69ea979877fa369b2d23744e58d4eeed4e4b54ad Mon Sep 17 00:00:00 2001
+From: Flamefire <Alex@grundis.de>
+Date: Thu, 21 Jan 2016 00:38:36 +0100
+Subject: [PATCH] Actually use sorted warehouses
+
+Also uses a vector for better performance
+---
+ src/GameClientPlayer.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/GameClientPlayer.cpp b/src/GameClientPlayer.cpp
+index 2a2fc813a2..cf53fe2d67 100644
+--- a/src/GameClientPlayer.cpp
++++ b/src/GameClientPlayer.cpp
+@@ -2466,9 +2466,9 @@ void GameClientPlayer::Trade(nobBaseWarehouse* goalWh, const GoodType gt, const
+ 
+     const MapPoint goalFlagPos = goalWh->GetFlag()->GetPos();
+ 
+-    std::list<nobBaseWarehouse*> whs(warehouses);
+-    whs.sort(WarehouseDistanceComparator(*goalWh, *gwg));
+-    for(std::list<nobBaseWarehouse*>::const_iterator it = warehouses.begin(); it != warehouses.end(); ++it)
++    std::vector<nobBaseWarehouse*> whs(warehouses.begin(), warehouses.end());
++    std::sort(whs.begin(), whs.end(), WarehouseDistanceComparator(*goalWh, *gwg));
++    for(std::vector<nobBaseWarehouse*>::const_iterator it = whs.begin(); it != whs.end(); ++it)
+     {
+         // Get available wares
+         unsigned available = 0;

@@ -1,0 +1,23 @@
+From aec545680909f2d8a6534380c2a455a7ee3af99d Mon Sep 17 00:00:00 2001
+From: Giles <--global>
+Date: Thu, 10 Mar 2016 07:52:17 +0100
+Subject: [PATCH] small improvement to distinct group expansion
+
+---
+ Shell/DistinctGroupExpansion.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Shell/DistinctGroupExpansion.cpp b/Shell/DistinctGroupExpansion.cpp
+index 69cd6d9097..f61b66d240 100644
+--- a/Shell/DistinctGroupExpansion.cpp
++++ b/Shell/DistinctGroupExpansion.cpp
+@@ -62,8 +62,8 @@ bool DistinctGroupExpansion::apply(UnitList*& units)
+ 
+   for(unsigned i=0;i<group_members.size();i++){
+     Stack<unsigned>* members = group_members[i];
++    if(i==0 && !env.signature->strings()) continue; // If there are no strings do not expand group
+     if(members->size() > 0){
+- 
+       // If the non-empty distinct group represents numbers then we need to keep
+       // the distinct processing later as new numbers can be generated from the
+       // existing ones

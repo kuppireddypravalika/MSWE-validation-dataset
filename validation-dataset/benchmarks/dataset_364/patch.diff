@@ -1,0 +1,28 @@
+From 69b61dcedaa73ce3edfc208eaba356ee86c0422d Mon Sep 17 00:00:00 2001
+From: Eyeke2 <152005569+Eyeke2@users.noreply.github.com>
+Date: Wed, 7 Feb 2024 20:01:36 +0200
+Subject: [PATCH] Speed optimization with insignificant impact on image
+ quality: (#1165)
+
+use wxIMAGE_QUALITY_BILINEAR which is less CPU intensive than using
+wxIMAGE_QUALITY_HIGH, but is hardly noticeable. At the same time
+the fix ensures that hot pixels won't look like stars.
+
+Signed-off-by: Leo Shatz <leonid.shatz@gmail.com>
+---
+ guider.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/guider.cpp b/guider.cpp
+index c9487ed56..c82d826d8 100644
+--- a/guider.cpp
++++ b/guider.cpp
+@@ -487,7 +487,7 @@ bool Guider::PaintHelper(wxAutoBufferedPaintDCBase& dc, wxMemoryDC& memDC)
+ 
+                     if (newWidth > 0 && newHeight > 0)
+                     {
+-                        m_displayedImage->Rescale(newWidth, newHeight, wxIMAGE_QUALITY_HIGH);
++                        m_displayedImage->Rescale(newWidth, newHeight, wxIMAGE_QUALITY_BILINEAR);
+                     }
+                 }
+             }

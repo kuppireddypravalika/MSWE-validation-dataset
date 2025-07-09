@@ -1,0 +1,22 @@
+From ad2b04c07f7e7abf7a57c7edf779df3e476d3da3 Mon Sep 17 00:00:00 2001
+From: Benjamin Kramer <benny.kra@googlemail.com>
+Date: Sun, 1 Aug 2010 11:43:26 +0000
+Subject: [PATCH] Preallocate vector, avoid unnecessary vector growth.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@109971 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/VMCore/Constants.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/lib/VMCore/Constants.cpp b/lib/VMCore/Constants.cpp
+index b833c4eaa47..e9a95c9900d 100644
+--- a/lib/VMCore/Constants.cpp
++++ b/lib/VMCore/Constants.cpp
+@@ -526,6 +526,7 @@ Constant* ConstantArray::get(const ArrayType* T, Constant* const* Vals,
+ Constant* ConstantArray::get(LLVMContext &Context, StringRef Str,
+                              bool AddNull) {
+   std::vector<Constant*> ElementVals;
++  ElementVals.reserve(Str.size() + size_t(AddNull));
+   for (unsigned i = 0; i < Str.size(); ++i)
+     ElementVals.push_back(ConstantInt::get(Type::getInt8Ty(Context), Str[i]));
+ 

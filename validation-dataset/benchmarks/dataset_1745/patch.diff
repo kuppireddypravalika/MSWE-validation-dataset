@@ -1,0 +1,34 @@
+From 7fd45609769e7441414464e589d05a87dcf56a68 Mon Sep 17 00:00:00 2001
+From: Christian Kandeler <christian.kandeler@theqtcompany.com>
+Date: Thu, 12 Mar 2015 10:34:44 +0100
+Subject: [PATCH] Add missing member initialization.
+
+Found by valgrind.
+A run of qbs_benchmarker suggests that due to this, we did not always cache
+values when we though we did (i.e. the member was randomly set to false):
+========== Performance data for Resolving ==========
+    Old instruction count: 3877716811
+    New instruction count: 1634980373
+    Relative change: -58 %
+    Old peak memory usage: 1720244 Bytes
+    New peak memory usage: 2198908 Bytes
+    Relative change: +27 %
+
+Change-Id: Ia6eaa70ec226f7e80239799cf52ac134f0fa806a
+Reviewed-by: Jake Petroules <jake.petroules@petroules.com>
+---
+ src/lib/corelib/language/evaluatorscriptclass.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/lib/corelib/language/evaluatorscriptclass.cpp b/src/lib/corelib/language/evaluatorscriptclass.cpp
+index cd12a59506..0fa00ae808 100644
+--- a/src/lib/corelib/language/evaluatorscriptclass.cpp
++++ b/src/lib/corelib/language/evaluatorscriptclass.cpp
+@@ -290,6 +290,7 @@ enum QueryPropertyType
+ EvaluatorScriptClass::EvaluatorScriptClass(ScriptEngine *scriptEngine, const Logger &logger)
+     : QScriptClass(scriptEngine)
+     , m_logger(logger)
++    , m_valueCacheEnabled(true)
+ {
+     m_getNativeSettingBuiltin = scriptEngine->newFunction(js_getNativeSetting, 3);
+     m_getEnvBuiltin = scriptEngine->newFunction(js_getEnv, 1);

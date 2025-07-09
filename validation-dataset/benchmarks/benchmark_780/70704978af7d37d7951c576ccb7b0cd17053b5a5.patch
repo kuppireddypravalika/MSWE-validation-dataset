@@ -1,0 +1,38 @@
+From 70704978af7d37d7951c576ccb7b0cd17053b5a5 Mon Sep 17 00:00:00 2001
+From: Bob Wilson <bob.wilson@apple.com>
+Date: Mon, 1 Mar 2010 23:37:32 +0000
+Subject: [PATCH] When GVN needs to split critical edges for load PRE, check
+ all of the predecessors before returning.  Otherwise, if multiple predecessor
+ edges need splitting, we only get one of them per iteration.  This makes a
+ small but measurable compile time improvement with -enable-full-load-pre.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@97521 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Transforms/Scalar/GVN.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/lib/Transforms/Scalar/GVN.cpp b/lib/Transforms/Scalar/GVN.cpp
+index a7cc9049cdd..a4c07160249 100644
+--- a/lib/Transforms/Scalar/GVN.cpp
++++ b/lib/Transforms/Scalar/GVN.cpp
+@@ -1580,6 +1580,7 @@ bool GVN::processNonLocalLoad(LoadInst *LI,
+   for (unsigned i = 0, e = UnavailableBlocks.size(); i != e; ++i)
+     FullyAvailableBlocks[UnavailableBlocks[i]] = false;
+ 
++  bool NeedToSplitEdges = false;
+   for (pred_iterator PI = pred_begin(LoadBB), E = pred_end(LoadBB);
+        PI != E; ++PI) {
+     BasicBlock *Pred = *PI;
+@@ -1596,9 +1597,11 @@ bool GVN::processNonLocalLoad(LoadInst *LI,
+       }
+       unsigned SuccNum = GetSuccessorNumber(Pred, LoadBB);
+       toSplit.push_back(std::make_pair(Pred->getTerminator(), SuccNum));
+-      return false;
++      NeedToSplitEdges = true;
+     }
+   }
++  if (NeedToSplitEdges)
++    return false;
+ 
+   // Decide whether PRE is profitable for this load.
+   unsigned NumUnavailablePreds = PredLoads.size();

@@ -1,0 +1,33 @@
+From 47881c75cafeac124a37d19331e99794765dadfa Mon Sep 17 00:00:00 2001
+From: Ryan Pavlik <ryan@sensics.com>
+Date: Wed, 28 Oct 2015 15:59:54 -0500
+Subject: [PATCH] Reduce auto usage in conjunction with Eigen.
+
+---
+ plugins/videoimufusion/FlexibleKalmanBase.h | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/plugins/videoimufusion/FlexibleKalmanBase.h b/plugins/videoimufusion/FlexibleKalmanBase.h
+index dfc92b7db..a5ec29338 100644
+--- a/plugins/videoimufusion/FlexibleKalmanBase.h
++++ b/plugins/videoimufusion/FlexibleKalmanBase.h
+@@ -118,13 +118,15 @@ namespace kalman {
+     inline types::DimSquareMatrix<StateType>
+     predictErrorCovariance(StateType const &state,
+                            ProcessModelType &processModel, double dt) {
+-        auto A = processModel.getStateTransitionMatrix(state, dt);
+-        auto &P = state.errorCovariance();
++        types::DimSquareMatrix<StateType> A =
++            processModel.getStateTransitionMatrix(state, dt);
++        types::DimSquareMatrix<StateType> P = state.errorCovariance();
+         /// @todo Determine if the fact that Q is (at least in one case)
+         /// symmetrical implies anything else useful performance-wise here or
+         /// later in the data flow.
+-        auto Q = processModel.getSampledProcessNoiseCovariance(dt);
+-        return A * P * A.transpose() + Q;
++        // auto Q = processModel.getSampledProcessNoiseCovariance(dt);
++        return A * P * A.transpose() +
++               processModel.getSampledProcessNoiseCovariance(dt);
+     }
+ 
+ } // namespace kalman

@@ -1,0 +1,32 @@
+From ccc1b71bc88887b49cc7de4ec7fc660939e95750 Mon Sep 17 00:00:00 2001
+From: Jeffrey Walton <noloader@gmail.com>
+Date: Thu, 5 Jul 2018 01:59:42 -0400
+Subject: [PATCH] Move TEA and XTEA to lightweight block ciphers
+
+---
+ bench1.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/bench1.cpp b/bench1.cpp
+index 0f41a33af..02dd9921c 100644
+--- a/bench1.cpp
++++ b/bench1.cpp
+@@ -606,8 +606,6 @@ void Benchmark2(double t, double hertz)
+ 		BenchMarkByName<SymmetricCipher>("IDEA/CTR");
+ 		BenchMarkByName<SymmetricCipher>("RC5/CTR", 0, "RC5 (r=16)");
+ 		BenchMarkByName<SymmetricCipher>("Blowfish/CTR");
+-		BenchMarkByName<SymmetricCipher>("TEA/CTR");
+-		BenchMarkByName<SymmetricCipher>("XTEA/CTR");
+ 		BenchMarkByName<SymmetricCipher>("SKIPJACK/CTR");
+ 		BenchMarkByName<SymmetricCipher>("SEED/CTR", 0, "SEED/CTR (1/2 K table)");
+ 		BenchMarkByName<SymmetricCipher>("SM4/CTR");
+@@ -643,6 +641,9 @@ void Benchmark2(double t, double hertz)
+ 		BenchMarkByName<SymmetricCipher>("SPECK-128/CTR", 16, "SPECK-128(128)/CTR (128-bit key)");
+ 		BenchMarkByName<SymmetricCipher>("SPECK-128/CTR", 24, "SPECK-128(192)/CTR (192-bit key)");
+ 		BenchMarkByName<SymmetricCipher>("SPECK-128/CTR", 32, "SPECK-128(256)/CTR (256-bit key)");
++
++		BenchMarkByName<SymmetricCipher>("TEA/CTR");
++		BenchMarkByName<SymmetricCipher>("XTEA/CTR");
+ 	}
+ 
+ 	std::cout << "\n<TBODY style=\"background: white;\">";

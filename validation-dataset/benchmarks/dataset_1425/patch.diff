@@ -1,0 +1,26 @@
+From 8ea3febcd379500d9ef73316f4ce5d91f3d2906f Mon Sep 17 00:00:00 2001
+From: Marcos Bento <marcos.bento@ecmwf.int>
+Date: Tue, 17 Jan 2023 14:27:12 +0100
+Subject: [PATCH] avoid unnecessary recalculation of requests per second stats
+
+- the server stats are refreshed at 60 seconds intervals, and `request_stats_` is used as cache for the report string; if it hasn't been cleared then it must be up-to-date
+---
+ Base/src/Stats.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/Base/src/Stats.cpp b/Base/src/Stats.cpp
+index 7614cfa5e..0cd99e2ff 100644
+--- a/Base/src/Stats.cpp
++++ b/Base/src/Stats.cpp
+@@ -43,6 +43,11 @@ void Stats::update_for_serialisation()
+    /// This *ONLY* computes the data when this function is called
+    /// >>> Hence the server load is only valid for last hour <<<
+ 
++   if (!request_stats_.empty()) {
++      // Found request statistics in 'cache'. Nothing further to do...
++      return;
++   }
++
+    if (request_vec_.empty()) {
+       // No data to create statistics...
+       return;

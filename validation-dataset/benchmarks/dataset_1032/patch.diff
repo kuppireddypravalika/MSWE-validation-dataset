@@ -1,0 +1,42 @@
+From 3c04a55354cfdb6b66a73f4e0ec7f0ceaf249617 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Martin=20Sandve=20Aln=C3=A6s?= <martinal@simula.no>
+Date: Mon, 7 Nov 2016 10:38:30 +0100
+Subject: [PATCH] Reimplement MeshFunction::where_equal to count first and
+ allocate exactly.
+
+The values will likely stay in cache after the count for use in
+the next loop, making the cost of this count loop low.
+
+Other ways to implement this without first counting will
+potentially involve one or more of: allocating too much memory,
+allocating memory multiple times to avoid allocating too much memory,
+copying allocated memory during reallocations, and copying
+allocated memory during shrink-to-fit operation at the end.
+
+I haven't benchmarked this, as it's only a minor thing,
+but there's my rationale for this choice anyway.
+---
+ dolfin/mesh/MeshFunction.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/dolfin/mesh/MeshFunction.h b/dolfin/mesh/MeshFunction.h
+index 826c713dfa1..f8f40e24ae0 100644
+--- a/dolfin/mesh/MeshFunction.h
++++ b/dolfin/mesh/MeshFunction.h
+@@ -680,14 +680,14 @@ namespace dolfin
+   std::vector<std::size_t> MeshFunction<T>::where_equal(T value)
+   {
+     dolfin_assert(_values);
++    std::size_t n = std::count(_values.get(), _values.get() + _size, value);
+     std::vector<std::size_t> indices;
+-    indices.reserve(size());
++    indices.reserve(n);
+     for (int i = 0; i < size(); ++i)
+     {
+       if (_values[i] == value)
+         indices.push_back(i);
+     }
+-    indices.shrink_to_fit();
+     return indices;
+   }
+   //---------------------------------------------------------------------------

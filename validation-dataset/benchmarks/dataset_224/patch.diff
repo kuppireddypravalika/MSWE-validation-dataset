@@ -1,0 +1,21 @@
+From 4aa3672196d21ece50c91c19b768fc393e2f30ce Mon Sep 17 00:00:00 2001
+From: James Yonan <james@openvpn.net>
+Date: Fri, 13 Feb 2015 20:32:07 -0700
+Subject: [PATCH] Fixed memory leak in newly added ZLib::compress_gzip().
+
+---
+ openvpn/buffer/zlib.hpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/openvpn/buffer/zlib.hpp b/openvpn/buffer/zlib.hpp
+index f4a204bfe..1294350f8 100644
+--- a/openvpn/buffer/zlib.hpp
++++ b/openvpn/buffer/zlib.hpp
+@@ -67,6 +67,7 @@ namespace openvpn {
+ 	  if (status != Z_STREAM_END)
+ 	    OPENVPN_THROW(zlib_error, "zlib deflate failed, error=" << status);
+ 	  b->set_size(zs.total_out);
++	  ::deflateEnd(&zs);
+ 	  return b;
+ 	}
+       else

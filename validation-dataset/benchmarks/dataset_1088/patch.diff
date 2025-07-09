@@ -1,0 +1,53 @@
+From d9322c100c1f95bcf5990653c8e891948e1a91d9 Mon Sep 17 00:00:00 2001
+From: Daniel Jour <musteresel@gmail.com>
+Date: Tue, 19 Nov 2019 22:01:47 +0100
+Subject: [PATCH] Keyframe::ReorderPoints() use std::sort instead of selection
+ sort
+
+With few points the performance doesn't differ that much; using
+std::sort removes the possibility of introducing bugs into the
+handmade sorting algorithm, though.
+---
+ src/KeyFrame.cpp | 22 ++++++----------------
+ 1 file changed, 6 insertions(+), 16 deletions(-)
+
+diff --git a/src/KeyFrame.cpp b/src/KeyFrame.cpp
+index 100c108d9..61b871469 100644
+--- a/src/KeyFrame.cpp
++++ b/src/KeyFrame.cpp
+@@ -29,6 +29,7 @@
+  */
+ 
+ #include "../include/KeyFrame.h"
++#include <algorithm>
+ #include <utility>
+ 
+ using namespace std;
+@@ -38,22 +39,11 @@ using namespace openshot;
+ // in ascending order based on the point.co.X value.  This simplifies
+ // processing the curve, due to all the points going from left to right.
+ void Keyframe::ReorderPoints() {
+-	// Loop through all coordinates, and sort them by the X attribute
+-	for (int64_t x = 0; x < Points.size(); x++) {
+-		int64_t compare_index = x;
+-		int64_t smallest_index = x;
+-
+-		for (int64_t compare_index = x + 1; compare_index < Points.size(); compare_index++) {
+-			if (Points[compare_index].co.X < Points[smallest_index].co.X) {
+-				smallest_index = compare_index;
+-			}
+-		}
+-
+-		// swap items
+-		if (smallest_index != compare_index) {
+-			swap(Points[compare_index], Points[smallest_index]);
+-		}
+-	}
++	std::sort(
++			begin(Points), end(Points),
++			[](Point const & l, Point const & r) {
++				return l.co.X < r.co.X;
++			});
+ }
+ 
+ // Constructor which sets the default point & coordinate at X=1

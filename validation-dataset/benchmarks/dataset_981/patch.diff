@@ -1,0 +1,34 @@
+From 834a94e41297a97cebdb629f6d7f6fef5477c387 Mon Sep 17 00:00:00 2001
+From: uriAMD <Uri.Shomroni@amd.com>
+Date: Tue, 19 Jul 2016 19:19:06 +0300
+Subject: [PATCH] Avoid invoking an unnecessary ctor and dtor each time a
+ gtString is written into a channel.
+
+---
+ Common/Src/AMDTOSWrappers/src/common/osChannel.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/Common/Src/AMDTOSWrappers/src/common/osChannel.cpp b/Common/Src/AMDTOSWrappers/src/common/osChannel.cpp
+index 3fbff4c8e..eb7022269 100755
+--- a/Common/Src/AMDTOSWrappers/src/common/osChannel.cpp
++++ b/Common/Src/AMDTOSWrappers/src/common/osChannel.cpp
+@@ -312,8 +312,8 @@ bool osChannel::readString(gtASCIIString& str)
+ bool osChannel::writeStringImpl(const gtString& str)
+ {
+     bool retVal = false;
+-    std::string converted_str = str.asASCIICharArray();
+-    gtInt32 stringLength = static_cast<gtInt32>(converted_str.length());
++    const char* converted_str = str.asASCIICharArray();
++    gtInt32 stringLength = (gtInt32)strlen(converted_str);
+ 
+     // Do not write the string length into text channels:
+     if (channelType() == osChannel::OS_BINARY_CHANNEL)
+@@ -326,7 +326,7 @@ bool osChannel::writeStringImpl(const gtString& str)
+     if (stringLength > 0)
+     {
+         // Write the multi byte char pointer:
+-        bool rc = write(converted_str.c_str(), stringLength);
++        bool rc = write((gtByte*)converted_str, stringLength);
+         GT_IF_WITH_ASSERT(rc)
+         {
+             retVal = true;

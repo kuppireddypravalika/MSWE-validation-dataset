@@ -1,0 +1,33 @@
+From a9fe33986cfd26414a37603c0bdd4e1fab256137 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Wed, 9 Sep 2009 18:29:10 +0000
+Subject: [PATCH] Comment out cleanup in GDALDeregister_ECW() that can take up
+ to 3 seconds (https://trac.osgeo.org/gdal/ticket/3134)
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@17627 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/frmts/ecw/ecwdataset.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/gdal/frmts/ecw/ecwdataset.cpp b/gdal/frmts/ecw/ecwdataset.cpp
+index 9e7cc4659888..ece55750ffed 100644
+--- a/gdal/frmts/ecw/ecwdataset.cpp
++++ b/gdal/frmts/ecw/ecwdataset.cpp
+@@ -1517,6 +1517,9 @@ void ECWInitialize()
+ void GDALDeregister_ECW( GDALDriver * )
+ 
+ {
++    /* For unknown reason, this cleanup can take up to 3 seconds (see #3134). */
++    /* Not worth it */
++#ifdef notdef
+     if( bNCSInitialized )
+     {
+         bNCSInitialized = FALSE;
+@@ -1528,6 +1531,7 @@ void GDALDeregister_ECW( GDALDriver * )
+         CPLDestroyMutex( hECWDatasetMutex );
+         hECWDatasetMutex = NULL;
+     }
++#endif
+ }
+ 
+ /************************************************************************/

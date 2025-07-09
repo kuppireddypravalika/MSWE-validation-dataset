@@ -1,0 +1,34 @@
+From 724ccea0875315d4382288b05a38ae6e949003f8 Mon Sep 17 00:00:00 2001
+From: Jason Luu <jasonkailuu@gmail.com>
+Date: Tue, 20 May 2014 20:24:09 +0000
+Subject: [PATCH] Improve router runtime by 50% through re-routing of nets that
+ have congestion.  Also fixed pathological bug that results in potential 5x
+ spikes in min W
+
+git-svn-id: https://vtr-verilog-to-routing.googlecode.com/svn/trunk@4303 8e3573b8-cf2c-4f14-ef6d-137439e28b8b
+---
+ vpr/SRC/route/route_timing.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/vpr/SRC/route/route_timing.c b/vpr/SRC/route/route_timing.c
+index 1379ab4f96c..2ce26df103e 100755
+--- a/vpr/SRC/route/route_timing.c
++++ b/vpr/SRC/route/route_timing.c
+@@ -131,7 +131,7 @@ boolean try_timing_driven_route(struct s_router_opts router_opts,
+ 
+ 		for (unsigned int i = 0; i < g_clbs_nlist.net.size(); ++i) {
+ 			int inet = net_index[i];
+-			//if (should_route_net(inet) == TRUE) {
++			if (should_route_net(inet) == TRUE) {
+ 				boolean is_routable = try_timing_driven_route_net(inet, itry, pres_fac,
+ 					router_opts, pin_criticality, sink_order,
+ 					rt_node_of_sink, net_delay, slacks);
+@@ -141,7 +141,7 @@ boolean try_timing_driven_route(struct s_router_opts router_opts,
+ 					free(historical_overuse_ratio);
+ 					return (FALSE);
+ 				}
+-		//	}
++			}
+ 		}
+ 
+ 		clock_t end = clock();

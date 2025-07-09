@@ -1,0 +1,22 @@
+From 195a8d6ad92c906feeb4df100701dc0f3138e750 Mon Sep 17 00:00:00 2001
+From: Damien Barker <damien.barker@quaternion.com>
+Date: Wed, 14 Aug 2019 17:49:41 +0100
+Subject: [PATCH] use Salvaging algorithm instead of cholesky
+
+---
+ QuantExt/qle/math/deltagammavar.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/QuantExt/qle/math/deltagammavar.hpp b/QuantExt/qle/math/deltagammavar.hpp
+index 417619f293..45e0769433 100644
+--- a/QuantExt/qle/math/deltagammavar.hpp
++++ b/QuantExt/qle/math/deltagammavar.hpp
+@@ -97,7 +97,7 @@ Disposable<std::vector<Real> > deltaGammaVarMc(const Matrix& omega, const Array&
+         return res;
+     }
+ 
+-    Matrix L = CholeskyDecomposition(omega, true);
++    Matrix L = pseudoSqrt(omega, SalvagingAlgorithm::Spectral);
+ 
+     Real pmin = QL_MAX_REAL;
+     BOOST_FOREACH (Real q, p) { pmin = std::min(pmin, q); }

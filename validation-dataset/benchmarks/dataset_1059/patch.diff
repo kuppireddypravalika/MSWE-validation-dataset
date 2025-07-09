@@ -1,0 +1,34 @@
+From 06f91a601849de9d1a1543063ea1fa27bde00b1a Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Sat, 4 Dec 2010 22:24:32 +0000
+Subject: [PATCH] WFS: limit the result of RESULTTYPE=hits to the maximum
+ specified by MAXFEATURES=
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@21196 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/ogr/ogrsf_frmts/wfs/ogrwfslayer.cpp | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/gdal/ogr/ogrsf_frmts/wfs/ogrwfslayer.cpp b/gdal/ogr/ogrsf_frmts/wfs/ogrwfslayer.cpp
+index 0f0c7151598b..444a9516dad7 100644
+--- a/gdal/ogr/ogrsf_frmts/wfs/ogrwfslayer.cpp
++++ b/gdal/ogr/ogrsf_frmts/wfs/ogrwfslayer.cpp
+@@ -1239,6 +1239,18 @@ int OGRWFSLayer::ExecuteGetFeatureResultTypeHits()
+     }
+ 
+     int nFeatures = atoi(pszValue);
++    /* Hum, http://deegree3-testing.deegree.org:80/deegree-inspire-node/services?MAXFEATURES=10&SERVICE=WFS&VERSION=1.1.0&REQUEST=GetFeature&TYPENAME=ad:Address&OUTPUTFORMAT=text/xml;%20subtype=gml/3.2.1&RESULTTYPE=hits */
++    /* returns more than MAXFEATURES features... So truncate to MAXFEATURES */
++    CPLString osMaxFeatures = WFS_FetchValueFromURL(osURL, "MAXFEATURES");
++    if (osMaxFeatures.size() != 0)
++    {
++        int nMaxFeatures = atoi(osMaxFeatures);
++        if (nFeatures > nMaxFeatures)
++        {
++            CPLDebug("WFS", "Truncating result from %d to %d", nFeatures, nMaxFeatures);
++            nFeatures = nMaxFeatures;
++        }
++    }
+ 
+     CPLDestroyXMLNode( psXML );
+     CPLHTTPDestroyResult(psResult);

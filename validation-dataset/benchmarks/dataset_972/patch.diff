@@ -1,0 +1,26 @@
+From 7805552edbb34f79e2f91f1655539ec5fe4d09bb Mon Sep 17 00:00:00 2001
+From: Stefanos Kornilios Mitsis Poiitidis <stef@skmp.dev>
+Date: Sat, 24 Apr 2021 02:53:37 +0300
+Subject: [PATCH] LookupCache: Add new entries to L1C
+
+---
+ External/FEXCore/Source/Interface/Core/LookupCache.h | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/External/FEXCore/Source/Interface/Core/LookupCache.h b/External/FEXCore/Source/Interface/Core/LookupCache.h
+index 835e64554c..f3da0ef7df 100644
+--- a/External/FEXCore/Source/Interface/Core/LookupCache.h
++++ b/External/FEXCore/Source/Interface/Core/LookupCache.h
+@@ -45,7 +45,11 @@ class LookupCache {
+       CodePages[CurrentPage].push_back(Address);
+     }
+ 
+-    // no need to update L1 or L2, they will get updated on first lookup
++    // There is no need to update L1 or L2, they will get updated on first lookup
++    // However, adding to L1 here increases performance
++    auto &L1Entry = reinterpret_cast<LookupCacheEntry*>(L1Pointer)[Address & L1_ENTRIES_MASK];
++    L1Entry.GuestCode = Address;
++    L1Entry.HostCode = (uintptr_t)HostCode;
+   }
+ 
+   void Erase(uint64_t Address) {

@@ -1,0 +1,35 @@
+From ebf0de3628cf70654f3714e2ff0f6dacbd34b067 Mon Sep 17 00:00:00 2001
+From: Filip Jeremic <fjeremic@ca.ibm.com>
+Date: Mon, 3 Apr 2017 11:40:10 -0400
+Subject: [PATCH] Enable dynamic literal pool by default
+
+On modern z/Architecture, more specifically with the introduction of
+load relative instructions in z10, we have the ability to load values
+from the literal pool with a single relative load. The relative loads,
+LRL for example, are RIL type instructions meaning we can address a
+literal pool that it at most 4GB away. With the deprecation of tiered
+code cache it is inconceivable that the literal pool cannot be addressed
+with relative load instructions. As such, we always benefit from freeing
+up the literal pool register for assignment as the register pressure
+decreases at no cost to our ability to load values from the literal
+pool.
+
+Issue: #939
+Signed-off-by: Filip Jeremic <fjeremic@ca.ibm.com>
+---
+ compiler/z/codegen/OMRCodeGenerator.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/compiler/z/codegen/OMRCodeGenerator.cpp b/compiler/z/codegen/OMRCodeGenerator.cpp
+index b7374e5542..249856a7bb 100644
+--- a/compiler/z/codegen/OMRCodeGenerator.cpp
++++ b/compiler/z/codegen/OMRCodeGenerator.cpp
+@@ -647,7 +647,7 @@ OMR::Z::CodeGenerator::CodeGenerator()
+          self()->setSupportsHighWordFacility(true);
+       }
+ 
+-   self()->setOnDemandLiteralPoolRun(false);
++   self()->setOnDemandLiteralPoolRun(true);
+    self()->setGlobalStaticBaseRegisterOn(false);
+ 
+    self()->setGlobalPrivateStaticBaseRegisterOn(false);

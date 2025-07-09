@@ -1,0 +1,43 @@
+From 1fb421db8dd3f63f5f72cb0731aba0fc05e1cf61 Mon Sep 17 00:00:00 2001
+From: Alexander Sokolov <sokoloff.a@gmail.com>
+Date: Fri, 20 Jul 2012 21:55:40 +0400
+Subject: [PATCH] The decrease of used memory in the razor-confupdate.
+
+---
+ razorqt-confupdate/razor-confupdate.cpp | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/razorqt-confupdate/razor-confupdate.cpp b/razorqt-confupdate/razor-confupdate.cpp
+index d1d85c5f..f27c6ce0 100644
+--- a/razorqt-confupdate/razor-confupdate.cpp
++++ b/razorqt-confupdate/razor-confupdate.cpp
+@@ -84,7 +84,7 @@ int main(int argc, char **argv)
+ {
+     QCoreApplication app(argc, argv);
+ 
+-    RzUpdate rzUpdate;
++    RzUpdate *rzUpdate = new RzUpdate();
+ 
+     bool debug = false;
+     bool watch = false;
+@@ -124,7 +124,7 @@ int main(int argc, char **argv)
+             {
+                 if (i+1 < args.count())
+                 {
+-                    rzUpdate.setArgCheckFile(args.at(i+1));
++                    rzUpdate->setArgCheckFile(args.at(i+1));
+                     i++;
+                     continue;
+                 }
+@@ -144,8 +144,9 @@ int main(int argc, char **argv)
+         files << args.at(i);
+     }
+ 
+-    rzUpdate.setDebug(debug);
+-    rzUpdate.run(files);
++    rzUpdate->setDebug(debug);
++    rzUpdate->run(files);
++    delete rzUpdate;
+ 
+     if (watch)
+     {

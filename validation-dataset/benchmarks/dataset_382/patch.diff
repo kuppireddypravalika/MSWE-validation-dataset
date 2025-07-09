@@ -1,0 +1,23 @@
+From 5450a214202dec62d7d379239a529a64438a2ae0 Mon Sep 17 00:00:00 2001
+From: Victor Julien <victor@inliniac.net>
+Date: Wed, 25 Mar 2015 22:07:08 +0100
+Subject: [PATCH] Don't alloc 0 size memory in htp_connp_req_buffer
+
+---
+ htp/htp_request.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/htp/htp_request.c b/htp/htp_request.c
+index 7b27acba..248325f2 100644
+--- a/htp/htp_request.c
++++ b/htp/htp_request.c
+@@ -194,6 +194,9 @@ static htp_status_t htp_connp_req_buffer(htp_connp_t *connp) {
+     unsigned char *data = connp->in_current_data + connp->in_current_consume_offset;
+     size_t len = connp->in_current_read_offset - connp->in_current_consume_offset;
+ 
++    if (len == 0)
++        return HTP_OK;
++
+     // Check the hard (buffering) limit.
+    
+     size_t newlen = connp->in_buf_size + len;

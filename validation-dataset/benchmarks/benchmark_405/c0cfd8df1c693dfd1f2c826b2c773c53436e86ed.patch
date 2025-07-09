@@ -1,0 +1,24 @@
+From c0cfd8df1c693dfd1f2c826b2c773c53436e86ed Mon Sep 17 00:00:00 2001
+From: justusc <justusc@vt.edu>
+Date: Tue, 8 Apr 2014 17:34:37 -0400
+Subject: [PATCH] Replace a call to maxabs with an equivalent reduce_vector_op
+ call.
+
+---
+ examples/vector_tests/vector.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/examples/vector_tests/vector.cpp b/examples/vector_tests/vector.cpp
+index de8b648407..c8a7ffaf33 100644
+--- a/examples/vector_tests/vector.cpp
++++ b/examples/vector_tests/vector.cpp
+@@ -349,7 +349,8 @@ int main(int argc, char** argv) {
+   start = madness::wall_time();
+   double x = 0.0;
+   for(std::size_t r = 0ul; r < repeat; ++r) {
+-    x += TiledArray::math::maxabs(n, a);
++    TiledArray::math::reduce_vector_op(n, a, x,
++        TiledArray::math::AbsMaxAssign<double, double>());
+   }
+   stop = madness::wall_time();
+   x += 1.0;

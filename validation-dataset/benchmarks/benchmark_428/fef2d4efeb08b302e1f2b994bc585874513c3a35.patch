@@ -1,0 +1,24 @@
+From fef2d4efeb08b302e1f2b994bc585874513c3a35 Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@intel.com>
+Date: Fri, 15 Dec 2017 21:18:06 +0000
+Subject: [PATCH] [X86] Use AND32ri8 instead of AND64ri8 in Asan code in
+ EmitCallAsanReport for 32-bit mode.
+
+This seemed to work due to a quirk in the X86 MC encoder that didn't emit a REX byte that the AND64ri8 implies when in 32-bit mode. This made the encoding the same as AND32ri8. I tried to add an assert to catch the dropped REX prefix that caught this.
+---
+ llvm/lib/Target/X86/AsmParser/X86AsmInstrumentation.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/llvm/lib/Target/X86/AsmParser/X86AsmInstrumentation.cpp b/llvm/lib/Target/X86/AsmParser/X86AsmInstrumentation.cpp
+index 1c38757b4b03..2c376fd062ca 100644
+--- a/llvm/lib/Target/X86/AsmParser/X86AsmInstrumentation.cpp
++++ b/llvm/lib/Target/X86/AsmParser/X86AsmInstrumentation.cpp
+@@ -610,7 +610,7 @@ class X86AddressSanitizer32 : public X86AddressSanitizer {
+     EmitInstruction(Out, MCInstBuilder(X86::CLD));
+     EmitInstruction(Out, MCInstBuilder(X86::MMX_EMMS));
+ 
+-    EmitInstruction(Out, MCInstBuilder(X86::AND64ri8)
++    EmitInstruction(Out, MCInstBuilder(X86::AND32ri8)
+                              .addReg(X86::ESP)
+                              .addReg(X86::ESP)
+                              .addImm(-16));

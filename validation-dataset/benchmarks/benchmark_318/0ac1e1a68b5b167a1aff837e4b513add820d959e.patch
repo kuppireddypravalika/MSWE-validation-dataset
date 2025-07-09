@@ -1,0 +1,55 @@
+From 0ac1e1a68b5b167a1aff837e4b513add820d959e Mon Sep 17 00:00:00 2001
+From: Nicolai Haehnle <nhaehnle@gmail.com>
+Date: Tue, 28 Nov 2017 08:42:46 +0000
+Subject: [PATCH] AMDGPU: Re-organize the outer loop of SILoadStoreOptimizer
+
+Summary:
+The entire algorithm operates per basic-block, so for cache locality
+it should be better to re-optimize a basic-block immediately rather than
+in a separate loop.
+
+I don't have performance measurements.
+
+Change-Id: I85106570bd623c4ff277faaa50ee43258e1ddcc5
+
+Reviewers: arsenm, rampitec
+
+Subscribers: kzhuravl, wdng, yaxunl, dstuttard, tpr, llvm-commits, t-tye
+
+Differential Revision: https://reviews.llvm.org/D40344
+---
+ llvm/lib/Target/AMDGPU/SILoadStoreOptimizer.cpp | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
+
+diff --git a/llvm/lib/Target/AMDGPU/SILoadStoreOptimizer.cpp b/llvm/lib/Target/AMDGPU/SILoadStoreOptimizer.cpp
+index 14c9c8ff728b..48bfc2dac2d5 100644
+--- a/llvm/lib/Target/AMDGPU/SILoadStoreOptimizer.cpp
++++ b/llvm/lib/Target/AMDGPU/SILoadStoreOptimizer.cpp
+@@ -14,7 +14,7 @@
+ // ==>
+ //   ds_read2_b32 v[0:1], v2, offset0:4 offset1:8
+ //
+-// The same is done for certain SMEM opcodes, e.g.:
++// The same is done for certain SMEM and VMEM opcodes, e.g.:
+ //  s_buffer_load_dword s4, s[0:3], 4
+ //  s_buffer_load_dword s5, s[0:3], 8
+ // ==>
+@@ -892,14 +892,13 @@ bool SILoadStoreOptimizer::runOnMachineFunction(MachineFunction &MF) {
+   DEBUG(dbgs() << "Running SILoadStoreOptimizer\n");
+ 
+   bool Modified = false;
+-  CreatedX2 = 0;
+ 
+-  for (MachineBasicBlock &MBB : MF)
++  for (MachineBasicBlock &MBB : MF) {
++    CreatedX2 = 0;
+     Modified |= optimizeBlock(MBB);
+ 
+-  // Run again to convert x2 to x4.
+-  if (CreatedX2 >= 1) {
+-    for (MachineBasicBlock &MBB : MF)
++    // Run again to convert x2 to x4.
++    if (CreatedX2 >= 1)
+       Modified |= optimizeBlock(MBB);
+   }
+ 

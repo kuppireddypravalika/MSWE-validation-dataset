@@ -1,0 +1,41 @@
+From 68ef3a90d2daed760b7da59f953ce14da4d90879 Mon Sep 17 00:00:00 2001
+From: Rui Ueyama <ruiu@google.com>
+Date: Fri, 23 Feb 2018 20:24:28 +0000
+Subject: [PATCH] Handle --version before handling --mllvm.
+
+Because it's a waste of time to handle --mllvm before --version.
+
+Differential Revision: https://reviews.llvm.org/D43527
+---
+ lld/wasm/Driver.cpp | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/lld/wasm/Driver.cpp b/lld/wasm/Driver.cpp
+index ad9e82e0fb1f..ac0ec9d48f8e 100644
+--- a/lld/wasm/Driver.cpp
++++ b/lld/wasm/Driver.cpp
+@@ -233,6 +233,12 @@ void LinkerDriver::link(ArrayRef<const char *> ArgsArr) {
+     return;
+   }
+ 
++  // Handle --version
++  if (Args.hasArg(OPT_version) || Args.hasArg(OPT_v)) {
++    outs() << getLLDVersion() << "\n";
++    return;
++  }
++
+   // Parse and evaluate -mllvm options.
+   std::vector<const char *> V;
+   V.push_back("wasm-ld (LLVM option parsing)");
+@@ -242,11 +248,6 @@ void LinkerDriver::link(ArrayRef<const char *> ArgsArr) {
+ 
+   errorHandler().ErrorLimit = args::getInteger(Args, OPT_error_limit, 20);
+ 
+-  if (Args.hasArg(OPT_version) || Args.hasArg(OPT_v)) {
+-    outs() << getLLDVersion() << "\n";
+-    return;
+-  }
+-
+   Config->AllowUndefined = Args.hasArg(OPT_allow_undefined);
+   Config->CheckSignatures =
+       Args.hasFlag(OPT_check_signatures, OPT_no_check_signatures, false);

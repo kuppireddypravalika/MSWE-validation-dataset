@@ -1,0 +1,49 @@
+From 7915ab85592a6c3e4413b0de9d2a8dc330522c49 Mon Sep 17 00:00:00 2001
+From: Matthias Gerstner <Matthias.Gerstner@nefkom.net>
+Date: Mon, 4 Sep 2017 20:16:50 +0200
+Subject: [PATCH] event thread: optimize select() call by calculating max FD
+
+otherwise kernel has to loop over all 1024 FDs in the set
+---
+ src/main/Xwmfs.cxx | 16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
+
+diff --git a/src/main/Xwmfs.cxx b/src/main/Xwmfs.cxx
+index e3862e0..95d3a34 100644
+--- a/src/main/Xwmfs.cxx
++++ b/src/main/Xwmfs.cxx
+@@ -5,6 +5,7 @@
+ #include <map>
+ #include <functional>
+ #include <vector>
++#include <algorithm>
+ 
+ // C
+ #include <stdlib.h> // EXIT_*
+@@ -295,15 +296,22 @@ void Xwmfs::threadEntry(const xwmfs::Thread &t)
+ 	m_display = XDisplay::getInstance();
+ 	auto &logger = xwmfs::StdLogger::getInstance();
+ 
++	const std::vector<int> fds(
++		{ m_dis_fd, m_wakeup_pipe[0], m_abort_pipe[0] }
++	);
++	const int max_fd = *(std::max_element( fds.begin(), fds.end() )) + 1;
++
+ 	while( t.getState() == xwmfs::Thread::RUN )
+ 	{
+ 		FD_ZERO(&m_select_set);
+-		FD_SET(m_dis_fd, &m_select_set);
+-		FD_SET(m_wakeup_pipe[0], &m_select_set);
+-		FD_SET(m_abort_pipe[0], &m_select_set);
++		for( int fd: fds )
++		{
++			FD_SET(fd, &m_select_set);
++		}
++
+ 		// here we wait until one of the file descriptors is readable
+ 		const int sel_res = ::select(
+-			FD_SETSIZE,
++			max_fd,
+ 			&m_select_set, nullptr, nullptr, nullptr
+ 		);
+ 

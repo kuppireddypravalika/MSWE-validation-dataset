@@ -1,0 +1,30 @@
+From 45b7d1cdb08b0de5784a804e9e10d6fded24d49c Mon Sep 17 00:00:00 2001
+From: Alexander Lohnau <alexander.lohnau@gmx.de>
+Date: Tue, 26 Dec 2023 16:35:36 +0100
+Subject: [PATCH] KRecentDocument: Use static regex and undeprecated match
+ method
+
+Since we need the regex multiple times during the applications lifespan, we should reuse it
+---
+ src/core/krecentdocument.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/core/krecentdocument.cpp b/src/core/krecentdocument.cpp
+index d20037ca1..5185c4471 100644
+--- a/src/core/krecentdocument.cpp
++++ b/src/core/krecentdocument.cpp
+@@ -270,11 +270,12 @@ static bool addToXbel(const QUrl &url, const QString &desktopEntryName, KRecentD
+                 foundExistingApp = false;
+                 firstBookmark = false;
+ 
+-                const auto hrefValue = attributes.value(hrefAttribute);
++                const QStringView hrefValue = attributes.value(hrefAttribute);
+                 inRightBookmark = hrefValue == newUrl;
+ 
+                 // remove hidden files if some were added by GTK
+-                if (ignoreHidden && QRegularExpression(QStringLiteral("/\\.")).match(hrefValue).hasMatch()) {
++                const static QRegularExpression isHiddenRegex(QStringLiteral("/\\."));
++                if (ignoreHidden && isHiddenRegex.matchView(hrefValue).hasMatch()) {
+                     xml.skipCurrentElement();
+                     break;
+                 }

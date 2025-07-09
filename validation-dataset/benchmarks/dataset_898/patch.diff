@@ -1,0 +1,28 @@
+From 5af231fa3bf687e961f0c2ba955841fa74ee1b10 Mon Sep 17 00:00:00 2001
+From: earonesty <earonesty@f1db881f-09c6-4a82-8334-ae7ceabc6398>
+Date: Mon, 5 May 2014 20:59:01 +0000
+Subject: [PATCH] default to "medium" compression, which is a balance of speed,
+ compresison level
+
+---
+ clipper/fastq-lib.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/clipper/fastq-lib.cpp b/clipper/fastq-lib.cpp
+index fa0d697..c05af74 100644
+--- a/clipper/fastq-lib.cpp
++++ b/clipper/fastq-lib.cpp
+@@ -131,10 +131,12 @@ FILE *gzopen(const char *f, const char *m, bool*isgz) {
+         } else if (!strcmp(ext,".dsrc")||!strcmp(ext,".dz")) {
+             char *tmp=(char *)malloc(strlen(f)+100);
+             if (strchr(m,'w')) {
+-                    strcpy(tmp, "dsrc c -t1 -s '");
++                    // default 2x better compression and 3x better speed
++                    strcpy(tmp, "dsrc c -m1 -t1 -s '");
+                     strcat(tmp, f);
+                     strcat(tmp, "'");
+             } else {
++                    // 3x better speed
+                     strcpy(tmp, "dsrc d -t1 -s '");
+                     strcat(tmp, f);
+                     strcat(tmp, "'");

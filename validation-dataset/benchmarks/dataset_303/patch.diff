@@ -1,0 +1,23 @@
+From 9c3f0db836c2110c1b86bbd5999f3ce483e3bcac Mon Sep 17 00:00:00 2001
+From: Stuart Morgan <smorgan@mythtv.org>
+Date: Tue, 17 Dec 2013 16:14:55 +0000
+Subject: [PATCH] Drop DISTINCT clause from program query, it's not required
+ and slows down queries significantly.
+
+---
+ mythtv/libs/libmyth/programinfo.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/mythtv/libs/libmyth/programinfo.cpp b/mythtv/libs/libmyth/programinfo.cpp
+index 653e6a288b4..12eabd65ea8 100644
+--- a/mythtv/libs/libmyth/programinfo.cpp
++++ b/mythtv/libs/libmyth/programinfo.cpp
+@@ -4981,7 +4981,7 @@ static bool FromProgramQuery(
+     const QString &sql, const MSqlBindings &bindings, MSqlQuery &query)
+ {
+     QString querystr = QString(
+-        "SELECT DISTINCT program.chanid, program.starttime, program.endtime, "
++        "SELECT program.chanid, program.starttime, program.endtime, "
+         "    program.title, program.subtitle, program.description, "
+         "    program.category, channel.channum, channel.callsign, "
+         "    channel.name, program.previouslyshown, channel.commmethod, "

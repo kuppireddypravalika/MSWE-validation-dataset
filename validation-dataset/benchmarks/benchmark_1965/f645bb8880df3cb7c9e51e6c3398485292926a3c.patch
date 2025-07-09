@@ -1,0 +1,42 @@
+From f645bb8880df3cb7c9e51e6c3398485292926a3c Mon Sep 17 00:00:00 2001
+From: Edward Welbourne <edward.welbourne@qt.io>
+Date: Tue, 31 Aug 2021 14:38:52 +0200
+Subject: [PATCH] Replace implementation-specific zero test with plain
+ comparison
+
+Various double-to-string converters carefully omit the sign from -0.0,
+for which they need to test whether the double is zero. This was
+tested by a function that looked at the bytes of the double in an
+endian-specific way. Packaging a comparison to zero in a function
+seems to avoid the compiler warnings over double-comparison, so retain
+the function but make it simpler. The only available benchmark
+(QString's number_double benchmark) consistently shows a negligible
+improvement in performance.
+
+Change-Id: Id994177e21e4770ced904881d7e84a95cb727605
+Reviewed-by: Thiago Macieira <thiago.macieira@intel.com>
+---
+ src/corelib/text/qlocale_tools_p.h | 9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
+
+diff --git a/src/corelib/text/qlocale_tools_p.h b/src/corelib/text/qlocale_tools_p.h
+index dfe96fabb45..61351eba6e8 100644
+--- a/src/corelib/text/qlocale_tools_p.h
++++ b/src/corelib/text/qlocale_tools_p.h
+@@ -76,14 +76,9 @@ void qt_doubleToAscii(double d, QLocaleData::DoubleForm form, int precision, cha
+ [[nodiscard]] QByteArray qdtoAscii(double d, QLocaleData::DoubleForm form,
+                                    int precision, bool uppercase);
+ 
+-[[nodiscard]] inline bool isZero(double d)
++[[nodiscard]] constexpr inline bool isZero(double d)
+ {
+-    uchar *ch = (uchar *)&d;
+-    if (QSysInfo::ByteOrder == QSysInfo::BigEndian) {
+-        return !(ch[0] & 0x7F || ch[1] || ch[2] || ch[3] || ch[4] || ch[5] || ch[6] || ch[7]);
+-    } else {
+-        return !(ch[7] & 0x7F || ch[6] || ch[5] || ch[4] || ch[3] || ch[2] || ch[1] || ch[0]);
+-    }
++    return d == 0; // Amusingly, compilers do not grumble.
+ }
+ 
+ // Enough space for the digits before the decimal separator:

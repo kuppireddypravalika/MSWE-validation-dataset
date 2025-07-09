@@ -1,0 +1,38 @@
+From 751589899b753d8ca56ac6e2ca2742596520cc8e Mon Sep 17 00:00:00 2001
+From: "henrik.lundin" <henrik.lundin@webrtc.org>
+Date: Thu, 16 Feb 2017 07:56:28 -0800
+Subject: [PATCH] Further optimization of AudioVector::operator[]
+
+This is a follow-up to https://codereview.webrtc.org/2670643007/. That
+CL provided significant improvement to Mac, Linux and ARM-based
+platforms, but failed to improve the performance for Windows. The
+problem is that the MSVC compiler did not produce branch-free code for
+that fix. This new change produces the same result for non-Windows
+platforms, as well as introduces branch-free code for Windows.
+
+H/t to kwiberg@ for providing the solution.
+
+BUG=webrtc:7159
+
+Review-Url: https://codereview.webrtc.org/2700633003
+Cr-Commit-Position: refs/heads/master@{#16649}
+---
+ webrtc/modules/audio_coding/neteq/audio_vector.h | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/webrtc/modules/audio_coding/neteq/audio_vector.h b/webrtc/modules/audio_coding/neteq/audio_vector.h
+index 18ab95c46d..9100ff8968 100644
+--- a/webrtc/modules/audio_coding/neteq/audio_vector.h
++++ b/webrtc/modules/audio_coding/neteq/audio_vector.h
+@@ -128,9 +128,8 @@ class AudioVector {
+                                  size_t begin_index,
+                                  size_t capacity) {
+     RTC_DCHECK_GE(begin_index + index, index);  // Check for overflow.
+-    const size_t ix = begin_index + index >= capacity
+-                          ? begin_index + index - capacity
+-                          : begin_index + index;
++    const size_t ix =
++        begin_index + index - (begin_index + index >= capacity ? capacity : 0);
+     RTC_DCHECK_LT(ix, capacity);
+     return ix;
+   }

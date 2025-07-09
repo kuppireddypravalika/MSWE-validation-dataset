@@ -1,0 +1,36 @@
+From 252122b913a6e228e9ffa0827700d8ba423b68ed Mon Sep 17 00:00:00 2001
+From: Chris Lattner <sabre@nondot.org>
+Date: Sat, 28 Nov 2009 14:54:10 +0000
+Subject: [PATCH] enable code to handle un-phi-translatable cases more
+ aggressively: if we don't have an address expression available in a
+ predecessor, then model this as the value being clobbered at the end of the
+ pred block instead of being modeled as a complete phi translation failure.
+ This is important for PRE of loads because we want to see that the load is
+ available in all but this predecessor, and complete phi translation failure
+ results in not getting any information about predecessors.
+
+This doesn't do anything until I renable code insertion since PRE
+now sees that it is available in all but one predecessors, but can't
+insert the addressing in the predecessor that is missing it to
+eliminate the redundancy.
+---
+ llvm/lib/Analysis/MemoryDependenceAnalysis.cpp | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/llvm/lib/Analysis/MemoryDependenceAnalysis.cpp b/llvm/lib/Analysis/MemoryDependenceAnalysis.cpp
+index e936e9d7d9ff..9644104c490a 100644
+--- a/llvm/lib/Analysis/MemoryDependenceAnalysis.cpp
++++ b/llvm/lib/Analysis/MemoryDependenceAnalysis.cpp
+@@ -1132,12 +1132,9 @@ getNonLocalPointerDepFromBB(Value *Pointer, uint64_t PointeeSize,
+       // that predecessor.  We can still do PRE of the load, which would insert
+       // a computation of the pointer in this predecessor.
+       if (PredPtr == 0) {
+-        goto PredTranslationFailure;
+-#if 0 // TODO.
+         Result.push_back(NonLocalDepEntry(Pred,
+                               MemDepResult::getClobber(Pred->getTerminator())));
+         continue;
+-#endif
+       }
+ 
+       // FIXME: it is entirely possible that PHI translating will end up with

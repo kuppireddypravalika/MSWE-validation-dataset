@@ -1,0 +1,35 @@
+From 2ade2581e58a974a3d17ed37199a8a688ddb7846 Mon Sep 17 00:00:00 2001
+From: Javier Uruen Val <javi.uruen@gmail.com>
+Date: Sat, 20 Sep 2014 16:49:20 +0200
+Subject: [PATCH] Use variadic template instead of macro for sdo
+
+---
+ include/streams/stream_functions.h | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/include/streams/stream_functions.h b/include/streams/stream_functions.h
+index ae0d83d..b339034 100644
+--- a/include/streams/stream_functions.h
++++ b/include/streams/stream_functions.h
+@@ -17,9 +17,6 @@ typedef std::vector<Event> events_t;
+ #define WITH(EXP) \
+   create_stream([=](const Event & oe) -> events_t { auto e = oe.copy(); (EXP); return {e}; })
+ 
+-#define sdo(...) svec({__VA_ARGS__})
+-
+-
+ typedef std::function<bool(e_t)> predicate_t;
+ typedef std::function<void(Event &)> smap_fn_t;
+ typedef std::function<Event(const events_t &)> fold_fn_t;
+@@ -136,6 +133,11 @@ streams_t scale(double s);
+ 
+ streams_t svec(std::vector<streams_t> streams);
+ 
++template<class ...Ts>
++streams_t sdo(Ts... streams) {
++  return svec({streams...});
++}
++
+ streams_t counter();
+ 
+ streams_t expired();

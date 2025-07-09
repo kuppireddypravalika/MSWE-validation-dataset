@@ -1,0 +1,24 @@
+From 5f8bd44adaab322a7564855a089edf7b3247ad1b Mon Sep 17 00:00:00 2001
+From: Gabriel de Dietrich <gabriel.dedietrich@theqtcompany.com>
+Date: Tue, 5 Apr 2016 18:03:38 -0700
+Subject: [PATCH] Avoid unnecessary allocation in QClipData::setClipRegion()
+
+Change-Id: I1280a496478ec6839ac432ffd63ecea28dbb972a
+Reviewed-by: Marc Mutz <marc.mutz@kdab.com>
+---
+ src/gui/painting/qpaintengine_raster.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/gui/painting/qpaintengine_raster.cpp b/src/gui/painting/qpaintengine_raster.cpp
+index f70bef72d845..278d7bb99ef5 100644
+--- a/src/gui/painting/qpaintengine_raster.cpp
++++ b/src/gui/painting/qpaintengine_raster.cpp
+@@ -3887,7 +3887,7 @@ void QClipData::setClipRect(const QRect &rect)
+ void QClipData::setClipRegion(const QRegion &region)
+ {
+     if (region.rectCount() == 1) {
+-        setClipRect(region.rects().at(0));
++        setClipRect(region.boundingRect());
+         return;
+     }
+ 

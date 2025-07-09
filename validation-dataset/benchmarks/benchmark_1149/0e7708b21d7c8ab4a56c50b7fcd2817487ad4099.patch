@@ -1,0 +1,22 @@
+From 0e7708b21d7c8ab4a56c50b7fcd2817487ad4099 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Vicente=20Mataix=20Ferr=C3=A1ndiz?= <vmataix@cimne.upc.edu>
+Date: Sun, 24 Dec 2017 18:10:49 +0100
+Subject: [PATCH] Using bit shifting insted of std::pow(2...
+
+---
+ .../ALM_frictionless_mortar_contact_condition.h                 | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/applications/ContactStructuralMechanicsApplication/custom_conditions/ALM_frictionless_mortar_contact_condition.h b/applications/ContactStructuralMechanicsApplication/custom_conditions/ALM_frictionless_mortar_contact_condition.h
+index cba069ce669c..5e331d614b61 100644
+--- a/applications/ContactStructuralMechanicsApplication/custom_conditions/ALM_frictionless_mortar_contact_condition.h
++++ b/applications/ContactStructuralMechanicsApplication/custom_conditions/ALM_frictionless_mortar_contact_condition.h
+@@ -305,7 +305,7 @@ class AugmentedLagrangianMethodFrictionlessMortarContactCondition: public Augmen
+         unsigned int value = 0;
+         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
+             if (CurrentGeometry[i_node].Is(ACTIVE) == true)
+-                value += std::pow(2, i_node);
++                value += 1 << i_node;
+         
+         return value;
+     }

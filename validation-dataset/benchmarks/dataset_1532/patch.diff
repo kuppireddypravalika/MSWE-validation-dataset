@@ -1,0 +1,32 @@
+From 073305090693ea07973923e499b452b29d1989a5 Mon Sep 17 00:00:00 2001
+From: Fredrik Orderud <forderud@gmail.com>
+Date: Sun, 15 Apr 2018 19:22:30 +0200
+Subject: [PATCH] Simplify framerate synchronization code
+
+Don't account for variable encoding time any more, since it led to increased latency. I don't understand why though..
+---
+ Main.cpp | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/Main.cpp b/Main.cpp
+index 024529c..0b4e640 100644
+--- a/Main.cpp
++++ b/Main.cpp
+@@ -135,16 +135,11 @@ int main (int argc, char *argv[]) {
+ 
+     // encode & transmit frames
+     HRESULT hr = S_OK;
+-    auto prev_time = std::chrono::high_resolution_clock::now();
+     while (SUCCEEDED(hr)) {
+         hr = EncodeFrame(encoder, wnd_dc);
+ 
+         // synchronize framerate
+-        auto cur_time = std::chrono::high_resolution_clock::now();
+-        auto duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(cur_time - prev_time);
+-        if (duration_ms.count() < 1000/FPS)
+-            Sleep(static_cast<DWORD>(1000/FPS - duration_ms.count()));
+-        prev_time = cur_time;
++        Sleep(1000/FPS);
+     }
+ 
+     return 0;

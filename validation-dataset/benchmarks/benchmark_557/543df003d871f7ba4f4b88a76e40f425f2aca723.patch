@@ -1,0 +1,25 @@
+From 543df003d871f7ba4f4b88a76e40f425f2aca723 Mon Sep 17 00:00:00 2001
+From: can1357 <me@can.ac>
+Date: Tue, 14 Jun 2022 09:32:29 +0300
+Subject: [PATCH] Slightly faster number check, now only a single cycle.
+
+---
+ include/ir/x86-64.hpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/include/ir/x86-64.hpp b/include/ir/x86-64.hpp
+index 561f376..e0d7e58 100644
+--- a/include/ir/x86-64.hpp
++++ b/include/ir/x86-64.hpp
+@@ -257,9 +257,8 @@ namespace li::ir {
+ 			CMP(b, FLAG_Z, out, (int64_t) std::rotr(make_tag(t), 47));
+ 			b.append(vop::setcc, out, FLAG_Z);
+ 		} else if (t == type_number) {
+-			RORX(b, out, val, 47);
+-			AND(b, out, 0x1FFFF).target_info.force_size                                  = 4;
+-			CMP(b, FLAG_B, out, int64_t((make_tag(t) + 1) >> 47)).target_info.force_size = 4;
++			RORX(b, out, val, 32);
++			CMP(b, FLAG_B, out, int32_t((make_tag(t) + 1) >> 32)).target_info.force_size = 4;
+ 			b.append(vop::setcc, out, FLAG_B);
+ 		} else {
+ 			RORX(b, out, val, 47);

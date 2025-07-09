@@ -1,0 +1,28 @@
+From 4d592f96bd389a4b2d092e4d3a73abdf46a6a575 Mon Sep 17 00:00:00 2001
+From: Harald Reingruber <hr@viewar.com>
+Date: Fri, 26 Feb 2016 18:41:07 +0100
+Subject: [PATCH] suppress writing log to Emscripten virtual FS, improves
+ performance
+
+---
+ OgreMain/src/OgreRoot.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/OgreMain/src/OgreRoot.cpp b/OgreMain/src/OgreRoot.cpp
+index b813d96cf97..e07bdceb43c 100644
+--- a/OgreMain/src/OgreRoot.cpp
++++ b/OgreMain/src/OgreRoot.cpp
+@@ -144,7 +144,13 @@ namespace Ogre {
+         if(LogManager::getSingletonPtr() == 0)
+         {
+             mLogManager = OGRE_NEW LogManager();
++
++#if OGRE_PLATFORM == OGRE_PLATFORM_EMSCRIPTEN
++            // suppress writing log to Emscripten virtual FS, improves performance
++            mLogManager->createLog(logFileName, true, true, true);
++#else
+             mLogManager->createLog(logFileName, true, true);
++#endif
+         }
+ 
+ #if OGRE_PLATFORM == OGRE_PLATFORM_ANDROID

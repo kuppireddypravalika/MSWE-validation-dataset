@@ -1,0 +1,33 @@
+From 316bc3cf4fc872a63f917b6919cc17e1028f8a5f Mon Sep 17 00:00:00 2001
+From: Frank Warmerdam <warmerdam@pobox.com>
+Date: Tue, 24 Jun 2008 21:36:10 +0000
+Subject: [PATCH] avoid reducing array sizes if writing them in random order
+ (https://trac.osgeo.org/gdal/ticket/2427)
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@14761 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/frmts/hfa/hfafield.cpp | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/gdal/frmts/hfa/hfafield.cpp b/gdal/frmts/hfa/hfafield.cpp
+index c96bef1ec1f9..023c25d726a2 100644
+--- a/gdal/frmts/hfa/hfafield.cpp
++++ b/gdal/frmts/hfa/hfafield.cpp
+@@ -407,9 +407,15 @@ HFAField::SetInstValue( const char * pszField, int nIndexValue,
+             return CE_Failure;
+         }
+ 
+-        nOffset = nCount;
++        // we will update the object count iff we are writing beyond the end
++        memcpy( &nOffset, pabyData, 4 );
+         HFAStandard( 4, &nOffset );
+-        memcpy( pabyData, &nOffset, 4 );
++        if( nOffset < nCount )
++        {
++            nOffset = nCount;
++            HFAStandard( 4, &nOffset );
++            memcpy( pabyData, &nOffset, 4 );
++        }
+ 
+         if( pValue == NULL )
+             nOffset = 0;

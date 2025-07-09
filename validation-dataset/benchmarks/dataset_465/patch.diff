@@ -1,0 +1,22 @@
+From 765e3d9a4fa4727a152b96762041010baeefb361 Mon Sep 17 00:00:00 2001
+From: Aaron van Geffen <aaron@aaronweb.net>
+Date: Mon, 30 Oct 2017 16:31:03 +0100
+Subject: [PATCH] Remove unnecessary ceil call
+
+---
+ src/openrct2/interface/console.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/openrct2/interface/console.c b/src/openrct2/interface/console.c
+index ca9af2fb81c6..a1515840b362 100644
+--- a/src/openrct2/interface/console.c
++++ b/src/openrct2/interface/console.c
+@@ -413,7 +413,7 @@ void console_scroll(sint32 linesToScroll)
+ // Calculates the amount of visible lines, based on the console size, excluding the input line.
+ static sint32 console_get_num_visible_lines()
+ {
+-    return ceil((_consoleBottom - _consoleTop) / font_get_line_height(gCurrentFontSpriteBase)) - 1;
++    return ((_consoleBottom - _consoleTop) / font_get_line_height(gCurrentFontSpriteBase)) - 1;
+ }
+ 
+ void console_clear()

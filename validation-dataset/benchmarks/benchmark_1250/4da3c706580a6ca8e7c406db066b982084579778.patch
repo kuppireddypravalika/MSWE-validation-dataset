@@ -1,0 +1,31 @@
+From 4da3c706580a6ca8e7c406db066b982084579778 Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@intel.com>
+Date: Thu, 21 Sep 2017 20:12:19 +0000
+Subject: [PATCH] [DAGCombiner] Slightly simplify some code by using
+ APInt::isMask() and countTrailingOnes instead of getting active bits and
+ checking if all the bits below that make a mask.
+
+At least for the 64-bit and less case, we should be able to determine if we even have a mask without counting any bits. This also removes the need to explicitly check for 0 active bits, isMask will return false for 0.
+---
+ llvm/lib/CodeGen/SelectionDAG/DAGCombiner.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/llvm/lib/CodeGen/SelectionDAG/DAGCombiner.cpp b/llvm/lib/CodeGen/SelectionDAG/DAGCombiner.cpp
+index d9b56bfa8974..7b499c2e43b2 100644
+--- a/llvm/lib/CodeGen/SelectionDAG/DAGCombiner.cpp
++++ b/llvm/lib/CodeGen/SelectionDAG/DAGCombiner.cpp
+@@ -3666,11 +3666,11 @@ SDValue DAGCombiner::visitANDLike(SDValue N0, SDValue N1, SDNode *N) {
+ bool DAGCombiner::isAndLoadExtLoad(ConstantSDNode *AndC, LoadSDNode *LoadN,
+                                    EVT LoadResultTy, EVT &ExtVT, EVT &LoadedVT,
+                                    bool &NarrowLoad) {
+-  uint32_t ActiveBits = AndC->getAPIntValue().getActiveBits();
+-
+-  if (ActiveBits == 0 || !AndC->getAPIntValue().isMask(ActiveBits))
++  if (!AndC->getAPIntValue().isMask())
+     return false;
+ 
++  unsigned ActiveBits = AndC->getAPIntValue().countTrailingOnes();
++
+   ExtVT = EVT::getIntegerVT(*DAG.getContext(), ActiveBits);
+   LoadedVT = LoadN->getMemoryVT();
+ 

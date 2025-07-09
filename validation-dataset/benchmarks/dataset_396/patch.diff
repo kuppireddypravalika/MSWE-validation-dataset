@@ -1,0 +1,23 @@
+From 0869a8edf5ab44d08e0406a9a26d60053b268472 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bj=C3=B8rn=20Erik=20Jensen?= <bjorn.erik.jensen@acando.no>
+Date: Fri, 22 Dec 2017 13:39:31 +0100
+Subject: [PATCH] #2120 Perforations import. Lookup well path by fuzzy method
+ instead of exact name match
+
+---
+ .../RicWellPathImportPerforationIntervalsFeature.cpp            | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ApplicationCode/Commands/CompletionCommands/RicWellPathImportPerforationIntervalsFeature.cpp b/ApplicationCode/Commands/CompletionCommands/RicWellPathImportPerforationIntervalsFeature.cpp
+index 3dcc3added4..8c14b4ff9ba 100644
+--- a/ApplicationCode/Commands/CompletionCommands/RicWellPathImportPerforationIntervalsFeature.cpp
++++ b/ApplicationCode/Commands/CompletionCommands/RicWellPathImportPerforationIntervalsFeature.cpp
+@@ -73,7 +73,7 @@ void RicWellPathImportPerforationIntervalsFeature::onActionTriggered(bool isChec
+ 
+     for (auto& entry : perforationIntervals)
+     {
+-        RimWellPath* wellPath = wellPathCollection->wellPathByName(entry.first);
++        RimWellPath* wellPath = wellPathCollection->tryFindMatchingWellPath(entry.first);
+         if (wellPath == nullptr)
+         {
+             RiaLogging::warning(QString("Import Well Path Perforation Intervals : Imported file contains unknown well path '%1'.").arg(entry.first));

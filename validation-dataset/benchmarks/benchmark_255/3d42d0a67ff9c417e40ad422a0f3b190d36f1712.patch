@@ -1,0 +1,23 @@
+From 3d42d0a67ff9c417e40ad422a0f3b190d36f1712 Mon Sep 17 00:00:00 2001
+From: Quentin Colombet <qcolombet@apple.com>
+Date: Fri, 13 Oct 2017 21:16:14 +0000
+Subject: [PATCH] [Legalizer] Use SmallSetVector instead of SetVector.
+
+NFC
+---
+ llvm/lib/CodeGen/GlobalISel/Legalizer.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/llvm/lib/CodeGen/GlobalISel/Legalizer.cpp b/llvm/lib/CodeGen/GlobalISel/Legalizer.cpp
+index a9847dea3cee..83e5dc4025d0 100644
+--- a/llvm/lib/CodeGen/GlobalISel/Legalizer.cpp
++++ b/llvm/lib/CodeGen/GlobalISel/Legalizer.cpp
+@@ -70,7 +70,7 @@ bool Legalizer::runOnMachineFunction(MachineFunction &MF) {
+   // convergence for performance reasons.
+   bool Changed = false;
+   MachineBasicBlock::iterator NextMI;
+-  using VecType = SetVector<MachineInstr *, SmallVector<MachineInstr *, 8>>;
++  using VecType = SmallSetVector<MachineInstr *, 8>;
+   VecType WorkList;
+   VecType CombineList;
+   for (auto &MBB : MF) {

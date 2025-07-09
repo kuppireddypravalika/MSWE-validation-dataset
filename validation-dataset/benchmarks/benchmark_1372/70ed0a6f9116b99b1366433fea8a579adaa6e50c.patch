@@ -1,0 +1,28 @@
+From 70ed0a6f9116b99b1366433fea8a579adaa6e50c Mon Sep 17 00:00:00 2001
+From: "cd@webrtc.org" <cd@webrtc.org@4adac7df-926f-26a2-2b94-8c16560cd09d>
+Date: Thu, 5 Apr 2012 00:38:55 +0000
+Subject: [PATCH] No casting and call lower precision trigonometric functions:
+ * 2.2% AEC overall speedup for the straight C path. * 2.4% AEC overall
+ speedup for the SSE2 path. Review URL:
+ https://webrtc-codereview.appspot.com/477002
+
+git-svn-id: http://webrtc.googlecode.com/svn/trunk@1989 4adac7df-926f-26a2-2b94-8c16560cd09d
+---
+ src/modules/audio_processing/aec/aec_core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/modules/audio_processing/aec/aec_core.c b/src/modules/audio_processing/aec/aec_core.c
+index 93ec26b0d..c5ec5592f 100644
+--- a/src/modules/audio_processing/aec/aec_core.c
++++ b/src/modules/audio_processing/aec/aec_core.c
+@@ -1227,8 +1227,8 @@ static void ComfortNoise(aec_t *aec, float efw[2][PART_LEN1],
+         tmp = pi2 * rand[i - 1];
+ 
+         noise = sqrtf(noisePow[i]);
+-        u[i][0] = noise * (float)cos(tmp);
+-        u[i][1] = -noise * (float)sin(tmp);
++        u[i][0] = noise * cosf(tmp);
++        u[i][1] = -noise * sinf(tmp);
+     }
+     u[PART_LEN][1] = 0;
+ 

@@ -1,0 +1,26 @@
+From 4e95c30e803c2f80651b9c3235b6c0a75b35eba2 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Fla=CC=81vio=20Cruz?= <flaviocruz@gmail.com>
+Date: Fri, 29 Apr 2011 16:14:27 +0100
+Subject: [PATCH] For MPI use 1 thread by default.
+
+---
+ meld.cpp | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/meld.cpp b/meld.cpp
+index 3907d5f3..2a3a4e5b 100644
+--- a/meld.cpp
++++ b/meld.cpp
+@@ -80,7 +80,11 @@ main(int argc, char **argv)
+       help();
+ 
+    if (num_threads == 0)
+-      num_threads = number_cpus();
++#ifdef COMPILE_MPI
++	   num_threads = 1;
++#else
++	   num_threads = number_cpus();
++#endif
+ 
+    try {
+ #ifdef COMPILE_MPI

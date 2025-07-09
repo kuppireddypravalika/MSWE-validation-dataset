@@ -1,0 +1,48 @@
+From 2feab45f7b8717ef3502bda9804ae6c604d2b7d5 Mon Sep 17 00:00:00 2001
+From: HannesSommer <hannes.sommer@mavt.ethz.ch>
+Date: Wed, 31 Jul 2013 17:42:53 +0200
+Subject: [PATCH] * improved finite differences eps and threshold values -
+ possible thanks to numerical improvements in
+ sm_kinematics::quaternion_algebra
+
+---
+ aslam_splines/test/TestOPTBSpline.cpp | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/aslam_splines/test/TestOPTBSpline.cpp b/aslam_splines/test/TestOPTBSpline.cpp
+index ec8a014..a84f653 100644
+--- a/aslam_splines/test/TestOPTBSpline.cpp
++++ b/aslam_splines/test/TestOPTBSpline.cpp
+@@ -27,6 +27,9 @@ using namespace aslam::splines;
+ using namespace bsplines;
+ using namespace std;
+ 
++const double JACOBIAN_THRESHOLD = 1E-5;
++const double JACOBIAN_EPS = 1E-8;
++
+ const int numSegments = 3, numberOfTimesToProbe = 10;
+ const double tmin = 0;
+ const double tmax = numSegments / 2.0;
+@@ -141,7 +144,7 @@ struct OPTSplineTester{
+ 
+ 				{
+ 					SCOPED_TRACE("");
+-					testJacobian(expression, false, 1E-3, 1E-6);
++					testJacobian(expression, false, JACOBIAN_THRESHOLD, JACOBIAN_EPS);
+ 				}
+ 
+ 				OPTSplineSpecializationTester<TSplineMap, ISplineOrder, IDim>::test(bspline, t);
+@@ -188,11 +191,11 @@ struct OPTSplineSpecializationTester<UnitQuaternionBSpline<IEigenSplineOrder>, I
+ 
+ 		{
+ 			SCOPED_TRACE("");
+-			testJacobian(avexpression, false, 1E-3, 1E-6);
++			testJacobian(avexpression, false, JACOBIAN_THRESHOLD, JACOBIAN_EPS);
+ 		}
+ 		{
+ 			SCOPED_TRACE("");
+-			testJacobian(aaexpression, false, 1E-3, 1E-6);
++			testJacobian(aaexpression, false, JACOBIAN_THRESHOLD, JACOBIAN_EPS);
+ 		}
+ 	}
+ };

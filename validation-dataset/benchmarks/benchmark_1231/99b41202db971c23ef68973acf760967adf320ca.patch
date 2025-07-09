@@ -1,0 +1,39 @@
+From 99b41202db971c23ef68973acf760967adf320ca Mon Sep 17 00:00:00 2001
+From: Rafael Espindola <rafael.espindola@gmail.com>
+Date: Fri, 6 Apr 2018 20:53:06 +0000
+Subject: [PATCH] Avoid some temporary allocations.
+
+Some system libraries have a lot of versioned symbols. When linking
+scylla this brings the number of malloc calls from 49154 to 37944.
+---
+ lld/ELF/InputFiles.cpp | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/lld/ELF/InputFiles.cpp b/lld/ELF/InputFiles.cpp
+index 4b7649b12d20..6a7350c1e8da 100644
+--- a/lld/ELF/InputFiles.cpp
++++ b/lld/ELF/InputFiles.cpp
+@@ -906,6 +906,11 @@ template <class ELFT> void SharedFile<ELFT>::parseRest() {
+   std::vector<uint32_t> Versyms = parseVersyms(); // parse .gnu.version
+   ArrayRef<Elf_Shdr> Sections = CHECK(this->getObj().sections(), this);
+ 
++  // System libraries can have a lot of symbols with versions. Using a
++  // fixed buffer for computing the versions name (foo@ver) can save a
++  // lot of allocations.
++  SmallString<0> VersionedNameBuffer;
++
+   // Add symbols to the symbol table.
+   ArrayRef<Elf_Sym> Syms = this->getGlobalELFSyms();
+   for (size_t I = 0; I < Syms.size(); ++I) {
+@@ -956,8 +961,9 @@ template <class ELFT> void SharedFile<ELFT>::parseRest() {
+ 
+     StringRef VerName =
+         this->StringTable.data() + Verdefs[Idx]->getAux()->vda_name;
+-    Name = Saver.save(Name + "@" + VerName);
+-    Symtab->addShared(Name, *this, Sym, Alignment, Idx);
++    VersionedNameBuffer.clear();
++    Name = (Name + "@" + VerName).toStringRef(VersionedNameBuffer);
++    Symtab->addShared(Saver.save(Name), *this, Sym, Alignment, Idx);
+   }
+ }
+ 

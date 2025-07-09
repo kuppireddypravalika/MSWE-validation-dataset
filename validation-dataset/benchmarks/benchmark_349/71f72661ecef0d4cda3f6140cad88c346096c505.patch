@@ -1,0 +1,33 @@
+From 71f72661ecef0d4cda3f6140cad88c346096c505 Mon Sep 17 00:00:00 2001
+From: Frank Warmerdam <warmerdam@pobox.com>
+Date: Fri, 14 Sep 2001 17:05:39 +0000
+Subject: [PATCH] Used strrchr() instead of rindex().
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@2469 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ frmts/fits/fitsdataset.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/frmts/fits/fitsdataset.cpp b/frmts/fits/fitsdataset.cpp
+index 9a6d07cd0274..c6c6ecedde7d 100644
+--- a/frmts/fits/fitsdataset.cpp
++++ b/frmts/fits/fitsdataset.cpp
+@@ -28,6 +28,9 @@
+  ******************************************************************************
+  *
+  * $Log$
++ * Revision 1.6  2001/09/14 17:05:39  warmerda
++ * Used strrchr() instead of rindex().
++ *
+  * Revision 1.5  2001/07/18 04:51:56  warmerda
+  * added CPL_CVSID
+  *
+@@ -468,7 +471,7 @@ CPLErr FITSDataset::Init(fitsfile* hFITS_, bool isExistingFile_) {
+ 	value[strlen(value) - 1] = '\0';
+       }
+       // Check for long string
+-      if (rindex(newValue, '&') == newValue + strlen(newValue) - 1) {
++      if (strrchr(newValue, '&') == newValue + strlen(newValue) - 1) {
+ 	// Value string ends in "&", so use long string conventions
+ 	char* longString = 0;
+ 	fits_read_key_longstr(hFITS, key, &longString, 0, &status);

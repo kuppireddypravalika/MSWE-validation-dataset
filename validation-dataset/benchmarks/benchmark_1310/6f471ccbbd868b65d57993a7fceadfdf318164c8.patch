@@ -1,0 +1,35 @@
+From 6f471ccbbd868b65d57993a7fceadfdf318164c8 Mon Sep 17 00:00:00 2001
+From: senquack <dansilsby@gmail.com>
+Date: Sat, 13 May 2017 12:01:51 -0400
+Subject: [PATCH] mipsrec: Optimize emitBxx() bpc handling
+
+For bpc branch target address, use LI32() to load it,
+as it is now more intelligent and uses only one instruction
+when immediate value being loaded is <= 0xffff.
+---
+ src/recompiler/mips/rec_bcu.cpp.h | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/src/recompiler/mips/rec_bcu.cpp.h b/src/recompiler/mips/rec_bcu.cpp.h
+index d9392a43..0c0a099a 100644
+--- a/src/recompiler/mips/rec_bcu.cpp.h
++++ b/src/recompiler/mips/rec_bcu.cpp.h
+@@ -231,15 +231,14 @@ static void emitBxx(u32 bpc)
+ 	//  in either branch path after this point can assume it is now loaded.
+ 	// NOTE: rec_recompile_end_part1() will only emit an instruction if $ra
+ 	//       is not already loaded, so ensure that next instruction emitted
+-	//       after part1() is also safe to put in BD slot.
+-	rec_recompile_end_part1(); /* <BD (MAYBE)> */
++	//       after rec_recompile_end_part1() is also safe to put in BD slot.
++	rec_recompile_end_part1(); /* <BD> (MAYBE) */
+ 	block_ra_loaded = 1;
+ 
+ 	// If rec_recompile_end_part1() did not emit an instruction, this is BD slot:
+-	LUI(TEMP_1, (bpc >> 16));  /* <BD (MAYBE) */
++	LI32(MIPSREG_V0, bpc);  /* <BD> (MAYBE) */
+ 
+ 	regClearBranch();
+-	ORI(MIPSREG_V0, TEMP_1, (bpc & 0xffff));
+ 
+ 	rec_recompile_end_part2();
+ 

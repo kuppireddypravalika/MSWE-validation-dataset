@@ -1,0 +1,23 @@
+From dc263efb2b888fd6fa473fe4205268ea5d996b21 Mon Sep 17 00:00:00 2001
+From: Erik Garrison <erik.garrison@gmail.com>
+Date: Sun, 1 Feb 2015 17:56:55 +0000
+Subject: [PATCH] single-threaded load into the db
+
+This seems to be about as good as it gets.
+---
+ vg_set.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/vg_set.cpp b/vg_set.cpp
+index 2d8bf339c9f..b1f02dc608b 100644
+--- a/vg_set.cpp
++++ b/vg_set.cpp
+@@ -135,7 +135,7 @@ void VGset::index_kmers(Index& index, int kmer_size, int edge_max, int stride) {
+ 
+         g->create_progress("indexing kmers " + g->name, total_buffers);
+         int written_buffers = 0;
+-#pragma omp parallel for schedule(dynamic)
++//#pragma omp parallel for schedule(dynamic)
+         for (int tid = 0; tid < written_buffer_count.size(); ++tid) {
+             int count = written_buffer_count[tid];
+             for (int i = 0; i < count; ++ i) {

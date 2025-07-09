@@ -1,0 +1,27 @@
+From 9589f84180671bbf395ce28396d9e8fe09d562e0 Mon Sep 17 00:00:00 2001
+From: Rafael Espindola <rafael.espindola@gmail.com>
+Date: Wed, 6 Dec 2017 18:39:22 +0000
+Subject: [PATCH] Don't allocate memory for an error message on success.
+
+This takes memory allocations when linking clang-fsds from 342.08MB to
+320.04MB.
+---
+ lld/ELF/InputFiles.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/lld/ELF/InputFiles.cpp b/lld/ELF/InputFiles.cpp
+index a4ef07c92a78..de33431697ac 100644
+--- a/lld/ELF/InputFiles.cpp
++++ b/lld/ELF/InputFiles.cpp
+@@ -642,7 +642,10 @@ template <class ELFT> Symbol *ObjFile<ELFT>::createSymbol(const Elf_Sym *Sym) {
+     return make<Defined>(this, Name, Binding, StOther, Type, Value, Size, Sec);
+   }
+ 
+-  StringRef Name = check(Sym->getName(this->StringTable), toString(this));
++  auto NameOrErr = Sym->getName(this->StringTable);
++  if (!NameOrErr)
++    fatal(toString(this) + ": " + toString(NameOrErr.takeError()));
++  StringRef Name = *NameOrErr;
+ 
+   switch (Sym->st_shndx) {
+   case SHN_UNDEF:

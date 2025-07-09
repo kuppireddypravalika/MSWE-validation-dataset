@@ -1,0 +1,21 @@
+From b236f056de2ac8672c0ce819ff4bc8bcb068811f Mon Sep 17 00:00:00 2001
+From: OpenCppCoverage <OpenCppCoverage@gmail.com>
+Date: Sun, 17 Sep 2017 12:44:50 +0200
+Subject: [PATCH] Improve performance of CommandLineOptionsTest.
+
+---
+ OpenCppCoverageTest/CommandLineOptionsTest.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/OpenCppCoverageTest/CommandLineOptionsTest.cpp b/OpenCppCoverageTest/CommandLineOptionsTest.cpp
+index 4d1f5fa3..4bb8b208 100644
+--- a/OpenCppCoverageTest/CommandLineOptionsTest.cpp
++++ b/OpenCppCoverageTest/CommandLineOptionsTest.cpp
+@@ -66,6 +66,7 @@ namespace OpenCppCoverageTest
+ 			{
+ 				if (useSourceInSolutionDir)
+ 					coverageArguments.push_back({ cov::ProgramOptions::SelectedSourcesOption, GetSolutionFolderName()});
++				coverageArguments.push_back({ cov::ProgramOptions::ExcludedSourcesOption, "packages" });
+ 				AddDefaultHtmlExport(coverageArguments, GetTempPath());
+ 				coverageArguments.emplace_back(cov::ProgramOptions::QuietOption, "");
+ 				int exitCode = RunCoverageFor(coverageArguments, testCoverageConsole, {});

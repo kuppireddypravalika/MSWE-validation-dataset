@@ -1,0 +1,30 @@
+From 6c7f79781f46e890c91da2b0e95f558345799b70 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Devernay?= <frederic.devernay@m4x.org>
+Date: Mon, 3 Feb 2014 18:15:03 +0100
+Subject: [PATCH] ViewerGL: don't cast to int: use ceil() and floor(), and
+ don't forget the last row/column
+
+---
+ Gui/ViewerGL.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/Gui/ViewerGL.cpp b/Gui/ViewerGL.cpp
+index 71fcbb3f40..44bfcb9305 100644
+--- a/Gui/ViewerGL.cpp
++++ b/Gui/ViewerGL.cpp
+@@ -876,11 +876,11 @@ double ViewerGL::getZoomFactor()
+ RectI ViewerGL::getImageRectangleDisplayed(const RectI& imageRoD) {
+     RectI ret;
+     QPointF topLeft = toImgCoordinates_fast(0, 0);
+-    ret.x1 = topLeft.x();
+-    ret.y2 = topLeft.y();
++    ret.x1 = std::floor(topLeft.x());
++    ret.y2 = std::ceil(topLeft.y());
+     QPointF bottomRight = toImgCoordinates_fast(width()-1, height()-1);
+-    ret.x2 = bottomRight.x();
+-    ret.y1 = bottomRight.y();
++    ret.x2 = std::ceil(bottomRight.x());
++    ret.y1 = std::floor(bottomRight.y());
+     if(!ret.intersect(imageRoD, &ret)){
+         ret.clear();
+     }

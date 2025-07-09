@@ -1,0 +1,30 @@
+From d1e7e5cd7d5eb601541dcc4860ce11a63048d35d Mon Sep 17 00:00:00 2001
+From: Simon Hausmann <simon.hausmann@qt.io>
+Date: Fri, 5 Jan 2018 14:55:44 +0100
+Subject: [PATCH] Minor cleanup in byte code instruction compression
+
+Once we have identified that an instruction needs to be encoded in wide
+format, we do not inspect the remaining arguments any further.
+
+Change-Id: I0164acedc68b28bd95f9aab0c0fd1702a59de90d
+Reviewed-by: Lars Knoll <lars.knoll@qt.io>
+---
+ src/qml/compiler/qv4bytecodegenerator.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/qml/compiler/qv4bytecodegenerator.cpp b/src/qml/compiler/qv4bytecodegenerator.cpp
+index 03105d2b71a..0becabe95f6 100644
+--- a/src/qml/compiler/qv4bytecodegenerator.cpp
++++ b/src/qml/compiler/qv4bytecodegenerator.cpp
+@@ -82,8 +82,10 @@ void BytecodeGenerator::packInstruction(I &i)
+         Wide
+     } width = Normal;
+     for (int n = 0; n < nMembers; ++n) {
+-        if (width == Normal && (static_cast<qint8>(instructionsAsInts[n]) != instructionsAsInts[n]))
++        if (width == Normal && (static_cast<qint8>(instructionsAsInts[n]) != instructionsAsInts[n])) {
+             width = Wide;
++            break;
++        }
+     }
+     char *code = i.packed;
+     switch (width) {

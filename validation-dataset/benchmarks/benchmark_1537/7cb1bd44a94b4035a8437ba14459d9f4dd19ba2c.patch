@@ -1,0 +1,24 @@
+From 7cb1bd44a94b4035a8437ba14459d9f4dd19ba2c Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Wed, 30 Dec 2015 12:18:58 +0000
+Subject: [PATCH] GDALRasterBand::GetLockedBlockRef(): avoid (normally
+ harmless) int32 overflow to occur, so as to please afl-clang-fast
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@32534 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/gcore/gdalrasterband.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gdal/gcore/gdalrasterband.cpp b/gdal/gcore/gdalrasterband.cpp
+index 06d8b10cb63e..02837f449af5 100644
+--- a/gdal/gcore/gdalrasterband.cpp
++++ b/gdal/gcore/gdalrasterband.cpp
+@@ -1145,7 +1145,7 @@ GDALRasterBlock * GDALRasterBand::GetLockedBlockRef( int nXBlockOff,
+         if( !bJustInitialize )
+         {
+             nBlockReads++;
+-            if( nBlockReads == nBlocksPerRow * nBlocksPerColumn + 1 
++            if( static_cast<GIntBig>(nBlockReads) == static_cast<GIntBig>(nBlocksPerRow) * nBlocksPerColumn + 1 
+                 && nBand == 1 && poDS != NULL )
+             {
+                 CPLDebug( "GDAL", "Potential thrashing on band %d of %s.",

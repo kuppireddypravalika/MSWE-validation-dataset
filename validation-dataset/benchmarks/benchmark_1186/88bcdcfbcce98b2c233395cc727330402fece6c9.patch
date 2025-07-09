@@ -1,0 +1,37 @@
+From 88bcdcfbcce98b2c233395cc727330402fece6c9 Mon Sep 17 00:00:00 2001
+From: Jorge Arevalo <jorgearevalo@gis4free.org>
+Date: Wed, 21 Sep 2011 00:24:08 +0000
+Subject: [PATCH] When data decimation / replication needed,
+ PostGISRasterDataset::IRasterIO delegates in GDALDataset::IRasterIO (speed
+ performance lost). It's a TODO task.
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@23099 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/frmts/postgisraster/postgisrasterdataset.cpp | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/gdal/frmts/postgisraster/postgisrasterdataset.cpp b/gdal/frmts/postgisraster/postgisrasterdataset.cpp
+index 05b6dd45779e..91e6ab108ec5 100644
+--- a/gdal/frmts/postgisraster/postgisrasterdataset.cpp
++++ b/gdal/frmts/postgisraster/postgisrasterdataset.cpp
+@@ -810,6 +810,20 @@ CPLErr PostGISRasterDataset::IRasterIO(GDALRWFlag eRWFlag,
+                 "PostGIS Raster does not support writing");
+         return CE_Failure;
+     }
++    
++    /**
++     * TODO: Data decimation / replication needed 
++     */
++    if (nBufXSize != nXSize || nBufYSize != nYSize) 
++    {
++        /**
++         * This will cause individual IReadBlock calls
++         *             
++         */
++        return GDALDataset::IRasterIO(eRWFlag, nXOff, nYOff, nXSize, nYSize,
++                pData, nBufXSize, nBufYSize, eBufType, nBandCount,
++                panBandMap, nPixelSpace, nLineSpace, nBandSpace);
++    }
+ 
+     /**************************************************************************
+      * In the first call, we fetch the data from database and store it as

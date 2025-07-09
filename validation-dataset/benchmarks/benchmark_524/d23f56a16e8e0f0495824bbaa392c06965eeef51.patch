@@ -1,0 +1,27 @@
+From d23f56a16e8e0f0495824bbaa392c06965eeef51 Mon Sep 17 00:00:00 2001
+From: Andy Cedilnik <andy.cedilnik@kitware.com>
+Date: Mon, 21 Apr 2003 15:49:23 -0400
+Subject: [PATCH] ENH: On unix compile faster, since make will make sure that
+ all dependencies are met. javac *.java will compile all files in one shot,
+ which will be faster than calling javac on every java file
+
+---
+ CMake/cmVTKGenerateJavaDependencies.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/CMake/cmVTKGenerateJavaDependencies.c b/CMake/cmVTKGenerateJavaDependencies.c
+index e452fd2a9af..8bcc9d3098b 100644
+--- a/CMake/cmVTKGenerateJavaDependencies.c
++++ b/CMake/cmVTKGenerateJavaDependencies.c
+@@ -85,6 +85,11 @@ static int InitialPass(void *inf, void *mf, int argc, char *argv[])
+     sprintf(className,"%s/%s.class",srcPath,srcNameWe);
+     
+     args[2] = strdup(srcName);
++
++#ifndef _WIN32
++    /* On Unix we can just call javac ... *.java */
++    sprintf(args[2], "%s/*.java", srcPath);
++#endif
+     info->CAPI->AddCustomCommand(mf, srcName, javac, 3, (const char**)args, 
+                                  0, 0, 1, (const char**)&className, target);
+     

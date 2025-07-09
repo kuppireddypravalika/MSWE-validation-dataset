@@ -1,0 +1,51 @@
+From 2b725bfc7e0751a8d5067e813b147c7d003c3ab9 Mon Sep 17 00:00:00 2001
+From: jloy <jloy@users.noreply.github.com>
+Date: Tue, 14 Nov 2023 12:14:19 -0800
+Subject: [PATCH] tf: register type cast functions without intermediate list
+
+Previously, Tf_AddBases::RegisterCasts built an initializer list just
+so that we could use parameter pack expansion to generate the
+type_info and cast function correspondence without recursively
+processing type list.  With C++ 17, we can expand the per-type calls
+to _AddCppCastFunc directly with a fold expression.
+
+(Internal change: 2304430)
+---
+ pxr/base/tf/type_Impl.h | 17 ++---------------
+ 1 file changed, 2 insertions(+), 15 deletions(-)
+
+diff --git a/pxr/base/tf/type_Impl.h b/pxr/base/tf/type_Impl.h
+index f7ff397d34..e5e923a925 100644
+--- a/pxr/base/tf/type_Impl.h
++++ b/pxr/base/tf/type_Impl.h
+@@ -26,8 +26,6 @@
+ 
+ #include "pxr/base/tf/mallocTag.h"
+ 
+-#include <initializer_list>
+-
+ PXR_NAMESPACE_OPEN_SCOPE
+ 
+ template <class DERIVED, class BASE>
+@@ -57,19 +55,8 @@ struct Tf_AddBases<TfType::Bases<Bases...>>
+     static void
+     RegisterCasts(TfType const* type)
+     {
+-        struct Cast
+-        {
+-            const std::type_info *typeInfo;
+-            TfType::_CastFunction func;
+-        };
+-
+-        const std::initializer_list<Cast> baseCasts = {
+-            { &typeid(Bases), &Tf_CastToParent<Derived, Bases> }...
+-        };
+-
+-        for (const Cast &cast : baseCasts) {
+-            type->_AddCppCastFunc(*cast.typeInfo, cast.func);
+-        }
++        (type->_AddCppCastFunc(
++            typeid(Bases), &Tf_CastToParent<Derived, Bases>), ...);
+     }
+ };
+ 

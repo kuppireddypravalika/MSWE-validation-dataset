@@ -1,0 +1,31 @@
+From dfc89d50a5b935fe50aa37f1b10c7c403c762095 Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Sun, 7 Nov 2021 04:19:54 -0700
+Subject: [PATCH] Use a single lambda to generate random points
+
+This is a littl emore clear, and noticeably faster when a large number
+of mines are generated. For instance, multiply mineCount by 100000.
+---
+ OPHD/Map/TileMap.cpp | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/OPHD/Map/TileMap.cpp b/OPHD/Map/TileMap.cpp
+index 110920471..b20f68c81 100644
+--- a/OPHD/Map/TileMap.cpp
++++ b/OPHD/Map/TileMap.cpp
+@@ -89,9 +89,12 @@ namespace {
+ 
+ 	std::vector<NAS2D::Point<int>> generateMineLocations(NAS2D::Vector<int> mapSize, std::size_t mineCount)
+ 	{
+-		auto mwidth = std::bind(&RandomNumberGenerator::generate<int>, &randomNumber, 5, mapSize.x - 5);
+-		auto mheight = std::bind(&RandomNumberGenerator::generate<int>, &randomNumber, 5, mapSize.y - 5);
+-		auto randPoint = [&mwidth, &mheight]() { return NAS2D::Point{mwidth(), mheight()}; };
++		auto randPoint = [mapSize]() {
++			return NAS2D::Point{
++				randomNumber.generate<int>(5, mapSize.x - 5),
++				randomNumber.generate<int>(5, mapSize.y - 5)
++			};
++		};
+ 
+ 		std::vector<NAS2D::Point<int>> locations;
+ 		locations.reserve(mineCount);

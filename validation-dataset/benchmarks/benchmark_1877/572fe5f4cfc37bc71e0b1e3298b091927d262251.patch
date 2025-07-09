@@ -1,0 +1,28 @@
+From 572fe5f4cfc37bc71e0b1e3298b091927d262251 Mon Sep 17 00:00:00 2001
+From: buzbee <buzbee@google.com>
+Date: Tue, 10 Aug 2010 15:50:34 -0700
+Subject: [PATCH] JIT: Correct conversion of cb[n]z to cmp/cond_br pair
+
+This fixes the regression introduced in the fast assembly retry
+that was causing excessive bailouts.  The good news is that with
+this fix, we're seeing a ~5% boost in Linpack because of the
+cb[n]z usage.
+
+Change-Id: Ib4a48dcba809af4343456eae49a90b4a1e3aee9d
+---
+ vm/compiler/codegen/arm/Assemble.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/vm/compiler/codegen/arm/Assemble.c b/vm/compiler/codegen/arm/Assemble.c
+index 226a942da..4f54f1ebe 100644
+--- a/vm/compiler/codegen/arm/Assemble.c
++++ b/vm/compiler/codegen/arm/Assemble.c
+@@ -985,7 +985,7 @@ static AssemblerStatus assembleInstructions(CompilationUnit *cUnit,
+                 dvmCompilerInsertLIRAfter((LIR *)lir, (LIR *)newInst);
+                 /* Convert the cb[n]z to a cmp rx, #0 ] */
+                 lir->opCode = kThumbCmpRI8;
+-                lir->operands[0] = lir->operands[1];
++                /* operand[0] is src1 in both cb[n]z & CmpRI8 */
+                 lir->operands[1] = 0;
+                 lir->generic.target = 0;
+                 dvmCompilerSetupResourceMasks(lir);

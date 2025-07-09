@@ -1,0 +1,35 @@
+From 26effb7178df0ca235647a836017a7c32ac79aa2 Mon Sep 17 00:00:00 2001
+From: Martin Preisler <mpreisle@redhat.com>
+Date: Thu, 30 Jan 2014 12:31:57 +0100
+Subject: [PATCH] Sleep while waiting for the user to close diagnostics dialog
+ when opening a file
+
+Makes the application respond with a tiny delay but avoids workbench
+using a lot of CPU time.
+---
+ src/MainWindow.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/MainWindow.cpp b/src/MainWindow.cpp
+index fea87c64..d32c1acd 100644
+--- a/src/MainWindow.cpp
++++ b/src/MainWindow.cpp
+@@ -37,6 +37,7 @@
+ 
+ #include <cassert>
+ #include <set>
++#include <unistd.h>
+ 
+ extern "C" {
+ #include <xccdf_policy.h>
+@@ -273,7 +274,10 @@ void MainWindow::openFileDialog()
+     //
+     // Do not continue until user dismisses the diagnostics dialog.
+     while (mDiagnosticsDialog->isVisible())
++    {
+         QAbstractEventDispatcher::instance(0)->processEvents(QEventLoop::AllEvents);
++        usleep(100 * 1000);
++    }
+ 
+     QString defaultDirectory = SCAP_WORKBENCH_SCAP_CONTENT_DIRECTORY;
+ 

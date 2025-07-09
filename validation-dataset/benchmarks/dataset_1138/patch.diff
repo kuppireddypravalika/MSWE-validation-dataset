@@ -1,0 +1,42 @@
+From 34cbfa0dee903c1eca6ad16a749a478ecf3fd225 Mon Sep 17 00:00:00 2001
+From: Frank Warmerdam <warmerdam@pobox.com>
+Date: Fri, 19 Mar 2004 05:17:42 +0000
+Subject: [PATCH] Increase default cachesize to 10MB.
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@5958 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gcore/gdalrasterblock.cpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/gcore/gdalrasterblock.cpp b/gcore/gdalrasterblock.cpp
+index c20a1aa2c612..b0d0a6ced160 100644
+--- a/gcore/gdalrasterblock.cpp
++++ b/gcore/gdalrasterblock.cpp
+@@ -29,6 +29,9 @@
+  ******************************************************************************
+  *
+  * $Log$
++ * Revision 1.14  2004/03/19 05:17:42  warmerda
++ * Increase default cachesize to 10MB.
++ *
+  * Revision 1.13  2004/03/15 08:33:38  warmerda
+  * Use CPLGetConfigOption() for cache max.
+  *
+@@ -76,7 +79,7 @@ CPL_CVSID("$Id$");
+ 
+ static int nTileAgeTicker = 0; 
+ static int bCacheMaxInitialized = FALSE;
+-static int nCacheMax = 5 * 1024*1024;
++static int nCacheMax = 10 * 1024*1024;
+ static int nCacheUsed = 0;
+ 
+ static GDALRasterBlock   *poOldest = NULL;    /* tail */
+@@ -123,7 +126,7 @@ int GDALGetCacheMax()
+     {
+         if( CPLGetConfigOption("GDAL_CACHEMAX",NULL) != NULL )
+         {
+-            nCacheMax = atoi(CPLGetConfigOption("GDAL_CACHEMAX","5"));
++            nCacheMax = atoi(CPLGetConfigOption("GDAL_CACHEMAX","10"));
+             if( nCacheMax < 1000 )
+                 nCacheMax *= 1024 * 1024;
+         }

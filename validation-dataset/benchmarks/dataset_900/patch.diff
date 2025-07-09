@@ -1,0 +1,34 @@
+From 54b684349082b10f7b069741ba322e5e61b72b2b Mon Sep 17 00:00:00 2001
+From: Stefan Eilemann <Stefan.Eilemann@epfl.ch>
+Date: Fri, 18 Jan 2013 11:40:51 +0100
+Subject: [PATCH] Make static 2D layout respect tiling mode by using load_eq
+ with damping 1
+
+---
+ eq/server/config/resources.cpp | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/eq/server/config/resources.cpp b/eq/server/config/resources.cpp
+index ba8d141312..d233d0f6c0 100644
+--- a/eq/server/config/resources.cpp
++++ b/eq/server/config/resources.cpp
+@@ -597,12 +597,13 @@ Compound* Resources::_add2DCompound( Compound* root, const Channels& channels,
+ 
+     Compound* compound = new Compound( root );
+     compound->setName( name );
+-    if( name == EQ_SERVER_CONFIG_LAYOUT_2D_DYNAMIC )
+-    {
+-        if( params.getEqualizer().getMode() == LoadEqualizer::MODE_DB )
+-            params.getEqualizer().setMode( LoadEqualizer::MODE_2D );
+-        compound->addEqualizer( new LoadEqualizer( params.getEqualizer( )));
+-    }
++    if( params.getEqualizer().getMode() == LoadEqualizer::MODE_DB )
++        params.getEqualizer().setMode( LoadEqualizer::MODE_2D );
++
++    LoadEqualizer* lb = new LoadEqualizer( params.getEqualizer( ));
++    if( name == EQ_SERVER_CONFIG_LAYOUT_2D_STATIC )
++        lb->setDamping( 1.f );
++    compound->addEqualizer( lb );
+ 
+     _fill2DCompound( compound, channels );
+     return compound;

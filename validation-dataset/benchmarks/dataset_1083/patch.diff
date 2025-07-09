@@ -1,0 +1,38 @@
+From 01d004d1e4c9eef17d2a64c5660ed48ee59c8fc4 Mon Sep 17 00:00:00 2001
+From: Wesley Ceraso Prudencio <wcerasop@redhat.com>
+Date: Wed, 21 Jun 2017 10:55:36 +0200
+Subject: [PATCH] Fixes the long time to open TailoringWindow in MacOS
+
+There seems to be a bug in Qt (MacOS implementation) when it tries to calculate geometry/draw tri-state checkboxes that makes it spend much more time than usual.
+
+This commit changes the traversal of the tree from preorder to postorder so that we set the expanded items while they are still invisible, thus avoiding the geometry calculation and drawing. Only when the top-most item is expanded that all items are drawed, once.
+
+Signed-off-by: Wesley Ceraso Prudencio <wcerasop@redhat.com>
+---
+ src/TailoringWindow.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/TailoringWindow.cpp b/src/TailoringWindow.cpp
+index 9dec555a..82b8c3be 100644
+--- a/src/TailoringWindow.cpp
++++ b/src/TailoringWindow.cpp
+@@ -664,6 +664,9 @@ void TailoringWindow::syncCollapsedItem(QTreeWidgetItem* item, QSet<QString>& us
+ {
+     struct xccdf_item* xccdfItem = getXccdfItemFromTreeItem(item);
+     const QString id = QString::fromUtf8(xccdf_item_get_id(xccdfItem));
++    
++    for (int i = 0; i < item->childCount(); ++i)
++        syncCollapsedItem(item->child(i), usedCollapsedIds);
+ 
+     if (mCollapsedItemIds.contains(id))
+     {
+@@ -674,9 +677,6 @@ void TailoringWindow::syncCollapsedItem(QTreeWidgetItem* item, QSet<QString>& us
+     {
+         mUI.itemsTree->expandItem(item);
+     }
+-
+-    for (int i = 0; i < item->childCount(); ++i)
+-        syncCollapsedItem(item->child(i), usedCollapsedIds);
+ }
+ 
+ void TailoringWindow::createTreeItem(QTreeWidgetItem* treeItem, struct xccdf_item* xccdfItem)

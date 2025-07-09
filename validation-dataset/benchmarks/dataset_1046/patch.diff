@@ -1,0 +1,26 @@
+From 80f7efe5b124b90b3ae6ced4208fd060d9baa403 Mon Sep 17 00:00:00 2001
+From: Peter Oschwald <oschwaldp@ociweb.com>
+Date: Thu, 5 Jan 2017 12:02:08 -0600
+Subject: [PATCH] Addressing Coverity Scan CID: 712159 .  If input is correctly
+ formatted, when leaving the loop with index of 8, encoded[i] should never be
+ the '=' which is used for padding in the format.  Can safeguard against the
+ out-of-bounds read of dec[i] by adding a placeholder in dec at that position
+ and cause minimal overhead.
+
+---
+ dds/DCPS/FileSystemStorage.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/dds/DCPS/FileSystemStorage.cpp b/dds/DCPS/FileSystemStorage.cpp
+index 1937446ab27..aef782b660f 100644
+--- a/dds/DCPS/FileSystemStorage.cpp
++++ b/dds/DCPS/FileSystemStorage.cpp
+@@ -902,7 +902,7 @@ ACE_TString b32h_encode(const ACE_TCHAR* decoded)
+ ACE_TString b32h_decode(const ACE_TCHAR* encoded)
+ {
+   // #before first '=' -> #output
+-  static const size_t dec[] = {0, 0, 1, 0, 2, 3, 0, 4};
++  static const size_t dec[] = {0, 0, 1, 0, 2, 3, 0, 4, 0};
+   ACE_TString decoded;
+ 
+   for (; *encoded; encoded += 8) {

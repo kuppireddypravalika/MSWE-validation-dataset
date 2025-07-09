@@ -1,0 +1,24 @@
+From 35b521810e015a36c994f2c8538251ef6b6360cb Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@spatialys.com>
+Date: Mon, 1 Jan 2024 18:39:04 +0100
+Subject: [PATCH] OGRSimpleCurve::exportToWkt(): avoid CodeQL
+ cpp/integer-multiplication-cast-to-long
+
+---
+ ogr/ogrlinestring.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/ogr/ogrlinestring.cpp b/ogr/ogrlinestring.cpp
+index adac11b667ae..b75d1a288a69 100644
+--- a/ogr/ogrlinestring.cpp
++++ b/ogr/ogrlinestring.cpp
+@@ -1878,7 +1878,8 @@ std::string OGRSimpleCurve::exportToWkt(const OGRWktOptions &opts,
+                 2 + ((hasZ) ? 1 : 0) + ((hasM) ? 1 : 0);
+             // At least 2 bytes per ordinate: one for the value,
+             // and one for the separator...
+-            wkt.reserve(wkt.size() + 2 * nPointCount * nOrdinatesPerVertex);
++            wkt.reserve(wkt.size() + 2 * static_cast<size_t>(nPointCount) *
++                                         nOrdinatesPerVertex);
+ 
+             for (int i = 0; i < nPointCount; i++)
+             {

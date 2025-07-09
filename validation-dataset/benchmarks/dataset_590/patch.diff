@@ -1,0 +1,23 @@
+From 71394a821fa28d7ddc83199e46f7c3bcf78b8db7 Mon Sep 17 00:00:00 2001
+From: Jonathan Poelen <jpoelen@wallix.com>
+Date: Fri, 21 Apr 2023 18:04:08 +0200
+Subject: [PATCH] WrmCapture::send_pointer: prefer usage of
+ RdpPointer::DATA_SIZE / MASK_SIZE
+
+---
+ src/capture/wrm_capture.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/capture/wrm_capture.hpp b/src/capture/wrm_capture.hpp
+index 72c81f1779..02a4fe3703 100644
+--- a/src/capture/wrm_capture.hpp
++++ b/src/capture/wrm_capture.hpp
+@@ -440,7 +440,7 @@ class GraphicToFile final : public RDPSerializer
+     {
+         assert(cursor.xor_bits_per_pixel() != BitsPerPixel{0});
+ 
+-        StaticOutStream<32+RdpPointer::MAX_WIDTH*RdpPointer::MAX_HEIGHT*::nbbytes(RdpPointer::MAX_BPP)> payload;
++        StaticOutStream<32 + RdpPointer::DATA_SIZE + RdpPointer::MASK_SIZE> payload;
+ 
+         payload.out_uint16_le(safe_int(cursor.xor_bits_per_pixel()));
+ 

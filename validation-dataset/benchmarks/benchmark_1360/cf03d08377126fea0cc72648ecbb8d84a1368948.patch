@@ -1,0 +1,27 @@
+From cf03d08377126fea0cc72648ecbb8d84a1368948 Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Thu, 18 May 2023 10:45:46 -0600
+Subject: [PATCH] Avoid operation within `static_cast` promotion
+
+There should never be any overflow here. We're dealing with screen coordinates in a way that will always produce a small non-negative value.
+
+MSVC warning:
+> warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow.
+---
+ OPHD/UI/Core/ListBox.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/OPHD/UI/Core/ListBox.h b/OPHD/UI/Core/ListBox.h
+index bf52ef799..d8af6db49 100644
+--- a/OPHD/UI/Core/ListBox.h
++++ b/OPHD/UI/Core/ListBox.h
+@@ -211,7 +211,8 @@ class ListBox : public Control
+ 			return;
+ 		}
+ 
+-		mHighlightIndex = (static_cast<std::size_t>(position.y - mClientRect.y) + mScrollOffsetInPixels) / static_cast<std::size_t>(mContext.itemHeight());
++		const auto dy = position.y - mClientRect.y;
++		mHighlightIndex = (static_cast<std::size_t>(dy) + mScrollOffsetInPixels) / static_cast<std::size_t>(mContext.itemHeight());
+ 		if (mHighlightIndex >= mItems.size())
+ 		{
+ 			mHighlightIndex = constants::NoSelection;

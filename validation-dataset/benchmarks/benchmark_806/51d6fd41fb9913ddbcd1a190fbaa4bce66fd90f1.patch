@@ -1,0 +1,32 @@
+From 51d6fd41fb9913ddbcd1a190fbaa4bce66fd90f1 Mon Sep 17 00:00:00 2001
+From: Klaus Iglberger <klaus.iglberger@gmail.com>
+Date: Sun, 4 May 2014 11:19:55 +0200
+Subject: [PATCH] Improve the vector multiplication operator of the
+ 'StaticVector' class template
+
+---
+ blaze/math/dense/StaticVector.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/blaze/math/dense/StaticVector.h b/blaze/math/dense/StaticVector.h
+index f8242f433..a38b10f49 100644
+--- a/blaze/math/dense/StaticVector.h
++++ b/blaze/math/dense/StaticVector.h
+@@ -1191,7 +1191,7 @@ template< typename Type  // Data type of the vector
+ template< typename VT >  // Type of the right-hand side vector
+ inline StaticVector<Type,N,TF>& StaticVector<Type,N,TF>::operator*=( const Vector<VT,TF>& rhs )
+ {
+-   using blaze::assign;
++   using blaze::multAssign;
+ 
+    if( (~rhs).size() != N )
+       throw std::invalid_argument( "Vector sizes do not match" );
+@@ -1201,7 +1201,7 @@ inline StaticVector<Type,N,TF>& StaticVector<Type,N,TF>::operator*=( const Vecto
+       this->operator=( tmp );
+    }
+    else {
+-      assign( *this, *this * (~rhs) );
++      multAssign( *this, ~rhs );
+    }
+ 
+    return *this;

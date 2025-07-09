@@ -1,0 +1,24 @@
+From 1007411f99d58cf6504fc8cdb7450cd8c183ab48 Mon Sep 17 00:00:00 2001
+From: Hendrik Leppkes <h.leppkes@gmail.com>
+Date: Sat, 14 Jul 2012 10:03:55 +0200
+Subject: [PATCH] Don't use strict std compliance mode for H264.
+
+The strict std compliance mode causes too much of a delay when decoding, causing issues for live tv, and serves only a very minor purpose.
+---
+ decoder/LAVVideo/decoders/avcodec.cpp | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/decoder/LAVVideo/decoders/avcodec.cpp b/decoder/LAVVideo/decoders/avcodec.cpp
+index 1316487ab..948e32747 100644
+--- a/decoder/LAVVideo/decoders/avcodec.cpp
++++ b/decoder/LAVVideo/decoders/avcodec.cpp
+@@ -518,9 +518,6 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
+       DbgLog((LOG_TRACE, 10, L"-> Setting has_b_frames to %d", lavPinInfo.has_b_frames));
+       m_pAVCtx->has_b_frames = lavPinInfo.has_b_frames;
+     }
+-  } else if (codec == CODEC_ID_H264) {
+-    DbgLog((LOG_TRACE, 10, L"-> Using Strict Standards Compliance Mode"));
+-    m_pAVCtx->strict_std_compliance = FF_COMPLIANCE_STRICT;
+   }
+ 
+   // Open the decoder

@@ -1,0 +1,30 @@
+From efdec619b78661c17009d993cf596ae28383d7a1 Mon Sep 17 00:00:00 2001
+From: Andrey Kiselev <dron@ak4719.spb.edu>
+Date: Thu, 16 Oct 2008 09:10:48 +0000
+Subject: [PATCH] Small optimization in GDALRasterizeLayers(): skip the layers
+ with no features on the first steps.
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@15539 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/alg/gdalrasterize.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/gdal/alg/gdalrasterize.cpp b/gdal/alg/gdalrasterize.cpp
+index a864f2b7c875..f293d8dc1ced 100644
+--- a/gdal/alg/gdalrasterize.cpp
++++ b/gdal/alg/gdalrasterize.cpp
+@@ -610,6 +610,14 @@ CPLErr GDALRasterizeLayers( GDALDatasetH hDS,
+             continue;
+         }
+ 
++/* -------------------------------------------------------------------- */
++/*      If the layer does not contain any features just skip it.        */
++/*      Do not force the feature count, so if driver doesn't know       */
++/*      exact number of features, go down the normal way.               */
++/* -------------------------------------------------------------------- */
++        if ( poLayer->GetFeatureCount(FALSE) == 0 )
++            continue;
++
+         if ( pszBurnAttribute )
+         {
+             iBurnField =

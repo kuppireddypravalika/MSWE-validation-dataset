@@ -1,0 +1,23 @@
+From eaf6bb6768fbba71532816bf9f0b2a3f94f0b309 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Jacob=20St=C3=B8ren?= <jacob.storen@ceetronSolutions.com>
+Date: Mon, 20 Jun 2016 16:50:47 +0200
+Subject: [PATCH] Caf: Improved reference parsing by using regexp for splitting
+ an any whitespace
+
+---
+ .../cafProjectDataModel/cafPdmCore/cafPdmReferenceHelper.cpp    | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Fwk/AppFwk/cafProjectDataModel/cafPdmCore/cafPdmReferenceHelper.cpp b/Fwk/AppFwk/cafProjectDataModel/cafPdmCore/cafPdmReferenceHelper.cpp
+index 1427e59c1a0..a2e4e7ed7de 100644
+--- a/Fwk/AppFwk/cafProjectDataModel/cafPdmCore/cafPdmReferenceHelper.cpp
++++ b/Fwk/AppFwk/cafProjectDataModel/cafPdmCore/cafPdmReferenceHelper.cpp
+@@ -321,7 +321,7 @@ PdmObjectHandle* PdmReferenceHelper::objectFromFieldReference(PdmFieldHandle* fr
+     if (!fromField) return NULL;
+     if (reference.isEmpty()) return NULL;
+ 
+-    QStringList decodedReference = reference.split(" ");
++    QStringList decodedReference = reference.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+     PdmObjectHandle* lastCommonAnchestor = fromField->ownerObject();
+     assert(lastCommonAnchestor);
+     assert(decodedReference.size());

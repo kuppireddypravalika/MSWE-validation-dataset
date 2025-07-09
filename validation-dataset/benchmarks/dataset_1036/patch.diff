@@ -1,0 +1,44 @@
+From 06faeb501e7259f54afb18c8d8d76bbe09878c1c Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?J=C3=B8rgen=20Schartum=20Dokken?= <jsd55@cam.ac.uk>
+Date: Tue, 26 Jul 2022 11:42:57 +0100
+Subject: [PATCH] Zero work array in
+ `fem::CoordinateElement::compute_jacobian_determinant` (#2291)
+
+* Zero out required working memory of compute_detJ
+
+* Simplification
+
+Co-authored-by: Garth N. Wells <gnw20@cam.ac.uk>
+---
+ cpp/dolfinx/fem/CoordinateElement.h | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/cpp/dolfinx/fem/CoordinateElement.h b/cpp/dolfinx/fem/CoordinateElement.h
+index e7cff901388..40a8da91582 100644
+--- a/cpp/dolfinx/fem/CoordinateElement.h
++++ b/cpp/dolfinx/fem/CoordinateElement.h
+@@ -7,6 +7,7 @@
+ #pragma once
+ 
+ #include "ElementDofLayout.h"
++#include <algorithm>
+ #include <array>
+ #include <basix/element-families.h>
+ #include <basix/mdspan.hpp>
+@@ -129,7 +130,6 @@ class CoordinateElement
+       return math::det(J);
+     else
+     {
+-      // TODO: pass buffers for B and BA
+       assert(w.size() >= 2 * J.extent(0) * J.extent(1));
+ 
+       using T = typename U::element_type;
+@@ -143,6 +143,8 @@ class CoordinateElement
+         for (std::size_t j = 0; j < B.extent(1); ++j)
+           B(i, j) = J(j, i);
+ 
++      // Zero working memory of BA
++      std::fill_n(BA.data_handle(), BA.size(), 0);
+       math::dot(B, J, BA);
+       return std::sqrt(math::det(BA));
+     }

@@ -1,0 +1,30 @@
+From c3d544503ca8742c6a700fa17dbddc85ef0919d3 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Wed, 30 Dec 2015 19:31:23 +0000
+Subject: [PATCH] KRO: avoid int32 overflow in nLineOffset computation
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@32556 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/frmts/raw/krodataset.cpp | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/gdal/frmts/raw/krodataset.cpp b/gdal/frmts/raw/krodataset.cpp
+index 6f44c3fd7ce5..96e7233dfc1d 100644
+--- a/gdal/frmts/raw/krodataset.cpp
++++ b/gdal/frmts/raw/krodataset.cpp
+@@ -171,6 +171,15 @@ GDALDataset *KRODataset::Open( GDALOpenInfo * poOpenInfo )
+     }
+ 
+     const int nDataTypeSize = nDepth / 8;
++    
++    if( nComp == 0 || nDataTypeSize == 0 ||
++        poDS->nRasterXSize > INT_MAX / (nComp * nDataTypeSize) )
++    {
++        CPLError(CE_Failure, CPLE_AppDefined,
++                 "Too large width / number of bands");
++        delete poDS;
++        return NULL;
++    }
+ 
+ /* -------------------------------------------------------------------- */
+ /*      Create bands.                                                   */

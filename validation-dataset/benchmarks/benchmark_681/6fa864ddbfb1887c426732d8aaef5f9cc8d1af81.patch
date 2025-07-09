@@ -1,0 +1,30 @@
+From 6fa864ddbfb1887c426732d8aaef5f9cc8d1af81 Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Tue, 14 Mar 2017 22:06:50 -0400
+Subject: [PATCH] [win32] RP_ShellPropSheetExt: Cast SendMessage()'s return
+ value (LRESULT) to DWORD.
+
+LRESULT is LONG_PTR on 64-bit. EM_GETMARGINS returns a DWORD, so we only
+need the low 32 bits.
+
+This warning showed up when compiling with MSVC 2015, but I didn't notice
+it until I upgraded to MSVC 2017:
+
+RP_ShellPropSheetExt.cpp(981): warning C4244: 'initializing': conversion from 'LRESULT' to 'DWORD', possible loss of data
+---
+ src/win32/RP_ShellPropSheetExt.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/win32/RP_ShellPropSheetExt.cpp b/src/win32/RP_ShellPropSheetExt.cpp
+index 28cd78ac77..4f7d8c073a 100644
+--- a/src/win32/RP_ShellPropSheetExt.cpp
++++ b/src/win32/RP_ShellPropSheetExt.cpp
+@@ -978,7 +978,7 @@ int RP_ShellPropSheetExt_Private::initString(HWND hDlg, HWND hWndTab,
+ 		SetWindowFont(hDlgItem, hFont, FALSE);
+ 
+ 		// Get the EDIT control margins.
+-		DWORD dwMargins = SendMessage(hDlgItem, EM_GETMARGINS, 0, 0);
++		const DWORD dwMargins = (DWORD)SendMessage(hDlgItem, EM_GETMARGINS, 0, 0);
+ 
+ 		// Adjust the window size to compensate for the margins not being clickable.
+ 		// NOTE: Not adjusting the right margins.

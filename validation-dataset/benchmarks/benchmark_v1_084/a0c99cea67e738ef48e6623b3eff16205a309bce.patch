@@ -1,0 +1,39 @@
+From a0c99cea67e738ef48e6623b3eff16205a309bce Mon Sep 17 00:00:00 2001
+From: SunBlack <SunBlack@users.noreply.github.com>
+Date: Thu, 7 Mar 2019 22:06:49 +0100
+Subject: [PATCH] Transform classic loops to range-based for loops in module
+ kdtree (#2842)
+
+Transform classic loops to range-based for loops in module kdtree
+
+Changes are based on the result of run-clang-tidy -header-filter='.*' -checks='-*,modernize-loop-convert' -fix
+Use always const reference in for-ranged loop instead of copying primitive data types
+---
+ kdtree/include/pcl/kdtree/impl/kdtree_flann.hpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/kdtree/include/pcl/kdtree/impl/kdtree_flann.hpp b/kdtree/include/pcl/kdtree/impl/kdtree_flann.hpp
+index a6a1af2c618..32321abfb72 100644
+--- a/kdtree/include/pcl/kdtree/impl/kdtree_flann.hpp
++++ b/kdtree/include/pcl/kdtree/impl/kdtree_flann.hpp
+@@ -279,16 +279,16 @@ pcl::KdTreeFLANN<PointT, Dist>::convertCloudToArray (const PointCloud &cloud, co
+   // But we can not guarantee that => identity_mapping_ = false
+   identity_mapping_ = false;
+   
+-  for (std::vector<int>::const_iterator iIt = indices.begin (); iIt != indices.end (); ++iIt)
++  for (const int &index : indices)
+   {
+     // Check if the point is invalid
+-    if (!point_representation_->isValid (cloud.points[*iIt]))
++    if (!point_representation_->isValid (cloud.points[index]))
+       continue;
+ 
+     // map from 0 - N -> indices [0] - indices [N]
+-    index_mapping_.push_back (*iIt);  // If the returned index should be for the indices vector
++    index_mapping_.push_back (index);  // If the returned index should be for the indices vector
+     
+-    point_representation_->vectorize (cloud.points[*iIt], cloud_ptr);
++    point_representation_->vectorize (cloud.points[index], cloud_ptr);
+     cloud_ptr += dim_;
+   }
+ }

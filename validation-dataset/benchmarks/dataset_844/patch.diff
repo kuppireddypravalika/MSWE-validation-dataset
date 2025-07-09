@@ -1,0 +1,22 @@
+From f06a9b3dcea8cd721675f3b3765591b6de800b77 Mon Sep 17 00:00:00 2001
+From: "Michael Cook (mackal)" <mcook@mackal.net>
+Date: Sat, 13 Aug 2016 15:58:02 -0400
+Subject: [PATCH] use std::abs in Map::FindClosestZ
+
+---
+ zone/map.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/zone/map.cpp b/zone/map.cpp
+index 630e277c2a..29a3863314 100644
+--- a/zone/map.cpp
++++ b/zone/map.cpp
+@@ -163,7 +163,7 @@ float Map::FindClosestZ(glm::vec3 &start, glm::vec3 *result) const {
+ 	to.z = -BEST_Z_INVALID;
+ 	hit = imp->rm->raycast((const RmReal*)&from, (const RmReal*)&to, (RmReal*)result, nullptr, &hit_distance);
+ 	if (hit) {
+-		if (abs(from.z - result->z) < abs(ClosestZ - from.z))
++		if (std::abs(from.z - result->z) < std::abs(ClosestZ - from.z))
+ 			return result->z;
+ 	}
+ 

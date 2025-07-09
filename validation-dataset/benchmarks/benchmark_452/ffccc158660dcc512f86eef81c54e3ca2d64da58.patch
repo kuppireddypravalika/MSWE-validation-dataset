@@ -1,0 +1,23 @@
+From ffccc158660dcc512f86eef81c54e3ca2d64da58 Mon Sep 17 00:00:00 2001
+From: Pascal Thomet <pthomet@gmail.com>
+Date: Fri, 10 May 2019 11:15:54 +0200
+Subject: [PATCH] Vector3 Tools::setLength(Vector3&& v, len) : return std::move
+
+(performance warning raised by clang)
+---
+ .../src/extensions/hexplanetgeneration/utils/tools.cpp          | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/Extensions/src/extensions/hexplanetgeneration/utils/tools.cpp b/src/Extensions/src/extensions/hexplanetgeneration/utils/tools.cpp
+index 4d877e4eb..f00cfaedc 100644
+--- a/src/Extensions/src/extensions/hexplanetgeneration/utils/tools.cpp
++++ b/src/Extensions/src/extensions/hexplanetgeneration/utils/tools.cpp
+@@ -144,7 +144,7 @@ Vector3 Tools::setLength(Vector3&& v, float len)
+ {
+   v.normalize();
+   v *= len;
+-  return v;
++  return std::move(v);
+ }
+ 
+ Color4 Tools::ocv(unsigned int val)

@@ -1,0 +1,31 @@
+From 3a5455b34bbe7f137ac22e07929d6b88098f6b64 Mon Sep 17 00:00:00 2001
+From: Bo Yang <teboring@google.com>
+Date: Tue, 26 May 2015 13:12:16 -0700
+Subject: [PATCH] uint64 has non-trivial destructor on 32-bit windows. This
+ cause arena allocator to allocate memory twice for uint64.
+
+---
+ src/google/protobuf/arena_unittest.cc | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/src/google/protobuf/arena_unittest.cc b/src/google/protobuf/arena_unittest.cc
+index b9dd8b98c0786..307c0905905fe 100644
+--- a/src/google/protobuf/arena_unittest.cc
++++ b/src/google/protobuf/arena_unittest.cc
+@@ -1232,11 +1232,11 @@ TEST(ArenaTest, ArenaHooksSanity) {
+     EXPECT_EQ(1, ArenaHooksTestUtil::num_init);
+     EXPECT_EQ(0, ArenaHooksTestUtil::num_allocations);
+     ::google::protobuf::Arena::Create<uint64>(&arena);
+-#ifdef _WIN32
+-    EXPECT_EQ(2, ArenaHooksTestUtil::num_allocations);
+-#else
+-    EXPECT_EQ(1, ArenaHooksTestUtil::num_allocations);
+-#endif
++    if (::google::protobuf::internal::has_trivial_destructor<uint64>::value) {
++      EXPECT_EQ(1, ArenaHooksTestUtil::num_allocations);
++    } else {
++      EXPECT_EQ(2, ArenaHooksTestUtil::num_allocations);
++    }
+     arena.Reset();
+     arena.Reset();
+     EXPECT_EQ(2, ArenaHooksTestUtil::num_reset);

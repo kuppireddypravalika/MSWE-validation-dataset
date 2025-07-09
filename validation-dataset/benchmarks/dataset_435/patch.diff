@@ -1,0 +1,33 @@
+From 56662a703c82252d9d5ff7002d74ea28527aaa1d Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@duempel.org>
+Date: Thu, 29 Jan 2015 08:23:01 +0100
+Subject: [PATCH] decoder/DsdLib: free ID3 buffer right after id3_tag_parse()
+
+Merge two free() calls.
+---
+ src/decoder/plugins/DsdLib.cxx | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/src/decoder/plugins/DsdLib.cxx b/src/decoder/plugins/DsdLib.cxx
+index 8ce1a94a35..1809816202 100644
+--- a/src/decoder/plugins/DsdLib.cxx
++++ b/src/decoder/plugins/DsdLib.cxx
+@@ -136,16 +136,13 @@ dsdlib_tag_id3(InputStream &is,
+ 	}
+ 
+ 	struct id3_tag *id3_tag = id3_tag_parse(id3_buf, count);
+-	if (id3_tag == nullptr) {
+-		free(id3_buf);
++	free(id3_buf);
++	if (id3_tag == nullptr)
+ 		return;
+-	}
+ 
+ 	scan_id3_tag(id3_tag, handler, handler_ctx);
+ 
+ 	id3_tag_delete(id3_tag);
+-
+-	free(id3_buf);
+ 	return;
+ }
+ #endif

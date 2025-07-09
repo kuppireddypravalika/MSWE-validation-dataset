@@ -1,0 +1,28 @@
+From de464e27836317fbf53d861106f43c6db643567f Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=C3=98ystein=20Dale?= <oystedal@ifi.uio.no>
+Date: Wed, 18 Jul 2018 23:56:29 +0200
+Subject: [PATCH] Use a better constructor in StringBuilder::GetStdString
+
+---
+ src/openrct2/core/StringBuilder.hpp | 8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
+
+diff --git a/src/openrct2/core/StringBuilder.hpp b/src/openrct2/core/StringBuilder.hpp
+index e54d85112391..b993f2182043 100644
+--- a/src/openrct2/core/StringBuilder.hpp
++++ b/src/openrct2/core/StringBuilder.hpp
+@@ -138,13 +138,7 @@ class StringBuilder final
+      */
+     std::string GetStdString() const
+     {
+-        std::string result;
+-        result.reserve(_length);
+-        for (std::size_t i = 0U; i < _length; i++)
+-        {
+-            result.push_back(_buffer[i]);
+-        }
+-        return result;
++        return std::string(_buffer, _length);
+     }
+ 
+     /**

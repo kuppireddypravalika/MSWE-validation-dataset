@@ -1,0 +1,45 @@
+From a1bfbe65ba3f9e3d6cf690c6f48a4719a98ae45c Mon Sep 17 00:00:00 2001
+From: Johannes Schickel <lordhoto@scummvm.org>
+Date: Sun, 24 Jul 2011 19:54:49 +0200
+Subject: [PATCH] COMMON: Add an optimized intLog2 implementation for gcc using
+ __builtin_clz.
+
+This is done as discussed here:
+https://github.com/scummvm/scummvm/commit/54f25aa84373715001c56155673fb59cfe44b573
+---
+ common/math.h | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/common/math.h b/common/math.h
+index e1af433f7c1a..9542cb601ac7 100644
+--- a/common/math.h
++++ b/common/math.h
+@@ -50,6 +50,20 @@ struct Complex {
+ 	float re, im;
+ };
+ 
++#ifdef __GNUC__
++inline int intLog2(uint32 v) {
++	// This is a slightly optimized implementation of log2 for natural numbers
++	// targeting gcc. It also saves some binary size over our fallback
++	// implementation, since it does not need any table.
++	if (v == 0)
++		return -1;
++	else
++		// This is really "sizeof(unsigned int) * CHAR_BIT - 1" but using 8
++		// instead of CHAR_BIT is sane enough and it saves us from including
++		// limits.h
++		return (sizeof(unsigned int) * 8 - 1) - __builtin_clz(v);
++}
++#else
+ // See http://graphics.stanford.edu/~seander/bithacks.html#IntegerLogLookup
+ static const char LogTable256[256] = {
+ #define LT(n) n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n
+@@ -66,6 +80,7 @@ inline int intLog2(uint32 v) {
+ 	else
+ 		return (t =  v >> 8) ?  8 + LogTable256[t] : LogTable256[v];
+ }
++#endif
+ 
+ inline float rad2deg(float rad) {
+ 	return rad * 180.0 / M_PI;

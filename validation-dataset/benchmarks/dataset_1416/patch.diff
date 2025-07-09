@@ -1,0 +1,22 @@
+From 0fcb758233b826130ecc7db08bb1817f3b5d1314 Mon Sep 17 00:00:00 2001
+From: Benjamin Morgan <benjamin.morgan@bosch.com>
+Date: Fri, 19 Apr 2024 12:38:33 +0200
+Subject: [PATCH] fable: Use emplace instead of assign for optional<regex>
+
+---
+ fable/include/fable/schema/map.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/fable/include/fable/schema/map.hpp b/fable/include/fable/schema/map.hpp
+index 2dbc78661..c02d41e38 100644
+--- a/fable/include/fable/schema/map.hpp
++++ b/fable/include/fable/schema/map.hpp
+@@ -140,7 +140,7 @@ class Map : public Base<Map<T, P>> {
+     std::optional<std::regex> pattern;
+     if (!pattern_.empty()) {
+       try {
+-        *pattern = std::regex(pattern_);
++        pattern.emplace(pattern_);
+       } catch (std::regex_error& e) {
+         // NOTE: This is actually a programmer error, and we should probably catch
+         // it at the point where the pattern is set.

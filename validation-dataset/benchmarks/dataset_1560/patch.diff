@@ -1,0 +1,23 @@
+From a1fd03c3ce1aae78ccc443b41ea7b6fe1d56add5 Mon Sep 17 00:00:00 2001
+From: "bernard.parisse" <bernard.parisse@23ce0884-8a58-47d3-bc5c-ddf1cd5b9f9e>
+Date: Fri, 17 Apr 2015 07:18:16 +0000
+Subject: [PATCH] [giac] small improvement for integration of sign()
+
+git-svn-id: https://dev.geogebra.org/svn/trunk/geogebra/giac@40018 23ce0884-8a58-47d3-bc5c-ddf1cd5b9f9e
+---
+ src/giac/cpp/intg.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/giac/cpp/intg.cc b/src/giac/cpp/intg.cc
+index 113cf974..98f097c9 100644
+--- a/src/giac/cpp/intg.cc
++++ b/src/giac/cpp/intg.cc
+@@ -2156,7 +2156,7 @@ namespace giac {
+     // Step -3: replace when by piecewise
+     e=when2piecewise(e,contextptr);
+     e=Heavisidetosign(e,contextptr);
+-    if (is_constant_wrt(e,gen_x,contextptr))
++    if (is_constant_wrt(e,gen_x,contextptr) && lop(e,at_sign).empty())
+       return e*gen_x;
+     if (e.type!=_SYMB) {
+       remains_to_integrate=zero;

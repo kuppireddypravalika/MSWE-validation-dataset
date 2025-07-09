@@ -1,0 +1,41 @@
+From abc0b6bd6ac5acd8b19cfece8ada3354e63aa81f Mon Sep 17 00:00:00 2001
+From: Chris Lattner <sabre@nondot.org>
+Date: Sun, 9 Nov 2003 03:09:43 +0000
+Subject: [PATCH] containsElement is called a LOT.  Speed it up a bit
+
+git-svn-id: https://llvm.org/svn/llvm-project/poolalloc/trunk@9822 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ .../PoolAllocator/PoolAllocatorBitMask.cpp    | 20 +++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
+
+diff --git a/runtime/PoolAllocator/PoolAllocatorBitMask.cpp b/runtime/PoolAllocator/PoolAllocatorBitMask.cpp
+index 2a9f3d88..b16ef643 100644
+--- a/runtime/PoolAllocator/PoolAllocatorBitMask.cpp
++++ b/runtime/PoolAllocator/PoolAllocatorBitMask.cpp
+@@ -331,16 +331,16 @@ int PoolSlab::allocateMultiple(unsigned Size) {
+ // this slab.  If the address is not in slab, return -1.
+ int PoolSlab::containsElement(void *Ptr, unsigned ElementSize) const {
+   const void *FirstElement = getElementAddress(0, 0);
+-  if (FirstElement > Ptr || 
+-      (char*)getElementAddress(ElementSize, getSlabSize())-1 < Ptr)
+-    return -1;
+-
+-  unsigned Index = (char*)Ptr-(char*)FirstElement;
+-  assert(Index % ElementSize == 0 &&
+-         "Freeing pointer into the middle of an element!");
+-  Index /= ElementSize;
+-  assert(Index < getSlabSize() && "Pool slab searching loop broken!");
+-  return Index;
++  if (FirstElement <= Ptr) {
++    unsigned Index = (char*)Ptr-(char*)FirstElement;
++    Index /= ElementSize;
++    if (Index < getSlabSize()) {
++      assert(Index % ElementSize == 0 &&
++             "Freeing pointer into the middle of an element!");
++      return Index;
++    }
++  }
++  return -1;
+ }
+ 
+ 

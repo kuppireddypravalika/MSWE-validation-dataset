@@ -1,0 +1,24 @@
+From 39913693a41640de609c65716f96a78cd52fe4b5 Mon Sep 17 00:00:00 2001
+From: Matt McCormick <matt.mccormick@kitware.com>
+Date: Tue, 6 Nov 2018 21:53:43 -0500
+Subject: [PATCH] PERF: Use initializer list in ShapedImageNeighborhoodRange
+ operator*
+
+Results in ~10% performance increase.
+---
+ Modules/Core/Common/include/itkShapedImageNeighborhoodRange.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Modules/Core/Common/include/itkShapedImageNeighborhoodRange.h b/Modules/Core/Common/include/itkShapedImageNeighborhoodRange.h
+index f6efc6700ad..30580dc07a5 100644
+--- a/Modules/Core/Common/include/itkShapedImageNeighborhoodRange.h
++++ b/Modules/Core/Common/include/itkShapedImageNeighborhoodRange.h
+@@ -347,7 +347,7 @@ class ShapedImageNeighborhoodRange final
+     /**  Returns a reference to the current pixel. */
+     reference operator*() const ITK_NOEXCEPT
+     {
+-      return reference(m_ImageBufferPointer, m_ImageSize, m_OffsetTable, m_NeighborhoodAccessor, m_Location + *m_CurrentOffset);
++      return reference{m_ImageBufferPointer, m_ImageSize, m_OffsetTable, m_NeighborhoodAccessor, m_Location + *m_CurrentOffset};
+     }
+ 
+ 

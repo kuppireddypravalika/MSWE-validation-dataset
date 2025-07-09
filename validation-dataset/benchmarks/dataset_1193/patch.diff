@@ -1,0 +1,30 @@
+From 2df1872614bccb783a777c3609ddb836e88eee6c Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Sat, 4 Jul 2020 21:00:09 -0600
+Subject: [PATCH] Use range for with DirectionScan3x3 to replace manual for
+ loop
+
+---
+ OPHD/States/MapViewStateEvent.cpp | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/OPHD/States/MapViewStateEvent.cpp b/OPHD/States/MapViewStateEvent.cpp
+index 402d51484..0ba367c57 100644
+--- a/OPHD/States/MapViewStateEvent.cpp
++++ b/OPHD/States/MapViewStateEvent.cpp
+@@ -251,12 +251,10 @@ void MapViewState::diggerTaskFinished(Robot* robot)
+ 	 *			a digger gets in the way (or should diggers be smarter than
+ 	 *			puncturing a fusion reactor containment vessel?)
+ 	 */
+-	for(int y = originY - 1; y <= originY + 1; ++y)
++	for (const auto offset : DirectionScan3x3)
+ 	{
+-		for(int x = originX - 1; x <= originX + 1; ++x)
+-		{
+-			mTileMap->getTile({x, y}, t->depth() + depthAdjust)->excavated(true);
+-		}
++		const auto position = NAS2D::Point{originX, originY} + offset;
++		mTileMap->getTile(position, t->depth() + depthAdjust)->excavated(true);
+ 	}
+ 
+ 	checkRobotSelectionInterface(constants::ROBODIGGER, constants::ROBODIGGER_SHEET_ID, RobotType::ROBOT_DIGGER);

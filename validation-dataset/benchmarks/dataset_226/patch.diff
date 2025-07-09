@@ -1,0 +1,21 @@
+From 260e9436f60b06e4c3e43b09da06d56f28deeb77 Mon Sep 17 00:00:00 2001
+From: James Yonan <james@openvpn.net>
+Date: Wed, 14 Dec 2016 10:26:24 -0700
+Subject: [PATCH] URL::decode() optimization : reserve output string.
+
+---
+ openvpn/http/urlencode.hpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/openvpn/http/urlencode.hpp b/openvpn/http/urlencode.hpp
+index b6b1036fd..6d7688763 100644
+--- a/openvpn/http/urlencode.hpp
++++ b/openvpn/http/urlencode.hpp
+@@ -64,6 +64,7 @@ namespace openvpn {
+       int value = 0;
+       State state = TEXT;
+       std::string ret;
++      ret.reserve(encoded.size()); // just a guess
+ 
+       for (auto &c : encoded)
+ 	{

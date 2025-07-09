@@ -1,0 +1,36 @@
+From 94071f316c67677e9b2a82b8e98903af63a01595 Mon Sep 17 00:00:00 2001
+From: Yan-Ming Li <yanming@multicorewareinc.com>
+Date: Fri, 29 Apr 2016 15:53:12 -0500
+Subject: [PATCH] use a macro to hold the magic number 104
+
+---
+ lib/hsa/mcwamp_hsa.cpp | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/lib/hsa/mcwamp_hsa.cpp b/lib/hsa/mcwamp_hsa.cpp
+index f8393e05cff..69ca60d2db4 100644
+--- a/lib/hsa/mcwamp_hsa.cpp
++++ b/lib/hsa/mcwamp_hsa.cpp
+@@ -76,6 +76,11 @@
+ // default set as 0 (use faster FNV-1a hash instead)
+ #define USE_MD5_HASH (0)
+ 
++// cutoff size used in FNV-1a hash function
++// default set as 104, which is the larger value between HSA BrigModuleHeader
++// and AMD GCN ISA header (Elf64_Ehdr) from Jack's research
++#define FNV1A_CUTOFF_SIZE (104)
++
+ static const char* getHSAErrorString(hsa_status_t s) {
+ 
+ #define CASE_ERROR_STRING(X)  case X: error_string = #X ;break;
+@@ -1349,9 +1354,7 @@ class HSADevice final : public KalmarDevice
+ 
+         const char *str = static_cast<const char *>(source);
+ 
+-        // 104 is the proper size from Jack's research
+-        const int N = 104;
+-        size = size > N ? N : size;
++        size = size > FNV1A_CUTOFF_SIZE ? FNV1A_CUTOFF_SIZE : size;
+         for (auto i = 0; i < size; ++i) {
+             hash ^= *str++;
+             hash *= FNV_prime;

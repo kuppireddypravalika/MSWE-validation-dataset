@@ -1,0 +1,30 @@
+From d77dddb83f64f0265b8f226ff1061b37bc10877b Mon Sep 17 00:00:00 2001
+From: Roland Schulz <roland@utk.edu>
+Date: Thu, 22 May 2014 18:16:13 -0400
+Subject: [PATCH] Fix memory issue in solvate
+
+Caused by SIMD padding introduced by new group kernels.
+
+Fixes #1499
+
+Change-Id: I5126217c9b752f1c1fd04d01e2644987fdc52d5b
+---
+ src/tools/addconf.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/src/tools/addconf.c b/src/tools/addconf.c
+index 0df691f0b3..448d7955d0 100644
+--- a/src/tools/addconf.c
++++ b/src/tools/addconf.c
+@@ -431,6 +431,11 @@ void add_conf(t_atoms *atoms, rvec **x, rvec **v, real **r, gmx_bool bSrenew,
+             for (j = j0; (j < j1 && nremove < natoms_solvt); j++)
+             {
+                 jnr = nlist->jjnr[j];
++                if (jnr < 0)
++                {
++                    /* skip padding */
++                    continue;
++                }
+                 copy_rvec(x_all[jnr], xj);
+ 
+                 /* Check solvent-protein and solvent-solvent */

@@ -1,0 +1,40 @@
+From ec1508705141e48cb0d30a721a1f28ff38ed1650 Mon Sep 17 00:00:00 2001
+From: Lucas Lersch <lucaslersch@gmail.com>
+Date: Wed, 18 Mar 2020 20:42:39 +0100
+Subject: [PATCH] Replace reserve() by resize()
+
+While std::vector::reserve() pre-allocates memory, it does not initialize it,
+which leads to page faults during execution when values are assigned for the
+first time.
+
+An alternative is to call resize(MAX_SIZE) followed by resize(0) to achieve the
+same effect, but forcing the page faults before the measuremenets start.
+---
+ src/benchmark.cpp | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/src/benchmark.cpp b/src/benchmark.cpp
+index a5dca23..9013000 100644
+--- a/src/benchmark.cpp
++++ b/src/benchmark.cpp
+@@ -155,14 +155,17 @@ void benchmark_t::load() noexcept
+ void benchmark_t::run() noexcept
+ {
+     std::vector<stats_t> global_stats;
+-    global_stats.reserve(100000); // Avoid overhead of resizing vector
++    global_stats.resize(100000); // Avoid overhead of allocation and page fault
++    global_stats.resize(0);
+ 
+     static thread_local char value_out[value_generator_t::VALUE_MAX];
+     char* values_out;
+ 
+     std::vector<stats_t> local_stats(opt_.num_threads);
+-    for(auto& lc : local_stats)
+-        lc.times.reserve(std::ceil(opt_.num_ops/opt_.num_threads)*2);
++    for(auto& lc : local_stats) {
++        lc.times.resize(std::ceil(opt_.num_ops/opt_.num_threads)*2);
++        lc.times.resize(0);
++    }
+ 
+     // Control variable of monitor thread
+     bool finished = false;

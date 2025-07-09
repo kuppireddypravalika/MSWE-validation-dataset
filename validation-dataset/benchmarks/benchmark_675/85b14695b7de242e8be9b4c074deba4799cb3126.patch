@@ -1,0 +1,22 @@
+From 85b14695b7de242e8be9b4c074deba4799cb3126 Mon Sep 17 00:00:00 2001
+From: Gabor Marton <martongabesz@gmail.com>
+Date: Sat, 9 Sep 2017 11:22:16 +0200
+Subject: [PATCH] Use atomic load in operator=
+
+---
+ rcu_ptr.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/rcu_ptr.hpp b/rcu_ptr.hpp
+index 619114d..29aaf44 100644
+--- a/rcu_ptr.hpp
++++ b/rcu_ptr.hpp
+@@ -20,7 +20,7 @@ class rcu_ptr {
+         sp = std::atomic_load_explicit(&rhs.sp, std::memory_order_consume);
+     }
+     rcu_ptr& operator=(const rcu_ptr& rhs) {
+-        reset(rhs.sp);
++        reset(std::atomic_load_explicit(&rhs.sp, std::memory_order_consume));
+         return *this;
+     }
+ 

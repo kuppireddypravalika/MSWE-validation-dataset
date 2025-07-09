@@ -1,0 +1,21 @@
+From 1668c85f147b168549395b6190cca9355b07fc48 Mon Sep 17 00:00:00 2001
+From: Richard Bailey <rsjtaylor.github@gmail.com>
+Date: Fri, 5 Jan 2024 16:37:01 +0000
+Subject: [PATCH] Reserve counters vector to avoid uneccesary allocation
+
+---
+ src/detail/id_assigner.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/detail/id_assigner.cpp b/src/detail/id_assigner.cpp
+index 581cfde7..29784e93 100644
+--- a/src/detail/id_assigner.cpp
++++ b/src/detail/id_assigner.cpp
+@@ -25,6 +25,7 @@ namespace adm {
+         auto elements = doc.getElements<ElementT>();
+         // Filter ids by predicate, collect counter values in container
+         std::vector<typename CounterT::value_type> counters;
++        counters.reserve(elements.size());
+         for (auto const& el : elements) {
+           auto id = el->template get<typename ElementT::id_type>();
+           if (predicate(id)) {

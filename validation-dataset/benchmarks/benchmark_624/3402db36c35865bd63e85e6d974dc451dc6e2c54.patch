@@ -1,0 +1,22 @@
+From 3402db36c35865bd63e85e6d974dc451dc6e2c54 Mon Sep 17 00:00:00 2001
+From: Sam Hocevar <sam@hocevar.net>
+Date: Fri, 2 Sep 2011 11:38:54 +0000
+Subject: [PATCH] optim: better isnan() reimplementation.
+
+---
+ test/half.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/test/half.cpp b/test/half.cpp
+index e614d9716..8c2c496cf 100644
+--- a/test/half.cpp
++++ b/test/half.cpp
+@@ -30,7 +30,7 @@
+ static inline int isnan(float f)
+ {
+     union { float f; uint32_t x; } u = { f };
+-    return (~u.x << 1) < 0x00fffffeu;
++    return (u.x << 1) > 0xff000000u;
+ }
+ #endif
+ 

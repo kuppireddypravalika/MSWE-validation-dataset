@@ -1,0 +1,29 @@
+From f1313207927b350f445cad6e0ecf5dfc877bce02 Mon Sep 17 00:00:00 2001
+From: Jeff Rudolph <jrudolph.at.work@gmail.com>
+Date: Wed, 24 Jul 2013 19:08:47 +0000
+Subject: [PATCH] Fixed potential memory fault in SetupPowerOpts() function by
+ conditionally allocating Arch->power and Arch->clocks IFF they have not
+ already been allocated.
+
+git-svn-id: https://vtr-verilog-to-routing.googlecode.com/svn/trunk@3097 8e3573b8-cf2c-4f14-ef6d-137439e28b8b
+---
+ vpr/SRC/base/SetupVPR.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/vpr/SRC/base/SetupVPR.c b/vpr/SRC/base/SetupVPR.c
+index c7083d2b67c..9b8fcf55b2a 100644
+--- a/vpr/SRC/base/SetupVPR.c
++++ b/vpr/SRC/base/SetupVPR.c
+@@ -733,8 +733,10 @@ static void SetupPowerOpts(t_options Options, t_power_opts *power_opts,
+ 	}
+ 
+ 	if (power_opts->do_power) {
+-		Arch->power = (t_power_arch*) my_malloc(sizeof(t_power_arch));
+-		Arch->clocks = (t_clock_arch*) my_malloc(sizeof(t_clock_arch));
++		if (!Arch->power)
++			Arch->power = (t_power_arch*) my_malloc(sizeof(t_power_arch));
++		if (!Arch->clocks)
++			Arch->clocks = (t_clock_arch*) my_malloc(sizeof(t_clock_arch));
+ 		g_clock_arch = Arch->clocks;
+ 	} else {
+ 		Arch->power = NULL;

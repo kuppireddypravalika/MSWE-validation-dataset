@@ -1,0 +1,24 @@
+From 44067d5cb296e747afbe316b7e634a93cca72228 Mon Sep 17 00:00:00 2001
+From: thesupremecommander <thesupremecmdr@gmail.com>
+Date: Sat, 6 Dec 2014 04:21:54 -0500
+Subject: [PATCH] Add very slight optimization for antifreeze timers.
+
+---
+ src/modules/antifreeze.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/modules/antifreeze.cpp b/src/modules/antifreeze.cpp
+index dd46a0d..fb417e7 100644
+--- a/src/modules/antifreeze.cpp
++++ b/src/modules/antifreeze.cpp
+@@ -50,7 +50,9 @@ void AntiFreeze::FrameHook(ClientFrameStage_t curStage) {
+ 		}
+ 
+ 		if (timers->GetBool()) {
+-			for (int i = 0; i < Interfaces::pClientEntityList->GetHighestEntityIndex(); i++) {
++			int maxEntity = Interfaces::pClientEntityList->GetHighestEntityIndex();
++
++			for (int i = 0; i < maxEntity; i++) {
+ 				IClientEntity *entity = Interfaces::pClientEntityList->GetClientEntity(i);
+ 
+ 				if (entity) {

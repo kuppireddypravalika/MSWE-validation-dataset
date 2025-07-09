@@ -1,0 +1,27 @@
+From 3a99f91f0635a91d3f5a1ec86b506ad1695cc360 Mon Sep 17 00:00:00 2001
+From: Rafael Espindola <rafael.espindola@gmail.com>
+Date: Wed, 6 Dec 2017 19:17:20 +0000
+Subject: [PATCH] Convert a check to checkLazy.
+
+This brings memory allocations when linking clang from 270.96MB to
+267.80MB.
+---
+ lld/ELF/InputFiles.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/lld/ELF/InputFiles.cpp b/lld/ELF/InputFiles.cpp
+index 8d80c0c032ed..00b35e83d89e 100644
+--- a/lld/ELF/InputFiles.cpp
++++ b/lld/ELF/InputFiles.cpp
+@@ -279,8 +279,9 @@ template <class ELFT>
+ ArrayRef<typename ObjFile<ELFT>::Elf_Word>
+ ObjFile<ELFT>::getShtGroupEntries(const Elf_Shdr &Sec) {
+   const ELFFile<ELFT> &Obj = this->getObj();
+-  ArrayRef<Elf_Word> Entries = check(
+-      Obj.template getSectionContentsAsArray<Elf_Word>(&Sec), toString(this));
++  ArrayRef<Elf_Word> Entries =
++      checkLazy(Obj.template getSectionContentsAsArray<Elf_Word>(&Sec),
++                [=]() { return toString(this); });
+   if (Entries.empty() || Entries[0] != GRP_COMDAT)
+     fatal(toString(this) + ": unsupported SHT_GROUP format");
+   return Entries.slice(1);

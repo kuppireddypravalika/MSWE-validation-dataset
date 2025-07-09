@@ -1,0 +1,28 @@
+From d9d220c0514ebfdd0e8fffcaf7ffbc752f5e6444 Mon Sep 17 00:00:00 2001
+From: Shawn Li <shawn.li@intel.com>
+Date: Mon, 29 Mar 2021 09:50:58 +0800
+Subject: [PATCH] [Decode]Optimize function handle when disable hw dec vedio
+ postprocess
+
+When SW decode, MFX_DEC_VIDEO_POSTPROCESS_DISABLE should defined, there is no
+SFC usage, should skip this function.
+---
+ _studio/mfx_lib/shared/src/mfx_common_int.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/_studio/mfx_lib/shared/src/mfx_common_int.cpp b/_studio/mfx_lib/shared/src/mfx_common_int.cpp
+index d3b3350c41..b7233de067 100644
+--- a/_studio/mfx_lib/shared/src/mfx_common_int.cpp
++++ b/_studio/mfx_lib/shared/src/mfx_common_int.cpp
+@@ -298,7 +298,10 @@ mfxStatus CheckFrameInfoCodecs(mfxFrameInfo  *info, mfxU32 codecId, bool isHW)
+ 
+ mfxStatus UpdateCscOutputFormat(mfxVideoParam *par, mfxFrameAllocRequest *request)
+ {
+-#ifndef MFX_DEC_VIDEO_POSTPROCESS_DISABLE
++#ifdef MFX_DEC_VIDEO_POSTPROCESS_DISABLE
++    (void)par;
++    (void)request;
++#else
+     mfxExtDecVideoProcessing * videoProcessing = (mfxExtDecVideoProcessing *)GetExtendedBuffer(par->ExtParam, par->NumExtParam, MFX_EXTBUFF_DEC_VIDEO_PROCESSING);
+     if (videoProcessing && videoProcessing->Out.FourCC != par->mfx.FrameInfo.FourCC)
+     {

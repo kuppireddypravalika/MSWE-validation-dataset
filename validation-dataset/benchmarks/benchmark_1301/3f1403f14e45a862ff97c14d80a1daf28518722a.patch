@@ -1,0 +1,32 @@
+From 3f1403f14e45a862ff97c14d80a1daf28518722a Mon Sep 17 00:00:00 2001
+From: Dan Gohman <gohman@apple.com>
+Date: Tue, 20 Apr 2010 14:46:25 +0000
+Subject: [PATCH] Don't iterate through the whole block just to find the PHI
+ nodes.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@101900 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/CodeGen/SelectionDAG/FunctionLoweringInfo.cpp | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
+
+diff --git a/lib/CodeGen/SelectionDAG/FunctionLoweringInfo.cpp b/lib/CodeGen/SelectionDAG/FunctionLoweringInfo.cpp
+index 10b0ee40360..704b63356a7 100644
+--- a/lib/CodeGen/SelectionDAG/FunctionLoweringInfo.cpp
++++ b/lib/CodeGen/SelectionDAG/FunctionLoweringInfo.cpp
+@@ -211,13 +211,10 @@ void FunctionLoweringInfo::set(const Function &fn, MachineFunction &mf,
+ 
+     // Create Machine PHI nodes for LLVM PHI nodes, lowering them as
+     // appropriate.
+-    const PHINode *PN;
+     DebugLoc DL;
+-    for (BasicBlock::const_iterator
+-           I = BB->begin(), E = BB->end(); I != E; ++I) {
+-
+-      PN = dyn_cast<PHINode>(I);
+-      if (!PN || PN->use_empty()) continue;
++    for (BasicBlock::const_iterator I = BB->begin();
++         const PHINode *PN = dyn_cast<PHINode>(I); ++I) {
++      if (PN->use_empty()) continue;
+ 
+       unsigned PHIReg = ValueMap[PN];
+       assert(PHIReg && "PHI node does not have an assigned virtual register!");

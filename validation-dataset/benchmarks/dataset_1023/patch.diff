@@ -1,0 +1,26 @@
+From 66abd9ed3290a8ce0937c21feca517805fe8db21 Mon Sep 17 00:00:00 2001
+From: "Garth N. Wells" <gnw20@cam.ac.uk>
+Date: Sun, 17 Feb 2013 08:02:48 +0000
+Subject: [PATCH] Peformance optimisation in DofMap::set.
+
+---
+ dolfin/fem/DofMap.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/dolfin/fem/DofMap.cpp b/dolfin/fem/DofMap.cpp
+index 2d288a5450f..93ca53f997f 100644
+--- a/dolfin/fem/DofMap.cpp
++++ b/dolfin/fem/DofMap.cpp
+@@ -381,10 +381,11 @@ boost::shared_ptr<GenericDofMap>
+ //-----------------------------------------------------------------------------
+ void DofMap::set(GenericVector& x, double value) const
+ {
++  std::vector<double> _value;
+   std::vector<std::vector<dolfin::la_index> >::const_iterator cell_dofs;
+   for (cell_dofs = _dofmap.begin(); cell_dofs != _dofmap.end(); ++cell_dofs)
+   {
+-    std::vector<double> _value(cell_dofs->size(), value);
++    _value.resize(cell_dofs->size(), value);
+     x.set(_value.data(), cell_dofs->size(), cell_dofs->data());
+   }
+   x.apply("add");

@@ -1,0 +1,23 @@
+From b8a2008d264e310a2f98fb0ea293a1ffab53c25d Mon Sep 17 00:00:00 2001
+From: Simon Pilgrim <llvm-dev@redking.me.uk>
+Date: Mon, 25 Jun 2018 11:38:27 +0000
+Subject: [PATCH] Use APInt[] bit access to avoid "32-bit shift implicitly
+ converted to 64 bits" MSVC warning. NFCI.
+
+---
+ llvm/lib/Transforms/InstCombine/InstCombineSimplifyDemanded.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/llvm/lib/Transforms/InstCombine/InstCombineSimplifyDemanded.cpp b/llvm/lib/Transforms/InstCombine/InstCombineSimplifyDemanded.cpp
+index bef2532da972..b03612883ea4 100644
+--- a/llvm/lib/Transforms/InstCombine/InstCombineSimplifyDemanded.cpp
++++ b/llvm/lib/Transforms/InstCombine/InstCombineSimplifyDemanded.cpp
+@@ -949,7 +949,7 @@ Value *InstCombiner::simplifyAMDGCNMemoryIntrinsicDemanded(IntrinsicInst *II,
+     for (unsigned SrcIdx = 0; SrcIdx < 4; ++SrcIdx) {
+       const unsigned Bit = 1 << SrcIdx;
+       if (!!(DMaskVal & Bit)) {
+-        if (!!(DemandedElts & (1 << OrigLoadIdx)))
++        if (!!DemandedElts[OrigLoadIdx])
+           NewDMaskVal |= Bit;
+         OrigLoadIdx++;
+       }

@@ -1,0 +1,26 @@
+From fbf7bda25051719ddcbfb987f2171548197434d6 Mon Sep 17 00:00:00 2001
+From: Erik Garrison <erik.garrison@gmail.com>
+Date: Fri, 9 Jan 2015 23:19:20 +0000
+Subject: [PATCH] don't flush stdout
+
+And, vg kmers runs 2x as fast on 4 cores.
+---
+ main.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/main.cpp b/main.cpp
+index 01a5c7346d5..334dbe02955 100644
+--- a/main.cpp
++++ b/main.cpp
+@@ -84,9 +84,10 @@ int main_kmers(int argc, char** argv) {
+     function<void(string&, Node*, int)>
+         lambda = [](string& kmer, Node* n, int p) {
+ #pragma omp critical (cout)
+-        cout << kmer << '\t' << n->id() << '\t' << p << endl;
++        cout << kmer << '\t' << n->id() << '\t' << p << '\n';
+     };
+     graphs.for_each_kmer_parallel(lambda, kmer_size, kmer_stride);
++    cout.flush();
+ 
+     return 0;
+ }

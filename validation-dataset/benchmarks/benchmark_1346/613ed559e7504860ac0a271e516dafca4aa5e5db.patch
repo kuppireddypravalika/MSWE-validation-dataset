@@ -1,0 +1,33 @@
+From 613ed559e7504860ac0a271e516dafca4aa5e5db Mon Sep 17 00:00:00 2001
+From: Ryan Houdek <Sonicadvance1@gmail.com>
+Date: Fri, 12 May 2023 17:28:36 -0700
+Subject: [PATCH] Thunks: Optimize ARM64 trampoline
+
+No need to use adr for getting the PC relative literal, we can use LDR
+(literal) to load the PC relative address directly.
+
+Reduces trampline instructions from 3 to 2, also reduces trampoline size
+from 24-bytes to 16-bytes.
+---
+ External/FEXCore/Source/Interface/HLE/Thunks/Thunks.cpp | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/External/FEXCore/Source/Interface/HLE/Thunks/Thunks.cpp b/External/FEXCore/Source/Interface/HLE/Thunks/Thunks.cpp
+index eb2878265f..44245cb41d 100644
+--- a/External/FEXCore/Source/Interface/HLE/Thunks/Thunks.cpp
++++ b/External/FEXCore/Source/Interface/HLE/Thunks/Thunks.cpp
+@@ -53,12 +53,9 @@ static __attribute__((aligned(16), naked, section("HostToGuestTrampolineTemplate
+   );
+ #elif defined(_M_ARM_64)
+   asm(
+-    "adr x11, 0f \n"
+-    "ldr x16, [x11] \n"
++    "ldr x16, 0f \n"
+     "br x16 \n"
+-    // Manually align to the next 8-byte boundary
+-    // NOTE: GCC over-aligns to a full page when using .align directives on ARM (last tested on GCC 11.2)
+-    "nop \n"
++    // 8-byte aligned quad.
+     "0: \n"
+     ".quad 0, 0, 0, 0 \n" // TrampolineInstanceInfo
+   );

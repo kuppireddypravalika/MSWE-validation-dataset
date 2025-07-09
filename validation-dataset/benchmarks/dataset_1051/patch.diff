@@ -1,0 +1,41 @@
+From 48a5265835915530b3557547a6064d1b11285cc2 Mon Sep 17 00:00:00 2001
+From: Chip Jones <jonesc@objectcomputing.com>
+Date: Tue, 3 Dec 2019 14:14:04 -0600
+Subject: [PATCH] Modify DomainParticipantImpl::is_clean() to use topicIsBit()
+ rather than a static count of BIT topics.
+
+---
+ dds/DCPS/DomainParticipantImpl.cpp | 15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/dds/DCPS/DomainParticipantImpl.cpp b/dds/DCPS/DomainParticipantImpl.cpp
+index cb2b2297632..2e0ddc39d9f 100644
+--- a/dds/DCPS/DomainParticipantImpl.cpp
++++ b/dds/DCPS/DomainParticipantImpl.cpp
+@@ -1934,14 +1934,23 @@ bool
+ DomainParticipantImpl::is_clean() const
+ {
+   bool sub_is_clean = subscribers_.empty();
+-  bool topics_is_clean = topics_.size() == 0;
++  bool topics_is_clean = true;
++  int non_bit_topic_count = 0;
++
++  // check that the only remaining topics are built-in topics
++  for (TopicMap::const_iterator it = topics_.begin(); it != topics_.end(); ++it) {
++    if (!topicIsBIT(it->second.pair_.svt_->get_name(),it->second.pair_.svt_->get_type_name())) {
++      ++non_bit_topic_count;
++      topics_is_clean = false;
++    }
++  }
+ 
+   if (!TheTransientKludge->is_enabled()) {
+-    // There are four topics and builtin topic subscribers
++    // There are builtin-in topics and builtin topic subscribers
+     // left.
+ 
+     sub_is_clean = !sub_is_clean ? subscribers_.size() == 1 : true;
+-    topics_is_clean = !topics_is_clean ? topics_.size() == 4 : true;
++    topics_is_clean = !topics_is_clean ? non_bit_topic_count == 0 : true;
+   }
+   return (publishers_.empty()
+           && sub_is_clean

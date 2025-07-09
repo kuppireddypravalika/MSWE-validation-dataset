@@ -1,0 +1,30 @@
+From 9c6b5dd3b29235619228d6ec551560548e443d72 Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Mon, 15 May 2023 10:40:47 -0600
+Subject: [PATCH] Delay initializing the recycle value table until `init`
+
+---
+ OPHD/StructureCatalogue.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/OPHD/StructureCatalogue.cpp b/OPHD/StructureCatalogue.cpp
+index 31d61183b..1ee55f294 100644
+--- a/OPHD/StructureCatalogue.cpp
++++ b/OPHD/StructureCatalogue.cpp
+@@ -50,7 +50,7 @@ namespace
+ 	 *	lowered for actual gameplay with modifiers to improve efficiency. */
+ 	const int DefaultRecyclePercent = 90;
+ 
+-	const std::map<StructureID, StorableResources> StructureRecycleValueTable = buildRecycleValueTable(DefaultRecyclePercent);
++	std::map<StructureID, StorableResources> StructureRecycleValueTable;
+ 
+ 	const std::map<StructureID, PopulationRequirements> PopulationRequirementsTable = {
+ 		{SID_NONE, {}},
+@@ -125,6 +125,7 @@ namespace
+  */
+ void StructureCatalogue::init()
+ {
++	StructureRecycleValueTable = buildRecycleValueTable(DefaultRecyclePercent);
+ }
+ 
+ 

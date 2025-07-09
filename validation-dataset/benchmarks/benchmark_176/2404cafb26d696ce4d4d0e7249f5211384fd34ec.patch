@@ -1,0 +1,30 @@
+From 2404cafb26d696ce4d4d0e7249f5211384fd34ec Mon Sep 17 00:00:00 2001
+From: Chun-wei Fan <fanchunwei@src.gnome.org>
+Date: Wed, 12 Jan 2022 13:47:17 +0800
+Subject: [PATCH] arg-cache.cpp: Overload bitwise OR for GjsArgumentFlags
+
+This way, we avoid getting C2440 errors on Visual Studio, where it is quite
+particular about the type conversions that we can perform by default.
+---
+ gi/arg-cache.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/gi/arg-cache.cpp b/gi/arg-cache.cpp
+index 603f15026..94f0d1298 100644
+--- a/gi/arg-cache.cpp
++++ b/gi/arg-cache.cpp
+@@ -189,6 +189,14 @@ struct Nullable {
+     }
+ };
+ 
++// Overload operator| so that Visual Studio won't complain
++// when converting unsigned char to GjsArgumentFlags
++GjsArgumentFlags operator|(
++    GjsArgumentFlags const& v1, GjsArgumentFlags const& v2) {
++    return static_cast<GjsArgumentFlags>(std::underlying_type<GjsArgumentFlags>::type(v1) |
++                                         std::underlying_type<GjsArgumentFlags>::type(v2));
++}
++
+ struct Positioned {
+     void set_arg_pos(int pos) {
+         g_assert(pos <= Argument::MAX_ARGS &&

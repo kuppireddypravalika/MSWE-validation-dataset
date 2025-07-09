@@ -1,0 +1,32 @@
+From a199304a73e50437b1ca35cc4ca4658df8ccc7ea Mon Sep 17 00:00:00 2001
+From: Mikko Partio <mikko.partio@fmi.fi>
+Date: Fri, 18 Aug 2017 09:10:56 +0300
+Subject: [PATCH] Remove neons plugin.
+
+Neons is no longer needed, remove neons plugin and HPDatabaseType.kNeons
+and HPDatabaseType.kNeonsAndRadon. enum values kRadon and kNoDatabase
+remain.
+
+Further streamlining of radon access: parameter information was previously
+fetched from many different plugins. Now it is centered to two places:
+compiled_plugin_base::SetParams and luatool::SetParam. These two functions
+fetch all necessary parameter id information etc from database, so it's no
+longer necessary to re-fetch them later (like when writing file to disk).
+---
+ himan-plugins/source/fetcher.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/himan-plugins/source/fetcher.cpp b/himan-plugins/source/fetcher.cpp
+index b43324d24..16cb24ad0 100644
+--- a/himan-plugins/source/fetcher.cpp
++++ b/himan-plugins/source/fetcher.cpp
+@@ -784,8 +784,7 @@ void fetcher::LandSeaMaskThreshold(double theLandSeaMaskThreshold)
+ {
+ 	if (theLandSeaMaskThreshold < -1 || theLandSeaMaskThreshold > 1)
+ 	{
+-		itsLogger.Fatal("Invalid value for land sea mask threshold: " +
+-						boost::lexical_cast<string>(theLandSeaMaskThreshold));
++		itsLogger.Fatal("Invalid value for land sea mask threshold: " + to_string(theLandSeaMaskThreshold));
+ 		himan::Abort();
+ 	}
+ 

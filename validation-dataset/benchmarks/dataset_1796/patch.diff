@@ -1,0 +1,30 @@
+From 4b606ba9de36334cd8acdb34088b9c224a0f1def Mon Sep 17 00:00:00 2001
+From: David Schulz <david.schulz@qt.io>
+Date: Thu, 30 Mar 2023 13:53:29 +0200
+Subject: [PATCH] LanguageClient: optimize cloning documents
+
+Cloning the document that is needed to track the changes for the
+language server is 3 times slower than just getting the whole original
+document content and create a new QTextDocument with that content.
+Presumably some additional information gets cloned that is not needed
+for just the content tracking.
+
+Change-Id: I4a7002b2ac97563f01dc3a67351b9363e9cc7b3f
+Reviewed-by: Christian Stenger <christian.stenger@qt.io>
+---
+ src/plugins/languageclient/client.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/plugins/languageclient/client.cpp b/src/plugins/languageclient/client.cpp
+index 90717c4e0a71..81811852a53d 100644
+--- a/src/plugins/languageclient/client.cpp
++++ b/src/plugins/languageclient/client.cpp
+@@ -618,7 +618,7 @@ void Client::openDocument(TextEditor::TextDocument *document)
+         }
+     }
+ 
+-    d->m_openedDocument[document].document = document->document()->clone(this);
++    d->m_openedDocument[document].document = new QTextDocument(document->document()->toPlainText());
+     d->m_openedDocument[document].contentsChangedConnection
+         = connect(document,
+                   &TextDocument::contentsChangedWithPosition,

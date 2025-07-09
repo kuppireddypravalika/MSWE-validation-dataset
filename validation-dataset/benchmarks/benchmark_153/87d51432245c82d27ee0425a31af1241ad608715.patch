@@ -1,0 +1,28 @@
+From 87d51432245c82d27ee0425a31af1241ad608715 Mon Sep 17 00:00:00 2001
+From: Patrick Avery <patrick.avery@kitware.com>
+Date: Sun, 18 Aug 2019 15:52:49 -0400
+Subject: [PATCH] Cast memsize int to size_t to prevent overflow
+
+For big numbers, there was an integer overflow when it was
+multiplied by 1000. This resulted in a really big number when
+it was converted to size_t. Fix the overflow.
+
+Signed-off-by: Patrick Avery <patrick.avery@kitware.com>
+---
+ tomviz/DataPropertiesPanel.cxx | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/tomviz/DataPropertiesPanel.cxx b/tomviz/DataPropertiesPanel.cxx
+index 7ea1f0b29..18875aef2 100644
+--- a/tomviz/DataPropertiesPanel.cxx
++++ b/tomviz/DataPropertiesPanel.cxx
+@@ -167,7 +167,8 @@ QString getMemSizeString(vtkSMSourceProxy* proxy)
+   vtkPVDataInformation* info = proxy->GetDataInformation(0);
+ 
+   // GetMemorySize() returns kilobytes
+-  size_t memSize = info->GetMemorySize() * 1000;
++  // Cast it to size_t to prevent integer overflows
++  size_t memSize = static_cast<size_t>(info->GetMemorySize()) * 1000;
+ 
+   return "Memory: " + getSizeNearestThousand(memSize, true);
+ }

@@ -1,0 +1,36 @@
+From 33f3ab4d8645c735dc7652fd0879822d38d75ff7 Mon Sep 17 00:00:00 2001
+From: Connor McLaughlin <stenzek@gmail.com>
+Date: Sat, 15 Feb 2020 00:08:56 +0900
+Subject: [PATCH] Common/FIFOQueue: Use posix_memalign instead of memalign
+
+---
+ src/common/fifo_queue.h | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/src/common/fifo_queue.h b/src/common/fifo_queue.h
+index 1206ee66e..e10305885 100644
+--- a/src/common/fifo_queue.h
++++ b/src/common/fifo_queue.h
+@@ -5,7 +5,11 @@
+ #include <cstring>
+ #include <type_traits>
+ 
+-#include <malloc.h> // _aligned_malloc, memalign
++#ifdef _MSC_VER
++#include <malloc.h> // _aligned_malloc
++#else
++#include <stdlib.h> // posix_memalign
++#endif
+ 
+ template<typename T, u32 CAPACITY>
+ class FIFOQueue
+@@ -183,7 +187,8 @@ class HeapFIFOQueue : public FIFOQueue<T, CAPACITY>
+ #ifdef _MSC_VER
+       this->m_ptr = static_cast<T*>(_aligned_malloc(sizeof(T) * CAPACITY, ALIGNMENT));
+ #else
+-      this->m_ptr = static_cast<T*>(memalign(ALIGNMENT, sizeof(T) * CAPACITY));
++      if (posix_memalign(reinterpret_cast<void**>(&this->m_ptr), ALIGNMENT, sizeof(T) * CAPACITY) != 0)
++        this->m_ptr = nullptr;
+ #endif
+     }
+     else

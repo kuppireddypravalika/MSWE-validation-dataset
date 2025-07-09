@@ -1,0 +1,27 @@
+From e999e7c5d7ac7447bc1fd8244af9733e58d0e0b8 Mon Sep 17 00:00:00 2001
+From: Tristan Brindle <t.c.brindle@gmail.com>
+Date: Wed, 13 Dec 2023 18:11:16 +0000
+Subject: [PATCH] Use optional::emplace in single-pass flatten
+
+Rather than constructing a RHS optional and using assignment, we'll use emplace() to construct the object directly in the LHS, which results in fewer operations.
+
+It also means the changes to the optional assignement operators we're necessary, but never mind...
+---
+ include/flux/op/flatten.hpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/include/flux/op/flatten.hpp b/include/flux/op/flatten.hpp
+index 3b968cf8..2e07e3da 100644
+--- a/include/flux/op/flatten.hpp
++++ b/include/flux/op/flatten.hpp
+@@ -45,8 +45,8 @@ struct flatten_adaptor : inline_sequence_base<flatten_adaptor<Base>> {
+         static constexpr auto satisfy(auto& self, cursor_type& cur) -> void
+         {
+             while (!flux::is_last(self.base_, cur.outer_cur)) {
+-                self.inner_ = optional<InnerSeq>(flux::read_at(self.base_, cur.outer_cur));
+-                cur.inner_cur = optional(flux::first(*self.inner_));
++                self.inner_.emplace(flux::read_at(self.base_, cur.outer_cur));
++                cur.inner_cur.emplace(flux::first(*self.inner_));
+                 if (!flux::is_last(*self.inner_, *cur.inner_cur)) {
+                     return;
+                 }

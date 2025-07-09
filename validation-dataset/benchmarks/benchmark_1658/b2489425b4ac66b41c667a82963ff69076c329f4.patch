@@ -1,0 +1,28 @@
+From b2489425b4ac66b41c667a82963ff69076c329f4 Mon Sep 17 00:00:00 2001
+From: Philippe Canal <pcanal@fnal.gov>
+Date: Fri, 7 Mar 2008 12:38:50 +0000
+Subject: [PATCH] Avoid loading a CINT dictionary if a Reflex/Cintex dictionary
+ has already been registered
+
+git-svn-id: http://root.cern.ch/svn/root/trunk@22510 27541ba8-7e3a-0410-8455-c3a389f83636
+---
+ cint/src/v6_newlink.cxx | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/cint/src/v6_newlink.cxx b/cint/src/v6_newlink.cxx
+index 813a67c0c4666..f97f67574679f 100644
+--- a/cint/src/v6_newlink.cxx
++++ b/cint/src/v6_newlink.cxx
+@@ -6697,6 +6697,12 @@ int G__tagtable_setup(int tagnum,int size,int cpplink,int isabstract,const char
+   if(0!=G__struct.size[tagnum]
+      && 'n'!=G__struct.type[tagnum]
+      ) {
++     if (G__struct.filenum[tagnum]!=-1 &&
++	!G__struct.incsetup_memvar[tagnum]->empty() &&
++	strcmp(G__srcfile[G__struct.filenum[tagnum]].filename,"{CINTEX dictionary translator}")==0) {
++        // Something was already registered by Cintex, let's not add more
++        return 0;
++     }
+ #ifndef G__OLDIMPLEMENTATION1656
+ 
+      char found = G__incsetup_exist(G__struct.incsetup_memvar[tagnum],setup_memvar);

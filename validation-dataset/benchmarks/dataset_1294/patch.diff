@@ -1,0 +1,22 @@
+From 44f2c787f6c76cb6040d5f36600bffd4be006642 Mon Sep 17 00:00:00 2001
+From: CubeConflict <11237205+Big-Onche@users.noreply.github.com>
+Date: Tue, 22 Oct 2024 17:42:06 +0200
+Subject: [PATCH] fix | max speed achievement
+
+---
+ src/engine/physics.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/engine/physics.cpp b/src/engine/physics.cpp
+index e2463899..915233b9 100644
+--- a/src/engine/physics.cpp
++++ b/src/engine/physics.cpp
+@@ -1834,7 +1834,7 @@ bool moveplayer(physent *pl, int moveres, bool local, int curtime)
+     modifyvelocity(pl, local, water, isFloating, curtime);
+ 
+     vec vel(pl->vel);
+-    if(pl==game::player1 && d->character==C_WIZARD && d->boostmillis[B_EPO]>30000 && d->abilitymillis[ABILITY_1] && d->afterburnmillis) unlockAchievement(ACH_MAXSPEED);
++    if(pl==game::player1 && d->character==C_WIZARD && d->boostmillis[B_EPO] && d->abilitymillis[ABILITY_1] && d->afterburnmillis) unlockAchievement(ACH_MAXSPEED);
+     if(!isFloating && water) vel.mul(0.5f);
+     vel.add(pl->falling);
+     vel.mul(secs);

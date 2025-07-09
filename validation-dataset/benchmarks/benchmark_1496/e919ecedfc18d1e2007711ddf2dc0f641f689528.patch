@@ -1,0 +1,34 @@
+From e919ecedfc18d1e2007711ddf2dc0f641f689528 Mon Sep 17 00:00:00 2001
+From: sdong <siying.d@fb.com>
+Date: Tue, 27 Jan 2015 13:57:44 -0800
+Subject: [PATCH] SuperVersion::Unref() to use sequential consistency to
+ decrease ref counting
+
+Summary: I'm not sure the expected results of std::atomic::fetch_sub() when using memory_order_relaxed, and I suspect TSAN complains.
+
+Test Plan: make all check
+
+Reviewers: rven, yhchiang, igor
+
+Reviewed By: igor
+
+Subscribers: leveldb, dhruba
+
+Differential Revision: https://reviews.facebook.net/D32259
+---
+ db/column_family.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/db/column_family.cc b/db/column_family.cc
+index e6e75aad9..be01a2993 100644
+--- a/db/column_family.cc
++++ b/db/column_family.cc
+@@ -181,7 +181,7 @@ SuperVersion* SuperVersion::Ref() {
+ 
+ bool SuperVersion::Unref() {
+   // fetch_sub returns the previous value of ref
+-  uint32_t previous_refs = refs.fetch_sub(1, std::memory_order_relaxed);
++  uint32_t previous_refs = refs.fetch_sub(1);
+   assert(previous_refs > 0);
+   return previous_refs == 1;
+ }

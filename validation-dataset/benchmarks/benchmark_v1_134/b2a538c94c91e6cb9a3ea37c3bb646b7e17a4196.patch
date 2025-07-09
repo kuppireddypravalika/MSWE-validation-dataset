@@ -1,0 +1,33 @@
+From b2a538c94c91e6cb9a3ea37c3bb646b7e17a4196 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Nicolai=20H=C3=A4hnle?= <nicolai.haehnle@amd.com>
+Date: Tue, 28 May 2019 10:18:50 +0200
+Subject: [PATCH] SPIRVReader: take addrSpace from the pointer-type instead of
+ re-deriving it
+
+---
+ translator/lib/SPIRV/SPIRVReader.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/translator/lib/SPIRV/SPIRVReader.cpp b/translator/lib/SPIRV/SPIRVReader.cpp
+index 13ba2d62c4..bbb026cff5 100644
+--- a/translator/lib/SPIRV/SPIRVReader.cpp
++++ b/translator/lib/SPIRV/SPIRVReader.cpp
+@@ -5149,7 +5149,8 @@ template<> Value* SPIRVToLLVM::transValueWithOpcode<OpVariable>(
+         }
+     }
+ 
+-    Type* const pVarType = transType(pSpvVar->getType())->getPointerElementType();
++    Type* const pPtrType = transType(pSpvVar->getType());
++    Type* const pVarType = pPtrType->getPointerElementType();
+ 
+     SPIRVValue* const pSpvInitializer = pSpvVar->getInitializer();
+ 
+@@ -5236,7 +5237,7 @@ template<> Value* SPIRVToLLVM::transValueWithOpcode<OpVariable>(
+         }
+     }
+ 
+-    uint32_t addrSpace = SPIRSPIRVAddrSpaceMap::rmap(storageClass);
++    const uint32_t addrSpace = pPtrType->getPointerAddressSpace();
+     string varName = pSpvVar->getName();
+ 
+     GlobalVariable* const pGlobalVar = new GlobalVariable(*M,

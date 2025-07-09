@@ -1,0 +1,24 @@
+From 9698c1985f8b4f461a01a908be60f9fd14a342ec Mon Sep 17 00:00:00 2001
+From: Chris Lattner <sabre@nondot.org>
+Date: Sat, 3 Apr 2010 06:13:12 +0000
+Subject: [PATCH] strength reduce a ridiculous use of APInt.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@100274 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Transforms/Scalar/IndVarSimplify.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/lib/Transforms/Scalar/IndVarSimplify.cpp b/lib/Transforms/Scalar/IndVarSimplify.cpp
+index a6d18433188..b5fdd0c4a17 100644
+--- a/lib/Transforms/Scalar/IndVarSimplify.cpp
++++ b/lib/Transforms/Scalar/IndVarSimplify.cpp
+@@ -632,8 +632,7 @@ static bool CanUseSIToFP(ConstantFP *InitV, ConstantFP *ExitV,
+     return true;
+ 
+   // If the iteration range can be handled by SIToFPInst then use it.
+-  APInt Max = APInt::getSignedMaxValue(32);
+-  if (Max.getZExtValue() > static_cast<uint64_t>(abs64(intEV - intIV)))
++  if (abs64(intEV - intIV) < INT32_MAX)
+     return true;
+ 
+   return false;

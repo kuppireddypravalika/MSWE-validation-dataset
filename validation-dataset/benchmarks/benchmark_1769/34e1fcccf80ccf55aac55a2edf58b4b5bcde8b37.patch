@@ -1,0 +1,31 @@
+From 34e1fcccf80ccf55aac55a2edf58b4b5bcde8b37 Mon Sep 17 00:00:00 2001
+From: Ryan Houdek <Sonicadvance1@gmail.com>
+Date: Mon, 6 Jun 2022 11:36:42 -0700
+Subject: [PATCH] CPUID: Enable the hypervisor bit
+
+This was originally set to zero out of concern for any application that
+is doing anti-emulation, anti-cheat, anti-VM checks.
+
+This concern is likely unwarranted, and if any application/game starts
+hitting this as a problem then we can throw an application profile at it
+instead.
+
+This makes pressure-vessel emulation checking more optimal by it not
+having to do a uname dance.
+---
+ External/FEXCore/Source/Interface/Core/CPUID.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/External/FEXCore/Source/Interface/Core/CPUID.cpp b/External/FEXCore/Source/Interface/Core/CPUID.cpp
+index 34f4b13e9f..557cb6decf 100644
+--- a/External/FEXCore/Source/Interface/Core/CPUID.cpp
++++ b/External/FEXCore/Source/Interface/Core/CPUID.cpp
+@@ -446,7 +446,7 @@ FEXCore::CPUID::FunctionResults CPUIDEmu::Function_01h(uint32_t Leaf) {
+     (SUPPORTS_AVX << 28) | // AVX
+     (0 << 29) | // F16C
+     (CTX->HostFeatures.SupportsRAND << 30) | // RDRAND
+-    (0 << 31);  // Hypervisor always returns zero
++    (1 << 31);  // Hypervisor always returns one
+ 
+   Res.edx =
+     (1 <<  0) | // FPU

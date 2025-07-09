@@ -1,0 +1,33 @@
+From dd6ffbec2496920b1bfe4f29cca1eba82e959869 Mon Sep 17 00:00:00 2001
+From: Shawn Rutledge <shawn.rutledge@qt.io>
+Date: Fri, 14 Feb 2020 14:04:14 +0100
+Subject: [PATCH] Optimize QQuickPixmapCache readImage() slightly
+
+Calling QImageReader::size() twice means calling the image format plugin
+twice, so it's best to avoid that.
+
+Change-Id: I4741e87c7c95252904d0dd9f484a57d953670559
+Reviewed-by: Shawn Rutledge <shawn.rutledge@qt.io>
+---
+ src/quick/util/qquickpixmapcache.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/quick/util/qquickpixmapcache.cpp b/src/quick/util/qquickpixmapcache.cpp
+index 2ae9debbc94..6a34169fceb 100644
+--- a/src/quick/util/qquickpixmapcache.cpp
++++ b/src/quick/util/qquickpixmapcache.cpp
+@@ -427,11 +427,12 @@ static bool readImage(const QUrl& url, QIODevice *dev, QImage *image, QString *e
+         imgio.setScaledSize(scSize);
+     if (!requestRegion.isNull())
+         imgio.setScaledClipRect(requestRegion);
++    const QSize originalSize = imgio.size();
+     qCDebug(lcImg) << url << "frame" << frame << "of" << imgio.imageCount()
+-                   << "requestRegion" << requestRegion << "QImageReader size" << imgio.size() << "-> scSize" << scSize;
++                   << "requestRegion" << requestRegion << "QImageReader size" << originalSize << "-> scSize" << scSize;
+ 
+     if (impsize)
+-        *impsize = imgio.size();
++        *impsize = originalSize;
+ 
+     if (imgio.read(image)) {
+         maybeRemoveAlpha(image);

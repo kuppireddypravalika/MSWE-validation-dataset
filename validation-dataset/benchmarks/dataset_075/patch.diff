@@ -1,0 +1,23 @@
+From 008a816cb7d84e5981daaa6e1b313ce8b5ac722d Mon Sep 17 00:00:00 2001
+From: Lars Op den Kamp <lars@opdenkamp.eu>
+Date: Tue, 7 Feb 2012 02:32:43 +0100
+Subject: [PATCH] cec: don't broadcast but wake one thread in
+ CProtectedSocket::MarkReady()
+
+---
+ src/lib/platform/sockets/socket.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/lib/platform/sockets/socket.h b/src/lib/platform/sockets/socket.h
+index 388bb2d8..1d54a03e 100644
+--- a/src/lib/platform/sockets/socket.h
++++ b/src/lib/platform/sockets/socket.h
+@@ -223,7 +223,7 @@ namespace PLATFORM
+       CLockObject lock(m_mutex);
+       if (m_iUseCount > 0)
+         --m_iUseCount;
+-      m_condition.Broadcast();
++      m_condition.Signal();
+     }
+ 
+     _Socket   *m_socket;

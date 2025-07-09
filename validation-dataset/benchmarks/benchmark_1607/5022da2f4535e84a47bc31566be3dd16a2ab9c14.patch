@@ -1,0 +1,39 @@
+From 5022da2f4535e84a47bc31566be3dd16a2ab9c14 Mon Sep 17 00:00:00 2001
+From: Olli Pettay <Olli.Pettay@helsinki.fi>
+Date: Fri, 15 Oct 2010 21:03:44 +0300
+Subject: [PATCH] Bug 601130 - Faster attribute serialization for innerHTML,
+ r=laurent, a=jst
+
+--HG--
+extra : rebase_source : d58f35bf9260e8a910a3dedc64fc0f5b9adc3372
+---
+ content/base/src/nsXMLContentSerializer.cpp | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/content/base/src/nsXMLContentSerializer.cpp b/content/base/src/nsXMLContentSerializer.cpp
+index 9683746106b..f2ed0706b6e 100644
+--- a/content/base/src/nsXMLContentSerializer.cpp
++++ b/content/base/src/nsXMLContentSerializer.cpp
+@@ -643,7 +643,11 @@ nsXMLContentSerializer::SerializeAttr(const nsAString& aPrefix,
+                                       nsAString& aStr,
+                                       PRBool aDoEscapeEntities)
+ {
+-  nsAutoString attrString;
++  nsAutoString attrString_;
++  // For innerHTML we can do faster appending without
++  // temporary strings.
++  PRBool rawAppend = mDoRaw && aDoEscapeEntities;
++  nsAString& attrString = (rawAppend) ? aStr : attrString_;
+ 
+   attrString.Append(PRUnichar(' '));
+   if (!aPrefix.IsEmpty()) {
+@@ -662,6 +666,9 @@ nsXMLContentSerializer::SerializeAttr(const nsAString& aPrefix,
+     mInAttribute = PR_FALSE;
+ 
+     attrString.Append(PRUnichar('"'));
++    if (rawAppend) {
++      return;
++    }
+   }
+   else {
+     // Depending on whether the attribute value contains quotes or apostrophes we

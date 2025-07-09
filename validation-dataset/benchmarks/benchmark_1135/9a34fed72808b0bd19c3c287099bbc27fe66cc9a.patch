@@ -1,0 +1,32 @@
+From 9a34fed72808b0bd19c3c287099bbc27fe66cc9a Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Tue, 20 Jan 2015 21:32:49 +0100
+Subject: [PATCH] QDateTime: pass explicit length to QLatin1String ctor
+
+Apparently, determining that constant at compile time is a bit too much
+work for GCC.
+
+Effects on Linux GCC 4.9 stripped release builds:
+ text   -276B
+ data    +-0B
+ relocs  +-0
+
+Change-Id: I23144e64d57e3a2e1061e69b20f2b72575c273d8
+Reviewed-by: Olivier Goffart (Woboq GmbH) <ogoffart@woboq.com>
+---
+ src/corelib/tools/qdatetime.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/corelib/tools/qdatetime.cpp b/src/corelib/tools/qdatetime.cpp
+index 32014320ba6..ef3b4a36121 100644
+--- a/src/corelib/tools/qdatetime.cpp
++++ b/src/corelib/tools/qdatetime.cpp
+@@ -162,7 +162,7 @@ static const char qt_shortMonthNames[][4] = {
+ int qt_monthNumberFromShortName(const QString &shortName)
+ {
+     for (unsigned int i = 0; i < sizeof(qt_shortMonthNames) / sizeof(qt_shortMonthNames[0]); ++i) {
+-        if (shortName == QLatin1String(qt_shortMonthNames[i]))
++        if (shortName == QLatin1String(qt_shortMonthNames[i], 3))
+             return i + 1;
+     }
+     return -1;

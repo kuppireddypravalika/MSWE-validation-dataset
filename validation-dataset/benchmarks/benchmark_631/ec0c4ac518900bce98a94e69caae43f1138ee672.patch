@@ -1,0 +1,36 @@
+From ec0c4ac518900bce98a94e69caae43f1138ee672 Mon Sep 17 00:00:00 2001
+From: rigaya <rigaya34589@live.jp>
+Date: Wed, 3 Mar 2021 20:54:11 +0900
+Subject: [PATCH] =?UTF-8?q?Ubuntu=2020.10=E3=81=A7=E3=83=AA=E3=83=B3?=
+ =?UTF-8?q?=E3=82=AF=E3=82=A8=E3=83=A9=E3=83=BC=E3=82=92=E5=9B=9E=E9=81=BF?=
+ =?UTF-8?q?=E3=80=82(=20#50=20)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+relocation R_X86_64_PC32 against absolute symbol _binary_PerfMonitor_perf_monitor_pyw_size' in section .text' is disallowedでエラー終了してしまうのを回避。sizeはABSとなっているのが原因で、endとstartの差をsizeとすればよい。
+---
+ QSVPipeline/rgy_perf_monitor.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/QSVPipeline/rgy_perf_monitor.cpp b/QSVPipeline/rgy_perf_monitor.cpp
+index f3b4cd6d..a55fd0e8 100644
+--- a/QSVPipeline/rgy_perf_monitor.cpp
++++ b/QSVPipeline/rgy_perf_monitor.cpp
+@@ -52,7 +52,6 @@
+ extern "C" {
+ extern char _binary_PerfMonitor_perf_monitor_pyw_start[];
+ extern char _binary_PerfMonitor_perf_monitor_pyw_end[];
+-extern char _binary_PerfMonitor_perf_monitor_pyw_size[];
+ }
+ 
+ #endif //#if defined(_WIN32) || defined(_WIN64)
+@@ -590,7 +589,7 @@ int CPerfMonitor::createPerfMpnitorPyw(const TCHAR *pywPath) {
+     } else
+ #else
+     pDataPtr = _binary_PerfMonitor_perf_monitor_pyw_start;
+-    resourceSize = (uint32_t)(size_t)_binary_PerfMonitor_perf_monitor_pyw_size;
++    resourceSize = (uint32_t)(size_t)(_binary_PerfMonitor_perf_monitor_pyw_end - _binary_PerfMonitor_perf_monitor_pyw_start);
+ #endif //#if defined(_WIN32) || defined(_WIN64)
+     if (_tfopen_s(&fp, pywPath, _T("wb")) || NULL == fp) {
+         ret = 1;

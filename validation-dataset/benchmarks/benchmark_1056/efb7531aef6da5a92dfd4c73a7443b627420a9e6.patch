@@ -1,0 +1,50 @@
+From efb7531aef6da5a92dfd4c73a7443b627420a9e6 Mon Sep 17 00:00:00 2001
+From: Daniel Wright <Daniel.Wright@epicgames.com>
+Date: Tue, 10 Jan 2017 14:28:33 -0500
+Subject: [PATCH] UStaticMeshComponent::InvalidateLightingCacheDetailed uses
+ MarkRenderStateDirty.  Massively speeds up duplication of HISMC with many
+ instances (10+ minutes -> seconds), as InvalidateLightingCacheDetailed gets
+ called for every instance. #rb none #jira UE-40406
+
+[CL 3252614 by Daniel Wright in 4.15 branch]
+---
+ .../Runtime/Engine/Private/StaticMeshLight.cpp       | 12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
+
+diff --git a/Engine/Source/Runtime/Engine/Private/StaticMeshLight.cpp b/Engine/Source/Runtime/Engine/Private/StaticMeshLight.cpp
+index ca615d23c2e..9b0d2168e35 100644
+--- a/Engine/Source/Runtime/Engine/Private/StaticMeshLight.cpp
++++ b/Engine/Source/Runtime/Engine/Private/StaticMeshLight.cpp
+@@ -412,22 +412,15 @@ void UStaticMeshComponent::InvalidateLightingCacheDetailed(bool bInvalidateBuild
+ 	// Save the static mesh state for transactions, force it to be marked dirty if we are going to discard any static lighting data.
+ 	Modify(true);
+ 
+-	// Detach the component from the scene for the duration of this function.
+-	FComponentReregisterContext ReregisterContext(this);
+-
+-	// Block until the RT processes the unregister before modifying variables that it may need to access
+-	FlushRenderingCommands();
+-
+ 	Super::InvalidateLightingCacheDetailed(bInvalidateBuildEnqueuedLighting, bTranslationOnly);
+ 
+-	// Discard all cached lighting.
+-	check(AttachmentCounter.GetValue() == 0);
+-
+ 	for(int32 i = 0; i < LODData.Num(); i++)
+ 	{
+ 		FStaticMeshComponentLODInfo& LODDataElement = LODData[i];
+ 		LODDataElement.MapBuildDataId = FGuid::NewGuid();
+ 	}
++
++	MarkRenderStateDirty();
+ }
+ 
+ UObject const* UStaticMeshComponent::AdditionalStatObject() const
+@@ -435,7 +428,6 @@ UObject const* UStaticMeshComponent::AdditionalStatObject() const
+ 	return GetStaticMesh();
+ }
+ 
+-
+ bool UStaticMeshComponent::SetStaticLightingMapping(bool bTextureMapping, int32 ResolutionToUse)
+ {
+ 	bool bSuccessful = false;

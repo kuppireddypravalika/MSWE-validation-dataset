@@ -1,0 +1,28 @@
+From f3cd988c29f614903e2e5bf990b428abd22f78ab Mon Sep 17 00:00:00 2001
+From: Henric Jungheim <software@henric.org>
+Date: Sun, 22 May 2022 05:44:55 -0700
+Subject: [PATCH] Use std::vector<> instead of std::list<> for House::players.
+
+---
+ include/House.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/include/House.h b/include/House.h
+index ff8309568..d00fd23e6 100644
+--- a/include/House.h
++++ b/include/House.h
+@@ -215,12 +215,12 @@ class House final {
+         aiteams.emplace_back(houseID, aiTeamBehavior, aiTeamType, minUnits, maxUnits);
+     }
+ 
+-    [[nodiscard]] const std::list<std::unique_ptr<Player>>& getPlayerList() const { return players; }
++    [[nodiscard]] const std::vector<std::unique_ptr<Player>>& getPlayerList() const { return players; }
+ 
+ protected:
+     void decrementHarvesters();
+ 
+-    std::list<std::unique_ptr<Player>> players; ///< List of associated players that control this house
++    std::vector<std::unique_ptr<Player>> players; ///< List of associated players that control this house
+ 
+     bool ai; ///< Is this an ai player?
+ 

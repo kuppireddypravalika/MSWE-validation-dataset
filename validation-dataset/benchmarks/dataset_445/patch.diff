@@ -1,0 +1,39 @@
+From 923c402f6934b6f135d5c6e27a587055eb799d90 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@duempel.org>
+Date: Wed, 10 Dec 2014 09:35:28 +0100
+Subject: [PATCH] decoder/ffmpeg: optimize ffmpeg_scan_dictionary()
+
+Don't scan tag items if the handler doesn't implement the tag()
+method.
+---
+ src/decoder/plugins/FfmpegMetaData.cxx | 16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
+
+diff --git a/src/decoder/plugins/FfmpegMetaData.cxx b/src/decoder/plugins/FfmpegMetaData.cxx
+index a394669457..7b223b6be8 100644
+--- a/src/decoder/plugins/FfmpegMetaData.cxx
++++ b/src/decoder/plugins/FfmpegMetaData.cxx
+@@ -62,14 +62,16 @@ void
+ ffmpeg_scan_dictionary(AVDictionary *dict,
+ 		       const struct tag_handler *handler, void *handler_ctx)
+ {
+-	for (unsigned i = 0; i < TAG_NUM_OF_ITEM_TYPES; ++i)
+-		ffmpeg_copy_metadata(TagType(i), dict, tag_item_names[i],
+-				     handler, handler_ctx);
++	if (handler->tag != nullptr) {
++		for (unsigned i = 0; i < TAG_NUM_OF_ITEM_TYPES; ++i)
++			ffmpeg_copy_metadata(TagType(i), dict, tag_item_names[i],
++					     handler, handler_ctx);
+ 
+-	for (const struct tag_table *i = ffmpeg_tags;
+-	     i->name != nullptr; ++i)
+-		ffmpeg_copy_metadata(i->type, dict, i->name,
+-				     handler, handler_ctx);
++		for (const struct tag_table *i = ffmpeg_tags;
++		     i->name != nullptr; ++i)
++			ffmpeg_copy_metadata(i->type, dict, i->name,
++					     handler, handler_ctx);
++	}
+ 
+ 	if (handler->pair != nullptr)
+ 		ffmpeg_scan_pairs(dict, handler, handler_ctx);

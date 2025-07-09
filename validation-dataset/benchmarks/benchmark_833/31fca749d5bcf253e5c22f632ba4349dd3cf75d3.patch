@@ -1,0 +1,23 @@
+From 31fca749d5bcf253e5c22f632ba4349dd3cf75d3 Mon Sep 17 00:00:00 2001
+From: Lukas Rusak <lorusak@gmail.com>
+Date: Sat, 21 Jan 2023 14:52:55 -0800
+Subject: [PATCH] CAESinkPipewire: increase amount of buffers used
+
+Signed-off-by: Lukas Rusak <lorusak@gmail.com>
+---
+ xbmc/cores/AudioEngine/Sinks/pipewire/AESinkPipewire.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/xbmc/cores/AudioEngine/Sinks/pipewire/AESinkPipewire.cpp b/xbmc/cores/AudioEngine/Sinks/pipewire/AESinkPipewire.cpp
+index ef9037373b5bd..f90b3d81a5d4c 100644
+--- a/xbmc/cores/AudioEngine/Sinks/pipewire/AESinkPipewire.cpp
++++ b/xbmc/cores/AudioEngine/Sinks/pipewire/AESinkPipewire.cpp
+@@ -399,7 +399,7 @@ bool CAESinkPipewire::Initialize(AEAudioFormat& format, std::string& device)
+   // clang-format off
+   params.emplace_back(static_cast<const spa_pod*>(spa_pod_builder_add_object(
+       &builder, SPA_TYPE_OBJECT_ParamBuffers, SPA_PARAM_Buffers,
+-          SPA_PARAM_BUFFERS_buffers, SPA_POD_CHOICE_RANGE_Int(6, 6, 6),
++          SPA_PARAM_BUFFERS_buffers, SPA_POD_CHOICE_RANGE_Int(20, 16, 24),
+           SPA_PARAM_BUFFERS_blocks, SPA_POD_Int(1),
+           SPA_PARAM_BUFFERS_size, SPA_POD_Int(frames * pwChannels.size() * PWFormatToSampleSize(pwFormat)),
+           SPA_PARAM_BUFFERS_stride, SPA_POD_Int(pwChannels.size() * PWFormatToSampleSize(pwFormat)))));

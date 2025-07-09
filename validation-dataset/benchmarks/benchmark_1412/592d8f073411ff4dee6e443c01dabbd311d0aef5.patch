@@ -1,0 +1,31 @@
+From 592d8f073411ff4dee6e443c01dabbd311d0aef5 Mon Sep 17 00:00:00 2001
+From: Matt Corallo <git@bluematt.me>
+Date: Wed, 11 Jan 2017 14:47:52 -0800
+Subject: [PATCH] Use a temp pindex to avoid a const_cast in
+ ProcessNewBlockHeaders
+
+---
+ src/validation.cpp | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/src/validation.cpp b/src/validation.cpp
+index 52f9c082df..c319a71f6a 100644
+--- a/src/validation.cpp
++++ b/src/validation.cpp
+@@ -3532,11 +3532,13 @@ bool ProcessNewBlockHeaders(const std::vector<CBlockHeader>& headers, CValidatio
+     {
+         LOCK(cs_main);
+         for (const CBlockHeader& header : headers) {
+-            // cast away the ppindex-returns-const CBlockIndex - we're just assigning it to a CBlockIndex*
+-            // that we own and is updated non-const anyway
+-            if (!AcceptBlockHeader(header, state, chainparams, const_cast<CBlockIndex**>(ppindex))) {
++            CBlockIndex *pindex = NULL; // Use a temp pindex instead of ppindex to avoid a const_cast
++            if (!AcceptBlockHeader(header, state, chainparams, &pindex)) {
+                 return false;
+             }
++            if (ppindex) {
++                *ppindex = pindex;
++            }
+         }
+     }
+     NotifyHeaderTip();

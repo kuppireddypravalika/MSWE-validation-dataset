@@ -1,0 +1,26 @@
+From b1d4c21897a7f9f16af56dcd850256f343addc3c Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Sat, 26 Jun 2021 03:31:03 -0600
+Subject: [PATCH] Only iterate over XmlElement in
+ MapViewState::readMoraleChanges
+
+---
+ OPHD/States/MapViewStateIO.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/OPHD/States/MapViewStateIO.cpp b/OPHD/States/MapViewStateIO.cpp
+index ee04c9a22..71bfaa66d 100644
+--- a/OPHD/States/MapViewStateIO.cpp
++++ b/OPHD/States/MapViewStateIO.cpp
+@@ -583,9 +583,9 @@ void MapViewState::readMoraleChanges(Xml::XmlElement* elem)
+ {
+ 	if (!elem) { return; }
+ 
+-	for (auto node = elem->firstChild(); node; node = node->nextSibling())
++	for (auto node = elem->firstChildElement(); node; node = node->nextSiblingElement())
+ 	{
+-		auto attribute = node->toElement()->firstAttribute();
++		auto attribute = node->firstAttribute();
+ 		std::string message; int val = 0;
+ 		while (attribute)
+ 		{

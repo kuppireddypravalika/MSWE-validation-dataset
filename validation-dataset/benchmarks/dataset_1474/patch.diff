@@ -1,0 +1,34 @@
+From 0fb86b37082a7dc12e3c6ea45b6feb42e4d15cb7 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?J=C3=B8rgen=20Kvalsvik?= <jokva@equinor.com>
+Date: Tue, 14 Sep 2021 14:01:49 +0200
+Subject: [PATCH] Ensure slice index for attrs is inside volume
+
+Attributes are stored as a thin 3D volume with zdim = 1 (yields the top
+plane) to fit nicely in the rest of the oneseismic infrastructure. When
+querying attributes along with a z-slice (for any z), make sure the
+index must be set to zero. idx % cube_shape[dim] is the identity for
+unaltered volumes, since index < cube_shape[dim].
+---
+ core/src/plan.cpp | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/core/src/plan.cpp b/core/src/plan.cpp
+index 62d9529e1..a501daf66 100644
+--- a/core/src/plan.cpp
++++ b/core/src/plan.cpp
+@@ -162,8 +162,13 @@ std::vector< slice_task > build(const slice_query& query) {
+     for (auto& task : tasks) {
+         const auto gvt = geometry(task);
+         const auto dim = gvt.mkdim(query.dim);
+-        task.idx = gvt.fragment_shape().index(dim, query.idx);
+-        task.ids = convert(gvt.slice(dim, query.idx));
++        // Coerce index to zero if the "cube" is flat (for attributes). This
++        // assumes the input has been checked and that query.idx isn't already
++        // out-of-bounds (and this would give data when the query should be
++        // rejected)
++        const auto idx = query.idx % gvt.cube_shape()[dim];
++        task.idx = gvt.fragment_shape().index(dim, idx);
++        task.ids = convert(gvt.slice(dim, idx));
+     };
+ 
+     return tasks;

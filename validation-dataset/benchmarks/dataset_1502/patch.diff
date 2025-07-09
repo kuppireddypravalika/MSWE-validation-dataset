@@ -1,0 +1,25 @@
+From e8e4b3606a852af23320ec231a78e919672b63f5 Mon Sep 17 00:00:00 2001
+From: "bernard.parisse" <bernard.parisse@23ce0884-8a58-47d3-bc5c-ddf1cd5b9f9e>
+Date: Thu, 13 Oct 2022 05:38:01 +0000
+Subject: [PATCH] [giac] simplify : avoid too large computations, like in
+ solve([tan(((79)/(900))*(pi))=(y)/((x)+(100)),
+ tan(((127)/(600))*(pi))=(y)/(x)],[x, y]);
+
+git-svn-id: https://dev.geogebra.org/svn/trunk/geogebra/giac@70040 23ce0884-8a58-47d3-bc5c-ddf1cd5b9f9e
+---
+ src/giac/cpp/subst.cc | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/giac/cpp/subst.cc b/src/giac/cpp/subst.cc
+index d27fa7c8..d1189d92 100644
+--- a/src/giac/cpp/subst.cc
++++ b/src/giac/cpp/subst.cc
+@@ -2036,6 +2036,8 @@ namespace giac {
+       vecteur & ligne=*m[i]._VECTptr;
+       gen res(plus_one);
+       for (int j=0;j<c;++j){
++	if (ligne[j]>FFTMUL_SIZE) // exponent too large for further simplifications
++	  return e;
+ 	res=res*pow(independant[j],ligne[j],contextptr);
+       }
+       newl[i]=res;

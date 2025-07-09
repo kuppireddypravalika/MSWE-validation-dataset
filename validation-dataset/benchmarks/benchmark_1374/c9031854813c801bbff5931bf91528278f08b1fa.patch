@@ -1,0 +1,31 @@
+From c9031854813c801bbff5931bf91528278f08b1fa Mon Sep 17 00:00:00 2001
+From: Paul Beckingham <paul@beckingham.net>
+Date: Sun, 1 Nov 2015 21:42:53 -0500
+Subject: [PATCH] DOM: Concerted from strtol to std::stoul/stoi
+
+---
+ src/DOM.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/DOM.cpp b/src/DOM.cpp
+index 82fd0d4ff..84deea6a7 100644
+--- a/src/DOM.cpp
++++ b/src/DOM.cpp
+@@ -349,7 +349,7 @@ bool DOM::get (const std::string& name, const Task& task, Variant& value)
+         {
+           // annotation_1234567890
+           // 0          ^11
+-          value = Variant ((time_t) strtol (i.first.substr (11).c_str (), NULL, 10), Variant::type_date);
++          value = Variant (static_cast <time_t> (std::stoul (i.first.substr (11))), Variant::type_date);
+           return true;
+         }
+         else if (elements[2] == "description")
+@@ -366,7 +366,7 @@ bool DOM::get (const std::string& name, const Task& task, Variant& value)
+     std::map <std::string, std::string> annos;
+     ref.getAnnotations (annos);
+ 
+-    int a = strtol (elements[1].c_str (), NULL, 10);
++    int a = std::stoi (elements[1]);
+     int count = 0;
+ 
+     // Count off the 'a'th annotation.

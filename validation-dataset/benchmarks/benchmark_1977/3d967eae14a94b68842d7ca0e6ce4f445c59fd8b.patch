@@ -1,0 +1,37 @@
+From 3d967eae14a94b68842d7ca0e6ce4f445c59fd8b Mon Sep 17 00:00:00 2001
+From: kvn <unknown>
+Date: Mon, 3 Nov 2014 12:02:40 -0800
+Subject: [PATCH] 8059780: SPECjvm2008-MPEG performance regressions on x64
+ platforms Summary: Back-out 8052081 changes made in lcm.cpp. Reviewed-by:
+ iveresov, roland
+
+---
+ src/share/vm/opto/lcm.cpp | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/src/share/vm/opto/lcm.cpp b/src/share/vm/opto/lcm.cpp
+index a5072d9cc..8398bb3d2 100644
+--- a/src/share/vm/opto/lcm.cpp
++++ b/src/share/vm/opto/lcm.cpp
+@@ -484,9 +484,7 @@ Node* PhaseCFG::select(Block* block, Node_List &worklist, GrowableArray<int> &re
+         iop == Op_CreateEx ||   // Create-exception must start block
+         iop == Op_CheckCastPP
+         ) {
+-      // select the node n
+-      // remove n from worklist and retain the order of remaining nodes
+-      worklist.remove((uint)i);
++      worklist.map(i,worklist.pop());
+       return n;
+     }
+ 
+@@ -572,9 +570,7 @@ Node* PhaseCFG::select(Block* block, Node_List &worklist, GrowableArray<int> &re
+   assert(idx >= 0, "index should be set");
+   Node *n = worklist[(uint)idx];      // Get the winner
+ 
+-  // select the node n
+-  // remove n from worklist and retain the order of remaining nodes
+-  worklist.remove((uint)idx);
++  worklist.map((uint)idx, worklist.pop());     // Compress worklist
+   return n;
+ }
+ 

@@ -1,0 +1,36 @@
+From b97440a26da1f8f4f87652310c3f9fa2cab53f79 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Dominic=20Sacr=C3=A9?= <dominic.sacre@gmx.de>
+Date: Sun, 26 Oct 2008 16:59:18 +0000
+Subject: [PATCH] use istringstream instead of strtol
+
+git-svn-id: svn+ssh://kobol/srv/svn/klick/trunk@192 c380f6eb-e629-0410-afc2-bdd98b771d42
+---
+ src/osc_interface.cc | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/src/osc_interface.cc b/src/osc_interface.cc
+index 9ab9a96..cf19f91 100644
+--- a/src/osc_interface.cc
++++ b/src/osc_interface.cc
+@@ -12,6 +12,7 @@
+ #include "osc_interface.hh"
+ 
+ #include <iostream>
++#include <sstream>
+ #include <cstdlib>
+ 
+ #include <lo/lo.h>
+@@ -142,9 +143,10 @@ void OSCInterface::send(Address const & target, std::string const & path, std::v
+ 
+ OSCInterface::Address::Address(std::string const & url)
+ {
+-    char * end;
+-    ::strtol(url.c_str(), &end, 10);
+-    if (!url.empty() && *end == '\0') {
++    std::istringstream ss(url);
++    unsigned int i;
++
++    if (ss >> i) {
+         _addr = lo_address_new(NULL, url.c_str());
+     } else {
+         _addr = lo_address_new_from_url(url.c_str());

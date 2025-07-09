@@ -1,0 +1,28 @@
+From 5f27c66147112b2d77397a15be09c78bee53f57f Mon Sep 17 00:00:00 2001
+From: "J.W. Jagersma" <jwjagersma@gmail.com>
+Date: Sat, 7 Nov 2020 05:18:43 +0100
+Subject: [PATCH] don't delete irq_alloc
+
+Since std::vector etc. now have constexpr constructors, any containers on
+namespace level are effectively constinit.  Their destructors therefore run
+after the main initializer dtor despite this having the lowest init_priority.
+These containers may have allocated from irq_alloc, and they must be able to
+free their contents after the initializer object is already destroyed.
+Leaking at this point won't do any harm.
+---
+ src/main.cpp | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/src/main.cpp b/src/main.cpp
+index 89dea6df..c6bb7e8c 100644
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -200,8 +200,6 @@ namespace jw
+             if (debug::debug()) debug::detail::notify_gdb_exit(exit_code);
+             std::set_terminate(original_terminate_handler);
+             jw::dpmi::detail::fpu_context_switcher.reset();
+-            delete irq_alloc;
+-            irq_alloc = nullptr;
+         }
+ 
+     private:

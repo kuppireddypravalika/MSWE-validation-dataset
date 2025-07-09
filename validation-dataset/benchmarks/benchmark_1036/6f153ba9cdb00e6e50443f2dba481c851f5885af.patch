@@ -1,0 +1,31 @@
+From 6f153ba9cdb00e6e50443f2dba481c851f5885af Mon Sep 17 00:00:00 2001
+From: Rene Brun <Rene.Brun@cern.ch>
+Date: Tue, 30 Jan 2007 11:23:59 +0000
+Subject: [PATCH] -Replace calls to gROOT->GetClass by TClass::GetClass.
+ -Thanks to this change, a mod in TROOT.h will not trigger anymore a full
+ generation and recompilation of all dictionaries.
+
+git-svn-id: http://root.cern.ch/svn/root/trunk@17577 27541ba8-7e3a-0410-8455-c3a389f83636
+---
+ base/inc/RtypesImp.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/base/inc/RtypesImp.h b/base/inc/RtypesImp.h
+index 9eb18ed805df9..9016b3c160a8d 100644
+--- a/base/inc/RtypesImp.h
++++ b/base/inc/RtypesImp.h
+@@ -1,4 +1,4 @@
+-// @(#)root/base:$Name:  $:$Id: RtypesImp.h,v 1.18 2004/02/11 17:00:07 brun Exp $
++// @(#)root/base:$Name:  $:$Id: RtypesImp.h,v 1.19 2006/11/24 14:24:54 rdm Exp $
+ // Author: Philippe Canal   23/2/02
+ 
+ /*************************************************************************
+@@ -38,7 +38,7 @@ namespace ROOT {
+          }
+       }
+ 
+-      TClass *top = gROOT->GetClass(topClassName);
++      TClass *top = TClass::GetClass(topClassName);
+       if (top) {
+          ShowMembersFunc_t show = top->GetShowMembersWrapper();
+          if (show) show(obj, R__insp, R__parent);

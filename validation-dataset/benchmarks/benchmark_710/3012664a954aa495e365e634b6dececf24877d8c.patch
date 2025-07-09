@@ -1,0 +1,39 @@
+From 3012664a954aa495e365e634b6dececf24877d8c Mon Sep 17 00:00:00 2001
+From: "Rick Poyner (rico)" <rick.poyner@tri.global>
+Date: Tue, 6 Oct 2020 12:54:41 -0400
+Subject: [PATCH] autodiffxd: Optimize `operator*=` a bit more (#14171)
+
+Relevant to: #10991, #13902
+
+It turns out that relying on eigen's Matrix::operator*= too heavily results in
+slower code. Rewrite AutoDiffXd::operator*= for autodiff inputs so that it gets
+better optimization and inlining from Eigen.
+
+Supporting benchmark measurements will be provided in #13902.
+---
+ common/autodiffxd.h | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/common/autodiffxd.h b/common/autodiffxd.h
+index bf08d77c9921..f2da61c07e3a 100644
+--- a/common/autodiffxd.h
++++ b/common/autodiffxd.h
+@@ -333,11 +333,15 @@ class AutoDiffScalar<VectorXd>
+   inline AutoDiffScalar& operator*=(const AutoDiffScalar<OtherDerType>& other) {
+     const bool has_this_der = m_derivatives.size() > 0;
+     const bool has_both_der = has_this_der && (other.derivatives().size() > 0);
++    // Some of the math below may look tempting to rewrite using `*=`, but
++    // performance measurement and analysis show that this formulation is
++    // faster because it results in better expression tree optimization and
++    // inlining.
+     if (has_both_der) {
+-      m_derivatives *= other.value();
+-      m_derivatives += other.derivatives() * m_value;
++      m_derivatives = m_derivatives * other.value() +
++                      other.derivatives() * m_value;
+     } else if (has_this_der) {
+-      m_derivatives *= other.value();
++      m_derivatives = m_derivatives * other.value();
+     } else {
+       m_derivatives = other.derivatives() * m_value;
+     }

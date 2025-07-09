@@ -1,0 +1,27 @@
+From 8b0c4678d1628098abf9a6621bd93046d730ffec Mon Sep 17 00:00:00 2001
+From: bluss <bluss@users.noreply.github.com>
+Date: Fri, 23 Oct 2015 02:15:55 +0200
+Subject: [PATCH] SerializedGameData: Use std::set's find for containment check
+
+std::set::find is O(log n) in the size of the container, while the
+previous std::find was O(n) to find the object id.
+
+This avoids behavior quadratic in the number of serialized ids, so it
+should speed up saving of big maps.
+---
+ src/SerializedGameData.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/SerializedGameData.cpp b/src/SerializedGameData.cpp
+index 4858d45dc4..b74d4c5380 100644
+--- a/src/SerializedGameData.cpp
++++ b/src/SerializedGameData.cpp
+@@ -382,7 +382,7 @@ void SerializedGameData::AddObject(GameObject* go)
+ bool SerializedGameData::IsObjectSerialized(const unsigned obj_id) const
+ {
+     assert(!isReading);
+-    return helpers::contains(writtenObjIds, obj_id);
++    return writtenObjIds.find(obj_id) != writtenObjIds.end();
+ }
+ 
+ GameObject* SerializedGameData::GetReadGameObject(const unsigned obj_id) const

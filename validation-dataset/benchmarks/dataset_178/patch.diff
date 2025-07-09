@@ -1,0 +1,36 @@
+From b8e94b0379d8d45c03f2bb856d40edc78b76e3ec Mon Sep 17 00:00:00 2001
+From: soyer <soyer@irl.hu>
+Date: Sun, 18 Jan 2015 22:57:35 +0100
+Subject: [PATCH] simplify smart ptr handling in Cloud::draw
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+weak_ptr’s lock() never throws
+shared_ptr(shared_ptr const & r) never throws too
+---
+ apps/point_cloud_editor/src/cloud.cpp | 11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
+
+diff --git a/apps/point_cloud_editor/src/cloud.cpp b/apps/point_cloud_editor/src/cloud.cpp
+index 9a41f6b789c..ccea9259dd4 100644
+--- a/apps/point_cloud_editor/src/cloud.cpp
++++ b/apps/point_cloud_editor/src/cloud.cpp
+@@ -254,15 +254,8 @@ Cloud::drawWithHighlightColor () const
+ void
+ Cloud::draw (bool disable_highlight) const
+ {
+-  SelectionPtr selection_ptr;
+-  try
+-  {
+-    selection_ptr = selection_wk_ptr_.lock();
+-  }
+-  catch (boost::bad_weak_ptr)
+-  {
+-    selection_ptr.reset();
+-  }
++  SelectionPtr selection_ptr = selection_wk_ptr_.lock();
++
+   glPushAttrib(GL_CURRENT_BIT | GL_POINT_BIT | GL_COLOR_BUFFER_BIT);
+   {
+     glPointSize(point_size_);

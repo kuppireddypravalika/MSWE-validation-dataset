@@ -1,0 +1,35 @@
+From 124c6f379f4f0cac7c099aab82a9b869270ea28b Mon Sep 17 00:00:00 2001
+From: Rui Ueyama <ruiu@google.com>
+Date: Fri, 18 Sep 2015 22:07:10 +0000
+Subject: [PATCH] COFF: Parallelize Writer::writeSections().
+
+Self-hosting took 801 ms on my machine. Of which this function took
+69 ms. Now it takes 37 ms. That is about 4% overall performance
+improvement.
+---
+ lld/COFF/Writer.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/lld/COFF/Writer.cpp b/lld/COFF/Writer.cpp
+index 82502ea70784..964531794a5b 100644
+--- a/lld/COFF/Writer.cpp
++++ b/lld/COFF/Writer.cpp
+@@ -14,6 +14,7 @@
+ #include "SymbolTable.h"
+ #include "Symbols.h"
+ #include "Writer.h"
++#include "lld/Core/Parallel.h"
+ #include "llvm/ADT/ArrayRef.h"
+ #include "llvm/ADT/DenseMap.h"
+ #include "llvm/ADT/STLExtras.h"
+@@ -708,8 +709,8 @@ void Writer::writeSections() {
+     // ADD instructions).
+     if (Sec->getPermissions() & IMAGE_SCN_CNT_CODE)
+       memset(SecBuf, 0xCC, Sec->getRawSize());
+-    for (Chunk *C : Sec->getChunks())
+-      C->writeTo(SecBuf);
++    parallel_for_each(Sec->getChunks().begin(), Sec->getChunks().end(),
++                      [&](Chunk *C) { C->writeTo(SecBuf); });
+   }
+ }
+ 

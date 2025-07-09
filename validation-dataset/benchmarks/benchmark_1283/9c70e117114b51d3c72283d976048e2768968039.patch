@@ -1,0 +1,33 @@
+From 9c70e117114b51d3c72283d976048e2768968039 Mon Sep 17 00:00:00 2001
+From: Thiago Macieira <thiago.macieira@intel.com>
+Date: Tue, 22 Aug 2023 15:06:33 -0700
+Subject: [PATCH] QString: use qustrlen() in the QChar* constructor
+
+Instead of a manual loop, which was there since at least Qt 4.5.1
+(beginning of the public history).
+
+Pick-to: 6.5 6.6
+Change-Id: Ifa1111900d6945ea8e05fffd177dd3dfea450a67
+Reviewed-by: Giuseppe D'Angelo <giuseppe.dangelo@kdab.com>
+---
+ src/corelib/text/qstring.cpp | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/src/corelib/text/qstring.cpp b/src/corelib/text/qstring.cpp
+index b319b706406..b8026fded82 100644
+--- a/src/corelib/text/qstring.cpp
++++ b/src/corelib/text/qstring.cpp
+@@ -2486,11 +2486,8 @@ QString::QString(const QChar *unicode, qsizetype size)
+     if (!unicode) {
+         d.clear();
+     } else {
+-        if (size < 0) {
+-            size = 0;
+-            while (!unicode[size].isNull())
+-                ++size;
+-        }
++        if (size < 0)
++            size = QtPrivate::qustrlen(reinterpret_cast<const char16_t *>(unicode));
+         if (!size) {
+             d = DataPointer::fromRawData(&_empty, 0);
+         } else {

@@ -1,0 +1,39 @@
+From 0218b1232da179adf230b5bd09dcfdc2baf7f1d5 Mon Sep 17 00:00:00 2001
+From: Christian Hergert <chergert@redhat.com>
+Date: Wed, 5 Jun 2019 16:22:02 -0700
+Subject: [PATCH] profiler: auto-flush capture writer every 3 seconds
+
+To reduce the amount of data that could be lost in the buffer during a
+terminating signal scenario, GJS can use the auto-flush feature of
+SysprofCaptureWriter.
+
+Related to GNOME/Initiatives#10
+---
+ gjs/profiler.cpp | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/gjs/profiler.cpp b/gjs/profiler.cpp
+index a85223174..c28080ea8 100644
+--- a/gjs/profiler.cpp
++++ b/gjs/profiler.cpp
+@@ -50,6 +50,8 @@
+ #    include <sysprof-capture.h>
+ #endif
+ 
++#define FLUSH_DELAY_SECONDS 3
++
+ /*
+  * This is mostly non-exciting code wrapping the builtin Profiler in
+  * mozjs. In particular, the profiler consumer is required to "bring your
+@@ -425,6 +427,11 @@ gjs_profiler_start(GjsProfiler *self)
+         return;
+     }
+ 
++    /* Automatically flush to be resilient against SIGINT, etc */
++    sysprof_capture_writer_set_flush_delay(self->capture,
++                                           g_main_context_get_thread_default(),
++                                           FLUSH_DELAY_SECONDS);
++
+     if (!gjs_profiler_extract_maps(self)) {
+         g_warning("Failed to extract proc maps");
+         g_clear_pointer(&self->capture, sysprof_capture_writer_unref);

@@ -1,0 +1,22 @@
+From 09e544df518d3ce91744606460553c8ca8b148d3 Mon Sep 17 00:00:00 2001
+From: David Robillard <d@drobilla.net>
+Date: Wed, 11 Nov 2020 23:21:45 +0100
+Subject: [PATCH] Fix memory leak on save
+
+---
+ src/Serialiser.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/Serialiser.cpp b/src/Serialiser.cpp
+index 3ea8e7e0..bc4da25d 100644
+--- a/src/Serialiser.cpp
++++ b/src/Serialiser.cpp
+@@ -390,6 +390,8 @@ Serialiser::Impl::serialise_graph(const std::shared_ptr<const Node>& graph,
+ 			                      Sord::URI(world, uris.ingen_block),
+ 			                      block_id);
+ 			serialise_block(subgraph, subgraph_id, block_id);
++
++			serd_node_free(&subgraph_node);
+ 		} else if (n->second->graph_type() == Node::GraphType::BLOCK) {
+ 			std::shared_ptr<const Node> block = n->second;
+ 

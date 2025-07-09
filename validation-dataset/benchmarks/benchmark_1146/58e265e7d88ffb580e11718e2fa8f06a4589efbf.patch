@@ -1,0 +1,37 @@
+From 58e265e7d88ffb580e11718e2fa8f06a4589efbf Mon Sep 17 00:00:00 2001
+From: Berk Hess <hess@kth.se>
+Date: Wed, 7 Feb 2018 13:15:19 +0100
+Subject: [PATCH] Allow bonds with distance=0
+
+We should allow overlapping atoms in harmonic bonds. But the code
+would cause a floating point exception and incorrect free-energy
+derivatives.
+Note that using sqrt(x) instead of x*invsqrt(x) is faster on Intel.
+
+Change-Id: I87dd1e84f8f526ac40e482bccc94d89e33a1d112
+---
+ src/gromacs/listed-forces/bonded.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/gromacs/listed-forces/bonded.cpp b/src/gromacs/listed-forces/bonded.cpp
+index 425e744787..ae7070487a 100644
+--- a/src/gromacs/listed-forces/bonded.cpp
++++ b/src/gromacs/listed-forces/bonded.cpp
+@@ -3,7 +3,7 @@
+  *
+  * Copyright (c) 1991-2000, University of Groningen, The Netherlands.
+  * Copyright (c) 2001-2004, The GROMACS development team.
+- * Copyright (c) 2013,2014,2015,2016,2017, by the GROMACS development team, led by
++ * Copyright (c) 2013,2014,2015,2016,2017,2018, by the GROMACS development team, led by
+  * Mark Abraham, David van der Spoel, Berk Hess, and Erik Lindahl,
+  * and including many others, as listed in the AUTHORS file in the
+  * top-level source directory and at http://www.gromacs.org.
+@@ -379,7 +379,7 @@ real bonds(int nbonds,
+ 
+         ki   = pbc_rvec_sub(pbc, x[ai], x[aj], dx); /*   3      */
+         dr2  = iprod(dx, dx);                       /*   5		*/
+-        dr   = dr2*gmx::invsqrt(dr2);               /*  10		*/
++        dr   = std::sqrt(dr2);                      /*  10		*/
+ 
+         *dvdlambda += harmonic(forceparams[type].harmonic.krA,
+                                forceparams[type].harmonic.krB,

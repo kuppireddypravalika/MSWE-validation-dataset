@@ -1,0 +1,34 @@
+From 8af62e05dbd2eb25e75d1893b2b42f387876e806 Mon Sep 17 00:00:00 2001
+From: Gareth Smith <garethdanielsmith@gmail.com>
+Date: Fri, 23 Dec 2011 21:59:46 +0000
+Subject: [PATCH] tiny optimization: try and make lower abstract code registers
+ translate to lower bytecode registers, so that more efficient (e.g.
+ get_args_direct) instructions can be used
+
+---
+ vm-seam/alice/ByteCodeJitter.cc | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/vm-seam/alice/ByteCodeJitter.cc b/vm-seam/alice/ByteCodeJitter.cc
+index 54589f4e0..4ca4e3b0d 100644
+--- a/vm-seam/alice/ByteCodeJitter.cc
++++ b/vm-seam/alice/ByteCodeJitter.cc
+@@ -145,11 +145,14 @@ namespace {
+ 	return true;
+       }
+       else if (a.programPoint == b.programPoint) {
+-	return a.type == START_LIFE && b.type == END_LIFE;
+-      }
+-      else {
+-	return false;
++	if (a.type == START_LIFE && b.type == END_LIFE) {
++	  return true;
++	}
++	else if (a.type == b.type) {
++	  return a.id < b.id; 
++	}
+       }
++      return false;
+     }
+     
+   public:

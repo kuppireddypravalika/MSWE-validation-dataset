@@ -1,0 +1,25 @@
+From fca40156677c54a544d612b196d31dafce5006bb Mon Sep 17 00:00:00 2001
+From: Marek Bel <marek.bel@posta.cz>
+Date: Thu, 11 Jun 2020 19:38:40 +0200
+Subject: [PATCH] Remove st_current_init() call from
+ lcd_temp_calibration_set().
+
+There is no known purpose of this call.
+lcd_temp_calibration_set() is switching on/off pinda temperature compensation from LCD settings menu (this is called "Temp. cal." on LCD).
+st_current_init() does nothing on Einsy board, it enables and sets motor current selecting outputs on Rambo board (it used to be called digipot in history)
+---
+ Firmware/ultralcd.cpp | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/Firmware/ultralcd.cpp b/Firmware/ultralcd.cpp
+index fda0d11963..1c26608273 100755
+--- a/Firmware/ultralcd.cpp
++++ b/Firmware/ultralcd.cpp
+@@ -4637,7 +4637,6 @@ void lcd_pinda_calibration_menu()
+ void lcd_temp_calibration_set() {
+ 	temp_cal_active = !temp_cal_active;
+ 	eeprom_update_byte((unsigned char *)EEPROM_TEMP_CAL_ACTIVE, temp_cal_active);
+-	st_current_init();
+ }
+ 
+ #ifdef HAS_SECOND_SERIAL_PORT

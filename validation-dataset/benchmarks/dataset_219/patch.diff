@@ -1,0 +1,40 @@
+From d903b42830d8e7dcdf8246d73a280d650dd76aca Mon Sep 17 00:00:00 2001
+From: Bert Hubert <bert.hubert@netherlabs.nl>
+Date: Fri, 14 Apr 2006 08:27:59 +0000
+Subject: [PATCH] mtasked did 3 or 4 walks of waiter-list for each call to
+ sendEvent, reduced to 1
+
+git-svn-id: svn://svn.powerdns.com/pdns/trunk/pdns@695 d19b8d6e-7fed-0310-83ef-9ca221ded41b
+---
+ pdns/mtasker.cc | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/pdns/mtasker.cc b/pdns/mtasker.cc
+index 67aa7c012189..8a815378b74c 100644
+--- a/pdns/mtasker.cc
++++ b/pdns/mtasker.cc
+@@ -203,7 +203,9 @@ template<class Key, class Val>void MTasker<Key,Val>::yield()
+ */
+ template<class EventKey, class EventVal>int MTasker<EventKey,EventVal>::sendEvent(const EventKey& key, const EventVal* val)
+ {
+-  if(!d_waiters.count(key)) {
++  typename waiters_t::iterator waiter=d_waiters.find(key);
++
++  if(waiter == d_waiters.end()) {
+     //    cout<<"Event sent nobody was waiting for!"<<endl;
+     return 0;
+   }
+@@ -212,10 +214,10 @@ template<class EventKey, class EventVal>int MTasker<EventKey,EventVal>::sendEven
+   if(val)
+     d_waitval=*val;
+   
+-  ucontext_t *userspace=d_waiters.find(key)->context;
+-  d_tid=d_waiters.find(key)->tid;         // set tid 
++  ucontext_t *userspace=waiter->context;
++  d_tid=waiter->tid;         // set tid 
+   
+-  d_waiters.erase(key);             // removes the waitpoint 
++  d_waiters.erase(waiter);             // removes the waitpoint 
+   if(swapcontext(&d_kernel,userspace)) { // swaps back to the above point 'A'
+     perror("swapcontext in sendEvent");
+     exit(EXIT_FAILURE);

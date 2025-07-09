@@ -1,0 +1,32 @@
+From 75eb4d49dc5b9d9823c086a118fff88183e2ddef Mon Sep 17 00:00:00 2001
+From: knn-k <konno@jp.ibm.com>
+Date: Mon, 26 Nov 2018 17:29:35 +0900
+Subject: [PATCH] AArch64: Call decFutureUseCount() in
+ Machine::assignOneRegister()
+
+decFutureUseCount() has not been called upon register assignment for
+aarch64 instructions. This commit adds a call to decFutureUseCount()
+in OMR::ARM64::Machine::assignOneRegister().
+
+Signed-off-by: knn-k <konno@jp.ibm.com>
+---
+ compiler/aarch64/codegen/OMRMachine.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/compiler/aarch64/codegen/OMRMachine.cpp b/compiler/aarch64/codegen/OMRMachine.cpp
+index 37ca195e63..ff79f441b3 100644
+--- a/compiler/aarch64/codegen/OMRMachine.cpp
++++ b/compiler/aarch64/codegen/OMRMachine.cpp
+@@ -471,6 +471,12 @@ TR::RealRegister *OMR::ARM64::Machine::assignOneRegister(TR::Instruction *curren
+       self()->cg()->traceRegAssigned(virtualRegister, assignedRegister);
+       }
+ 
++   if (virtualRegister->decFutureUseCount() == 0)
++      {
++      virtualRegister->setAssignedRegister(NULL);
++      assignedRegister->setState(TR::RealRegister::Unlatched);
++      }
++
+    return assignedRegister;
+    }
+ 

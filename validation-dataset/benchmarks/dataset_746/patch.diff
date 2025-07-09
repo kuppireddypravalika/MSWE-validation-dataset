@@ -1,0 +1,24 @@
+From a40ead0ccf2acf985f3be20c0b210300862a4f85 Mon Sep 17 00:00:00 2001
+From: Vadim Zeitlin <vadim@wxwidgets.org>
+Date: Wed, 1 Apr 2020 23:43:17 +0200
+Subject: [PATCH] Remove unnecessary Refresh() from wxGrid::OnDPIChanged()
+
+The entire TLW is already refreshed when the DPI changes, so it's
+unnecessary to refresh wxGrid window itself.
+---
+ src/generic/grid.cpp | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/src/generic/grid.cpp b/src/generic/grid.cpp
+index e935a321f5e3..6dde035a7ba3 100644
+--- a/src/generic/grid.cpp
++++ b/src/generic/grid.cpp
+@@ -5413,8 +5413,6 @@ void wxGrid::OnDPIChanged(wxDPIChangedEvent& event)
+ 
+     CalcDimensions();
+ 
+-    Refresh();
+-
+     event.Skip();
+ }
+ 

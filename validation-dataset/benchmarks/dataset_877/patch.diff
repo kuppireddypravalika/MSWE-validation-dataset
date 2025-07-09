@@ -1,0 +1,28 @@
+From 252e0e28970ecd2482ac4cb9ee550d760e9ddeeb Mon Sep 17 00:00:00 2001
+From: Dobiasd <editgym@gmail.com>
+Date: Tue, 12 Jun 2018 17:29:33 +0200
+Subject: [PATCH] improve performance of prelu_layer by iterating more
+ cache-friendly
+
+---
+ include/fdeep/layers/prelu_layer.hpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/include/fdeep/layers/prelu_layer.hpp b/include/fdeep/layers/prelu_layer.hpp
+index b1ecaaec..b2ec6fd1 100644
+--- a/include/fdeep/layers/prelu_layer.hpp
++++ b/include/fdeep/layers/prelu_layer.hpp
+@@ -25,11 +25,11 @@ class prelu_layer : public layer
+         fdeep::tensor3 alpha_tensor3(input[0].shape(), alpha_);
+         fdeep::tensor3 out(input[0].shape(), 1.0f);
+ 
+-        for (std::size_t x = 0; x < out.shape().width_; ++x)
++        for (std::size_t z = 0; z < out.shape().depth_; ++z)
+         {
+             for (std::size_t y = 0; y < out.shape().height_; ++y)
+             {
+-                for (std::size_t z = 0; z < out.shape().depth_; ++z)
++                for (std::size_t x = 0; x < out.shape().width_; ++x)
+                 {
+                     if (input[0].get(z, y, x) > 0)
+                     {

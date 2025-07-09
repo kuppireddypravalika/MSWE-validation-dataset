@@ -1,0 +1,40 @@
+From c0d73499317445a5ed0e542d08495ef95696da6b Mon Sep 17 00:00:00 2001
+From: Gavin Hurlbut <ghurlbut@mythtv.org>
+Date: Thu, 16 Sep 2010 03:27:39 +0000
+Subject: [PATCH] In the preview generator, if the video's decoded height is
+ 1088, only use the top 1080 pixels to generate the preview.  This is done as
+ 1080i H.264 from the HDPVR (and reportedly some other sources) decodes to
+ 1088 rows although 1080i is only 1080 visible rows by definition.  Losing
+ these 8 rows removes the ugly green bar at the bottom of these previews,
+ retaining only the visible rows, resized.
+
+Fixes #8937
+
+
+
+git-svn-id: http://svn.mythtv.org/svn/trunk@26340 7dbf422c-18fa-0310-86e9-fd20926502f2
+---
+ mythtv/libs/libmythtv/previewgenerator.cpp | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/mythtv/libs/libmythtv/previewgenerator.cpp b/mythtv/libs/libmythtv/previewgenerator.cpp
+index e08c606443a..34f01cc7a63 100644
+--- a/mythtv/libs/libmythtv/previewgenerator.cpp
++++ b/mythtv/libs/libmythtv/previewgenerator.cpp
+@@ -531,6 +531,16 @@ bool PreviewGenerator::SavePreview(QString filename,
+     if (!data || !width || !height)
+         return false;
+ 
++    if( height == 1088 )
++    {
++        // Remove the extra 8 pixels at the bottom of 1080i recordings that
++        // decode to 1088 rows as these are bogus pixels and make the previews
++        // look a bit wrong.  The worst offender seems to be H.264 captures
++        // from HDPVR.  Apparently, BBC HD also may exhibit the same behavior
++        // in the UK, although with a different width.
++        height = 1080;
++    }
++
+     const QImage img((unsigned char*) data,
+                      width, height, QImage::Format_RGB32);
+ 

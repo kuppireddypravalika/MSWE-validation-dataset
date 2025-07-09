@@ -1,0 +1,23 @@
+From 2d08f6aab0c83ff692c5eb886c3bd0329ebbb3f7 Mon Sep 17 00:00:00 2001
+From: Tobias Doerffel <tobias.doerffel@gmail.com>
+Date: Fri, 29 Oct 2010 10:57:17 +0200
+Subject: [PATCH] Ipc::Master: clear pending messages array after sending them
+
+Even though the pending messages won't be sent twice, clear the array
+after sending them to free some resources.
+---
+ lib/src/Ipc/Master.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/lib/src/Ipc/Master.cpp b/lib/src/Ipc/Master.cpp
+index b94560663..5ec11cfac 100644
+--- a/lib/src/Ipc/Master.cpp
++++ b/lib/src/Ipc/Master.cpp
+@@ -238,6 +238,7 @@ void Master::receiveMessage( QObject *sockObj )
+ 					{
+ 						m.send( sock );
+ 					}
++					m_processes[id].pendingMessages.clear();
+ 				}
+ 				else
+ 				{

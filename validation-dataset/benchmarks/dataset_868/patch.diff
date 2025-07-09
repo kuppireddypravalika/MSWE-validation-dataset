@@ -1,0 +1,24 @@
+From a1e3549d79e0d69c4b37af8c2ec1a51464987295 Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Sat, 19 Jan 2019 12:06:04 -0500
+Subject: [PATCH] [libwin32common] unix2dos(): Reserve 16 extra characters for
+ newline conversion.
+
+Up to 16 newlines per string without having to reallocate.
+---
+ src/libwin32common/WinUI.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/libwin32common/WinUI.cpp b/src/libwin32common/WinUI.cpp
+index 5c23bf1b4f..0bc4c94a02 100644
+--- a/src/libwin32common/WinUI.cpp
++++ b/src/libwin32common/WinUI.cpp
+@@ -43,7 +43,7 @@ tstring unix2dos(const TCHAR *tstr_unix, int *lf_count)
+ {
+ 	// TODO: Optimize this!
+ 	tstring tstr_dos;
+-	tstr_dos.reserve(_tcslen(tstr_unix));
++	tstr_dos.reserve(_tcslen(tstr_unix) + 16);
+ 	int lf = 0;
+ 	for (; *tstr_unix != _T('\0'); tstr_unix++) {
+ 		if (*tstr_unix == _T('\n')) {

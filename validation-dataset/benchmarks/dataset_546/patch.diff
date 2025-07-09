@@ -1,0 +1,29 @@
+From c9d80d609057a0b34d1cb7caba34f8071c92122b Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@duempel.org>
+Date: Sat, 12 Apr 2008 04:16:03 +0000
+Subject: [PATCH] use free()/malloc() instead of realloc()
+
+When growing the audioOutput->convBuffer, we can use free()+malloc()
+instead of realloc(), which saves a memcpy().
+
+git-svn-id: https://svn.musicpd.org/mpd/trunk@7295 09075e82-0dd4-0310-85a5-a0d7c8717e4f
+---
+ src/audioOutput.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/audioOutput.c b/src/audioOutput.c
+index 9640425979..ba9032713c 100644
+--- a/src/audioOutput.c
++++ b/src/audioOutput.c
+@@ -189,8 +189,9 @@ static void convertAudioFormat(AudioOutput * audioOutput,
+ 					   &(audioOutput->outAudioFormat));
+ 
+ 	if (size > audioOutput->convBufferLen) {
+-		audioOutput->convBuffer =
+-		    xrealloc(audioOutput->convBuffer, size);
++		if (audioOutput->convBuffer != NULL)
++			free(audioOutput->convBuffer);
++		audioOutput->convBuffer = xmalloc(size);
+ 		audioOutput->convBufferLen = size;
+ 	}
+ 

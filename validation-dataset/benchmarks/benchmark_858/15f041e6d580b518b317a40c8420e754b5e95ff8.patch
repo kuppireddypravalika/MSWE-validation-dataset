@@ -1,0 +1,39 @@
+From 15f041e6d580b518b317a40c8420e754b5e95ff8 Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Fri, 20 Jul 2012 11:02:31 +0200
+Subject: [PATCH] QtOpenGL: use nullary version of qRegisterMetaType<T>("T")
+
+Using the nullary version has the advantage that multiple calls
+during a program run are much more efficient, since an inlined
+atomic is used to store the result. For this, it requires
+Q_DECLARE_METATYPE(T), so add, too.
+
+Change-Id: Ic9a9013aa13ff9d8f917f9df033dd2197944f84a
+Reviewed-by: Sean Harmer <sean.harmer@kdab.com>
+Reviewed-by: Stephen Kelly <stephen.kelly@kdab.com>
+---
+ src/opengl/qgl_p.h | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/opengl/qgl_p.h b/src/opengl/qgl_p.h
+index b0a430551f..c2b16f91e0 100644
+--- a/src/opengl/qgl_p.h
++++ b/src/opengl/qgl_p.h
+@@ -377,12 +377,16 @@ class Q_OPENGL_EXPORT QGLShareContextScope
+     QGLContext *m_ctx;
+ };
+ 
++QT_END_NAMESPACE
++Q_DECLARE_METATYPE(GLuint)
++QT_BEGIN_NAMESPACE
++
+ class Q_OPENGL_EXPORT QGLTextureDestroyer : public QObject
+ {
+     Q_OBJECT
+ public:
+     QGLTextureDestroyer() : QObject() {
+-        qRegisterMetaType<GLuint>("GLuint");
++        qRegisterMetaType<GLuint>();
+         connect(this, SIGNAL(freeTexture(QGLContext *, QPlatformPixmap *, GLuint)),
+                 this, SLOT(freeTexture_slot(QGLContext *, QPlatformPixmap *, GLuint)));
+     }

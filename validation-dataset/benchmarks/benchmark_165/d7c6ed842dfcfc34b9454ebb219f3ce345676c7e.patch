@@ -1,0 +1,24 @@
+From d7c6ed842dfcfc34b9454ebb219f3ce345676c7e Mon Sep 17 00:00:00 2001
+From: Lioncache <mai.iam2048@gmail.com>
+Date: Tue, 7 Feb 2023 00:44:01 -0500
+Subject: [PATCH] Arm64/VectorOps: Use movprfx with VBSL
+
+We can use movprfx here to allow compressing the move and bsl operation
+together on cpus that can handle it.
+---
+ External/FEXCore/Source/Interface/Core/JIT/Arm64/VectorOps.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/External/FEXCore/Source/Interface/Core/JIT/Arm64/VectorOps.cpp b/External/FEXCore/Source/Interface/Core/JIT/Arm64/VectorOps.cpp
+index bfb9304150..c5e8b1b3be 100644
+--- a/External/FEXCore/Source/Interface/Core/JIT/Arm64/VectorOps.cpp
++++ b/External/FEXCore/Source/Interface/Core/JIT/Arm64/VectorOps.cpp
+@@ -1425,7 +1425,7 @@ DEF_OP(VBSL) {
+     // NOTE: Slight parameter difference from ASIMD
+     //       ASIMD -> BSL Mask, True, False
+     //       SVE   -> BSL True, True, False, Mask
+-    mov(VTMP1.Z(), VectorTrue.Z());
++    movprfx(VTMP1.Z(), VectorTrue.Z());
+     bsl(VTMP1.Z(), VTMP1.Z(), VectorFalse.Z(), VectorMask.Z());
+     mov(Dst.Z(), VTMP1.Z());
+   } else {

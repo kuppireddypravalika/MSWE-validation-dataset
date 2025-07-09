@@ -1,0 +1,25 @@
+From 6c78db4f2a05bf1d0a175f56660663d7d7dc97c8 Mon Sep 17 00:00:00 2001
+From: Giles Bathgate <gilesbathgate@gmail.com>
+Date: Fri, 18 Feb 2022 17:59:32 +0000
+Subject: [PATCH] Use Qstring.at(0) instead of left(1)
+
+---
+ src/context.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/context.cpp b/src/context.cpp
+index 73467a0f..f9514be4 100644
+--- a/src/context.cpp
++++ b/src/context.cpp
+@@ -284,9 +284,9 @@ bool Context::match(bool allowChar,bool matchLast, const QString& a,const QStrin
+ {
+ 	if(allowChar) {
+ 		if(matchLast&&a.length()==2)
+-			return a.left(1)==n.left(1) && a.right(1)==n.right(1);
++			return a.at(0)==n.at(0) && a.right(1)==n.right(1);
+ 		if(!matchLast&&a.length()==1)
+-			return a.left(1)==n.left(1);
++			return a.at(0)==n.at(0);
+ 	}
+ 	return a==n;
+ }

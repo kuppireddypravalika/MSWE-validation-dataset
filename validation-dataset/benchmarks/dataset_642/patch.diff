@@ -1,0 +1,24 @@
+From ecf6b3321e076849c8d32e3d1d4b8f8c231ad468 Mon Sep 17 00:00:00 2001
+From: AndreaGuarracino <andreaguarracino@outlook.com>
+Date: Thu, 24 Jun 2021 23:03:12 +0200
+Subject: [PATCH] increase a bit the threshold to use the low memory mode
+
+---
+ src/common/wflign/src/wflign_wfa.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/common/wflign/src/wflign_wfa.cpp b/src/common/wflign/src/wflign_wfa.cpp
+index fb4f9608..dc3deb89 100644
+--- a/src/common/wflign/src/wflign_wfa.cpp
++++ b/src/common/wflign/src/wflign_wfa.cpp
+@@ -665,8 +665,8 @@ void do_wfa_patch_alignment(const char *query, const uint64_t &j,
+                             wfa::wavefront_aligner_t *const _wf_aligner,
+                             wfa::affine_penalties_t *const affine_penalties,
+                             alignment_t &aln) {
+-
+-    bool big_wave = (query_length > segment_length || target_length > segment_length);
++    const long max_seg_len = 2 * segment_length;
++    const bool big_wave = (query_length > max_seg_len || target_length > max_seg_len);
+     wfa::wavefront_aligner_t* const wf_aligner
+         = big_wave ?
+             get_wavefront_aligner(*affine_penalties,

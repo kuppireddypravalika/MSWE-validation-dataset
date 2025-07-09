@@ -1,0 +1,48 @@
+From 57b9ffec47e6b975750ce112b937466f3752bcf1 Mon Sep 17 00:00:00 2001
+From: Sebastien Barre <sebastien.barre@kitware.com>
+Date: Wed, 21 May 2003 14:25:54 -0400
+Subject: [PATCH] ENH: fast version of floor on x86 (Lisa <- D. Gobbi)
+
+---
+ Common/vtkMath.h | 21 ++++++++++++++++++++-
+ 1 file changed, 20 insertions(+), 1 deletion(-)
+
+diff --git a/Common/vtkMath.h b/Common/vtkMath.h
+index f6f50696473..5ee6a55dbec 100644
+--- a/Common/vtkMath.h
++++ b/Common/vtkMath.h
+@@ -52,7 +52,9 @@ class VTK_COMMON_EXPORT vtkMath : public vtkObject
+     return static_cast<int>(f + (f >= 0 ? 0.5 : -0.5)); }
+   static int Round(double f) {
+     return static_cast<int>(f + (f >= 0 ? 0.5 : -0.5)); }
+-    
++
++  static int Floor(double x);
++  
+   // Description:
+   // Dot product of two 3-vectors (float version).
+   static float Dot(const float x[3], const float y[3]) {
+@@ -456,6 +458,23 @@ class VTK_COMMON_EXPORT vtkMath : public vtkObject
+   void operator=(const vtkMath&);  // Not implemented.
+ };
+ 
++inline int vtkMath::Floor(double x)
++{
++#if defined i386 || defined _M_IX86
++  double tempval;
++  // use 52-bit precision of IEEE double to round (x - 0.25) to 
++  // the nearest multiple of 0.5, according to prevailing rounding
++  // mode which is IEEE round-to-nearest,even
++  tempval = (x - 0.25) + 3377699720527872.0; // (2**51)*1.5
++  // extract mantissa, use shift to divide by 2 and hence get rid
++  // of the bit that gets messed up because the FPU uses
++  // round-to-nearest,even mode instead of round-to-nearest,+infinity
++  return ((int*)&tempval)[0] >> 1;
++#else
++  return floor(x);
++#endif
++}
++
+ inline float vtkMath::Normalize(float x[3])
+ {
+   float den; 

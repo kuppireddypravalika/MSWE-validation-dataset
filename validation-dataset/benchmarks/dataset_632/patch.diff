@@ -1,0 +1,29 @@
+From 099709fbe13fbc585790a38502010a13449cc5e2 Mon Sep 17 00:00:00 2001
+From: Juli Mallett <juli@clockworksquid.com>
+Date: Fri, 16 May 2014 15:58:07 -0700
+Subject: [PATCH] Note an improvement to frame decoding.
+
+---
+ xcodec/xcodec_pipe_pair.cc | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/xcodec/xcodec_pipe_pair.cc b/xcodec/xcodec_pipe_pair.cc
+index 5f7a531..b3b2513 100644
+--- a/xcodec/xcodec_pipe_pair.cc
++++ b/xcodec/xcodec_pipe_pair.cc
+@@ -352,6 +352,15 @@ XCodecPipePair::decoder_decode(void)
+ 				if (decoder_buffer_.length() < sizeof op + sizeof len + len)
+ 					return (true);
+ 
++				/*
++				 * XXX
++				 * If we don't merge frames for decode, we can simplify
++				 * the logic around decoder_frame_lenghts_ and <ASK>/<LEARN>
++				 * so that we never have to buffer more than a frame at
++				 * a time while waiting for a <LEARN> whereas right now a
++				 * single <LEARN> will delay all production from the
++				 * decoder.
++				 */
+ 				decoder_buffer_.moveout(&decoder_frame_buffer_, sizeof op + sizeof len, len);
+ 
+ 				/*

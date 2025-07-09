@@ -1,0 +1,33 @@
+From c4f3f7a92f2ab64c71f87b4056c5988150ed9486 Mon Sep 17 00:00:00 2001
+From: Martin Marmsoler <martin.marmsoler@gmail.com>
+Date: Sun, 11 Apr 2021 17:10:15 +0200
+Subject: [PATCH] use patchIndices(), because it is much faster to search only
+ through a part branch than the complete tree
+
+---
+ src/ui/DiffTreeModel.cpp | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
+
+diff --git a/src/ui/DiffTreeModel.cpp b/src/ui/DiffTreeModel.cpp
+index 8f89f0f43..92d51c4be 100644
+--- a/src/ui/DiffTreeModel.cpp
++++ b/src/ui/DiffTreeModel.cpp
+@@ -168,14 +168,12 @@ QVariant DiffTreeModel::data(const QModelIndex &index, int role) const
+         return QString();
+ 
+       QString status;
+-      QString prefix = node->path(true);
+-      for (int i = 0; i < mDiff.count(); ++i) {
+-        QString name = mDiff.name(i);
+-        if (containsPath(name, prefix)) {
+-          QChar ch = git::Diff::statusChar(mDiff.status(i));
++      QList<int> patchIndices;
++      node->patchIndices(patchIndices);
++      for (auto patchIndex: patchIndices) {
++          QChar ch = git::Diff::statusChar(mDiff.status(patchIndex));
+           if (!status.contains(ch))
+             status.append(ch);
+-        }
+       }
+ 
+       return status;

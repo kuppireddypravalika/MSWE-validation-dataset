@@ -1,0 +1,34 @@
+From f2463587f5f0e54ce54d73bba192c661301cc8a3 Mon Sep 17 00:00:00 2001
+From: Inga Stotland <ingas@qce.qualcomm.com>
+Date: Sat, 7 Jun 2014 00:22:18 -0700
+Subject: [PATCH] ASACORE-464: Free allocated memory in RCV when deleting
+ connection
+
+Change-Id: Iffd112f3861b2681677a673c025a0b4124ba78fe
+Signed-off-by: Inga Stotland <ingas@qce.qualcomm.com>
+---
+ alljoyn_core/router/ArdpProtocol.cc | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/alljoyn_core/router/ArdpProtocol.cc b/alljoyn_core/router/ArdpProtocol.cc
+index 6cde65c745..8f26e4ff68 100644
+--- a/alljoyn_core/router/ArdpProtocol.cc
++++ b/alljoyn_core/router/ArdpProtocol.cc
+@@ -557,10 +557,15 @@ static void DelConnRecord(ArdpHandle* handle, ArdpConnRecord* conn)
+         free(conn->SBUF.snd[0].hdr);
+         free(conn->SBUF.snd);
+     }
+-    if (conn->RBUF.rcv != NULL && conn->RBUF.rcv[0].data != NULL) {
+-        free(conn->RBUF.rcv[0].data);
++    if (conn->RBUF.rcv != NULL) {
++        for (uint32_t i = 0; i < conn->RCV.MAX; i++) {
++            if (conn->RBUF.rcv[i].data != NULL) {
++                free(conn->RBUF.rcv[i].data);
++            }
++        }
+         free(conn->RBUF.rcv);
+     }
++
+     DeList((ListNode*)conn);
+ 
+     if (conn->synSnd.data != NULL) {

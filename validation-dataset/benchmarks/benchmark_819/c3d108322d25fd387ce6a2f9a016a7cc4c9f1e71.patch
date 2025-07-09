@@ -1,0 +1,42 @@
+From c3d108322d25fd387ce6a2f9a016a7cc4c9f1e71 Mon Sep 17 00:00:00 2001
+From: Sean McBride <sean@rogue-research.com>
+Date: Mon, 25 Oct 2021 13:25:16 -0400
+Subject: [PATCH] BUG: Changed a lazy one-time initialization to use call_once.
+
+It was previously using an incorrect double checked locking pattern.
+---
+ Modules/Core/Common/src/itkImageSourceCommon.cxx | 15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
+
+diff --git a/Modules/Core/Common/src/itkImageSourceCommon.cxx b/Modules/Core/Common/src/itkImageSourceCommon.cxx
+index 2824de15bd8..01a072ccb18 100644
+--- a/Modules/Core/Common/src/itkImageSourceCommon.cxx
++++ b/Modules/Core/Common/src/itkImageSourceCommon.cxx
+@@ -25,23 +25,16 @@ namespace itk
+ 
+ namespace
+ {
+-std::mutex                       globalDefaultSplitterLock;
++std::once_flag                   globalDefaultSplitterOnceFlag;
+ ImageRegionSplitterBase::Pointer globalDefaultSplitter;
+ } // namespace
+ 
+ const ImageRegionSplitterBase *
+ ImageSourceCommon::GetGlobalDefaultSplitter()
+ {
+-  if (globalDefaultSplitter.IsNull())
+-  {
+-    // thread safe lazy initialization, prevent race condition on
+-    // setting, with an atomic set if null.
+-    std::lock_guard<std::mutex> lock(globalDefaultSplitterLock);
+-    if (globalDefaultSplitter.IsNull())
+-    {
+-      globalDefaultSplitter = ImageRegionSplitterSlowDimension::New().GetPointer();
+-    }
+-  }
++  std::call_once(globalDefaultSplitterOnceFlag,
++                 []() { globalDefaultSplitter = ImageRegionSplitterSlowDimension::New().GetPointer(); });
++
+   return globalDefaultSplitter;
+ }
+ 

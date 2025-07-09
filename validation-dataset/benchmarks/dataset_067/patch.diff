@@ -1,0 +1,30 @@
+From e154d690775097ef723d17274907ac56432b019d Mon Sep 17 00:00:00 2001
+From: hong <43953930+phlrain@users.noreply.github.com>
+Date: Wed, 17 Apr 2024 10:17:34 +0800
+Subject: [PATCH] optimize flatten decomp (#63551)
+
+---
+ paddle/fluid/primitive/composite/composite.h | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/paddle/fluid/primitive/composite/composite.h b/paddle/fluid/primitive/composite/composite.h
+index 31042d65554db8..67cc7d63884609 100644
+--- a/paddle/fluid/primitive/composite/composite.h
++++ b/paddle/fluid/primitive/composite/composite.h
+@@ -818,10 +818,12 @@ std::tuple<Tensor, Tensor> flatten_decomp(const Tensor& x,
+ 
+     for (size_t i = 0; i < x_dim.size();) {
+       if (i == static_cast<size_t>(start_axis)) {
+-        Tensor flat =
+-            slice<T>(x_shape, {0}, {start_axis}, {end_axis + 1}, {1}, {});
+-        flat = prod<T>(flat, {0}, false, false);
+-        out_shape.push_back(reshape<T>(flat, {1}));
++        Tensor flat = get_slice<T>(x_shape, i);
++
++        for (auto t = start_axis + 1; t <= end_axis; ++t) {
++          flat = flat * get_slice<T>(x_shape, t);
++        }
++        out_shape.push_back(flat);
+         i = end_axis + 1;
+       } else {
+         out_shape.push_back(get_slice<T>(x_shape, i));

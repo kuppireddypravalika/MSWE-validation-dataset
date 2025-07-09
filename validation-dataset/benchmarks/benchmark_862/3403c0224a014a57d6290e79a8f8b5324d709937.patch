@@ -1,0 +1,34 @@
+From 3403c0224a014a57d6290e79a8f8b5324d709937 Mon Sep 17 00:00:00 2001
+From: Cory Quammen <cory.quammen@kitware.com>
+Date: Thu, 10 Jun 2021 13:36:06 -0400
+Subject: [PATCH] Allocate enough space in weights buffer instead of relying on
+ fixed size
+
+512 can be too small if the cell is a complex polyhedron with many
+faces.
+---
+ Filters/General/vtkCellValidator.cxx | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/Filters/General/vtkCellValidator.cxx b/Filters/General/vtkCellValidator.cxx
+index f35ffe04c73..a8e401e6964 100644
+--- a/Filters/General/vtkCellValidator.cxx
++++ b/Filters/General/vtkCellValidator.cxx
+@@ -278,11 +278,15 @@ namespace
+ void Centroid(vtkCell* cell, double* centroid)
+ {
+   // Return the centroid of a cell in world coordinates.
+-  static double weights[512];
++  static std::vector<double> weights;
++  if (weights.size() < static_cast<size_t>(cell->GetNumberOfPoints()))
++  {
++    weights.resize(cell->GetNumberOfPoints());
++  }
+   double pCenter[3];
+   int subId = -1;
+   cell->GetParametricCenter(pCenter);
+-  cell->EvaluateLocation(subId, pCenter, centroid, weights);
++  cell->EvaluateLocation(subId, pCenter, centroid, weights.data());
+ }
+ 
+ void Normal(vtkCell* twoDimensionalCell, double* normal)

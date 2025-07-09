@@ -1,0 +1,23 @@
+From d615ab102eb3fded8672549be89c78347df63356 Mon Sep 17 00:00:00 2001
+From: Gerard Gorman <g.gorman@imperial.ac.uk>
+Date: Thu, 19 Jan 2012 01:53:52 +0000
+Subject: [PATCH] Change second, shrinking, sweep through verticies from static
+ to dynamic schedule.
+
+---
+ include/Smooth.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/Smooth.h b/include/Smooth.h
+index bdb02a01..18d2f683 100644
+--- a/include/Smooth.h
++++ b/include/Smooth.h
+@@ -192,7 +192,7 @@ template<typename real_t, typename index_t>
+ #pragma omp parallel
+           {
+             int node_set_size = colour_sets[ic].size();
+-#pragma omp for schedule(static)
++#pragma omp for schedule(dynamic)
+             for(int cn=0;cn<node_set_size;cn++){
+               index_t node = colour_sets[ic][cn];
+               

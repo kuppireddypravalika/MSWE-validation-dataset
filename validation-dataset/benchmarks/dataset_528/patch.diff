@@ -1,0 +1,29 @@
+From 76b391179f6cd7dc8450668c29a8fe6843d7a3a1 Mon Sep 17 00:00:00 2001
+From: Martin Marmsoler <martin.marmsoler@gmail.com>
+Date: Tue, 6 Apr 2021 21:32:53 +0200
+Subject: [PATCH] remove not needed code to increase speed
+
+---
+ src/ui/TreeProxy.cpp | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/src/ui/TreeProxy.cpp b/src/ui/TreeProxy.cpp
+index 7da72f564..a4792ee4b 100644
+--- a/src/ui/TreeProxy.cpp
++++ b/src/ui/TreeProxy.cpp
+@@ -48,10 +48,11 @@ bool TreeProxy::filterAcceptsRow(int source_row, const QModelIndex &source_paren
+ 	if (!index.isValid())
+ 		return false;
+ 
+-    QString status = sourceModel()->data(index, DiffTreeModel::StatusRole).toString();
+-	QRegExp regexp(".*[AM?].*");
+-	if (!status.contains(regexp))
+-		return false; // if the file/folder was not modified/added ... don't show it in the tree view
++    // This is anymore needed, because only the diff tree is checked and so every file is modified or was added
++//    QString status = sourceModel()->data(index, DiffTreeModel::StatusRole).toString();
++//	QRegExp regexp(".*[AM?].*");
++//	if (!status.contains(regexp))
++//		return false; // if the file/folder was not modified/added ... don't show it in the tree view
+ 
+ 	Qt::CheckState state = static_cast<Qt::CheckState>(sourceModel()->data(index, Qt::CheckStateRole).toInt());
+ 	if (mStaged && state == Qt::CheckState::Unchecked)

@@ -1,0 +1,22 @@
+From e963425863680a9486e8ee313c4e70805d526810 Mon Sep 17 00:00:00 2001
+From: Sven Woop <sven.woop@intel.com>
+Date: Wed, 15 Apr 2015 08:57:27 +0200
+Subject: [PATCH] setting FTZ and DAZ flags at rtcInit, otherwise risk of
+ severe performance degragation
+
+---
+ kernels/common/rtcore.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/kernels/common/rtcore.cpp b/kernels/common/rtcore.cpp
+index 554251618..c279c5275 100644
+--- a/kernels/common/rtcore.cpp
++++ b/kernels/common/rtcore.cpp
+@@ -245,6 +245,7 @@ namespace embree
+       tbb_threads.initialize(g_numThreads);
+       tbb_affinity.observe(true); 
+     }
++    _mm_setcsr(_mm_getcsr() | /*FTZ:*/ (1<<15) | /*DAZ:*/ (1<<6)); // FIXME: this affects the application!
+ #endif
+ 
+     /* execute regression tests */

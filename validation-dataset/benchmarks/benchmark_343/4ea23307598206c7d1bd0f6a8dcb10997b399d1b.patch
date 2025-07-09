@@ -1,0 +1,36 @@
+From 4ea23307598206c7d1bd0f6a8dcb10997b399d1b Mon Sep 17 00:00:00 2001
+From: lidanqing <danqing.li@intel.com>
+Date: Fri, 23 Oct 2020 05:00:25 +0200
+Subject: [PATCH] use FLAGS_use_mkldnn to prevent unnecessary attrs copy
+ (#28146)
+
+---
+ paddle/fluid/imperative/prepared_operator.cc | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/paddle/fluid/imperative/prepared_operator.cc b/paddle/fluid/imperative/prepared_operator.cc
+index 4e0e95dd012976..c58b1e9596f6c2 100644
+--- a/paddle/fluid/imperative/prepared_operator.cc
++++ b/paddle/fluid/imperative/prepared_operator.cc
+@@ -20,6 +20,8 @@
+ #include "paddle/fluid/imperative/infer_shape_context.h"
+ #include "paddle/fluid/imperative/infer_var_type_context.h"
+ 
++DECLARE_bool(use_mkldnn);
++
+ namespace paddle {
+ namespace imperative {
+ 
+@@ -91,8 +93,10 @@ PreparedOp PrepareOpImpl(const NameVarMap<VarType>& ins,
+   // MKLDNN variant of code reads attributes in some of GetKernelTypeForVar and
+   // GetKernelType functions, so we need to copy the attributes there.
+   // Const qualifier of Attrs had to be discarded to overwrite it.
+-  auto& mutable_op_attrs = const_cast<framework::AttributeMap&>(op.Attrs());
+-  mutable_op_attrs = attrs;
++  if (FLAGS_use_mkldnn) {
++    auto& mutable_op_attrs = const_cast<framework::AttributeMap&>(op.Attrs());
++    mutable_op_attrs = attrs;
++  }
+ #endif
+   auto expected_kernel_key =
+       op.GetExpectedKernelType(DygraphExecutionContext<VarType>(

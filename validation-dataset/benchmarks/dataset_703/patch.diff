@@ -1,0 +1,22 @@
+From f470cac3f533190f450c4e4d6093b0cb324c5777 Mon Sep 17 00:00:00 2001
+From: visualfc <visualfc@gmail.com>
+Date: Thu, 12 Oct 2017 20:08:51 +0800
+Subject: [PATCH] liteeditor: load file check codec optimization
+
+---
+ liteidex/src/plugins/liteeditor/liteeditorfile.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/liteidex/src/plugins/liteeditor/liteeditorfile.cpp b/liteidex/src/plugins/liteeditor/liteeditorfile.cpp
+index 3f0f659ac..275b1ffa4 100644
+--- a/liteidex/src/plugins/liteeditor/liteeditorfile.cpp
++++ b/liteidex/src/plugins/liteeditor/liteeditorfile.cpp
+@@ -169,7 +169,7 @@ bool LiteEditorFile::loadFileHelper(const QString &fileName, const QString &mime
+         QByteArray testName = m_libucd.parse(buf);
+         if (!testName.isEmpty()) {
+             QTextCodec *c = QTextCodec::codecForName(testName);
+-            if (c) {
++            if (c && (c->mibEnum() != m_codec->mibEnum()) ) {
+                 QTextCodec::ConverterState testState;
+                 QString testText = c->toUnicode(buf,buf.size(),&testState);
+                 if (testState.invalidChars == 0 && testState.remainingChars == 0) {

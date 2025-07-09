@@ -1,0 +1,23 @@
+From ef6b2c05fdd33d590f7d38434dce6a981a092a4b Mon Sep 17 00:00:00 2001
+From: Chris Lattner <sabre@nondot.org>
+Date: Thu, 3 Sep 2009 03:54:02 +0000
+Subject: [PATCH] simplify this by using SmallString::str(), much nicer!
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@80874 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Target/X86/AsmPrinter/X86MCInstLower.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/Target/X86/AsmPrinter/X86MCInstLower.cpp b/lib/Target/X86/AsmPrinter/X86MCInstLower.cpp
+index 2f0b959156b..77b0d359331 100644
+--- a/lib/Target/X86/AsmPrinter/X86MCInstLower.cpp
++++ b/lib/Target/X86/AsmPrinter/X86MCInstLower.cpp
+@@ -35,7 +35,7 @@ MCSymbol *X86ATTAsmPrinter::GetPICBaseSymbol() {
+     assert(Subtarget->isTargetELF() && "Don't know how to print PIC label!");
+     raw_svector_ostream(Name) << ".Lllvm$" << getFunctionNumber()<<".$piclabel";
+   }
+-  return OutContext.GetOrCreateSymbol(StringRef(Name.data(), Name.size()));
++  return OutContext.GetOrCreateSymbol(Name.str());
+ }
+ 
+ 

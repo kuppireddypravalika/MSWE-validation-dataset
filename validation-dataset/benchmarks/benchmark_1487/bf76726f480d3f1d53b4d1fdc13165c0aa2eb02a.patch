@@ -1,0 +1,24 @@
+From bf76726f480d3f1d53b4d1fdc13165c0aa2eb02a Mon Sep 17 00:00:00 2001
+From: Matthias Kramm <kramm@google.com>
+Date: Mon, 11 Jun 2018 05:53:22 -0700
+Subject: [PATCH] use "sizeof(long long) * 8" instead of "64"
+
+---
+ src/CodeGen_C.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/CodeGen_C.cpp b/src/CodeGen_C.cpp
+index e25e13ee68..b7d61fcf3d 100644
+--- a/src/CodeGen_C.cpp
++++ b/src/CodeGen_C.cpp
+@@ -1951,8 +1951,8 @@ void CodeGen_C::visit(const Call *op) {
+     } else if (op->is_intrinsic(Call::count_leading_zeros)) {
+         internal_assert(op->args.size() == 1);
+         string a0 = print_expr(op->args[0]);
+-        // assume that "long long" is always 64 bits:
+-        rhs << "(__builtin_clzll(" << a0 << ") - " << (64 - op->args[0].type().bits()) << ")";
++        rhs << "(__builtin_clzll(" << a0 << ") - (sizeof(unsigned long long) * 8 - " <<
++                op->args[0].type().bits() << "))";
+     } else if (op->is_intrinsic(Call::lerp)) {
+         internal_assert(op->args.size() == 3);
+         Expr e = lower_lerp(op->args[0], op->args[1], op->args[2]);

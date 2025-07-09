@@ -1,0 +1,51 @@
+From 55728a5ead2e5e046553fcc97940bda8c45ff7b0 Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Thu, 30 Jul 2020 17:44:18 -0600
+Subject: [PATCH] Replace while loop with call to std::find_if
+
+---
+ OPHD/UI/IconGrid.cpp | 23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
+
+diff --git a/OPHD/UI/IconGrid.cpp b/OPHD/UI/IconGrid.cpp
+index 7c78b8c8c..d056fff39 100644
+--- a/OPHD/UI/IconGrid.cpp
++++ b/OPHD/UI/IconGrid.cpp
+@@ -10,6 +10,9 @@
+ #include <NAS2D/Renderer/Renderer.h>
+ #include <NAS2D/MathUtils.h>
+ 
++#include <algorithm>
++
++
+ using namespace NAS2D;
+ 
+ static Font* FONT = nullptr;
+@@ -249,17 +252,17 @@ void IconGrid::removeItem(const std::string& item)
+ {
+ 	const auto lowerCaseTarget = toLowercase(item);
+ 
+-	auto it = mIconItemList.begin();
+-	while (it != mIconItemList.end())
+-	{
+-		if (toLowercase((*it).name) == lowerCaseTarget)
+-		{
+-			mIconItemList.erase(it);
+-			clearSelection();
+-			return;
++	const auto iter = std::find_if(
++		mIconItemList.begin(),
++		mIconItemList.end(),
++		[&lowerCaseTarget](const auto& iconItem) {
++			return toLowercase(iconItem.name) == lowerCaseTarget;
+ 		}
+-
+-		++it;
++	);
++	if (iter != mIconItemList.end())
++	{
++		mIconItemList.erase(iter);
++		clearSelection();
+ 	}
+ }
+ 

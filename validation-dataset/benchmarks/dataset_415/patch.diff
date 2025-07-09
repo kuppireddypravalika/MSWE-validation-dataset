@@ -1,0 +1,28 @@
+From 344ce92cfd4e025da871a8a2049b5dc9d37a868d Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Wed, 27 Oct 2021 01:02:05 -0600
+Subject: [PATCH] Cache tilePosition to avoid repeated get calls
+
+---
+ OPHD/States/MapViewState.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/OPHD/States/MapViewState.cpp b/OPHD/States/MapViewState.cpp
+index 77b1277b3..2d4cec278 100644
+--- a/OPHD/States/MapViewState.cpp
++++ b/OPHD/States/MapViewState.cpp
+@@ -885,11 +885,12 @@ void MapViewState::placeRobodozer(Tile& tile)
+ 		}
+ 
+ 		mMineOperationsWindow.hide();
+-		mTileMap->removeMineLocation(mTileMap->tileMouseHover());
++		const auto tilePosition = mTileMap->tileMouseHover();
++		mTileMap->removeMineLocation(tilePosition);
+ 		tile.pushMine(nullptr);
+ 		for (int i = 0; i <= mTileMap->maxDepth(); ++i)
+ 		{
+-			auto& mineShaftTile = mTileMap->getTile({mTileMap->tileMouseHover(), i});
++			auto& mineShaftTile = mTileMap->getTile({tilePosition, i});
+ 			NAS2D::Utility<StructureManager>::get().removeStructure(mineShaftTile.structure());
+ 		}
+ 	}

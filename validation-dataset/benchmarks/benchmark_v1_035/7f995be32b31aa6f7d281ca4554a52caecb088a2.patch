@@ -1,0 +1,42 @@
+From 7f995be32b31aa6f7d281ca4554a52caecb088a2 Mon Sep 17 00:00:00 2001
+From: Mikael Holmen <mikael.holmen@ericsson.com>
+Date: Thu, 16 Nov 2017 07:01:23 +0000
+Subject: [PATCH] [MachineRegisterInfo] Avoid having dbg.values affect code
+ generation
+
+Summary:
+Use use_nodbg_empty() rather than use_empty() in
+MachineRegisterInfo::EmitLiveInCopies() when determining if a livein
+register has any uses or not. Otherwise a single dbg.value can make us
+generate different code, meaning -g would affect code generation.
+
+Found when compiling code for my out-of-tree target. Unfortunately I
+haven't been able to reproduce the problem on X86 or any of the other
+in-tree targets that I tried, so no test case.
+
+Reviewers: MatzeB
+
+Reviewed By: MatzeB
+
+Subscribers: llvm-commits
+
+Differential Revision: https://reviews.llvm.org/D39044
+---
+ llvm/lib/CodeGen/MachineRegisterInfo.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/llvm/lib/CodeGen/MachineRegisterInfo.cpp b/llvm/lib/CodeGen/MachineRegisterInfo.cpp
+index 1674aba0c82c..8e031cb4e5b8 100644
+--- a/llvm/lib/CodeGen/MachineRegisterInfo.cpp
++++ b/llvm/lib/CodeGen/MachineRegisterInfo.cpp
+@@ -428,8 +428,8 @@ MachineRegisterInfo::EmitLiveInCopies(MachineBasicBlock *EntryMBB,
+   // Emit the copies into the top of the block.
+   for (unsigned i = 0, e = LiveIns.size(); i != e; ++i)
+     if (LiveIns[i].second) {
+-      if (use_empty(LiveIns[i].second)) {
+-        // The livein has no uses. Drop it.
++      if (use_nodbg_empty(LiveIns[i].second)) {
++        // The livein has no non-dbg uses. Drop it.
+         //
+         // It would be preferable to have isel avoid creating live-in
+         // records for unused arguments in the first place, but it's

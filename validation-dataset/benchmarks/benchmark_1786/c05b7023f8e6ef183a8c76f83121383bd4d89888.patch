@@ -1,0 +1,24 @@
+From c05b7023f8e6ef183a8c76f83121383bd4d89888 Mon Sep 17 00:00:00 2001
+From: Pilow <pierre.laupretre@gmail.com>
+Date: Mon, 8 Apr 2019 22:28:16 +0200
+Subject: [PATCH] [compiler] Don't load the variable for nothing
+
+---
+ src/compiler/Compiler.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/compiler/Compiler.cpp b/src/compiler/Compiler.cpp
+index af491bb5..c0e171a2 100644
+--- a/src/compiler/Compiler.cpp
++++ b/src/compiler/Compiler.cpp
+@@ -2007,7 +2007,9 @@ void Compiler::delete_variables_block(int deepness) {
+ 	for (int i = variables.size() - 1; i >= (int) variables.size() - deepness; --i) {
+ 		for (auto it = variables[i].begin(); it != variables[i].end(); ++it) {
+ 			// std::cout << "delete variable block " << it->first << " " << it->second.t << " " << it->second.v->getType() << std::endl;
+-			insn_delete(insn_load(it->second));
++			if (it->second.t.pointed().must_manage_memory() or it->second.t.pointed().is_mpz()) {
++				insn_delete(insn_load(it->second));
++			}
+ 		}
+ 	}
+ }

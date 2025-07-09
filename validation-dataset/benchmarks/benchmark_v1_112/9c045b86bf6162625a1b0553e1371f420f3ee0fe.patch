@@ -1,0 +1,23 @@
+From 9c045b86bf6162625a1b0553e1371f420f3ee0fe Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Sun, 15 Sep 2024 12:26:21 -0400
+Subject: [PATCH] [kde] RpQt.hpp, findDirectChild(): foreach() -> ranged for
+
+Compiles to slightly less code. (Qt4 only)
+---
+ src/kde/RpQt.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/kde/RpQt.hpp b/src/kde/RpQt.hpp
+index 5073a49181..d0ba7fb983 100644
+--- a/src/kde/RpQt.hpp
++++ b/src/kde/RpQt.hpp
+@@ -91,7 +91,7 @@ static inline T findDirectChild(QObject *obj, const QString &aName = QString())
+ #if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
+ 	return obj->findChild<T>(aName, Qt::FindDirectChildrenOnly);
+ #else /* QT_VERSION < QT_VERSION_CHECK(5,0,0) */
+-	foreach(QObject *child, obj->children()) {
++	for (QObject *child : obj->children()) {
+ 		T qchild = qobject_cast<T>(child);
+ 		if (qchild != nullptr) {
+ 			if (aName.isEmpty() || qchild->objectName() == aName) {

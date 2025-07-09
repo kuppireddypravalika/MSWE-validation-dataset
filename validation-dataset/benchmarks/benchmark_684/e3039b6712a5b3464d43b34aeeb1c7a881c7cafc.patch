@@ -1,0 +1,33 @@
+From e3039b6712a5b3464d43b34aeeb1c7a881c7cafc Mon Sep 17 00:00:00 2001
+From: Jakob Stoklund Olesen <stoklund@2pi.dk>
+Date: Tue, 26 Jan 2010 21:31:24 +0000
+Subject: [PATCH] Skip calculation of ArgumentWeights if it will never be used.
+
+Save a few bytes by allocating the correct size vector.
+
+No functional change intended.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@94589 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/Analysis/InlineCost.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/lib/Analysis/InlineCost.cpp b/lib/Analysis/InlineCost.cpp
+index 651c918a37f..595d41c3418 100644
+--- a/lib/Analysis/InlineCost.cpp
++++ b/lib/Analysis/InlineCost.cpp
+@@ -223,8 +223,14 @@ void InlineCostAnalyzer::FunctionInfo::analyzeFunction(Function *F) {
+   if (Metrics.NumRets==1)
+     --Metrics.NumInsts;
+ 
++  // Don't bother calculating argument weights if we are never going to inline
++  // the function anyway.
++  if (Metrics.NeverInline)
++    return;
++
+   // Check out all of the arguments to the function, figuring out how much
+   // code can be eliminated if one of the arguments is a constant.
++  ArgumentWeights.reserve(F->arg_size());
+   for (Function::arg_iterator I = F->arg_begin(), E = F->arg_end(); I != E; ++I)
+     ArgumentWeights.push_back(ArgInfo(CountCodeReductionForConstant(I),
+                                       CountCodeReductionForAlloca(I)));

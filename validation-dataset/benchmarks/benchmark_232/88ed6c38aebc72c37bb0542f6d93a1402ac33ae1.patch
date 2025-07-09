@@ -1,0 +1,33 @@
+From 88ed6c38aebc72c37bb0542f6d93a1402ac33ae1 Mon Sep 17 00:00:00 2001
+From: Dmitry Smagin <exmortis@yandex.ru>
+Date: Sun, 24 Apr 2016 16:36:49 +0300
+Subject: [PATCH] mipsrec: Don't load the same const multiple times with LUI
+
+---
+ src/recompiler/mips/rec_alu.cpp.h | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/src/recompiler/mips/rec_alu.cpp.h b/src/recompiler/mips/rec_alu.cpp.h
+index c6757036..10f25512 100644
+--- a/src/recompiler/mips/rec_alu.cpp.h
++++ b/src/recompiler/mips/rec_alu.cpp.h
+@@ -76,7 +76,18 @@ do { \
+ 	regUnlock(r1); \
+ } while (0)
+ 
+-static void recLUI()   { SetConst(_Rt_, ((u16)_ImmU_) << 16); REC_ITYPE_RT_U16(LUI, _Rt_, ((u16)(_ImmU_))); }
++static void recLUI()
++{
++	u32 rt = _Rt_;
++	u32 imm =((u16)_ImmU_) << 16;
++
++	/* Avoid loading the same constant more than once */
++	if (IsConst(rt) && iRegs[rt].r == imm)
++		return;
++
++	SetConst(rt, imm);
++	REC_ITYPE_RT_U16(LUI, _Rt_, ((u16)(_ImmU_)));
++}
+ 
+ #define REC_RTYPE_RD_RS_RT(insn, _rd_, _rs_, _rt_) \
+ do { \

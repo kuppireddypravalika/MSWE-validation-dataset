@@ -1,0 +1,31 @@
+From e172c788c31a193d092e97683caf1e63b1bfa66d Mon Sep 17 00:00:00 2001
+From: Frank Mehnert <frank.mehnert@kernkonzept.com>
+Date: Mon, 3 Aug 2020 00:00:00 +0000
+Subject: [PATCH] uclibc/pthread: 16-byte stack alignment for mgr
+
+Force a 16-byte alignment of the pthread manager stack pointer. Recent
+gcc versions may use advanced instructions to access memory which
+require a 16-byte alignment (e.g. movdqa) even for 32-bit targets.
+
+The stack is allocated using malloc() delivering 8-byte aligned memory
+on 32-bit hosts.
+
+Change-Id: I8c4d0f4d56e0e7546aa60525b76006a74e788799
+---
+ uclibc/lib/libpthread/src/pthread.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/uclibc/lib/libpthread/src/pthread.c b/uclibc/lib/libpthread/src/pthread.c
+index 3e68b9e61..b16f69ed7 100644
+--- a/uclibc/lib/libpthread/src/pthread.c
++++ b/uclibc/lib/libpthread/src/pthread.c
+@@ -707,6 +707,9 @@ int __pthread_initialize_manager(void)
+     return -1;
+   __pthread_manager_thread_tos =
+     __pthread_manager_thread_bos + THREAD_MANAGER_STACK_SIZE;
++  // L4: force 16-byte stack alignment
++  __pthread_manager_thread_tos =
++    (char *)((uintptr_t)__pthread_manager_thread_tos & ~0xfUL);
+ #ifdef NOT_FOR_L4
+   /* Setup pipe to communicate with thread manager */
+   if (pipe(manager_pipe) == -1) {

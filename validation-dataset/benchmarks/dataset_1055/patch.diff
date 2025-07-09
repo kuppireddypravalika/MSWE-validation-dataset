@@ -1,0 +1,43 @@
+From 0201e5fba4d6327689a24235dbe6aea44cac82c9 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Thu, 5 Feb 2009 22:55:30 +0000
+Subject: [PATCH] Create the temporary TIFF file with SPARSE_OK=YES to avoid
+ filling up the whole file with zeros even if we have read a small part of it,
+ just before destroying it (https://trac.osgeo.org/gdal/ticket/2542)
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@16236 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/frmts/gif/biggifdataset.cpp | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/gdal/frmts/gif/biggifdataset.cpp b/gdal/frmts/gif/biggifdataset.cpp
+index 9e941ee0617c..ea0dada21015 100644
+--- a/gdal/frmts/gif/biggifdataset.cpp
++++ b/gdal/frmts/gif/biggifdataset.cpp
+@@ -1,5 +1,5 @@
+ /******************************************************************************
+- * $Id: gifdataset.cpp 15186 2008-08-22 21:58:17Z warmerdam $
++ * $Id$
+  *
+  * Project:  BIGGIF Driver
+  * Purpose:  Implement GDAL support for reading large GIF files in a 
+@@ -32,7 +32,7 @@
+ #include "gdal_pam.h"
+ #include "cpl_string.h"
+ 
+-CPL_CVSID("$Id: gifdataset.cpp 15186 2008-08-22 21:58:17Z warmerdam $");
++CPL_CVSID("$Id$");
+ 
+ CPL_C_START
+ #include "gif_lib.h"
+@@ -389,7 +389,9 @@ CPLErr BIGGIFDataset::ReOpen()
+         
+         if( poGTiffDriver != NULL )
+         {
+-            char *apszOptions[] = { "COMPRESS=LZW", NULL };
++            /* Create as a sparse file to avoid filling up the whole file */
++            /* while closing and then destroying this temporary dataset */
++            char *apszOptions[] = { "COMPRESS=LZW", "SPARSE_OK=YES", NULL };
+             CPLString osTempFilename = CPLGenerateTempFilename("biggif");
+ 
+             osTempFilename += ".tif";

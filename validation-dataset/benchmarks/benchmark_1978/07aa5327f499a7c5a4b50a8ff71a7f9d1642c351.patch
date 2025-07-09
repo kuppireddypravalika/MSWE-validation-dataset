@@ -1,0 +1,34 @@
+From 07aa5327f499a7c5a4b50a8ff71a7f9d1642c351 Mon Sep 17 00:00:00 2001
+From: Ryan Houdek <Sonicadvance1@gmail.com>
+Date: Thu, 9 Mar 2023 15:01:53 -0800
+Subject: [PATCH] CPUID: Enable FAST REP MOVS
+
+Even without this being an optimal implementation, enabling this option
+reduces the amount of time spent in memmove in Hollow Knight.
+
+Before:
+```
+10.07%  [JIT] tid 284422  [.] /usr/lib/x86_64-linux-gnu/libc.so.6+0x17d780 (0x7fbcef8d6dfd)
+```
+
+After:
+```
+0.53%  [JIT] tid 288916  [.] /usr/lib/x86_64-linux-gnu/libc.so.6+0x17d780 (0x7f0cbe0dc608)
+```
+---
+ External/FEXCore/Source/Interface/Core/CPUID.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/External/FEXCore/Source/Interface/Core/CPUID.cpp b/External/FEXCore/Source/Interface/Core/CPUID.cpp
+index e7d25bac4c..6e123af339 100644
+--- a/External/FEXCore/Source/Interface/Core/CPUID.cpp
++++ b/External/FEXCore/Source/Interface/Core/CPUID.cpp
+@@ -707,7 +707,7 @@ FEXCore::CPUID::FunctionResults CPUIDEmu::Function_07h(uint32_t Leaf) {
+       (0 <<  1) | // Reserved
+       (0 <<  2) | // AVX512_4VNNIW
+       (0 <<  3) | // AVX512_4FMAPS
+-      (0 <<  4) | // Fast Short Rep Mov
++      (1 <<  4) | // Fast Short Rep Mov
+       (0 <<  5) | // Reserved
+       (0 <<  6) | // Reserved
+       (0 <<  7) | // Reserved

@@ -1,0 +1,32 @@
+From 907ed529d8a4076757f686aac829f703e5012a19 Mon Sep 17 00:00:00 2001
+From: Reid Kleckner <rnk@google.com>
+Date: Thu, 31 May 2018 18:26:36 +0000
+Subject: [PATCH] Fix GCC 4.8.5 build by avoiding braced default member
+ initializer
+
+Use internal_memset instead.  Should revive all Linux Chromium ToT bots.
+---
+ compiler-rt/lib/xray/xray_allocator.h | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/compiler-rt/lib/xray/xray_allocator.h b/compiler-rt/lib/xray/xray_allocator.h
+index 8f8e13a79525..d62a6910c3c6 100644
+--- a/compiler-rt/lib/xray/xray_allocator.h
++++ b/compiler-rt/lib/xray/xray_allocator.h
+@@ -71,8 +71,15 @@ template <size_t N> struct Allocator {
+     static constexpr auto BlockPtrCount =
+         (kCacheLineSize / sizeof(Block *)) - 1;
+ 
++    BlockLink() {
++      // Zero out Blocks.
++      // FIXME: Use a braced member initializer when we drop support for GCC
++      // 4.8.
++      internal_memset(Blocks, 0, sizeof(Blocks));
++    }
++
+     // FIXME: Align this to cache-line address boundaries?
+-    Block Blocks[BlockPtrCount]{};
++    Block Blocks[BlockPtrCount];
+     BlockLink *Prev = nullptr;
+   };
+ 

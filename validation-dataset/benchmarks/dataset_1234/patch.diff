@@ -1,0 +1,21 @@
+From c8a1a24ef1545a90da458ea40856e17055972038 Mon Sep 17 00:00:00 2001
+From: YanGuam <rara@qsanguosha.org>
+Date: Thu, 14 Aug 2014 21:09:12 +0800
+Subject: [PATCH] free the memory of obsolete scene
+
+---
+ src/dialog/mainwindow.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/dialog/mainwindow.cpp b/src/dialog/mainwindow.cpp
+index b1b45f4f01..116624c30e 100644
+--- a/src/dialog/mainwindow.cpp
++++ b/src/dialog/mainwindow.cpp
+@@ -594,6 +594,7 @@ MainWindow::~MainWindow() {
+ 
+ void MainWindow::gotoScene(QGraphicsScene *scene) {
+     if (this->scene) {
++        this->scene->deleteLater();
+         if (about_window) {
+             about_window->deleteLater();
+             about_window = NULL;

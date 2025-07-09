@@ -1,0 +1,31 @@
+From 596fcdc12340cf18efb8a07dbfab834e6827b7b5 Mon Sep 17 00:00:00 2001
+From: Julian Brost <julian.brost@icinga.com>
+Date: Wed, 1 Dec 2021 13:05:23 +0100
+Subject: [PATCH] Downtime::DowntimesExpireTimerHandler: don't copy vector
+
+`ConfigType::GetObjectsByType<Downtime>()` already returns a
+`std::vector<Downtime::Ptr>` so there is no point in copying it into another
+vector of the same type just to then iterate the copied vector instead of the
+original one.
+---
+ lib/icinga/downtime.cpp | 6 ------
+ 1 file changed, 6 deletions(-)
+
+diff --git a/lib/icinga/downtime.cpp b/lib/icinga/downtime.cpp
+index 08643523693..a9d23731b75 100644
+--- a/lib/icinga/downtime.cpp
++++ b/lib/icinga/downtime.cpp
+@@ -482,13 +482,7 @@ void Downtime::DowntimesStartTimerHandler()
+ 
+ void Downtime::DowntimesExpireTimerHandler()
+ {
+-	std::vector<Downtime::Ptr> downtimes;
+-
+ 	for (const Downtime::Ptr& downtime : ConfigType::GetObjectsByType<Downtime>()) {
+-		downtimes.push_back(downtime);
+-	}
+-
+-	for (const Downtime::Ptr& downtime : downtimes) {
+ 		/* Only remove downtimes which are activated after daemon start. */
+ 		if (downtime->IsActive() && (downtime->IsExpired() || !downtime->HasValidConfigOwner()))
+ 			RemoveDowntime(downtime->GetName(), false, false, true);

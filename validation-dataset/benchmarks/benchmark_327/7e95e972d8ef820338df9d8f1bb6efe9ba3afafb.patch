@@ -1,0 +1,23 @@
+From 7e95e972d8ef820338df9d8f1bb6efe9ba3afafb Mon Sep 17 00:00:00 2001
+From: Andreas Gal <gal@mozilla.com>
+Date: Tue, 12 Aug 2008 01:31:28 -0700
+Subject: [PATCH] Don't re-record traces over and over in case of excessive
+ type mismatches. Instead, blacklist the fragment and slowly back away from
+ recording it.
+
+---
+ js/src/jstracer.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/js/src/jstracer.cpp b/js/src/jstracer.cpp
+index 1337cb205cd..080b4691ad1 100644
+--- a/js/src/jstracer.cpp
++++ b/js/src/jstracer.cpp
+@@ -1675,6 +1675,7 @@ js_ExecuteTree(JSContext* cx, Fragment* f, uintN& inlineCallCount)
+         debug_only(printf("type-map mismatch.\n");)
+         if (++ti->mismatchCount > MAX_MISMATCH) {
+             debug_only(printf("excessive mismatches, flushing cache.\n"));
++            f->blacklist();
+             js_TrashTree(cx, f);
+         }
+         return NULL;

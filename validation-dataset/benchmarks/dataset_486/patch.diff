@@ -1,0 +1,32 @@
+From 15b8864556eeafdc4dbbf7deeb152641b17bb7a6 Mon Sep 17 00:00:00 2001
+From: Ilya Orlov <iorlov@rzn.dlink.ru>
+Date: Fri, 25 May 2018 16:40:51 +0300
+Subject: [PATCH] xrCore: replaced string conversion on std function
+
+---
+ src/xrCore/xrstring.h | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/xrCore/xrstring.h b/src/xrCore/xrstring.h
+index e11476f0d12..6103f0efc9e 100644
+--- a/src/xrCore/xrstring.h
++++ b/src/xrCore/xrstring.h
+@@ -1,6 +1,7 @@
+ #pragma once
+ 
+ #include <cstdio>
++#include <locale>
+ 
+ #include "_types.h"
+ #include "xrCommon/inlining_macros.h"
+@@ -205,8 +206,8 @@ IC void xr_strlwr(shared_str& src)
+         int i = 0;
+         while(lp[i])
+         {
+-        	lp[i] = (char) toupper(lp[i]);// TODO rewrite locale-independent toupper_l()
+-        	i++;
++            lp[i] = (char) std::toupper(lp[i], std::locale());
++            i++;
+         }
+ #endif
+         src = lp;

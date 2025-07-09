@@ -1,0 +1,36 @@
+From f818af74fc2f0100fe753a1970fb7c6d03bd6f80 Mon Sep 17 00:00:00 2001
+From: maniacbug <maniacbug@ymail.com>
+Date: Wed, 31 Aug 2011 09:29:22 -0700
+Subject: [PATCH] Use algorithm+iterator instead of looping on a const_iterator
+
+---
+ internal/Logger.cpp | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
+
+diff --git a/internal/Logger.cpp b/internal/Logger.cpp
+index 5cc53cf..8609a34 100644
+--- a/internal/Logger.cpp
++++ b/internal/Logger.cpp
+@@ -2,6 +2,8 @@
+ #include <iostream>
+ #include <stdexcept>
+ #include <iomanip>
++#include <algorithm>
++#include <iterator>
+ 
+ #include <stdio.h>
+ #include <stdarg.h>
+@@ -56,12 +58,7 @@ bool Logger::command_list(const vector<string>& _commands) const
+     throw new runtime_error("No parameters expected");
+ 
+   pthread_mutex_lock( const_cast<pthread_mutex_t*>(&mutex) );
+-  vector<string>::const_iterator current = begin();
+-  while ( current != end() )
+-  {
+-    cout << *current;
+-    ++current;
+-  }
++  copy(begin(),end(),ostream_iterator<string>(cout,""));
+   pthread_mutex_unlock( const_cast<pthread_mutex_t*>(&mutex) );
+ 
+   return true;

@@ -1,0 +1,27 @@
+From c09cb6e26b4035163138f5e802afbd83cd5a87d3 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Jacob=20St=C3=B8ren?= <jacob.storen@ceetronsolutions.com>
+Date: Fri, 31 Jan 2020 15:08:32 +0100
+Subject: [PATCH] #5429 Preallocate surface intersection trianglevertices
+
+---
+ .../Surfaces/RivSurfaceIntersectionGeometryGenerator.cpp       | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/ApplicationCode/ModelVisualization/Surfaces/RivSurfaceIntersectionGeometryGenerator.cpp b/ApplicationCode/ModelVisualization/Surfaces/RivSurfaceIntersectionGeometryGenerator.cpp
+index 2648ba39d3a..fcc013b10c7 100644
+--- a/ApplicationCode/ModelVisualization/Surfaces/RivSurfaceIntersectionGeometryGenerator.cpp
++++ b/ApplicationCode/ModelVisualization/Surfaces/RivSurfaceIntersectionGeometryGenerator.cpp
+@@ -155,11 +155,12 @@ void RivSurfaceIntersectionGeometryGenerator::calculateArrays()
+     cvf::Vec3d                     displayModelOffset    = m_hexGrid->displayOffset();
+ 
+     m_triVxToCellCornerWeights.reserve( nativeTriangleIndices.size() * 24 );
++    outputTriangleVertices.reserve( nativeTriangleIndices.size() * 24 );
+ 
+ #pragma omp parallel num_threads( 6 ) // More threads have nearly no effect
+     {
+         // Loop local memory allocation.
+-        // Must be thread private in omp paralellization
++        // Must be thread private in omp parallelization
+         std::vector<caf::HexGridIntersectionTools::ClipVx> hexPlaneCutTriangleVxes;
+         hexPlaneCutTriangleVxes.reserve( 2 * 6 * 3 );
+ 

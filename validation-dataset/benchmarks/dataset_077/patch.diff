@@ -1,0 +1,23 @@
+From 4548e663ae767a26cd06e7826a3d7659ff7577c7 Mon Sep 17 00:00:00 2001
+From: Lars Op den Kamp <lars@opdenkamp.eu>
+Date: Wed, 28 Mar 2012 21:05:55 +0200
+Subject: [PATCH] cec: removed no longer needed sleep in
+ CUSBCECAdapterCommunication::Process()
+
+---
+ src/lib/CECProcessor.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/lib/CECProcessor.h b/src/lib/CECProcessor.h
+index ce32fea5..5956dc3d 100644
+--- a/src/lib/CECProcessor.h
++++ b/src/lib/CECProcessor.h
+@@ -64,7 +64,7 @@ namespace CEC
+         bReturn = m_inBuffer.Push(command);
+ 
+       m_bHasData |= bReturn;
+-      if (bReturn)
++      if (m_bHasData)
+         m_condition.Signal();
+ 
+       return bReturn;

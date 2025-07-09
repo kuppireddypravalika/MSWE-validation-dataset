@@ -1,0 +1,24 @@
+From 3c1ee39cf2c22b78e1d280d9e40cbf21b125e74e Mon Sep 17 00:00:00 2001
+From: Bert Hubert <bert.hubert@netherlabs.nl>
+Date: Sat, 2 Jul 2005 21:23:02 +0000
+Subject: [PATCH] MASSIVE speedup - after 60 seconds of operation pruning would
+ be continous
+
+git-svn-id: svn://svn.powerdns.com/pdns/trunk/pdns@421 d19b8d6e-7fed-0310-83ef-9ca221ded41b
+---
+ pdns/pdns_recursor.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/pdns/pdns_recursor.cc b/pdns/pdns_recursor.cc
+index 00ac930dff31..5bfe6293a03f 100644
+--- a/pdns/pdns_recursor.cc
++++ b/pdns/pdns_recursor.cc
+@@ -373,7 +373,7 @@ void houseKeeping(void *)
+ {
+   static time_t last_stat, last_rootupdate, last_prune;
+   time_t now=time(0);
+-  if(now - last_stat>60) { 
++  if(now - last_prune > 60) { 
+     RC.doPrune();
+     last_prune=time(0);
+   }

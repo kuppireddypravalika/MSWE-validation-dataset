@@ -1,0 +1,23 @@
+From dd6d63fe42fbc43d46d38033d72c714a1b57c5d0 Mon Sep 17 00:00:00 2001
+From: Michal Hocko <mstsxfx@gmail.com>
+Date: Wed, 23 Jan 2008 16:30:20 +0000
+Subject: [PATCH] delMatching minor fix 	- pre-incrementation is faster than
+ post-incrementation
+
+---
+ src/utils/rulesmanager.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/utils/rulesmanager.h b/src/utils/rulesmanager.h
+index f5f79f90..c4853e90 100644
+--- a/src/utils/rulesmanager.h
++++ b/src/utils/rulesmanager.h
+@@ -321,7 +321,7 @@ class RulesManager
+ 			}
+ 
+ 			// doesn't match, simply moves iterator
+-			i++;
++			++i;
+ 		}
+ 	}
+ 

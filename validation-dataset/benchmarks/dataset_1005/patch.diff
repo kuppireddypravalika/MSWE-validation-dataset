@@ -1,0 +1,23 @@
+From 46a150cebe2b46448c3fab2e9e1c5ba1631231a1 Mon Sep 17 00:00:00 2001
+From: Ghabry <gabriel+github@mastergk.de>
+Date: Mon, 9 May 2022 13:23:42 +0200
+Subject: [PATCH] Make image loading slightly faster by using FastBlit in
+ ConvertImage
+
+---
+ src/bitmap.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/bitmap.cpp b/src/bitmap.cpp
+index 8be5a21509..b7aa38458b 100644
+--- a/src/bitmap.cpp
++++ b/src/bitmap.cpp
+@@ -522,7 +522,7 @@ void Bitmap::ConvertImage(int& width, int& height, void*& pixels, bool transpare
+ 
+ 	Bitmap src(pixels, width, height, 0, img_format);
+ 	Clear();
+-	Blit(0, 0, src, src.GetRect(), Opacity::Opaque());
++	BlitFast(0, 0, src, src.GetRect(), Opacity::Opaque());
+ 	free(pixels);
+ }
+ 

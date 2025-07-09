@@ -1,0 +1,28 @@
+From 5aa161ae657273dd8b002d4b0dc4cbc7c3d28060 Mon Sep 17 00:00:00 2001
+From: Kunal Tyagi <tyagi.kunal@live.com>
+Date: Thu, 9 Jan 2020 16:13:51 +0900
+Subject: [PATCH] rift.hpp: Using algorithms and Eigen functions for better
+ code
+
+---
+ features/include/pcl/features/impl/rift.hpp | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/features/include/pcl/features/impl/rift.hpp b/features/include/pcl/features/impl/rift.hpp
+index e8c0fd442c2..d5ed46b2198 100644
+--- a/features/include/pcl/features/impl/rift.hpp
++++ b/features/include/pcl/features/impl/rift.hpp
+@@ -170,11 +170,8 @@ pcl::RIFTEstimation<PointInT, GradientT, PointOutT>::computeFeature (PointCloudO
+     // Compute the RIFT descriptor
+     computeRIFT (*surface_, *gradient_, (*indices_)[idx], static_cast<float> (search_radius_), nn_indices, nn_dist_sqr, rift_descriptor);
+ 
+-    // Copy into the resultant cloud
+-    std::size_t bin = 0;
+-    for (Eigen::Index g_bin = 0; g_bin < rift_descriptor.cols (); ++g_bin)
+-      for (Eigen::Index d_bin = 0; d_bin < rift_descriptor.rows (); ++d_bin)
+-        output.points[idx].histogram[bin++] = rift_descriptor (d_bin, g_bin);
++    // Default layout is column major, copy elementwise
++    std::copy_n (rift_descriptor.data (), rift_descriptor.size (), output.points[idx].histogram);
+   }
+ }
+ 

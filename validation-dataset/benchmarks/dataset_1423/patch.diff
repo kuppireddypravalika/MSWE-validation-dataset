@@ -1,0 +1,26 @@
+From bbfc4d3923442300224607d490a9f8c50a098a53 Mon Sep 17 00:00:00 2001
+From: Avi Bahra <Avi.Bahra@ecmwf.int>
+Date: Tue, 30 Jul 2019 11:52:38 +0100
+Subject: [PATCH] fix perf on parsing
+
+Former-commit-id: 09969a43902550c85be3bf11b83aeaf9921524e2
+---
+ ANode/parser/src/DefsParser.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/ANode/parser/src/DefsParser.cpp b/ANode/parser/src/DefsParser.cpp
+index 2d3c3fd66..81fe19ae6 100644
+--- a/ANode/parser/src/DefsParser.cpp
++++ b/ANode/parser/src/DefsParser.cpp
+@@ -189,7 +189,10 @@ class TaskParser : public Parser {
+ 	      addTask(line,lineTokens);
+ 	      return true;
+ 	   }
+-	   else if (Str::local_strcmp(first_token,"endtask") == 0) { // optional
++      else if (Str::local_strcmp(first_token,"endfamily") == 0) {
++         if (parent()) return parent()->doParse(line,lineTokens);
++      }
++      else if (Str::local_strcmp(first_token,"endtask") == 0) { // optional
+ 	      popToContainerNode();
+ 	      return true;
+ 	   }

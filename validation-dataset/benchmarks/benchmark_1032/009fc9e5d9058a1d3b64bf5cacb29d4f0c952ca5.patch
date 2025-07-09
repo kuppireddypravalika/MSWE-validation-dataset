@@ -1,0 +1,27 @@
+From 009fc9e5d9058a1d3b64bf5cacb29d4f0c952ca5 Mon Sep 17 00:00:00 2001
+From: Dan Gohman <gohman@apple.com>
+Date: Thu, 13 Aug 2009 23:07:11 +0000
+Subject: [PATCH] Take the fast path for any named value and any GlobalValue,
+ which doesn't need TypePrinting despite being a subclass of Constant. This
+ fixes compile-time problems especially visible on 403.gcc when -asm-verbose
+ is enabled.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@78951 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/VMCore/AsmWriter.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/lib/VMCore/AsmWriter.cpp b/lib/VMCore/AsmWriter.cpp
+index 8270f1723fc..35aae41e349 100644
+--- a/lib/VMCore/AsmWriter.cpp
++++ b/lib/VMCore/AsmWriter.cpp
+@@ -1233,7 +1233,8 @@ void llvm::WriteAsOperand(raw_ostream &Out, const Value *V,
+ 
+   // Fast path: Don't construct and populate a TypePrinting object if we
+   // won't be needing any types printed.
+-  if (!PrintType && !isa<Constant>(V)) {
++  if (!PrintType &&
++      (!isa<Constant>(V) || V->hasName() || isa<GlobalValue>(V))) {
+     WriteAsOperandInternal(Out, V, 0, 0);
+     return;
+   }

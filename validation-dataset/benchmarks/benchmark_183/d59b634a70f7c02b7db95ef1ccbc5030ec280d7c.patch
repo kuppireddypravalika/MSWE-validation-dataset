@@ -1,0 +1,23 @@
+From d59b634a70f7c02b7db95ef1ccbc5030ec280d7c Mon Sep 17 00:00:00 2001
+From: patacongo <patacongo@42af7a65-404d-4744-a932-0658087f49c3>
+Date: Sun, 21 Oct 2012 01:34:37 +0000
+Subject: [PATCH] Optimized memset() can be configured to do 64-bit stores
+
+git-svn-id: http://svn.code.sf.net/p/nuttx/code/trunk@5244 42af7a65-404d-4744-a932-0658087f49c3
+---
+ nuttx/lib/string/lib_memset.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/nuttx/lib/string/lib_memset.c b/nuttx/lib/string/lib_memset.c
+index 2828f1ff866c..902a040c5899 100644
+--- a/nuttx/lib/string/lib_memset.c
++++ b/nuttx/lib/string/lib_memset.c
+@@ -117,7 +117,7 @@ void *memset(void *s, int c, size_t n)
+               n    -= 4;
+             }
+ #else
+-          /* Align to a 32-bit boundary */
++          /* Check if there are at least 32-bits left to be zeroed */
+ 
+           if (n >= 4)
+             {

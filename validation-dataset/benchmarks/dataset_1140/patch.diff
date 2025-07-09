@@ -1,0 +1,32 @@
+From 8794c68c75a3541aea58bad64c54a7203def1cd6 Mon Sep 17 00:00:00 2001
+From: Frank Warmerdam <warmerdam@pobox.com>
+Date: Mon, 23 Aug 2004 14:24:14 +0000
+Subject: [PATCH] Added GXFClose() on failed open to recover resources.
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@6454 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ frmts/gxf/gxfopen.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/frmts/gxf/gxfopen.c b/frmts/gxf/gxfopen.c
+index 5f8b4974cc75..222b555a3d4e 100644
+--- a/frmts/gxf/gxfopen.c
++++ b/frmts/gxf/gxfopen.c
+@@ -29,6 +29,9 @@
+  ******************************************************************************
+  *
+  * $Log$
++ * Revision 1.15  2004/08/23 14:24:14  warmerda
++ * Added GXFClose() on failed open to recover resources.
++ *
+  * Revision 1.14  2004/04/27 14:30:55  warmerda
+  * Cast CPLErr properly.
+  *
+@@ -340,6 +343,7 @@ GXFHandle GXFOpen( const char * pszFilename )
+ /* -------------------------------------------------------------------- */
+     if( !EQUALN(szTitle,"#GRID",5) )
+     {
++        GXFClose( psGXF );
+         CPLError( CE_Failure, CPLE_WrongFormat,
+                   "Didn't parse through to #GRID successfully in.\n"
+                   "file `%s'.\n",

@@ -1,0 +1,49 @@
+From d028a42b244e38a7bc23a24fb4cdb9c02f74cd3f Mon Sep 17 00:00:00 2001
+From: Mehdi Amini <mehdi.amini@apple.com>
+Date: Wed, 18 Jan 2017 21:37:11 +0000
+Subject: [PATCH] Improve the `-filter-print-funcs` option to skip the banner
+ for CGSCC pass when nothing is to be printed
+
+Before, it would print a sequence of:
+
+  *** IR Dump After Function Integration/Inlining ******
+  *** IR Dump After Function Integration/Inlining ******
+  *** IR Dump After Function Integration/Inlining ******
+  ...
+
+for every single function in the module.
+---
+ llvm/lib/Analysis/CallGraphSCCPass.cpp | 16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
+
+diff --git a/llvm/lib/Analysis/CallGraphSCCPass.cpp b/llvm/lib/Analysis/CallGraphSCCPass.cpp
+index 9cef78144150..1c84cf5c6b07 100644
+--- a/llvm/lib/Analysis/CallGraphSCCPass.cpp
++++ b/llvm/lib/Analysis/CallGraphSCCPass.cpp
+@@ -609,13 +609,23 @@ namespace {
+     }
+ 
+     bool runOnSCC(CallGraphSCC &SCC) override {
+-      Out << Banner;
++      auto PrintBannerOnce = [&] () {
++        static bool BannerPrinted = false;
++        if (BannerPrinted)
++          return;
++        Out << Banner;
++        BannerPrinted = true;
++        };
+       for (CallGraphNode *CGN : SCC) {
+         if (CGN->getFunction()) {
+-          if (isFunctionInPrintList(CGN->getFunction()->getName()))
++          if (isFunctionInPrintList(CGN->getFunction()->getName())) {
++            PrintBannerOnce();
+             CGN->getFunction()->print(Out);
+-        } else
++          }
++        } else if (llvm::isFunctionInPrintList("*")) {
++          PrintBannerOnce();
+           Out << "\nPrinting <null> Function\n";
++        }
+       }
+       return false;
+     }

@@ -1,0 +1,31 @@
+From dc7790e1b8fa963864b9f551b5e9dfc97cc20d98 Mon Sep 17 00:00:00 2001
+From: Nigel Pearson <npearson@mythtv.org>
+Date: Tue, 19 Feb 2008 22:20:50 +0000
+Subject: [PATCH] Trivial optimisation - no need to find free recorders if an
+ existing recording is being played (TV::StartTV() is called in several
+ contexts). Not a bug fix, so don't apply to 0-21-fixes
+
+git-svn-id: http://svn.mythtv.org/svn/trunk@16166 7dbf422c-18fa-0310-86e9-fd20926502f2
+---
+ mythtv/libs/libmythtv/tv_play.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/mythtv/libs/libmythtv/tv_play.cpp b/mythtv/libs/libmythtv/tv_play.cpp
+index 3d571dd80ed..d0cd7576a7a 100644
+--- a/mythtv/libs/libmythtv/tv_play.cpp
++++ b/mythtv/libs/libmythtv/tv_play.cpp
+@@ -119,13 +119,12 @@ bool TV::StartTV (ProgramInfo *tvrec, bool startInGuide,
+ 
+     while (!quitAll)
+     {
+-        int freeRecorders = RemoteGetFreeRecorderCount();
+         if (curProgram)
+         {
+             if (!tv->Playback(curProgram))
+                 quitAll = true;
+         }
+-        else if (!freeRecorders)
++        else if (!RemoteGetFreeRecorderCount())
+         {
+             vector<ProgramInfo *> *reclist;
+             reclist = RemoteGetCurrentlyRecordingList();

@@ -1,0 +1,6 @@
+```json
+{
+  "optimized_code": "#include \"streamer.hpp\"\n\nint Streamer::tick_send(uint32_t timeout) {\n    // Check if bio is active without locking\n    if (!mBio->isactive()) {\n        free_pend();\n        return 0;\n    }\n\n    std::lock_guard<std::mutex> stack(mStreamerMtx); // Lock only when necessary\n    if (mBio->cansend(timeout)) {\n        handleoutgoing_locked();\n    }\n\n    return 1;\n}\n\n// Explicit template instantiations",
+  "analysis": "The optimized function maintains the check for 'mBio' being active outside the mutex lock, reducing contention and enhancing performance in multithreaded scenarios. The critical section affected by the mutex has been minimized to only processing the outgoing messages, improving overall throughput without altering behavior."
+}
+```

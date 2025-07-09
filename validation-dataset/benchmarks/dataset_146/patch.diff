@@ -1,0 +1,24 @@
+From d56da295e903e8580a47a452c3fef9b1f86e54bc Mon Sep 17 00:00:00 2001
+From: Jeongnim Kim <jeongnim.kim@intel.com>
+Date: Fri, 11 Jun 2010 14:48:46 +0000
+Subject: [PATCH] Use integer for number_of_walkers  with phdf5.
+
+git-svn-id: https://subversion.assembla.com/svn/qmcdev/trunk@4878 e5b18d87-469d-4833-9cc0-8cdfa06e9491
+---
+ src/Particle/HDFWalkerOutput.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/Particle/HDFWalkerOutput.cpp b/src/Particle/HDFWalkerOutput.cpp
+index c0441f0040..7ea9a6cd9f 100644
+--- a/src/Particle/HDFWalkerOutput.cpp
++++ b/src/Particle/HDFWalkerOutput.cpp
+@@ -118,7 +118,8 @@ namespace qmcplusplus
+ 
+     BufferType::value_type t;
+     const hid_t etype=get_h5_datatype(t);
+-    hout.write(gcounts[0],hdf::num_walkers);
++    number_of_walkers=W.WalkerOffsets[myComm->size()];
++    hout.write(number_of_walkers,hdf::num_walkers);
+ 
+     hid_t gid=hout.top();
+     hid_t sid1  = H5Screate_simple(3,gcounts,NULL);

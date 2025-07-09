@@ -1,0 +1,28 @@
+From 5b2c133564f62e9504864bafb55663b3d3c417b4 Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Sun, 30 Jul 2017 02:11:22 -0400
+Subject: [PATCH] [libromdata] NintendoDS: Minor optimization for unit type.
+
+Tested with Compiler Explorer (http://godbolt.org): (-O2)
+- gcc-7.1.0, 32-bit: Slighy reordering, but mostly the same.
+- gcc-7.1.0, 64-bit: Basically no change.
+- MSVC 2017, 32-bit: 3 fewer instructions.
+- MSVC 2017, 64-bit: 3 fewer instructions.
+---
+ src/libromdata/NintendoDS.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/libromdata/NintendoDS.cpp b/src/libromdata/NintendoDS.cpp
+index a9c85c1243..f84f7c9a2b 100644
+--- a/src/libromdata/NintendoDS.cpp
++++ b/src/libromdata/NintendoDS.cpp
+@@ -1143,8 +1143,7 @@ int NintendoDS::loadFieldData(void)
+ 
+ 	// Hardware type.
+ 	// NOTE: DS_HW_DS is inverted bit0; DS_HW_DSi is normal bit1.
+-	uint32_t hw_type = (romHeader->unitcode & NintendoDSPrivate::DS_HW_DS) ^ NintendoDSPrivate::DS_HW_DS;
+-	hw_type |= (romHeader->unitcode & NintendoDSPrivate::DS_HW_DSi);
++	uint32_t hw_type = (romHeader->unitcode & 3) ^ NintendoDSPrivate::DS_HW_DS;
+ 	if (hw_type == 0) {
+ 		// 0x01 is invalid. Assume DS.
+ 		hw_type = NintendoDSPrivate::DS_HW_DS;

@@ -1,0 +1,36 @@
+From e6a1b4dfc33732368bc6045501acd5e6e95f32a4 Mon Sep 17 00:00:00 2001
+From: Carl Shapiro <cshapiro@google.com>
+Date: Tue, 17 Aug 2010 18:33:56 -0700
+Subject: [PATCH] Fix a critical space leak introduced by concurrent sweeping.
+
+When computing the bitmaps for each heap, the live bitmap was assumed
+to have greater extent than the mark bitmap.  With the concurrent
+sweep the mark and live bitmaps are swapped before the sweep bitmaps
+are computed.  As such, the live bitmap extent is always less than or
+equal to the mark bitmap.  A benchmark which loops creating objects
+just to drop them on the floor will exclude most objects in the heap
+as candidates for sweeping and will exhaust the heap.
+
+The change fixes the extent computation and reintroduces an assert to
+check that the bitmap we assume to be the largest is the largest.
+
+Change-Id: I78694d2a0550de70c85e2087d482050a147a207a
+---
+ vm/alloc/HeapSource.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/vm/alloc/HeapSource.c b/vm/alloc/HeapSource.c
+index 8eac5cdbb..ed5f0815f 100644
+--- a/vm/alloc/HeapSource.c
++++ b/vm/alloc/HeapSource.c
+@@ -717,8 +717,9 @@ void dvmHeapSourceGetObjectBitmaps(HeapBitmap liveBits[], HeapBitmap markBits[],
+     assert(numHeaps == hs->numHeaps);
+     for (i = 0; i < hs->numHeaps; ++i) {
+         base = (uintptr_t)hs->heaps[i].base;
++        assert(hs->markBits.max >= hs->liveBits.max);
+         /* -1 because limit is exclusive but max is inclusive. */
+-        max = MIN((uintptr_t)hs->heaps[i].limit - 1, hs->liveBits.max);
++        max = MIN((uintptr_t)hs->heaps[i].limit - 1, hs->markBits.max);
+         aliasBitmap(&liveBits[i], &hs->liveBits, base, max);
+         aliasBitmap(&markBits[i], &hs->markBits, base, max);
+     }

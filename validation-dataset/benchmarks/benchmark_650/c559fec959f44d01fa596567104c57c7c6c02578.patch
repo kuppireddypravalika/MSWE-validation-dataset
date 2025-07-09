@@ -1,0 +1,30 @@
+From c559fec959f44d01fa596567104c57c7c6c02578 Mon Sep 17 00:00:00 2001
+From: Alyssa Rosenzweig <alyssa@rosenzweig.io>
+Date: Wed, 12 Jul 2023 17:46:27 -0400
+Subject: [PATCH] OpcodeDispatcher: Optimize ADD/ADC OF flag packing
+
+We can fold the Not into the And. This requires flipping the arguments
+to Andn, but we do not flip the order of the assignments since that
+requires an extra register in a test I'm looking at.
+
+Signed-off-by: Alyssa Rosenzweig <alyssa@rosenzweig.io>
+---
+ .../FEXCore/Source/Interface/Core/OpcodeDispatcher/Flags.cpp  | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/External/FEXCore/Source/Interface/Core/OpcodeDispatcher/Flags.cpp b/External/FEXCore/Source/Interface/Core/OpcodeDispatcher/Flags.cpp
+index 4951457847..a717b186b4 100644
+--- a/External/FEXCore/Source/Interface/Core/OpcodeDispatcher/Flags.cpp
++++ b/External/FEXCore/Source/Interface/Core/OpcodeDispatcher/Flags.cpp
+@@ -77,9 +77,9 @@ OrderedNode *OpDispatchBuilder::GetPackedRFLAG(uint32_t FlagsMask) {
+ }
+ 
+ void OpDispatchBuilder::CalculateOF_Add(uint8_t SrcSize, OrderedNode *Res, OrderedNode *Src1, OrderedNode *Src2) {
+-  auto XorOp1 = _Not(_Xor(Src1, Src2));
++  auto XorOp1 = _Xor(Src1, Src2);
+   auto XorOp2 = _Xor(Res, Src1);
+-  OrderedNode *AndOp1 = _And(XorOp1, XorOp2);
++  OrderedNode *AndOp1 = _Andn(XorOp2, XorOp1);
+   AndOp1 = _Bfe(1, SrcSize * 8 - 1, AndOp1);
+   SetRFLAG<FEXCore::X86State::RFLAG_OF_LOC>(AndOp1);
+ }

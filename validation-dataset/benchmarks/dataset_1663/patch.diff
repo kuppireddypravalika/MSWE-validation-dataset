@@ -1,0 +1,33 @@
+From 880b614c8ffd530251b9383e085ba094a1edbca8 Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Wed, 11 Sep 2013 23:10:18 +0200
+Subject: [PATCH] QtConcurrent: use nth_element to calculate the (correct)
+ median
+
+Sorting is O(NlogN) complexity, while nth_element is linear.
+Also remove the errornous +1 when calculating the median position.
+
+Change-Id: Ib39085b59a6c5d15a3a940b1ce3377080340bc09
+Reviewed-by: Olivier Goffart <ogoffart@woboq.com>
+---
+ src/concurrent/qtconcurrentmedian.h | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/src/concurrent/qtconcurrentmedian.h b/src/concurrent/qtconcurrentmedian.h
+index 90793933882a..b39b3ed32b67 100644
+--- a/src/concurrent/qtconcurrentmedian.h
++++ b/src/concurrent/qtconcurrentmedian.h
+@@ -102,9 +102,10 @@ class Median
+     {
+         if (dirty) {
+             dirty = false;
+-            QVector<T> sorted = values;
+-            std::sort(sorted.begin(), sorted.end());
+-            currentMedian = sorted.at(bufferSize / 2 + 1);
++            QVector<T> copy = values;
++            typename QVector<T>::iterator begin = copy.begin(), mid = copy.begin() + bufferSize/2, end = copy.end();
++            std::nth_element(begin, mid, end);
++            currentMedian = *mid;
+         }
+         return currentMedian;
+     }

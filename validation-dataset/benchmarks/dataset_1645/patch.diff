@@ -1,0 +1,32 @@
+From 60113056bc4c328f62808d1c0fa2a1abec481f78 Mon Sep 17 00:00:00 2001
+From: Artem Dyomin <artem.dyomin@qt.io>
+Date: Tue, 12 Sep 2023 14:46:30 +0200
+Subject: [PATCH] Optimize cond var notification
+
+Notification of a conditional variable shouldn't be under the locked
+mutex, as it may affect extra mutex contentions.
+
+Pick-to: 6.5 6.6
+Change-Id: Ie8429eca3f36e9a6e8e5ad2e0337bbf508f5b326
+Reviewed-by: Thiago Macieira <thiago.macieira@intel.com>
+---
+ src/corelib/thread/qsemaphore.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/corelib/thread/qsemaphore.cpp b/src/corelib/thread/qsemaphore.cpp
+index c472e62698c0..2437c96595b5 100644
+--- a/src/corelib/thread/qsemaphore.cpp
++++ b/src/corelib/thread/qsemaphore.cpp
+@@ -400,8 +400,10 @@ void QSemaphore::release(int n)
+         return;
+     }
+ 
+-    const auto locker = qt_scoped_lock(d->mutex);
+-    d->avail += n;
++    {
++        const auto locker = qt_scoped_lock(d->mutex);
++        d->avail += n;
++    }
+     d->cond.notify_all();
+ }
+ 

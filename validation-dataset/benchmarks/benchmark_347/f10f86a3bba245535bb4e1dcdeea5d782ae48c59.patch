@@ -1,0 +1,24 @@
+From f10f86a3bba245535bb4e1dcdeea5d782ae48c59 Mon Sep 17 00:00:00 2001
+From: James Stone <jmstone@princeton.edu>
+Date: Mon, 11 Jun 2018 14:39:46 -0400
+Subject: [PATCH] Added #pragma simd to roe MHD solver.  Tested on perseus and
+ it seems to work fine with vectorization.  Get about 1M zc/s for 3D mhd on
+ perseus.
+
+---
+ src/hydro/rsolvers/mhd/roe_mhd.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/hydro/rsolvers/mhd/roe_mhd.cpp b/src/hydro/rsolvers/mhd/roe_mhd.cpp
+index 6d5af30c60..e84363d42b 100644
+--- a/src/hydro/rsolvers/mhd/roe_mhd.cpp
++++ b/src/hydro/rsolvers/mhd/roe_mhd.cpp
+@@ -50,7 +50,7 @@ void Hydro::RiemannSolver(const int kl, const int ku, const int jl, const int ju
+ 
+   for (int k=kl; k<=ku; ++k) {
+   for (int j=jl; j<=ju; ++j) {
+-
++#pragma omp simd
+   for (int i=il; i<=iu; ++i) {
+ 
+ //--- Step 1.  Load L/R states into local variables

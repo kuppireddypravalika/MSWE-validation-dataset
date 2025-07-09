@@ -1,0 +1,42 @@
+From 8053a6dd9b973256889ab3575c8d9ff644537a44 Mon Sep 17 00:00:00 2001
+From: Kai Pastor <dg0yt@darc.de>
+Date: Tue, 30 Jul 2024 08:29:13 +0200
+Subject: [PATCH] cove Polygons: Avoid vector copies
+
+Leverage move and NRVO.
+---
+ 3rd-party/cove/libvectorizer/Polygons.cpp | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/3rd-party/cove/libvectorizer/Polygons.cpp b/3rd-party/cove/libvectorizer/Polygons.cpp
+index cd45fac43..16bf46e01 100644
+--- a/3rd-party/cove/libvectorizer/Polygons.cpp
++++ b/3rd-party/cove/libvectorizer/Polygons.cpp
+@@ -377,9 +377,12 @@ Polygons::decomposeImageIntoPaths(const QImage& sourceImage,
+ 	bool cancel = false;
+ 	while (!cancel && findNextPixel(image, x, y))
+ 	{
+-		Path pathFound = recordPath(image, x, y);
+-		removePathFromImage(image, pathFound);
+-		if (pathFound.size() > specklesize) pathList.push_back(pathFound);
++		{
++			auto pathFound = recordPath(image, x, y);
++			removePathFromImage(image, pathFound);
++			if (pathFound.size() > specklesize)
++				pathList.push_back(std::move(pathFound));
++		}
+ 		if (progressObserver && !(y % progressHowOften))
+ 		{
+ 			// FIXME hardcoded value 25!!!
+@@ -388,7 +391,10 @@ Polygons::decomposeImageIntoPaths(const QImage& sourceImage,
+ 		}
+ 	}
+ 
+-	return !cancel ? pathList : PathList();
++	if (cancel)
++		pathList.clear();
++
++	return pathList;
+ }
+ 
+ /*! Identifies straight segments of path and returns them as list of vertices

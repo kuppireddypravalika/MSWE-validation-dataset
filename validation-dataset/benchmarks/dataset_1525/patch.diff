@@ -1,0 +1,27 @@
+From f85db77685e72422ed833b6dc93ad15f1455cefd Mon Sep 17 00:00:00 2001
+From: Mikko Vanhatalo <mikko.vanhatalo@fmi.fi>
+Date: Mon, 31 Jul 2017 15:49:43 +0300
+Subject: [PATCH] grib: grib loading no longer allocates unnecessarily
+
+---
+ himan-plugins/source/grib.cpp | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/himan-plugins/source/grib.cpp b/himan-plugins/source/grib.cpp
+index 8554cb178..c09bbef16 100644
+--- a/himan-plugins/source/grib.cpp
++++ b/himan-plugins/source/grib.cpp
+@@ -1638,12 +1638,7 @@ void grib::ReadData(info_t newInfo, bool readPackedData) const
+ #endif
+ 	{
+ 		size_t len = itsGrib->Message().ValuesLength();
+-
+-		double* d = itsGrib->Message().Values();
+-
+-		dm.Set(d, len);
+-
+-		free(d);
++		itsGrib->Message().GetValues(dm.ValuesAsPOD(), &len);
+ 
+ 		if (decodePrecipitationForm)
+ 		{

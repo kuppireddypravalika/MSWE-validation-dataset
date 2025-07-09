@@ -1,0 +1,25 @@
+From bb40453ae477ef389af3221b0b02dad7c8653923 Mon Sep 17 00:00:00 2001
+From: Magne Sjaastad <magne.sjaastad@ceetronsolutions.com>
+Date: Mon, 4 May 2020 19:33:50 +0200
+Subject: [PATCH] Performance : Return a static QString for string used many
+ times
+
+---
+ ApplicationCode/Application/RiaDefines.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/ApplicationCode/Application/RiaDefines.cpp b/ApplicationCode/Application/RiaDefines.cpp
+index 55cb777f3b4..008825ecad9 100644
+--- a/ApplicationCode/Application/RiaDefines.cpp
++++ b/ApplicationCode/Application/RiaDefines.cpp
+@@ -178,7 +178,9 @@ bool RiaDefines::isNativeCategoryResult( const QString& resultName )
+ //--------------------------------------------------------------------------------------------------
+ QString RiaDefines::undefinedResultName()
+ {
+-    return "None";
++    const static QString undefResultName = "None";
++
++    return undefResultName;
+ }
+ 
+ //--------------------------------------------------------------------------------------------------

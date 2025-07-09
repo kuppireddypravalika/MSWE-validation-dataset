@@ -1,0 +1,26 @@
+From d4f86d73209c123fdcec1a91a619478c79362334 Mon Sep 17 00:00:00 2001
+From: Jeffrey Walton <noloader@gmail.com>
+Date: Sat, 21 Jul 2018 06:29:20 -0400
+Subject: [PATCH] Add SunCC code path to GetAlignmentOf It looks like
+ GetAlignmentOf was returning the "UnsignedMin(4U, sizeof(T))" for SunCC. It
+ was causing SIGBUSes on Sparc when T=word64. OpenCSW provided access to their
+ build farm and we were able to test "__alignof__(T)" back to an early SunCC
+ on Solaris 9.
+
+---
+ misc.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/misc.h b/misc.h
+index 038738eee..377f9fd71 100644
+--- a/misc.h
++++ b/misc.h
+@@ -1058,6 +1058,8 @@ inline unsigned int GetAlignmentOf()
+ 	return __alignof(T);
+ #elif defined(__GNUC__)
+ 	return __alignof__(T);
++#elif defined(__SUNPRO_CC)
++	return __alignof__(T);
+ #elif CRYPTOPP_BOOL_SLOW_WORD64
+ 	return UnsignedMin(4U, sizeof(T));
+ #else

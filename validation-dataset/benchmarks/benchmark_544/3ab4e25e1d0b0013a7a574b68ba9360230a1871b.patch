@@ -1,0 +1,26 @@
+From 3ab4e25e1d0b0013a7a574b68ba9360230a1871b Mon Sep 17 00:00:00 2001
+From: "Friedrich W. H. Kossebau" <kossebau@kde.org>
+Date: Sat, 22 Dec 2012 16:12:05 +0100
+Subject: [PATCH] Fix small memory issue in psdpad(...) in psd_utils.cpp
+
+okay'ed by boud on #calligra
+---
+ krita/plugins/formats/psd/psd_utils.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/krita/plugins/formats/psd/psd_utils.cpp b/krita/plugins/formats/psd/psd_utils.cpp
+index 9222f751992..618abb1e7e7 100644
+--- a/krita/plugins/formats/psd/psd_utils.cpp
++++ b/krita/plugins/formats/psd/psd_utils.cpp
+@@ -53,9 +53,10 @@ bool psdwrite(QIODevice* io, quint32 v)
+ 
+ bool psdpad(QIODevice* io, quint32 padding)
+ {
+-    char* pad = new char(padding);
++    char* pad = new char[padding];
+     memset(pad, 0, padding);
+     quint32 written = io->write(pad, padding);
++    delete [] pad;
+     return written == padding;
+ }
+ 

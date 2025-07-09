@@ -1,0 +1,34 @@
+From 13920c7a39dccd990ad56d8d6e8fae9d416bb58c Mon Sep 17 00:00:00 2001
+From: dsp56300 <dsp56300@users.noreply.github.com>
+Date: Mon, 8 Jul 2024 20:49:33 +0200
+Subject: [PATCH] no need to calculate modulo value and mask if the source is a
+ modulo register too, just copy previously calculated values
+
+---
+ source/dsp56kEmu/jitdspregs.cpp | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/source/dsp56kEmu/jitdspregs.cpp b/source/dsp56kEmu/jitdspregs.cpp
+index 20abb792..d984b4e6 100644
+--- a/source/dsp56kEmu/jitdspregs.cpp
++++ b/source/dsp56kEmu/jitdspregs.cpp
+@@ -122,6 +122,19 @@ namespace dsp56k
+ 			return;
+ 		}
+ 
++		// if the source is an M reg too we can copy the previously calculated values from the source
++		const auto dspReg = _src.getDspReg().dspReg();
++
++		if(dspReg >= DspM0 && dspReg <= DspM7)
++		{
++			const auto m = dspReg - DspM0;
++
++			m_asm.mov(mod , r32(m_block.dspRegPool().get(static_cast<PoolReg>(DspM0mod  + m), true, false)));
++			m_asm.mov(mask, r32(m_block.dspRegPool().get(static_cast<PoolReg>(DspM0mask + m), true, false)));
++
++			return;
++		}
++
+ 		const asmjit::Label end = m_asm.newLabel();
+ 		const asmjit::Label isLinear = m_asm.newLabel();
+ 		const asmjit::Label isBitreverse = m_asm.newLabel();

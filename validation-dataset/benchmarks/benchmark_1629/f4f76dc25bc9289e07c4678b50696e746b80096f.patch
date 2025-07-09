@@ -1,0 +1,23 @@
+From f4f76dc25bc9289e07c4678b50696e746b80096f Mon Sep 17 00:00:00 2001
+From: Simon Pilgrim <llvm-dev@redking.me.uk>
+Date: Wed, 2 May 2018 14:22:30 +0000
+Subject: [PATCH] Fix '32-bit shift implicitly converted to 64 bits' warning by
+ using APInt::setBit instead.
+
+---
+ .../Transforms/AggressiveInstCombine/AggressiveInstCombine.cpp  | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/llvm/lib/Transforms/AggressiveInstCombine/AggressiveInstCombine.cpp b/llvm/lib/Transforms/AggressiveInstCombine/AggressiveInstCombine.cpp
+index 7d117a5179ee..b61c0b89c00b 100644
+--- a/llvm/lib/Transforms/AggressiveInstCombine/AggressiveInstCombine.cpp
++++ b/llvm/lib/Transforms/AggressiveInstCombine/AggressiveInstCombine.cpp
+@@ -82,7 +82,7 @@ static bool matchMaskedCmpOp(Value *V, std::pair<Value *, APInt> &Result) {
+     Result.first = Candidate;
+ 
+   // Fill in the mask bit derived from the shift constant.
+-  Result.second |= (1 << BitIndex);
++  Result.second.setBit(BitIndex);
+   return Result.first == Candidate;
+ }
+ 

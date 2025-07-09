@@ -1,0 +1,24 @@
+From 94946ce13b7e7fa9988336942214b585a5cce5b1 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Micha=C5=82=20Janiszewski?= <janisozaur+signed@gmail.com>
+Date: Fri, 5 Jan 2018 23:22:46 +0100
+Subject: [PATCH] Use min/max instead of clamp for limiting tree count in RMG
+
+Call to `clamp` may not guarantee correct result when `high` < `low`,
+use calls to `max()` and `min()` explicitly instead.
+---
+ src/openrct2/world/MapGen.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/openrct2/world/MapGen.cpp b/src/openrct2/world/MapGen.cpp
+index dd4ab4d1fd41..7675bcf609cf 100644
+--- a/src/openrct2/world/MapGen.cpp
++++ b/src/openrct2/world/MapGen.cpp
+@@ -346,7 +346,7 @@ static void mapgen_place_trees()
+ 
+     // Place trees
+     float  treeToLandRatio = (10 + (util_rand() % 30)) / 100.0f;
+-    sint32 numTrees        = Math::Clamp(4, (sint32) (availablePositions.size() * treeToLandRatio), (sint32)availablePositions.size());
++    sint32 numTrees        = std::min(std::max(4, (sint32) (availablePositions.size() * treeToLandRatio)), (sint32)availablePositions.size());
+ 
+     for (sint32 i = 0; i < numTrees; i++)
+     {

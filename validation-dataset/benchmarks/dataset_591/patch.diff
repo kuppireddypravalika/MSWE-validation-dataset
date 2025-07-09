@@ -1,0 +1,30 @@
+From 908ddbc097737583bee55d0731a8152d12de3563 Mon Sep 17 00:00:00 2001
+From: Jonathan Poelen <jpoelen@wallix.com>
+Date: Tue, 24 Oct 2023 12:02:05 +0200
+Subject: [PATCH] replace LONG_MAX with max of ssize_t
+
+---
+ src/system/linux/system/urandom.hpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/system/linux/system/urandom.hpp b/src/system/linux/system/urandom.hpp
+index b68660bbf7..f3162e11d5 100644
+--- a/src/system/linux/system/urandom.hpp
++++ b/src/system/linux/system/urandom.hpp
+@@ -10,6 +10,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
+ #include "utils/log.hpp"
+ #include "utils/random.hpp"
+ 
++#include <limits>
+ #include <sys/random.h>
+ 
+ 
+@@ -25,7 +26,7 @@ class URandom final : public Random
+             /* On Solaris, getrandom() is limited to returning up to 1024 bytes. */
+             size_t len_max = 1024;
+ #else
+-            size_t len_max = LONG_MAX;
++            size_t len_max = std::numeric_limits<ssize_t>::max();
+ #endif
+             // TODO This is basically a blocking read, we should provide timeout management and behaviour
+             ssize_t n = getrandom(data, len < len_max ? len : len_max, 0);

@@ -1,0 +1,38 @@
+From bf35ccd8c6152162b6a3f173f71b7c1209f46466 Mon Sep 17 00:00:00 2001
+From: Fons Rademakers <Fons.Rademakers@cern.ch>
+Date: Thu, 8 Mar 2007 11:36:55 +0000
+Subject: [PATCH] use GetEntriesFast() in loop over dependent libs.
+
+git-svn-id: http://root.cern.ch/svn/root/trunk@18189 27541ba8-7e3a-0410-8455-c3a389f83636
+---
+ base/src/TSystem.cxx | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/base/src/TSystem.cxx b/base/src/TSystem.cxx
+index f1e17e995e5e0..7d5d06cfd4ef1 100644
+--- a/base/src/TSystem.cxx
++++ b/base/src/TSystem.cxx
+@@ -1,4 +1,4 @@
+-// @(#)root/base:$Name:  $:$Id: TSystem.cxx,v 1.157 2007/03/05 14:21:36 rdm Exp $
++// @(#)root/base:$Name:  $:$Id: TSystem.cxx,v 1.159 2007/03/07 23:17:28 pcanal Exp $
+ // Author: Fons Rademakers   15/09/95
+ 
+ /*************************************************************************
+@@ -1496,7 +1496,7 @@ int TSystem::Load(const char *module, const char *entry, Bool_t system)
+    if (!deplibs.IsNull()) {
+       TString delim(" ");
+       TObjArray *tokens = deplibs.Tokenize(delim);
+-      for (Int_t i = tokens->GetEntries()-1; i > 0; i--) {
++      for (Int_t i = tokens->GetEntriesFast()-1; i > 0; i--) {
+          const char *deplib = ((TObjString*)tokens->At(i))->GetName();
+          if (gDebug > 0)
+             Info("Load", "loading dependent library %s for library %s",
+@@ -1518,7 +1518,7 @@ int TSystem::Load(const char *module, const char *entry, Bool_t system)
+       delete [] path;
+    }
+ 
+-   if ((strstr(module, "Gui")) || (strstr(module, "Gpad")))
++   if ((strstr(module, "libGui")) || (strstr(module, "libGpad")))
+       if (gApplication) gApplication->InitializeGraphics();
+ 
+    if (!entry || !entry[0]) return i;

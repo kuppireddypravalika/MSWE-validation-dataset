@@ -1,0 +1,33 @@
+From 1ffa2cbee149f55664a48921d12ed4b302b094a6 Mon Sep 17 00:00:00 2001
+From: Daryl Maier <maier@ca.ibm.com>
+Date: Mon, 18 Mar 2019 14:36:54 -0400
+Subject: [PATCH] Optimize floating point store of constant +0.0
+
+For 64-bit x86 targets simply XOR the register rather than using a
+10-byte immediate load to the register.
+
+Signed-off-by: Daryl Maier <maier@ca.ibm.com>
+---
+ compiler/x/codegen/FPTreeEvaluator.cpp | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/compiler/x/codegen/FPTreeEvaluator.cpp b/compiler/x/codegen/FPTreeEvaluator.cpp
+index 0cedd38eea..41956f856c 100644
+--- a/compiler/x/codegen/FPTreeEvaluator.cpp
++++ b/compiler/x/codegen/FPTreeEvaluator.cpp
+@@ -409,7 +409,14 @@ TR::Register *OMR::X86::TreeEvaluator::floatingPointStoreEvaluator(TR::Node *nod
+          if (TR::Compiler->target.is64Bit())
+             {
+             TR::Register *floatConstReg = cg->allocateRegister(TR_GPR);
+-            generateRegImm64Instruction(MOV8RegImm64, node, floatConstReg, valueChild->getLongInt(), cg);
++            if (valueChild->getLongInt() == 0)
++               {
++               generateRegRegInstruction(XOR8RegReg, node, floatConstReg, floatConstReg, cg);
++               }
++            else
++               {
++               generateRegImm64Instruction(MOV8RegImm64, node, floatConstReg, valueChild->getLongInt(), cg);
++               }
+             exceptionPoint = generateMemRegInstruction(S8MemReg, node, tempMR, floatConstReg, cg);
+             cg->stopUsingRegister(floatConstReg);
+             }

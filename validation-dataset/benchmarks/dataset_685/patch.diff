@@ -1,0 +1,41 @@
+From bd1adb21c0ffd9878b522c50b00df0b8ccdc35d1 Mon Sep 17 00:00:00 2001
+From: Lukas Rusak <lorusak@gmail.com>
+Date: Wed, 19 May 2021 12:22:03 -0700
+Subject: [PATCH] CGUITextureManager: use std::chrono to measure texture load
+ times
+
+---
+ xbmc/guilib/TextureManager.cpp | 13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
+
+diff --git a/xbmc/guilib/TextureManager.cpp b/xbmc/guilib/TextureManager.cpp
+index 32b983615c856..f8be98aee53d2 100644
+--- a/xbmc/guilib/TextureManager.cpp
++++ b/xbmc/guilib/TextureManager.cpp
+@@ -339,8 +339,7 @@ const CTextureArray& CGUITextureManager::Load(const std::string& strTextureName,
+   CSingleLock lock(CServiceBroker::GetWinSystem()->GetGfxContext());
+ 
+ #ifdef _DEBUG_TEXTURES
+-  int64_t start;
+-  start = CurrentHostCounter();
++  const auto start = std::chrono::steady_clock::now();
+ #endif
+ 
+   if (bundle >= 0 && StringUtils::EndsWithNoCase(strPath, ".gif"))
+@@ -463,12 +462,10 @@ const CTextureArray& CGUITextureManager::Load(const std::string& strTextureName,
+   m_vecTextures.push_back(pMap);
+ 
+ #ifdef _DEBUG_TEXTURES
+-  int64_t end, freq;
+-  end = CurrentHostCounter();
+-  freq = CurrentHostFrequency();
+-  char temp[200];
+-  sprintf(temp, "Load %s: %.1fms%s\n", strPath.c_str(), 1000.f * (end - start) / freq, (bundle >= 0) ? " (bundled)" : "");
+-  OutputDebugString(temp);
++  const auto end = std::chrono::steady_clock::now();
++  const std::chrono::duration<double, std::milli> duration = end - start;
++  CLog::Log(LOGDEBUG, "Load {}: {:.3f} ms {}", strPath, duration.count(),
++            (bundle >= 0) ? "(bundled)" : "");
+ #endif
+ 
+   return pMap->GetTexture();

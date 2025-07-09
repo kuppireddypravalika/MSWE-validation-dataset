@@ -1,0 +1,24 @@
+From ad18009e6e0b9ca9dce22b66bb667519a17cef66 Mon Sep 17 00:00:00 2001
+From: "kuznetsovm@objectcomputing.com" <kuznetsovm@objectcomputing.com>
+Date: Wed, 6 Nov 2019 16:27:20 -0600
+Subject: [PATCH] Populate sequence with memset
+
+---
+ tests/security/attributes/Writer.cpp | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/tests/security/attributes/Writer.cpp b/tests/security/attributes/Writer.cpp
+index 28ecf046962..3e1fdfd34c1 100644
+--- a/tests/security/attributes/Writer.cpp
++++ b/tests/security/attributes/Writer.cpp
+@@ -103,9 +103,7 @@ Writer::svc()
+     message.text         = "Worst. Movie. Ever.";
+     message.count        = 0;
+     message.extra_space.length(args_.extra_space);
+-    for (int i = 0; i < args_.extra_space; i++) {
+-      message.extra_space[i] = 'a';
+-    }
++    memset(&message.extra_space[0], 'a', args_.extra_space);
+ 
+     for (int i = 0; i < args_.num_messages_; i++) {
+       DDS::ReturnCode_t error;

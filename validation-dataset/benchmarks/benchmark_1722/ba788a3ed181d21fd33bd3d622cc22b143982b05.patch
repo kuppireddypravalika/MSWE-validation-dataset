@@ -1,0 +1,46 @@
+From ba788a3ed181d21fd33bd3d622cc22b143982b05 Mon Sep 17 00:00:00 2001
+From: Christoph Niethammer <niethammer@hlrs.de>
+Date: Wed, 9 Aug 2017 17:18:17 +0000
+Subject: [PATCH] Replace hand written exclusive sum with MPI_Scan+MPI_SUM
+ minus local value.
+
+git-svn-id: https://scm.projects.hlrs.de/svn/ls1/MarDyn/trunk@5069 a63bd714-7e14-4b5e-94e7-302c8c8ff188
+---
+ src/io/MmpldWriter.cpp | 22 +++++-----------------
+ 1 file changed, 5 insertions(+), 17 deletions(-)
+
+diff --git a/src/io/MmpldWriter.cpp b/src/io/MmpldWriter.cpp
+index 7113651d46..b5dc4206d9 100644
+--- a/src/io/MmpldWriter.cpp
++++ b/src/io/MmpldWriter.cpp
+@@ -265,25 +265,13 @@ void MmpldWriter::doOutput( ParticleContainer* particleContainer,
+ 				}
+ 			}
+ 		}
+-		
+-		//send outputsize of current rank to next rank
+-		for (int dest = rank+1; dest < numprocs; ++dest){
+-			int sendcount = 1;
+-			int sendtag = 0;
+-			MPI_Request request;
+-			MPI_Isend(&outputsize, sendcount, MPI_LONG, dest, sendtag, MPI_COMM_WORLD, &request);
+-		}
+-		//accumulate outputsizes of previous ranks and use it as offset for output file
++
+ 		MPI_Status status;
+-		long offset = 0;
+-		long outputsize_get;
+-		for (int source = 0; source < rank; ++source){
+-			int recvcount = 1;
+-			int recvtag = 0;
+-			MPI_Recv(&outputsize_get, recvcount, MPI_LONG, source, recvtag, MPI_COMM_WORLD, &status);
+-			offset += outputsize_get;
+-		}
+ 
++		//accumulate outputsizes of previous ranks and use it as offset for output file
++		long offset = 0;
++		MPI_Scan(&outputsize, &offset, 1, MPI_LONG, MPI_SUM, MPI_COMM_WORLD);
++		offset -= outputsize; /* scan is inclusive own value */
+ 		global_log->debug() << "[MMPLD Writer] rank: " << rank << "; step: " << simstep << "; sphereTypeIndex: " << nSphereTypeIndex << "; offset: " << offset << endl;
+ 
+ 		MPI_File_seek(fh, offset, MPI_SEEK_END);

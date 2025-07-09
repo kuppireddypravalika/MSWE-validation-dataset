@@ -1,0 +1,41 @@
+From 23f980799d03f1522b6c7f87c2018566bcb6c996 Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@qt.io>
+Date: Fri, 26 Nov 2021 16:07:24 +0100
+Subject: [PATCH] QSharedPointer: fix counter-productive QT_PREPEND_NAMESPACE
+ use in qHash() impl
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The qHash(QSharedPointer) implementation is already in QT_NAMESPACE,
+if any, so explicitly qualifying the call adds no functions to the
+overload set, but actually removes functions that would be found by ADL
+(which is only enabled for unqualified calls).
+
+Fix by using an unqualified call.
+
+[ChangeLog][QtCore][QSharedPointer] The qHash(QSharedPointer<X>)
+overload can now use qHash(X*) overloads found (only) through ADL
+(was: ADL was disabled due to qualified lookup of qHash(X*)).
+
+Pick-to: 6.2 5.15
+Change-Id: Ic6cc47103142d48b6cdefa2cd6552a65cf1cb222
+Reviewed-by: Thiago Macieira <thiago.macieira@intel.com>
+Reviewed-by: Mårten Nordheim <marten.nordheim@qt.io>
+---
+ src/corelib/tools/qsharedpointer_impl.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/corelib/tools/qsharedpointer_impl.h b/src/corelib/tools/qsharedpointer_impl.h
+index fa917197096..61aeee4952d 100644
+--- a/src/corelib/tools/qsharedpointer_impl.h
++++ b/src/corelib/tools/qsharedpointer_impl.h
+@@ -801,7 +801,7 @@ Q_INLINE_TEMPLATE bool operator<(T *ptr1, const QSharedPointer<X> &ptr2)
+ template <class T>
+ Q_INLINE_TEMPLATE size_t qHash(const QSharedPointer<T> &ptr, size_t seed = 0)
+ {
+-    return QT_PREPEND_NAMESPACE(qHash)(ptr.data(), seed);
++    return qHash(ptr.data(), seed);
+ }
+ 
+ 

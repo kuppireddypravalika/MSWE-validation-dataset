@@ -1,0 +1,22 @@
+From aea710f070258a7b991e579d94bb66635a3fb459 Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Fri, 11 Jun 2021 23:39:16 -0600
+Subject: [PATCH] Re-use imageWidth value rather than recalculate
+
+---
+ OPHD/UI/RobotInspector.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/OPHD/UI/RobotInspector.cpp b/OPHD/UI/RobotInspector.cpp
+index ccfbd00c2..51f144a99 100644
+--- a/OPHD/UI/RobotInspector.cpp
++++ b/OPHD/UI/RobotInspector.cpp
+@@ -50,7 +50,7 @@ RobotInspector::RobotInspector() :
+ 
+ 	if (mContentArea.width < buttonWidth) { mContentArea.width = buttonWidth; }
+ 
+-	size({ buttonWidth + robotImage(Robot::Type::Digger).size().x + padding + constants::MARGIN, 0 });
++	size({ buttonWidth + imageWidth + constants::MARGIN, 0 });
+ 
+ 	auto buttonPosition = Vector{ imageWidth,  mContentArea.y + mContentArea.height + constants::MARGIN };
+ 

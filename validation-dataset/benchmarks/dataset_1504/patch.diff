@@ -1,0 +1,30 @@
+From ff3ece95c1ee92a6e2d8146227fb60ea61ddace7 Mon Sep 17 00:00:00 2001
+From: ElisaBortoli <elisa.bortoli3@gmail.com>
+Date: Thu, 15 Nov 2018 15:58:28 +0100
+Subject: [PATCH] using the new pow_2(a,a) in water.balance.cc
+
+---
+ src/geotop/water.balance.cc | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/geotop/water.balance.cc b/src/geotop/water.balance.cc
+index a47746ac6..14c48e5e3 100644
+--- a/src/geotop/water.balance.cc
++++ b/src/geotop/water.balance.cc
+@@ -30,6 +30,7 @@
+ #include "logger.h"
+ #include "timer.h"
+ #include <ctime>
++#include "math.optim.h"
+ 
+ extern long number_novalue;
+ 
+@@ -1976,7 +1977,7 @@ int find_f_1D(long c, double Dt, SOIL_STATE *L, Vector<double> *f, ALLDATA *adt,
+ double find_3Ddistance(double horizontal_distance, double vertical_distance)
+ {
+ 
+-    return sqrt(pow(horizontal_distance,2.)+pow(vertical_distance,2.));
++    return sqrt(pow_2(horizontal_distance)+pow_2(vertical_distance));
+ 
+ }
+ 

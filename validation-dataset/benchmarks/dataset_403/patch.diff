@@ -1,0 +1,45 @@
+From 2a39dc8fa3add9375ad097feb1f03ed58f3fcbc8 Mon Sep 17 00:00:00 2001
+From: ldicker83 <leeor_net@yahoo.com>
+Date: Wed, 3 Feb 2021 00:56:41 -0500
+Subject: [PATCH] Improve logic of waste processing loop
+
+---
+ OPHD/States/MapViewStateTurn.cpp | 18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
+
+diff --git a/OPHD/States/MapViewStateTurn.cpp b/OPHD/States/MapViewStateTurn.cpp
+index e2b8ab746..b1b840cd9 100644
+--- a/OPHD/States/MapViewStateTurn.cpp
++++ b/OPHD/States/MapViewStateTurn.cpp
+@@ -345,17 +345,27 @@ void MapViewState::updateBiowasteRecycling()
+ 	for (auto recyclingFacility : recyclingFacilities)
+ 	{
+ 		int count = 0;
++		
++		if (!recyclingFacility->operational()) { continue; } // Consider a different control structure
+ 
+-		// Consider a different control path
+-		if (!recyclingFacility->operational()) { continue; }
++		Recycling* recycling = static_cast<Recycling*>(recyclingFacility);
+ 
+ 		for (; residenceIterator != residences.end(); ++residenceIterator)
+ 		{
+ 			Residence* residence = static_cast<Residence*>(*residenceIterator);
+-			residence->pullWaste(30);
++			residence->pullWaste(recycling->wasteProcessingCapacity());
++			
+ 			++count;
+-			if (count >= 10) { break; }
++			
++			if (count >= recycling->residentialSupportCount())
++			{
++				break;
++			}
+ 		}
++
++		// We got to the end of the residence list, don't waste time iterating over
++		// any remaining recycling facilities.
++		if (residenceIterator == residences.end()) { break; }
+ 	}
+ }
+ 

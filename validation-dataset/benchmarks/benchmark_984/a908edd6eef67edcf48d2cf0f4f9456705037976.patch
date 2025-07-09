@@ -1,0 +1,30 @@
+From a908edd6eef67edcf48d2cf0f4f9456705037976 Mon Sep 17 00:00:00 2001
+From: roland <unknown>
+Date: Thu, 11 Feb 2016 12:42:12 +0100
+Subject: [PATCH] 8149543: range check CastII nodes should not be split through
+ Phi Summary: splitting range check CastIIs through loop induction Phi
+ prevents further optimizations Reviewed-by: kvn, mcberg
+
+---
+ src/share/vm/opto/loopopts.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/src/share/vm/opto/loopopts.cpp b/src/share/vm/opto/loopopts.cpp
+index 062daec66..e19f35a0a 100644
+--- a/src/share/vm/opto/loopopts.cpp
++++ b/src/share/vm/opto/loopopts.cpp
+@@ -43,6 +43,14 @@ Node *PhaseIdealLoop::split_thru_phi( Node *n, Node *region, int policy ) {
+     return NULL;
+   }
+ 
++  // Splitting range check CastIIs through a loop induction Phi can
++  // cause new Phis to be created that are left unrelated to the loop
++  // induction Phi and prevent optimizations (vectorization)
++  if (n->Opcode() == Op_CastII && n->as_CastII()->has_range_check() &&
++      region->is_CountedLoop() && n->in(1) == region->as_CountedLoop()->phi()) {
++    return NULL;
++  }
++
+   int wins = 0;
+   assert(!n->is_CFG(), "");
+   assert(region->is_Region(), "");

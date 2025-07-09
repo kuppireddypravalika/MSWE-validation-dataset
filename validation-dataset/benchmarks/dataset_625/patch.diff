@@ -1,0 +1,45 @@
+From b280b5a5741a249c48aa296762212101f4eb9b71 Mon Sep 17 00:00:00 2001
+From: Juli Mallett <juli@clockworksquid.com>
+Date: Thu, 20 Aug 2009 00:37:32 +0000
+Subject: [PATCH] Use a more efficient segment-sized copyout() invocation that
+ might just create a reference rather than copying if we're lucky.
+
+---
+ xcodec/xcodec_encoder.cc | 17 +++++------------
+ 1 file changed, 5 insertions(+), 12 deletions(-)
+
+diff --git a/xcodec/xcodec_encoder.cc b/xcodec/xcodec_encoder.cc
+index 3f68b08..9c12de3 100644
+--- a/xcodec/xcodec_encoder.cc
++++ b/xcodec/xcodec_encoder.cc
+@@ -178,18 +178,6 @@ XCodecEncoder::encode(Buffer *output, Buffer *input)
+ void
+ XCodecEncoder::encode_declaration(Buffer *output, Buffer *input, unsigned offset, uint64_t hash, BufferSegment **segp)
+ {
+-	uint8_t data[XCODEC_SEGMENT_LENGTH];
+-	input->copyout(data, offset, sizeof data);
+-
+-	/*
+-	 * No hit is fantastic, too -- go ahead and
+-	 * declare this hash.
+-	 */
+-	BufferSegment *nseg = new BufferSegment();
+-	nseg->append(data, sizeof data);
+-
+-	cache_->enter(hash, nseg);
+-
+ 	if (offset != 0) {
+ 		Buffer prefix;
+ 		input->moveout(&prefix, 0, offset);
+@@ -199,6 +187,11 @@ XCodecEncoder::encode_declaration(Buffer *output, Buffer *input, unsigned offset
+ 		prefix.clear();
+ 	}
+ 
++	BufferSegment *nseg;
++	input->copyout(&nseg, XCODEC_SEGMENT_LENGTH);
++
++	cache_->enter(hash, nseg);
++
+ 	output->append(XCODEC_DECLARE_CHAR);
+ 	uint64_t lehash = LittleEndian::encode(hash);
+ 	output->append((const uint8_t *)&lehash, sizeof lehash);

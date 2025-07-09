@@ -1,0 +1,25 @@
+From 32c870176993e4e15a7098cfd2fe92b2ec8b090e Mon Sep 17 00:00:00 2001
+From: ldicker83 <leeor_net@yahoo.com>
+Date: Mon, 22 Feb 2021 15:25:45 -0500
+Subject: [PATCH] Move ternary operation to a dedicated function instead of
+ choosing in TileMap::draw itself
+
+---
+ OPHD/Map/TileMap.cpp | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/OPHD/Map/TileMap.cpp b/OPHD/Map/TileMap.cpp
+index d09a0da5b..cdd51afe5 100644
+--- a/OPHD/Map/TileMap.cpp
++++ b/OPHD/Map/TileMap.cpp
+@@ -312,9 +312,7 @@ void TileMap::draw()
+ 				const auto subImageRect = NAS2D::Rectangle{static_cast<int>(tile.index()) * TILE_WIDTH, tsetOffset, TILE_WIDTH, TILE_HEIGHT};
+ 				const bool isTileHighlighted = NAS2D::Vector{col, row} == highlightOffset;
+ 
+-				const NAS2D::Color tileColor = isTileHighlighted ? overlayHighlightColor(tile.overlay()) : overlayColor(tile.overlay());
+-				
+-				renderer.drawSubImage(mTileset, position, subImageRect, tileColor);
++				renderer.drawSubImage(mTileset, position, subImageRect, overlayColor(tile.overlay(), isTileHighlighted));
+ 
+ 				// Draw a beacon on an unoccupied tile with a mine
+ 				if (tile.mine() != nullptr && !tile.thing())

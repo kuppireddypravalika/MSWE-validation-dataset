@@ -1,0 +1,34 @@
+From 3671599d9bb1cb0bbd30d11d94580b04fca21859 Mon Sep 17 00:00:00 2001
+From: Rene Brun <Rene.Brun@cern.ch>
+Date: Fri, 6 Nov 2009 08:39:14 +0000
+Subject: [PATCH] Use LL instead of L to set the default value of fgMaxTreeSize
+
+git-svn-id: http://root.cern.ch/svn/root/trunk@31000 27541ba8-7e3a-0410-8455-c3a389f83636
+---
+ tree/tree/src/TTree.cxx | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/tree/tree/src/TTree.cxx b/tree/tree/src/TTree.cxx
+index 9cc20c264a86c..014886d82a83b 100644
+--- a/tree/tree/src/TTree.cxx
++++ b/tree/tree/src/TTree.cxx
+@@ -361,7 +361,7 @@
+ #include <stdio.h>
+ 
+ Int_t    TTree::fgBranchStyle = 1;  // Use new TBranch style with TBranchElement.
+-Long64_t TTree::fgMaxTreeSize = 100000000000L;
++Long64_t TTree::fgMaxTreeSize = 100000000000LL;
+ 
+ TTree* gTree;
+ 
+@@ -5164,8 +5164,8 @@ void TTree::OptimizeBaskets(Int_t maxMemory, Float_t minComp, Option_t *option)
+    if (opt.Contains("d")) pDebug = kTRUE;
+    TObjArray *leaves = this->GetListOfLeaves();
+    Int_t nleaves = leaves->GetEntries();
+-   Int_t bmin = 2048;
+-   Int_t bmax = 512000;
++   Int_t bmin = 512;
++   Int_t bmax = 256000;
+    Double_t treeSize = (Double_t)this->GetTotBytes();
+    Double_t aveSize = treeSize/nleaves;
+    Double_t memFactor = 1;

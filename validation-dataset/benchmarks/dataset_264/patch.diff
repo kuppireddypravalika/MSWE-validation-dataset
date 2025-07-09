@@ -1,0 +1,23 @@
+From ca96d4a1812350dde05f7ce0275e06cc0a57e7bb Mon Sep 17 00:00:00 2001
+From: Daniel van Vugt <daniel.van.vugt@canonical.com>
+Date: Thu, 14 Mar 2013 13:37:37 +0800
+Subject: [PATCH] Shorten stress-test because it was taking "too long" on lowly
+ mobile hardware.
+
+---
+ tests/acceptance-tests/test_client_library.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tests/acceptance-tests/test_client_library.cpp b/tests/acceptance-tests/test_client_library.cpp
+index 049dc88a865..8533a8cc6c5 100644
+--- a/tests/acceptance-tests/test_client_library.cpp
++++ b/tests/acceptance-tests/test_client_library.cpp
+@@ -219,7 +219,7 @@ TEST_F(DefaultDisplayServerTestFixture, surface_types)
+                       mir_surface_type_dialog);
+ 
+             // Stress-test synchronization logic with some flooding
+-            for (int i = 0; i < 1000; i++)
++            for (int i = 0; i < 100; i++)
+             {
+                 mir_surface_set_type(surface, mir_surface_type_normal);
+                 mir_surface_set_type(surface, mir_surface_type_utility);

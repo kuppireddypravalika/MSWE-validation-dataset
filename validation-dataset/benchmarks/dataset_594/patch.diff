@@ -1,0 +1,30 @@
+From ae603926fc5cd478eb147d579560ce310ab03f91 Mon Sep 17 00:00:00 2001
+From: Julien <182520+JulienMaille@users.noreply.github.com>
+Date: Mon, 15 Mar 2021 12:04:48 +0100
+Subject: [PATCH] Update framelesswindowsmanager.cpp
+
+simple fix without the 500ms lag
+---
+ framelesswindowsmanager.cpp | 9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
+
+diff --git a/framelesswindowsmanager.cpp b/framelesswindowsmanager.cpp
+index d65a5d5a..33991e39 100644
+--- a/framelesswindowsmanager.cpp
++++ b/framelesswindowsmanager.cpp
+@@ -51,14 +51,7 @@ void FramelessWindowsManager::addWindow(const QWindow *window)
+     // Work-around a Win32 multi-monitor bug.
+     QObject::connect(win, &QWindow::screenChanged, [win](QScreen *screen){
+         Q_UNUSED(screen);
+-        const QSize originalSize = win->size();
+-        // Don't make the tempSize too large/small otherwise the user will see the resize.
+-        const QSize tempSize = originalSize + QSize{1, 1};
+-        // Do a resize manually to forcely trigger the re-layout and re-paint of the window.
+-        win->resize(tempSize);
+-        // We need to let the OS have enough time to do the actual change.
+-        QThread::msleep(500); // FIXME: is it enough?
+-        win->resize(originalSize);
++        win->resize(win->size());
+     });
+ #else
+     framelessHelper()->removeWindowFrame(const_cast<QWindow *>(window));

@@ -1,0 +1,25 @@
+From d958f830e8b5b27e88a7fe9d14aa61d832a6756c Mon Sep 17 00:00:00 2001
+From: Mikhail Svetkin <mikhail.svetkin@qt.io>
+Date: Mon, 19 Nov 2018 16:12:04 +0500
+Subject: [PATCH] QSGSoftwareInternalRectangleNode: Remove unnecessary loop
+ iterations
+
+Change-Id: I95ae475cfbab432e3ac4d49384d4861185d3cb1b
+Reviewed-by: Andy Nichols <andy.nichols@qt.io>
+---
+ .../adaptations/software/qsgsoftwareinternalrectanglenode.cpp   | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/quick/scenegraph/adaptations/software/qsgsoftwareinternalrectanglenode.cpp b/src/quick/scenegraph/adaptations/software/qsgsoftwareinternalrectanglenode.cpp
+index 868fbf1a90a..f50fa00b0b6 100644
+--- a/src/quick/scenegraph/adaptations/software/qsgsoftwareinternalrectanglenode.cpp
++++ b/src/quick/scenegraph/adaptations/software/qsgsoftwareinternalrectanglenode.cpp
+@@ -121,7 +121,7 @@ void QSGSoftwareInternalRectangleNode::setGradientStops(const QGradientStops &st
+     for (const QGradientStop &stop : qAsConst(stops)) {
+         if (stop.first < 0.0 || stop.first > 1.0) {
+             needsNormalization = true;
+-            continue;
++            break;
+         }
+     }
+ 

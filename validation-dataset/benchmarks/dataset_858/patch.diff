@@ -1,0 +1,23 @@
+From 4e8441939d857708a71a8b4a65260002556468b9 Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Sat, 18 Nov 2017 21:53:56 -0500
+Subject: [PATCH] [kde] AboutTab: Reduced sPrgTitle's memory reservation from
+ 4096 to 1024 bytes.
+
+---
+ src/kde/config/AboutTab.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/kde/config/AboutTab.cpp b/src/kde/config/AboutTab.cpp
+index a58128549b..c3d2be42cc 100644
+--- a/src/kde/config/AboutTab.cpp
++++ b/src/kde/config/AboutTab.cpp
+@@ -150,7 +150,7 @@ void AboutTabPrivate::initProgramTitleText(void)
+ #endif /* QT_VERSION >= QT_VERSION_CHECK(4,6,0) */
+ 
+ 	QString sPrgTitle;
+-	sPrgTitle.reserve(4096);
++	sPrgTitle.reserve(1024);
+ 	sPrgTitle = b_start +
+ 		U82Q(C_("AboutTab", "ROM Properties Page")) + b_end + br +
+ 		U82Q(C_("AboutTab", "Shell Extension")) + br + br +

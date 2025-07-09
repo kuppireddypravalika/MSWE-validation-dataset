@@ -1,0 +1,28 @@
+From 43ec795b4cf4c8e8d4eb96e1df329dfb8dc43a89 Mon Sep 17 00:00:00 2001
+From: Pichulin Dmitrii <deem@deem.ru>
+Date: Fri, 3 Feb 2023 14:40:09 +0300
+Subject: [PATCH] optimized working after one-time sspi initialization
+
+---
+ src/msspi.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/msspi.cpp b/src/msspi.cpp
+index 94cb456..ef42ffc 100644
+--- a/src/msspi.cpp
++++ b/src/msspi.cpp
+@@ -301,10 +301,13 @@ static char credentials_api( MSSPI_HANDLE h, bool just_find = false );
+ static void credentials_release( MSSPI_HANDLE h );
+ 
+ // sspi
+-static PSecurityFunctionTableA sspi = NULL;
++static volatile PSecurityFunctionTableA sspi = NULL;
+ 
+ static char msspi_init_sspi( void )
+ {
++    if( sspi ) // fast ret no-lock
++        return 1;
++
+     UNIQUE_LOCK( g_mtx ); // serialize init
+ 
+     if( sspi )

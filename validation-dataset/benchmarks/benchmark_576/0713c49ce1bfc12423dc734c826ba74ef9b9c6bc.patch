@@ -1,0 +1,25 @@
+From 0713c49ce1bfc12423dc734c826ba74ef9b9c6bc Mon Sep 17 00:00:00 2001
+From: Peter Caspers <pcaspers1973@gmail.com>
+Date: Sun, 30 Aug 2015 17:32:51 +0200
+Subject: [PATCH] fix precaching for omp parallelization
+
+in certain cases the precaching was not complete leading to runtime
+errors in the engine when OpenMP was enabled
+---
+ ql/pricingengines/swaption/gaussian1dswaptionengine.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/ql/pricingengines/swaption/gaussian1dswaptionengine.cpp b/ql/pricingengines/swaption/gaussian1dswaptionengine.cpp
+index a5d3ccf7f..26fda1baf 100644
+--- a/ql/pricingengines/swaption/gaussian1dswaptionengine.cpp
++++ b/ql/pricingengines/swaption/gaussian1dswaptionengine.cpp
+@@ -95,6 +95,9 @@ namespace QuantLib {
+             // this is known to work for the gsr and markov functional
+             // model implementations of Gaussian1dModel
+ #ifdef _OPENMP
++            if (expiry1Time != Null<Real>())
++                model_->yGrid(stddevs_, integrationPoints_, expiry1Time,
++                              expiry0Time, 0.0);
+             if (expiry0 > settlement) {
+                 for (Size l = k1; l < arguments_.floatingCoupons.size(); l++) {
+                     model_->forwardRate(arguments_.floatingFixingDates[l],

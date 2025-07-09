@@ -1,0 +1,49 @@
+From 5ad44318ebc18eb75c81c80de72bbfb4085bf4ba Mon Sep 17 00:00:00 2001
+From: Marco Bubke <marco.bubke@qt.io>
+Date: Thu, 24 Aug 2017 18:30:06 +0200
+Subject: [PATCH] Clang: Improve caching of file path ids
+
+Clang is internally using an id to handle files. We add now a mapping from
+their AST local id to out global id.
+
+Change-Id: I2d724761287b5e915237175134ec5d3b92099ddb
+Reviewed-by: Tim Jenssen <tim.jenssen@qt.io>
+---
+ .../source/collectsymbolsastvisitor.h            | 16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
+
+diff --git a/src/tools/clangrefactoringbackend/source/collectsymbolsastvisitor.h b/src/tools/clangrefactoringbackend/source/collectsymbolsastvisitor.h
+index 73fe3c5b138..1476236e210 100644
+--- a/src/tools/clangrefactoringbackend/source/collectsymbolsastvisitor.h
++++ b/src/tools/clangrefactoringbackend/source/collectsymbolsastvisitor.h
+@@ -94,9 +94,20 @@ class CollectSymbolsASTVisitor : public clang::RecursiveASTVisitor<CollectSymbol
+ 
+     FilePathIndex filePathId(clang::SourceLocation sourceLocation)
+     {
+-       auto filePath = m_sourceManager.getFilename(sourceLocation);
++        uint clangFileId = m_sourceManager.getFileID(sourceLocation).getHashValue();
+ 
+-       return m_filePathCache.stringId(toStringView(filePath));
++        auto found = m_filePathIndices.find(clangFileId);
++
++        if (found != m_filePathIndices.end())
++            return found->second;
++
++        auto filePath = m_sourceManager.getFilename(sourceLocation);
++
++        FilePathIndex index = m_filePathCache.stringId(toStringView(filePath));
++
++        m_filePathIndices.emplace(clangFileId, index);
++
++        return index;
+     }
+ 
+     LineColumn lineColum(clang::SourceLocation sourceLocation)
+@@ -121,6 +132,7 @@ class CollectSymbolsASTVisitor : public clang::RecursiveASTVisitor<CollectSymbol
+ 
+ private:
+     SymbolEntries &m_symbolEntries;
++    std::unordered_map<uint, FilePathIndex> m_filePathIndices;
+     SourceLocationEntries &m_sourceLocationEntries;
+     FilePathCache<> &m_filePathCache;
+     const clang::SourceManager &m_sourceManager;

@@ -1,0 +1,24 @@
+From 672276a51a1134bff374c0483e1428793e0c0644 Mon Sep 17 00:00:00 2001
+From: elenas <esa@ackleyshack.com>
+Date: Sun, 12 Jun 2016 16:53:02 -0600
+Subject: [PATCH] Issue RESOLVED: avoid g++ synthesized copy constructor for
+ Ulam reference type function arguments
+
+---
+ ulam1/src/ulam/SymbolFunction.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/ulam1/src/ulam/SymbolFunction.cpp b/ulam1/src/ulam/SymbolFunction.cpp
+index b6a2e1c15..e6e58850f 100644
+--- a/ulam1/src/ulam/SymbolFunction.cpp
++++ b/ulam1/src/ulam/SymbolFunction.cpp
+@@ -408,6 +408,9 @@ namespace MFM {
+ 	UTI auti = asym->getUlamTypeIdx();
+ 	UlamType * aut = m_state.getUlamTypeByIndex(auti);
+ 	fp->write(aut->getLocalStorageTypeAsString().c_str()); //for C++
++	if(m_state.isReference(auti))
++	  fp->write("&"); //gen C++ reference for Ulam ref (auto) arg; avoids g++ synthesized copy constructor
++
+ 	fp->write(" ");
+ 	fp->write(asym->getMangledName().c_str());
+       }

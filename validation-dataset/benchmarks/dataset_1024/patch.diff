@@ -1,0 +1,26 @@
+From 611c8aa6d0c40da3c1ae4a72602203d7ce6d0305 Mon Sep 17 00:00:00 2001
+From: "Garth N. Wells" <gnw20@cam.ac.uk>
+Date: Tue, 12 Mar 2013 09:14:29 +0000
+Subject: [PATCH] Small performance fix for periodic bcs
+
+---
+ dolfin/mesh/PeriodicBoundaryComputation.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/dolfin/mesh/PeriodicBoundaryComputation.cpp b/dolfin/mesh/PeriodicBoundaryComputation.cpp
+index 296ab0b74d7..37a0f305d56 100644
+--- a/dolfin/mesh/PeriodicBoundaryComputation.cpp
++++ b/dolfin/mesh/PeriodicBoundaryComputation.cpp
+@@ -105,10 +105,9 @@ std::map<unsigned int, std::pair<unsigned int, unsigned int> >
+ 
+         // Avoid visiting entities more than once
+         if (visited[e->index()])
+-        {
+-          visited[e->index()] = true;
+           continue;
+-        }
++        else
++          visited[e->index()] = true;
+ 
+         // Copy entity coordinate
+         const Point midpoint = e->midpoint();

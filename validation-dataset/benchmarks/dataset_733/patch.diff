@@ -1,0 +1,29 @@
+From 65e5c3dbc7393d4d18bcaeb9a58486e5aed416ee Mon Sep 17 00:00:00 2001
+From: Vadim Zeitlin <vadim@wxwidgets.org>
+Date: Thu, 16 May 2019 22:17:06 +0200
+Subject: [PATCH] Avoid invalidating the best size in wxStaticBitmap
+ unnecessarily
+
+This is just a micro-optimization: there is no need to call
+InvalidateBestSize() if the size of the bitmap doesn't actually change
+(as will most often be the case when this method is called after the
+control creation).
+---
+ src/msw/statbmp.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/msw/statbmp.cpp b/src/msw/statbmp.cpp
+index c21fbd8fa075..2a0ad74624a4 100644
+--- a/src/msw/statbmp.cpp
++++ b/src/msw/statbmp.cpp
+@@ -287,7 +287,9 @@ void wxStaticBitmap::SetImageNoCopy( wxGDIImage* image)
+         sizeNew = image->GetSize();
+ 
+     Free();
+-    InvalidateBestSize();
++
++    if ( sizeNew != sizeOld )
++        InvalidateBestSize();
+ 
+     m_isIcon = image->IsKindOf( wxCLASSINFO(wxIcon) );
+     // the image has already been copied

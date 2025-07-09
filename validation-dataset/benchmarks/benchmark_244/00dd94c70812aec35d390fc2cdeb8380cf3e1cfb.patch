@@ -1,0 +1,37 @@
+From 00dd94c70812aec35d390fc2cdeb8380cf3e1cfb Mon Sep 17 00:00:00 2001
+From: Filip Jeremic <fjeremic@ca.ibm.com>
+Date: Mon, 13 Nov 2017 11:29:21 -0500
+Subject: [PATCH] Improve compile time performance of copy propagation
+
+Copy propagation is exclusively enabled by default in the warm strategy
+on IBM Z targets. It is quite a compile time hungry optimization. One
+of the reasons as to why can be attributed to its use of use-def
+analysis.
+
+The optimization calls `getUsesFromDef` quite frequently which ends up
+boiling down to a call to `TR_UseDefInfo::getUsesFromDef_ref`. In this
+function we would always take the `else` path because the use-def
+information has not been computed. This is an expensive task.
+
+An optimization we can make here is the pre-compute the use-def info
+ahead of time and avoid the expensive on-demand computation.
+
+Signed-off-by: Filip Jeremic <fjeremic@ca.ibm.com>
+---
+ compiler/optimizer/CopyPropagation.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/compiler/optimizer/CopyPropagation.cpp b/compiler/optimizer/CopyPropagation.cpp
+index 5e560e0da4..bb26a812fc 100644
+--- a/compiler/optimizer/CopyPropagation.cpp
++++ b/compiler/optimizer/CopyPropagation.cpp
+@@ -444,6 +444,9 @@ int32_t TR_CopyPropagation::perform()
+          }
+       }
+ 
++   // Pre-compute and cache usedef information for compile time performance
++   useDefInfo->buildDefUseInfo();
++
+    // Required beyond the scope of the stack memory region
+    bool donePropagation = false;
+ 

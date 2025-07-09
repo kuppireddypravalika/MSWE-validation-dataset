@@ -1,0 +1,43 @@
+From 49c93d7ca26a6eda5e2c0ffe629c380253a75073 Mon Sep 17 00:00:00 2001
+From: Matthew Glazar <strager.nds@gmail.com>
+Date: Thu, 27 Aug 2020 20:09:21 -0700
+Subject: [PATCH] Fix wrong comparison in lexer
+
+On platforms where char is signed, lexer::skip_whitespace has a
+performance bug:
+
+c >= static_cast<char>(0xc2) is interpreted as c >= -0x3e. This is
+correct (it passes all of our tests), but not what was intended at all.
+This check exists because non-ASCII codes are unlikely. Instead, for
+ASCII-only source code, the switch is entered 100% of the time!
+
+Fix the condition so we compare in unsigned land as intended. This
+doesn't affect correctness, but it does improve reduce branching into
+the switch.
+
+Before:
+
+    4968d: 3c c2              cmp $0xc2,%al
+    4968f: 0f 8d fb 04 00 00  jge 49b90 <quick_lint_js::lexer::parse_current_token()+0x530>
+
+After:
+
+    4968d: 3c c1              cmp $0xc1,%al
+    4968f: 0f 87 fb 04 00 00  ja  49b90 <quick_lint_js::lexer::parse_current_token()+0x530>
+---
+ src/lex.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/lex.cpp b/src/lex.cpp
+index 7df52c5cef..5292d50f95 100644
+--- a/src/lex.cpp
++++ b/src/lex.cpp
+@@ -629,7 +629,7 @@ void lexer::skip_whitespace() {
+     this->last_token_.has_leading_newline = true;
+     input += 1;
+     goto next;
+-  } else if (c >= static_cast<char>(0xc2)) {
++  } else if (static_cast<unsigned char>(c) >= 0xc2) {
+     [[unlikely]] switch (c) {
+       case static_cast<char>(0xe1):
+         if (input[1] == static_cast<char>(0x9a) &&

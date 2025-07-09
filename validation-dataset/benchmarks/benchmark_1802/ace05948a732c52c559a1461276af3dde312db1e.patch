@@ -1,0 +1,24 @@
+From ace05948a732c52c559a1461276af3dde312db1e Mon Sep 17 00:00:00 2001
+From: Axel Naumann <Axel.Naumann@cern.ch>
+Date: Fri, 3 Jul 2009 16:23:33 +0000
+Subject: [PATCH] Don't ask base classes for __getNewDelFunctions, and don't
+ run UpdateMembers().
+
+git-svn-id: http://root.cern.ch/svn/root/trunk@29331 27541ba8-7e3a-0410-8455-c3a389f83636
+---
+ cint/cintex/src/CINTFunctional.cxx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/cint/cintex/src/CINTFunctional.cxx b/cint/cintex/src/CINTFunctional.cxx
+index adaf9fed43137..c62d6a60f94c8 100644
+--- a/cint/cintex/src/CINTFunctional.cxx
++++ b/cint/cintex/src/CINTFunctional.cxx
+@@ -53,7 +53,7 @@ namespace ROOT { namespace Cintex {
+       
+       // for constructor or destructor locate newdelfunctions pointers
+       if ( mem.IsConstructor() || mem.IsDestructor() ) {
+-         Member getnewdelfuncs = fClass.FunctionMemberByName("__getNewDelFunctions");
++         Member getnewdelfuncs = fClass.FunctionMemberByName("__getNewDelFunctions", Reflex::Type(), INHERITEDMEMBERS_NO);
+          if( getnewdelfuncs ) {
+             static Type tNewdelfuncs = Type::ByTypeInfo(typeid(fNewdelfuncs));
+             Object ret( tNewdelfuncs, (void*)&fNewdelfuncs);

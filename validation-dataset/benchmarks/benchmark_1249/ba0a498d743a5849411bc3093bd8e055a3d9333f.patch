@@ -1,0 +1,23 @@
+From ba0a498d743a5849411bc3093bd8e055a3d9333f Mon Sep 17 00:00:00 2001
+From: Miroslav Goncharenko <miroslav.goncharenko@intel.com>
+Date: Mon, 12 Nov 2018 19:32:29 +0300
+Subject: [PATCH] vp9d: remove MFX_MIN/MAX macro
+
+Replaced with std::min/max
+---
+ _studio/mfx_lib/decode/vp9/src/mfx_vp9_dec_decode_hw.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/_studio/mfx_lib/decode/vp9/src/mfx_vp9_dec_decode_hw.cpp b/_studio/mfx_lib/decode/vp9/src/mfx_vp9_dec_decode_hw.cpp
+index 9304843019..40d0473d2c 100644
+--- a/_studio/mfx_lib/decode/vp9/src/mfx_vp9_dec_decode_hw.cpp
++++ b/_studio/mfx_lib/decode/vp9/src/mfx_vp9_dec_decode_hw.cpp
+@@ -556,7 +556,7 @@ static bool IsSameVideoParam(mfxVideoParam *newPar, mfxVideoParam *oldPar)
+         return false;
+     }
+ 
+-    int32_t asyncDepth = MFX_MIN(newPar->AsyncDepth, MFX_MAX_ASYNC_DEPTH_VALUE);
++    int32_t asyncDepth = std::min<int32_t>(newPar->AsyncDepth, MFX_MAX_ASYNC_DEPTH_VALUE);
+     if (asyncDepth != oldPar->AsyncDepth)
+     {
+         return false;

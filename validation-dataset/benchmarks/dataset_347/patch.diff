@@ -1,0 +1,32 @@
+From f69530a7d41d2ab8473caea0875c865e96825eaf Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?B=C3=A5rd=20Skaflestad?= <Bard.Skaflestad@sintef.no>
+Date: Tue, 27 May 2014 16:51:54 +0200
+Subject: [PATCH] variableState: Defer r{s,v}Sat calculation
+
+Quantities rsSat and rvSat are not needed unless we have an active
+Gas phase.  Don't calculate them until we know that they are
+actually needed.
+---
+ opm/autodiff/FullyImplicitBlackoilSolver_impl.hpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/opm/autodiff/FullyImplicitBlackoilSolver_impl.hpp b/opm/autodiff/FullyImplicitBlackoilSolver_impl.hpp
+index 670b5f43a28..d439ad2c5bf 100644
+--- a/opm/autodiff/FullyImplicitBlackoilSolver_impl.hpp
++++ b/opm/autodiff/FullyImplicitBlackoilSolver_impl.hpp
+@@ -528,11 +528,11 @@ namespace {
+                 so = so - sw;
+             }
+ 
+-            // Define Sg Rs and Rv in terms of xvar.
+-            std::vector<int> all_cells = buildAllCells(nc);
+-            ADB rsSat = fluidRsSat(state.pressure,all_cells);
+-            ADB rvSat = fluidRvSat(state.pressure,all_cells);
+             if (active_[ Gas]) {
++                // Define Sg Rs and Rv in terms of xvar.
++                std::vector<int> all_cells = buildAllCells(nc);
++                ADB rsSat = fluidRsSat(state.pressure,all_cells);
++                ADB rvSat = fluidRvSat(state.pressure,all_cells);
+                 ADB xvar = vars[ nextvar++ ];
+                 ADB sg = isSg*xvar + isRv* so;
+                 state.saturation[ pu.phase_pos[ Gas ] ] = sg;

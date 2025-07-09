@@ -1,0 +1,28 @@
+From 8c3df06a5ec9c083e2560a85b843c02145f68c42 Mon Sep 17 00:00:00 2001
+From: BotellaA <arnaud.botella@geode-solutions.com>
+Date: Wed, 10 Feb 2021 09:29:22 +0100
+Subject: [PATCH] fix(BarycentricCoord): improve numeric stability for segment
+ computation
+
+---
+ src/geode/geometry/barycentric_coordinates.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/geode/geometry/barycentric_coordinates.cpp b/src/geode/geometry/barycentric_coordinates.cpp
+index 4c14d6bd3..a70437ba2 100644
+--- a/src/geode/geometry/barycentric_coordinates.cpp
++++ b/src/geode/geometry/barycentric_coordinates.cpp
+@@ -102,10 +102,11 @@ namespace geode
+         const Point< dimension >& point, const Segment< dimension >& segment )
+     {
+         const auto dir = segment.direction();
++        const auto length = dir.length();
+         const Vector< dimension > v0p{ segment.vertices()[0], point };
+-        const auto dot0 = v0p.dot( dir );
++        const auto dot0 = v0p.dot( dir ) / length;
+         const Vector< dimension > v1p{ segment.vertices()[1], point };
+-        const auto dot1 = -v1p.dot( dir );
++        const auto dot1 = -v1p.dot( dir ) / length;
+         const auto sum = dot0 + dot1;
+         OPENGEODE_EXCEPTION( std::fabs( sum ) > global_epsilon,
+             "[segment_barycentric_coordinates] Length of input segment too "

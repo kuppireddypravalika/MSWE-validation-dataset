@@ -1,0 +1,33 @@
+From 6ccd0eb7c818d1da9507931b7a38062ff5d89ba4 Mon Sep 17 00:00:00 2001
+From: Philippe Antoine <contact@catenacyber.fr>
+Date: Tue, 8 Jan 2019 15:05:29 +0100
+Subject: [PATCH] htp_list: optimize htp_list_array_replace
+
+Avoiding useless loop in htp_list_array_replace.
+
+Going from 7 to 6 seconds on fuzzing corpus
+---
+ htp/htp_list.c | 10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
+
+diff --git a/htp/htp_list.c b/htp/htp_list.c
+index b08b0ca6..4fbcf358 100644
+--- a/htp/htp_list.c
++++ b/htp/htp_list.c
+@@ -172,15 +172,7 @@ htp_status_t htp_list_array_replace(htp_list_array_t *l, size_t idx, void *e) {
+ 
+     if (idx + 1 > l->current_size) return HTP_DECLINED;
+ 
+-    size_t i = l->first;
+-
+-    while (idx--) {
+-        if (++i == l->max_size) {
+-            i = 0;
+-        }
+-    }
+-
+-    l->elements[i] = e;
++    l->elements[(l->first + idx) % l->max_size] = e;
+ 
+     return HTP_OK;
+ }

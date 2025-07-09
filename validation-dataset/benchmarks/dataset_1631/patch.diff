@@ -1,0 +1,39 @@
+From 29f911ab92b77f402e1082b457f1d83d3da28943 Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@qt.io>
+Date: Tue, 8 Aug 2023 07:37:03 +0200
+Subject: [PATCH] tst_QTextScriptEngine: replace QList with const array
+
+"Never use a dynamically-sized container for statically-sized data."
+
+Port the loop from Q_FOREACH (which can't deal with arrays) to ranged
+for (which can).
+
+Pick-to: 6.6 6.5
+Task-number: QTBUG-115839
+Change-Id: Ifef42704c4f695a8fb05ea5d9b3e095af3f35171
+Reviewed-by: Ivan Solovev <ivan.solovev@qt.io>
+---
+ .../gui/text/qtextscriptengine/tst_qtextscriptengine.cpp | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/tests/auto/gui/text/qtextscriptengine/tst_qtextscriptengine.cpp b/tests/auto/gui/text/qtextscriptengine/tst_qtextscriptengine.cpp
+index d3267d024be2..43cb6667ec55 100644
+--- a/tests/auto/gui/text/qtextscriptengine/tst_qtextscriptengine.cpp
++++ b/tests/auto/gui/text/qtextscriptengine/tst_qtextscriptengine.cpp
+@@ -1097,11 +1097,12 @@ void tst_QTextScriptEngine::combiningMarks_qtbug15675_data()
+ 
+     bool hasTests = false;
+ 
+-    QStringList families;
+-    families << QStringLiteral("Monaco");
+-    families << QStringLiteral("DejaVu Sans Mono");
++    const QString families[] = {
++        QStringLiteral("Monaco"),
++        QStringLiteral("DejaVu Sans Mono"),
++    };
+ 
+-    foreach (const QString &family, families) {
++    for (const QString &family : families) {
+         QFont font(family);
+         font.setStyleStrategy(QFont::NoFontMerging);
+         if (QFontInfo(font).family() != family)

@@ -1,0 +1,32 @@
+From 08d4509b0f738ca5479d8904a8bed8b67cec5325 Mon Sep 17 00:00:00 2001
+From: Aleix Pol <aleixpol@kde.org>
+Date: Tue, 9 Jul 2013 13:04:22 +0200
+Subject: [PATCH] Optimize default ResourcesModel roles retrieval
+
+Reduce calls to indexOfProperty by one
+Tells the compiler our branching priorities
+---
+ libmuon/resources/ResourcesModel.cpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/libmuon/resources/ResourcesModel.cpp b/libmuon/resources/ResourcesModel.cpp
+index 5a03b67d5a..866a0c49e2 100644
+--- a/libmuon/resources/ResourcesModel.cpp
++++ b/libmuon/resources/ResourcesModel.cpp
+@@ -176,11 +176,14 @@ QVariant ResourcesModel::data(const QModelIndex& index, int role) const
+             return QVariant();
+         default: {
+             QByteArray roleText = roleNames().value(role);
+-            if(roleText.isEmpty() || resource->metaObject()->indexOfProperty(roleText) < 0) {
++            const QMetaObject* m = resource->metaObject();
++            int propidx = propidx = roleText.isEmpty() ? -1 : m->indexOfProperty(roleText);
++
++            if(KDE_ISUNLIKELY(propidx < 0)) {
+                 qDebug() << "unknown role:" << role << roleText;
+                 return QVariant();
+             } else
+-                return resource->property(roleText);
++                return m->property(propidx).read(resource);
+         }
+     }
+ }

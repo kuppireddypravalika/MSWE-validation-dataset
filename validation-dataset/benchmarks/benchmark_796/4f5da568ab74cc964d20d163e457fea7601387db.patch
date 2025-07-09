@@ -1,0 +1,34 @@
+From 4f5da568ab74cc964d20d163e457fea7601387db Mon Sep 17 00:00:00 2001
+From: Ben Goodrich <bg2382@columbia.edu>
+Date: Fri, 28 Sep 2012 15:08:23 -0400
+Subject: [PATCH] inv_wishart: utilize recent functions mdivide_left_tri_low()
+ and crossprod()
+
+---
+ .../distributions/multivariate/continuous/inv_wishart.hpp   | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/src/stan/prob/distributions/multivariate/continuous/inv_wishart.hpp b/src/stan/prob/distributions/multivariate/continuous/inv_wishart.hpp
+index de0d488cec3..67663fb8ff0 100644
+--- a/src/stan/prob/distributions/multivariate/continuous/inv_wishart.hpp
++++ b/src/stan/prob/distributions/multivariate/continuous/inv_wishart.hpp
+@@ -78,6 +78,7 @@ namespace stan {
+ 
+       using stan::math::elt_multiply;
+       using stan::math::mdivide_left_tri_low;
++      using stan::math::crossprod;
+       using stan::math::lmgamma;
+       
+       if (include_summand<propto,T_dof>::value)
+@@ -89,10 +90,7 @@ namespace stan {
+         lp -= (nu + k + 1.0) * L.diagonal().array().log().sum();
+       }
+       if (include_summand<propto,T_y,T_scale>::value) {
+-        Eigen::Matrix<T_y,Eigen::Dynamic,Eigen::Dynamic> I(k,k);
+-        I.setIdentity();
+-        L = mdivide_left_tri_low(L, I);
+-        L = L.transpose() * L.template triangularView<Eigen::Lower>();
++        L = crossprod(mdivide_left_tri_low(L));
+         lp -= 0.5 * elt_multiply(S, L).array().sum(); // trace(S * W^-1)
+       }
+       if (include_summand<propto,T_dof,T_scale>::value)

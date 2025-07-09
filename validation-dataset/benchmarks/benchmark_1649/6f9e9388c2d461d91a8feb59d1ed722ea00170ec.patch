@@ -1,0 +1,29 @@
+From 6f9e9388c2d461d91a8feb59d1ed722ea00170ec Mon Sep 17 00:00:00 2001
+From: Francis Visoiu Mistrih <francisvm@yahoo.com>
+Date: Wed, 11 Apr 2018 12:36:55 +0000
+Subject: [PATCH] [AArch64] Fix regression after r329691
+
+In r329691, we would choose FP even if the offset wouldn't fit, just
+because the offset is smaller than the one from BP. This made many
+accesses through FP need to scavenge a register, which resulted in
+slower and bigger code for no good reason.
+
+This patch now always picks the offset that fits first, even if FP is
+preferred.
+---
+ llvm/lib/Target/AArch64/AArch64FrameLowering.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/llvm/lib/Target/AArch64/AArch64FrameLowering.cpp b/llvm/lib/Target/AArch64/AArch64FrameLowering.cpp
+index d7399e7f4f4c..b01a1ae57986 100644
+--- a/llvm/lib/Target/AArch64/AArch64FrameLowering.cpp
++++ b/llvm/lib/Target/AArch64/AArch64FrameLowering.cpp
+@@ -1052,7 +1052,7 @@ int AArch64FrameLowering::resolveFrameIndexReference(const MachineFunction &MF,
+         // else we can use BP and FP, but the offset from FP won't fit.
+         // That will make us scavenge registers which we can probably avoid by
+         // using BP. If it won't fit for BP either, we'll scavenge anyway.
+-      } else if (PreferFP || FPOffset >= 0) {
++      } else if (FPOffset >= 0) {
+         // Use SP or FP, whichever gives us the best chance of the offset
+         // being in range for direct access. If the FPOffset is positive,
+         // that'll always be best, as the SP will be even further away.

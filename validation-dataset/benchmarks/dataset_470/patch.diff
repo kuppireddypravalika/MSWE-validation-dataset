@@ -1,0 +1,31 @@
+From 2ac62622937c5a7c44f5236626e83f60337b4d37 Mon Sep 17 00:00:00 2001
+From: Matt <m.moninger.h@gmail.com>
+Date: Wed, 29 Aug 2018 01:19:05 +0200
+Subject: [PATCH] Use std::unique_ptr for LocalisationService
+
+---
+ src/openrct2/Context.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/openrct2/Context.cpp b/src/openrct2/Context.cpp
+index a2d63360b844..12317f015101 100644
+--- a/src/openrct2/Context.cpp
++++ b/src/openrct2/Context.cpp
+@@ -83,7 +83,7 @@ namespace OpenRCT2
+         std::shared_ptr<IUiContext> const _uiContext;
+ 
+         // Services
+-        std::shared_ptr<LocalisationService> _localisationService;
++        std::unique_ptr<LocalisationService> _localisationService;
+         std::unique_ptr<IObjectRepository> _objectRepository;
+         std::unique_ptr<IObjectManager> _objectManager;
+         std::unique_ptr<ITrackDesignRepository> _trackDesignRepository;
+@@ -128,7 +128,7 @@ namespace OpenRCT2
+             : _env(env)
+             , _audioContext(audioContext)
+             , _uiContext(uiContext)
+-            , _localisationService(std::make_shared<LocalisationService>(env))
++            , _localisationService(std::make_unique<LocalisationService>(env))
+         {
+             Instance = this;
+         }

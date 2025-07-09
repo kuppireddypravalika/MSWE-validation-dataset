@@ -1,0 +1,25 @@
+From a02cba0ad10cb24fd5a6143bf22a9a8c9196e6e8 Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Thu, 18 May 2023 11:32:18 -0600
+Subject: [PATCH] Avoid operation within `static_cast` promotion
+
+Fixes MSVC Code Analysis warning:
+> warning C26451: Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow.
+---
+ OPHD/States/MapViewState.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/OPHD/States/MapViewState.cpp b/OPHD/States/MapViewState.cpp
+index 573b9c92c..8e98306b5 100644
+--- a/OPHD/States/MapViewState.cpp
++++ b/OPHD/States/MapViewState.cpp
+@@ -1365,7 +1365,8 @@ void MapViewState::updatePoliceOverlay()
+ 
+ void MapViewState::resetPoliceOverlays()
+ {
+-	mPoliceOverlays = std::vector<std::vector<Tile*>>(static_cast<std::size_t>(mTileMap->maxDepth() + 1));
++	const auto adjustedZ = mTileMap->maxDepth() + 1;
++	mPoliceOverlays = std::vector<std::vector<Tile*>>(static_cast<std::size_t>(adjustedZ));
+ }
+ 
+ 

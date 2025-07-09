@@ -1,0 +1,31 @@
+From 110be57c1bc6b25142caaaf8ca8da109821b78ea Mon Sep 17 00:00:00 2001
+From: Zhaolong Xing <nhzlx.dragon@gmail.com>
+Date: Tue, 17 Sep 2019 15:57:01 +0800
+Subject: [PATCH] fix memory optimization type (#19781)
+
+test=develop
+---
+ .../inference/analysis/passes/memory_optimize_pass.cc  | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/paddle/fluid/inference/analysis/passes/memory_optimize_pass.cc b/paddle/fluid/inference/analysis/passes/memory_optimize_pass.cc
+index 6ecaf08f7d3329..9a563467731103 100644
+--- a/paddle/fluid/inference/analysis/passes/memory_optimize_pass.cc
++++ b/paddle/fluid/inference/analysis/passes/memory_optimize_pass.cc
+@@ -101,6 +101,16 @@ int DataTypeToSpace(framework::proto::VarType_Type type) {
+       return sizeof(int32_t);
+     case framework::proto::VarType_Type_INT64:
+       return sizeof(int64_t);
++    case framework::proto::VarType_Type_INT16:
++      return sizeof(int16_t);
++    case framework::proto::VarType_Type_FP16:
++      return sizeof(int16_t);
++    case framework::proto::VarType_Type_FP64:
++      return sizeof(double);
++    case framework::proto::VarType_Type_UINT8:
++      return sizeof(unsigned char);
++    case framework::proto::VarType_Type_INT8:
++      return sizeof(int8_t);
+     default:
+       PADDLE_THROW("Unknown data type");
+   }

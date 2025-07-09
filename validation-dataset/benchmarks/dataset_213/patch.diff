@@ -1,0 +1,33 @@
+From 84afb657484c36dde40ed6ccad76440127b0f402 Mon Sep 17 00:00:00 2001
+From: Steven Lamerton <steve.lamerton@gmail.com>
+Date: Sun, 24 May 2009 09:12:55 +0100
+Subject: [PATCH] Reduce cpu usage in backup
+
+---
+ toucan/trunk/waitthread.cpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/toucan/trunk/waitthread.cpp b/toucan/trunk/waitthread.cpp
+index 2d26a98..fbb7658 100644
+--- a/toucan/trunk/waitthread.cpp
++++ b/toucan/trunk/waitthread.cpp
+@@ -1,6 +1,6 @@
+ /////////////////////////////////////////////////////////////////////////////////
+ // Author:      Steven Lamerton
+-// Copyright:   Copyright (C) 2008 2009 Steven Lamerton
++// Copyright:   Copyright (C) 2008 - 2009 Steven Lamerton
+ // Licence:     GNU GPL 2 (See readme for more info
+ /////////////////////////////////////////////////////////////////////////////////
+ 
+@@ -16,7 +16,10 @@ void *WaitThread::Entry(){
+ 		DWORD lgReturn;
+ 		GetExitCodeProcess(hProcess, &lgReturn);
+ 		while(lgReturn == STILL_ACTIVE){
+-			m_Process->HasInput();
++			if(!m_Process->HasInput()){
++				//If there was no input then sleep for a while so we don't thrash the CPU
++				wxMilliSleep(500);
++			}
+ 			GetExitCodeProcess(hProcess, &lgReturn);
+ 		}
+ 	#else

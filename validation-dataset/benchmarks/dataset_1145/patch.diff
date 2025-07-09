@@ -1,0 +1,35 @@
+From 3532f26c2eca4aad22fe5bcf90f5d5047fc0ac84 Mon Sep 17 00:00:00 2001
+From: Frank Warmerdam <warmerdam@pobox.com>
+Date: Fri, 22 Jul 2005 15:50:10 +0000
+Subject: [PATCH] Use blocked io for very small request buffers as well as
+ small windows.
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@7885 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ frmts/mrsid/mrsiddataset.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/frmts/mrsid/mrsiddataset.cpp b/frmts/mrsid/mrsiddataset.cpp
+index 7b6168fb5a03..77d854cfcf60 100644
+--- a/frmts/mrsid/mrsiddataset.cpp
++++ b/frmts/mrsid/mrsiddataset.cpp
+@@ -28,6 +28,9 @@
+  ******************************************************************************
+  *
+  * $Log$
++ * Revision 1.38  2005/07/22 15:50:10  fwarmerdam
++ * Use blocked io for very small request buffers as well as small windows.
++ *
+  * Revision 1.37  2005/07/21 17:30:13  fwarmerdam
+  * Added preliminary worldfile support.
+  *
+@@ -718,6 +721,9 @@ CPLErr MrSIDDataset::IRasterIO( GDALRWFlag eRWFlag,
+     if( nYSize == 1 || nXSize * ((double) nYSize) < 100.0 )
+         bUseBlockedIO = TRUE;
+ 
++    if( nBufYSize == 1 || nBufXSize * ((double) nBufYSize) < 100.0 )
++        bUseBlockedIO = TRUE;
++
+     if( CSLTestBoolean( CPLGetConfigOption( "GDAL_ONE_BIG_READ", "NO") ) )
+         bUseBlockedIO = FALSE;
+ 

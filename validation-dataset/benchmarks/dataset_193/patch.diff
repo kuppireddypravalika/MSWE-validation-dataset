@@ -1,0 +1,24 @@
+From f469ec94508da4d3b34dd50a80eb2330ba950ce5 Mon Sep 17 00:00:00 2001
+From: Kunal Tyagi <tyagi.kunal@live.com>
+Date: Thu, 9 Jan 2020 16:13:50 +0900
+Subject: [PATCH] cvfh.h: Using algorithms and Eigen functions for better code
+
+---
+ features/include/pcl/features/cvfh.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/features/include/pcl/features/cvfh.h b/features/include/pcl/features/cvfh.h
+index cf73c1124cb..a7b20672033 100644
+--- a/features/include/pcl/features/cvfh.h
++++ b/features/include/pcl/features/cvfh.h
+@@ -147,8 +147,8 @@ namespace pcl
+       inline void
+       getCentroidClusters (std::vector<Eigen::Vector3f, Eigen::aligned_allocator<Eigen::Vector3f> > & centroids)
+       {
+-        for (const auto& centroid: centroids_dominant_orientations_)
+-          centroids.push_back (centroid);
++        centroids.insert (centroids.cend (), centroids_dominant_orientations_.cbegin (),
++                          centroids_dominant_orientations_.cend ());
+       }
+ 
+       /** \brief Get the normal centroids used to compute different CVFH descriptors

@@ -1,0 +1,40 @@
+From 1ae78a0fac20477376877dc522ad076b9cf8ca2e Mon Sep 17 00:00:00 2001
+From: Jan Engelhardt <jengelh@inai.de>
+Date: Fri, 19 May 2017 02:23:10 +0200
+Subject: [PATCH] spooler: drop excessive locking for CleanFinishedMessages
+
+It seems odd to call CleanFinishedMessages once with
+hMutexMessagesWaiting being held, and once again without.
+CleanFinishedMessages does not evaluate bMessagesWaiting, so there is
+no point in grabbing the lock for that.
+
+This cures a deadlock:
+
+* In thread 1, CleanFinishedMessages is called with
+  hMutexMessagesWaiting held
+* CleanFinishedMessages issues a DoSentMail call, which is
+  synchronous and blocks (waits for kopano-server to acknowledge
+  the action)
+* kopano-server itself is trying to send a notification to spooler
+  thread 2, since spooler registered a notify callback previously.
+* Thread 2 tries to acquire hMutexMessagesWaiting.
+
+References: KC-588
+---
+ spooler/Spooler.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/spooler/Spooler.cpp b/spooler/Spooler.cpp
+index 74764a849..d79a438c4 100644
+--- a/spooler/Spooler.cpp
++++ b/spooler/Spooler.cpp
+@@ -746,7 +746,9 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
+ 
+ 				// not timed out, no messages waiting, not quit requested, no table reload required:
+ 				// we were triggered for a cleanup call.
++				lk.unlock();
+ 				CleanFinishedMessages(lpAdminSession, lpSpooler);
++				lk.lock();
+ 			}
+ 		}
+ 		lk.unlock();

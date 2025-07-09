@@ -1,0 +1,22 @@
+From f10f964e15a04e81b5c71a64d6338a271f31c8d2 Mon Sep 17 00:00:00 2001
+From: Piotr Krupa <piotrkrupa06@gmail.com>
+Date: Tue, 5 Jun 2018 20:53:20 +0200
+Subject: [PATCH] Fixed speed of MoveAction
+
+---
+ .../Modules/World/Components/Trace/Actions/MoveAction.hpp       | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/Szczur/Modules/World/Components/Trace/Actions/MoveAction.hpp b/src/Szczur/Modules/World/Components/Trace/Actions/MoveAction.hpp
+index 0cc36793..38a72ce4 100644
+--- a/src/Szczur/Modules/World/Components/Trace/Actions/MoveAction.hpp
++++ b/src/Szczur/Modules/World/Components/Trace/Actions/MoveAction.hpp
+@@ -51,7 +51,7 @@ class MoveAction : public Action
+ 		}
+ 		else
+ 		{
+-			_progress += _progressSpeed * timeline->SpeedMultiplier * deltaTime * 100.f;
++			_progress += _progressSpeed * timeline->SpeedMultiplier * deltaTime * 60.f;
+ 
+ 			if (_progress >= 1.f)
+ 			{

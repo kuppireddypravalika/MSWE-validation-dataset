@@ -1,0 +1,36 @@
+From 102e3e1abe8cee149d23bcea2c02a1980fa5029e Mon Sep 17 00:00:00 2001
+From: luba <lubatang@gmail.com>
+Date: Wed, 28 Dec 2011 13:17:25 +0800
+Subject: [PATCH] Short cut for debuging sections.
+
+On-device linking should not support debug sections. But, in order to
+speed up the development process, I handle debug sections as regular sections.
+---
+ lib/LD/ELFObjectReader.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/lib/LD/ELFObjectReader.cpp b/lib/LD/ELFObjectReader.cpp
+index 8e07c56d..6c7120a2 100644
+--- a/lib/LD/ELFObjectReader.cpp
++++ b/lib/LD/ELFObjectReader.cpp
+@@ -72,7 +72,11 @@ bool ELFObjectReader::readSections(Input& pInput)
+     pInput.context()->getSectionTable().push_back(&ldSect);
+ 
+     switch(ldSect.kind()) {
++      // FIXME: support Debug Kind
++      case LDFileFormat::Debug:
++      /** Fall through **/
+       case LDFileFormat::Regular:
++      case LDFileFormat::Note:
+       case LDFileFormat::Target:
+       case LDFileFormat::MetaData: {
+         MemoryRegion* region = pInput.memArea()->request(sh->getOffset(), sh->getSize());
+@@ -95,8 +99,6 @@ bool ELFObjectReader::readSections(Input& pInput)
+       }
+       // ignore
+       case LDFileFormat::Null:
+-      case LDFileFormat::Note:
+-      case LDFileFormat::Debug:
+       case LDFileFormat::NamePool:
+       case LDFileFormat::Relocation:
+         continue;

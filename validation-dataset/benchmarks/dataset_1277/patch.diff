@@ -1,0 +1,27 @@
+From 0594ef5f40b92be041361aa6ffd48471082a3cde Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@duempel.org>
+Date: Wed, 17 Jun 2009 00:57:41 +0200
+Subject: [PATCH] journal: call as_song_cleanup() instead of manual g_free()
+ calls
+
+---
+ src/journal.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/src/journal.c b/src/journal.c
+index ce02627..5cf9e7d 100644
+--- a/src/journal.c
++++ b/src/journal.c
+@@ -75,11 +75,7 @@ journal_commit_song(GQueue *queue, struct song *song)
+ 	} else {
+ 		/* free and clear the song, it was not used */
+ 
+-		g_free(song->artist);
+-		g_free(song->track);
+-		g_free(song->album);
+-		g_free(song->mbid);
+-		g_free(song->time);
++		as_song_cleanup(song, false);
+ 	}
+ 
+ 	clear_song(song);

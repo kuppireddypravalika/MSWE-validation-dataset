@@ -1,0 +1,28 @@
+From abda438d1d571a638d3bba9ed58b0594fb7143e6 Mon Sep 17 00:00:00 2001
+From: Tim Corringham <tcorring@amd.com>
+Date: Fri, 25 Sep 2020 13:24:28 +0100
+Subject: [PATCH] Fix for effects of upstream LLVM change
+
+An upstream LLVM change increased the default block size threshold for inner
+loop analysis which resulted in a big increase in compile time, and additional
+spilling for a small number of pathological cases.
+
+As the upstream change (https://reviews.llvm.org/D86248) does not benefit any
+graphics shaders, the fix is for LGC to simply override the value back to the
+previous default value of 20.
+---
+ lgc/state/LgcContext.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/lgc/state/LgcContext.cpp b/lgc/state/LgcContext.cpp
+index 2a7e3bc57a..4cbbe482c7 100644
+--- a/lgc/state/LgcContext.cpp
++++ b/lgc/state/LgcContext.cpp
+@@ -149,6 +149,7 @@ void LgcContext::initialize() {
+ 
+   // Initialize some command-line option defaults.
+   setOptionDefault("filetype", "obj");
++  setOptionDefault("amdgpu-unroll-max-block-to-analyze", "20");
+   setOptionDefault("unroll-max-percent-threshold-boost", "1000");
+   setOptionDefault("pragma-unroll-threshold", "1000");
+   setOptionDefault("unroll-allow-partial", "1");

@@ -1,0 +1,33 @@
+From d090bf6e35e8ca6cb24c7e66d86d1b28dc9a9e91 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Cl=C3=A9ment=20Vuchener?= <clement.vuchener@gmail.com>
+Date: Sat, 14 Jul 2018 15:02:57 +0200
+Subject: [PATCH] Limit exploration depth of viewscreens
+
+In case of bad offsets, the search could loop for too long.
+---
+ src/dfinstance.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/dfinstance.cpp b/src/dfinstance.cpp
+index c8a5e039..b83d29b5 100644
+--- a/src/dfinstance.cpp
++++ b/src/dfinstance.cpp
+@@ -945,7 +945,9 @@ QVector<VIRTADDR> DFInstance::get_creatures(bool report_progress){
+     auto child_view_offset = m_layout->viewscreen_offset("child");
+     if (gview != static_cast<VIRTADDR>(-1) && view_offset != -1 && child_view_offset != -1) {
+         VIRTADDR current_viewscreen = gview + view_offset;
+-        while (current_viewscreen) {
++        static constexpr int max_depth = 5;
++        int depth = 0;
++        while (current_viewscreen && depth < max_depth) {
+             auto vtable = read_addr(current_viewscreen);
+             if (report_progress) {
+                 LOGD << "Found viewscreen with vtable" << hexify(vtable);
+@@ -959,6 +961,7 @@ QVector<VIRTADDR> DFInstance::get_creatures(bool report_progress){
+                 break;
+             }
+             current_viewscreen = read_addr(current_viewscreen + child_view_offset);
++            ++depth;
+         }
+     }
+     // Use the active unit list, if the embark viewscreen was not found

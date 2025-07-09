@@ -1,0 +1,30 @@
+From 6cf6c4be25e45b685b9bb3b1ea76c8ac1badeefa Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Dani=C3=ABl=20Heres?= <danielheres@gmail.com>
+Date: Tue, 20 Oct 2015 18:06:03 +0200
+Subject: [PATCH] Optimize bitscanforward using intrinsic function
+
+---
+ src/util/util.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/src/util/util.c b/src/util/util.c
+index f17ac3f42466..d7f081357bc3 100644
+--- a/src/util/util.c
++++ b/src/util/util.c
+@@ -143,11 +143,16 @@ int bitscanforward(int source)
+ {
+ 	int i;
+ 
++	#if _MSC_VER >= 1400 // Visual Studio 2005
++		_BitScanForward(&i, source);
++		return i;
++	#else
+ 	for (i = 0; i < 32; i++)
+ 		if (source & (1 << i))
+ 			return i;
+ 
+ 	return -1;
++	#endif
+ }
+ 
+ int bitcount(int source)

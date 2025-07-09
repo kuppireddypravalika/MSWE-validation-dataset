@@ -1,0 +1,43 @@
+From 5660c964ec3463fca1489c04cff8d65fb386c3d6 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Vicente=20Mataix=20Ferr=C3=A1ndiz?=
+ <vicente.mataix@polytechnique.edu>
+Date: Fri, 21 Apr 2017 23:47:22 +0200
+Subject: [PATCH] Solving OMP compiler imcompatibilty
+
+---
+ .../internal_variables_interpolation_process.h            | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/applications/MeshingApplication/custom_processes/internal_variables_interpolation_process.h b/applications/MeshingApplication/custom_processes/internal_variables_interpolation_process.h
+index d1080a61f6d0..cf2cb92d653e 100755
+--- a/applications/MeshingApplication/custom_processes/internal_variables_interpolation_process.h
++++ b/applications/MeshingApplication/custom_processes/internal_variables_interpolation_process.h
+@@ -557,8 +557,8 @@ class InternalVariablesInterpolationProcess
+         mPointListOrigin.clear();     
+         mPointListOrigin = CreateGaussPointList(mrOriginMainModelPart);
+ 
+-        #pragma omp parallel firstprivate(mPointListOrigin)
+-        {
++        //#pragma omp parallel firstprivate(mPointListOrigin)
++        //{
+             // We initialize the intergration method
+             GeometryData::IntegrationMethod ThisIntegrationMethod;
+             
+@@ -571,7 +571,7 @@ class InternalVariablesInterpolationProcess
+             ElementsArrayType& pElements = mrDestinationMainModelPart.Elements();
+             auto numElements = pElements.end() - pElements.begin();
+             
+-            #pragma omp for
++            //#pragma omp for
+             for(unsigned int i = 0; i < numElements; i++) 
+             {
+                 auto itElem = pElements.begin() + i;
+@@ -608,7 +608,7 @@ class InternalVariablesInterpolationProcess
+                     }
+                 }
+             }
+-        }
++        //}
+     }
+     
+     /**

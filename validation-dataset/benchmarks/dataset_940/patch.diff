@@ -1,0 +1,51 @@
+From f4fcd9afde552e7ccfde9f69e71bc2ed99faa446 Mon Sep 17 00:00:00 2001
+From: Rohan Sawhney <sawhney_rohan@yahoo.co.in>
+Date: Wed, 19 Apr 2023 08:54:37 -0700
+Subject: [PATCH] improved alignment without area weighting in PCA
+
+---
+ src/mesh/Mesh.cpp | 17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
+
+diff --git a/src/mesh/Mesh.cpp b/src/mesh/Mesh.cpp
+index 16bc910..5a2ba63 100644
+--- a/src/mesh/Mesh.cpp
++++ b/src/mesh/Mesh.cpp
+@@ -101,18 +101,16 @@ void Mesh::projectUvsToPcaAxis()
+ {
+ 	// compute center of mass
+ 	Vector cm;
+-	double totalArea = 1e-8;
+-	FaceData<double> areaUV(*this);
++	int nUvs = 0;
+ 	for (FaceCIter f = faces.begin(); f != faces.end(); f++) {
+ 		if (f->isReal() && !f->fillsHole) {
+ 			Vector centroid = f->centroidUV();
+-			areaUV[f] = f->areaUV();
+ 
+-			cm += centroid*areaUV[f];
+-			totalArea += areaUV[f];
++			cm += centroid;
++			nUvs++;
+ 		}
+ 	}
+-	cm /= totalArea;
++	cm /= nUvs;
+ 
+ 	// translate UVs to origin
+ 	for (WedgeIter w = wedges().begin(); w != wedges().end(); w++) {
+@@ -126,11 +124,10 @@ void Mesh::projectUvsToPcaAxis()
+ 	for (FaceCIter f = faces.begin(); f != faces.end(); f++) {
+ 		if (f->isReal() && !f->fillsHole) {
+ 			Vector centroid = f->centroidUV();
+-			double area = areaUV[f];
+ 
+-			a += centroid.x*centroid.x*area;
+-			b += centroid.x*centroid.y*area;
+-			c += centroid.y*centroid.y*area;
++			a += centroid.x*centroid.x;
++			b += centroid.x*centroid.y;
++			c += centroid.y*centroid.y;
+ 		}
+ 	}
+ 

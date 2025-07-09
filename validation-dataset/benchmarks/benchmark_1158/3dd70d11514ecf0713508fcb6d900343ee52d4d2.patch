@@ -1,0 +1,30 @@
+From 3dd70d11514ecf0713508fcb6d900343ee52d4d2 Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@gmail.com>
+Date: Thu, 11 May 2017 07:02:04 +0000
+Subject: [PATCH] [APInt] Use negate() instead of copying an APInt to negate it
+ and then writing back over the original value.
+
+---
+ llvm/lib/Support/APInt.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/llvm/lib/Support/APInt.cpp b/llvm/lib/Support/APInt.cpp
+index d43140b35515..d000ae82e074 100644
+--- a/llvm/lib/Support/APInt.cpp
++++ b/llvm/lib/Support/APInt.cpp
+@@ -1710,12 +1710,12 @@ void APInt::sdivrem(const APInt &LHS, const APInt &RHS,
+       APInt::udivrem(-LHS, -RHS, Quotient, Remainder);
+     else {
+       APInt::udivrem(-LHS, RHS, Quotient, Remainder);
+-      Quotient = -Quotient;
++      Quotient.negate();
+     }
+-    Remainder = -Remainder;
++    Remainder.negate();
+   } else if (RHS.isNegative()) {
+     APInt::udivrem(LHS, -RHS, Quotient, Remainder);
+-    Quotient = -Quotient;
++    Quotient.negate();
+   } else {
+     APInt::udivrem(LHS, RHS, Quotient, Remainder);
+   }

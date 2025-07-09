@@ -1,0 +1,22 @@
+From 8c21b6af056d297125adbed7190a02afc32c6f40 Mon Sep 17 00:00:00 2001
+From: Jeffrey Walton <noloader@gmail.com>
+Date: Fri, 10 Aug 2018 01:25:59 -0400
+Subject: [PATCH] Use shifts for VectorGetLow
+
+---
+ ppc-simd.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ppc-simd.h b/ppc-simd.h
+index b5b943977..d3497cb4b 100644
+--- a/ppc-simd.h
++++ b/ppc-simd.h
+@@ -339,7 +339,7 @@ inline T VectorGetLow(const T& val)
+     //const T zero = {0};
+     //const uint8x16_p mask = {16,16,16,16, 16,16,16,16, 8,9,10,11, 12,13,14,15 };
+     //return (T)vec_perm(val, zero, mask);
+-    return VectorShiftLeft<8>(VectorShiftRight<8>(val));
++    return VectorShiftRight<8>(VectorShiftLeft<8>(val));
+ }
+ 
+ /// \brief Extract a dword from a vector

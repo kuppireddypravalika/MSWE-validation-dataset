@@ -1,0 +1,36 @@
+From 90cb3721d4b43f6b88f5468944ccc12ec01500da Mon Sep 17 00:00:00 2001
+From: Roman Donchenko <roman.donchenko@itseez.com>
+Date: Fri, 19 Oct 2012 12:25:29 +0000
+Subject: [PATCH] Switched some loops around. Slightly improves performance.
+
+git-svn-id: svn+ssh://svn.pointclouds.org/pcl/trunk@7646 a9d63959-f2ad-4865-b262-bf0e56cfafb6
+---
+ .../BodyParts/jni/bodyparts/body_parts_recognizer.cpp     | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/mobile_apps/android/BodyParts/jni/bodyparts/body_parts_recognizer.cpp b/mobile_apps/android/BodyParts/jni/bodyparts/body_parts_recognizer.cpp
+index 005f82c6c2d..568501ad2e5 100644
+--- a/mobile_apps/android/BodyParts/jni/bodyparts/body_parts_recognizer.cpp
++++ b/mobile_apps/android/BodyParts/jni/bodyparts/body_parts_recognizer.cpp
+@@ -147,8 +147,8 @@ void filterLabels(Cloud & noisy, Cloud & output, int radius)
+   ChannelRef<Label> noisy_labels = noisy.get<TagBPLabel>();
+   ChannelRef<Label> labels = output.get<TagBPLabel>();
+ 
+-  for (unsigned j = 0; j < width; ++j)
+-    for (unsigned i = 0; i < height; ++i)
++  for (unsigned i = 0; i < height; ++i)
++    for (unsigned j = 0; j < width; ++j)
+     {
+       unsigned idx = i * width + j;
+ 
+@@ -162,8 +162,8 @@ void filterLabels(Cloud & noisy, Cloud & output, int radius)
+       Label mode = -1;
+       Label mode_count = 0;
+ 
+-      for (int dx = -radius; dx <= radius; ++dx)
+-        for (int dy = -radius; dy <= radius; ++dy)
++      for (int dy = -radius; dy <= radius; ++dy)
++        for (int dx = -radius; dx <= radius; ++dx)
+         {
+           Label current = noisy_labels.data[idx + dx + dy * width];
+           ++bins[current];

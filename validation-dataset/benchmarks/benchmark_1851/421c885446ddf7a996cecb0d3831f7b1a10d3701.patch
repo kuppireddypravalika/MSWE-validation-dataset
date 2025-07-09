@@ -1,0 +1,26 @@
+From 421c885446ddf7a996cecb0d3831f7b1a10d3701 Mon Sep 17 00:00:00 2001
+From: Alexander Barkov <bar@mnogosearch.org>
+Date: Mon, 11 Mar 2013 13:50:17 +0400
+Subject: [PATCH] The i386 specific code improving character set conversion on
+ the ASCII range was not enabled on x86_64 machines. Enabling it. Gives up to
+ 18 times conversion performance improvement.
+
+modified:
+  sql/sql_string.cc
+---
+ sql/sql_string.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sql/sql_string.cc b/sql/sql_string.cc
+index 75029a03790..4aba2ee51c5 100644
+--- a/sql/sql_string.cc
++++ b/sql/sql_string.cc
+@@ -843,7 +843,7 @@ copy_and_convert(char *to, uint32 to_length, CHARSET_INFO *to_cs,
+ 
+   uint32 length= min(to_length, from_length), length2= length;
+ 
+-#if defined(__i386__)
++#if defined(__i386__) || defined(__x86_64__)
+   /*
+     Special loop for i386, it allows to refer to a
+     non-aligned memory block as UINT32, which makes

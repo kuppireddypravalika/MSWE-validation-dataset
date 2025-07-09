@@ -1,0 +1,22 @@
+From f6cdb705fc1ca15bf057bc960861210756b4f70a Mon Sep 17 00:00:00 2001
+From: unageek <29035331+unageek@users.noreply.github.com>
+Date: Tue, 9 Apr 2024 15:12:45 +0900
+Subject: [PATCH] Now we can use unsigned integers for OpenMP loop counters
+
+---
+ include/polatory/isosurface/rmt/lattice.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/polatory/isosurface/rmt/lattice.hpp b/include/polatory/isosurface/rmt/lattice.hpp
+index 322c2db9..8a42fa44 100644
+--- a/include/polatory/isosurface/rmt/lattice.hpp
++++ b/include/polatory/isosurface/rmt/lattice.hpp
+@@ -125,7 +125,7 @@ class lattice : public primitive_lattice {
+ 
+ #pragma omp parallel for
+     // NOLINTNEXTLINE(modernize-loop-convert)
+-    for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(node_cvs.size()); i++) {
++    for (std::size_t i = 0; i < node_cvs.size(); i++) {
+       const auto& cv = node_cvs.at(i);
+       auto& node0 = node_list_.at(cv);
+       const auto& p0 = node0.position();

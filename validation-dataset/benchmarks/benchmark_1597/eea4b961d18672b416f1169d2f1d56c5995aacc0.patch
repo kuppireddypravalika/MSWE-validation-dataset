@@ -1,0 +1,32 @@
+From eea4b961d18672b416f1169d2f1d56c5995aacc0 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Kacper=20Michaj=C5=82ow?= <kasper93@gmail.com>
+Date: Sun, 5 Jun 2016 15:56:58 +0200
+Subject: [PATCH] Initialize ptrdiff_t constant first and then do the shift
+ instead casting the end result.
+
+---
+ decoder/LAVVideo/subtitles/blend/blend_generic.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/decoder/LAVVideo/subtitles/blend/blend_generic.cpp b/decoder/LAVVideo/subtitles/blend/blend_generic.cpp
+index 4b4ab2d79..b62df0177 100644
+--- a/decoder/LAVVideo/subtitles/blend/blend_generic.cpp
++++ b/decoder/LAVVideo/subtitles/blend/blend_generic.cpp
+@@ -125,7 +125,7 @@ DECLARE_BLEND_FUNC_IMPL(blend_yuv_c)
+     pixT *dstV = (pixT *)(v + (line + yPos) * outStrideUV) + xPos;
+     const BYTE *srcV = subV + line * inStrideUV;
+ 
+-    const BYTE *srcA = subA + (line * inStride * (ptrdiff_t)(1 << hsub));
++    const BYTE *srcA = subA + (line * inStride * (ptrdiff_t(1) << hsub));
+     for (col = 0; col < w; col++) {
+       // Average Alpha
+       int alpha;
+@@ -165,7 +165,7 @@ DECLARE_BLEND_FUNC_IMPL(blend_yuv_c)
+           break;
+         }
+       }
+-      srcA += (ptrdiff_t)(1 << vsub);
++      srcA += ptrdiff_t(1) << vsub;
+     }
+   }
+ 

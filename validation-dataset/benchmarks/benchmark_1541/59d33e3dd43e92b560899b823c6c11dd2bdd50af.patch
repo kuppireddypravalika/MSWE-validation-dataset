@@ -1,0 +1,22 @@
+From 59d33e3dd43e92b560899b823c6c11dd2bdd50af Mon Sep 17 00:00:00 2001
+From: Marco Colombo <m.colombo@ed.ac.uk>
+Date: Sat, 9 Nov 2019 17:25:52 +0000
+Subject: [PATCH] Use m.size() instead of m.rows() and m.cols()
+
+---
+ stan/math/prim/mat/fun/singular_values.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/stan/math/prim/mat/fun/singular_values.hpp b/stan/math/prim/mat/fun/singular_values.hpp
+index f4537baedce..04e177da69b 100644
+--- a/stan/math/prim/mat/fun/singular_values.hpp
++++ b/stan/math/prim/mat/fun/singular_values.hpp
+@@ -17,7 +17,7 @@ namespace math {
+ template <typename T>
+ Eigen::Matrix<T, Eigen::Dynamic, 1> singular_values(
+     const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& m) {
+-  if (m.rows() == 0 || m.cols() == 0)
++  if (m.size() == 0)
+     return Eigen::Matrix<T, 0, 1>();
+ 
+   return Eigen::JacobiSVD<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> >(m)

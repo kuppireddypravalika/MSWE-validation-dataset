@@ -1,0 +1,28 @@
+From 81a0e2935452826d21bd5f858c1ddbde2ab54ada Mon Sep 17 00:00:00 2001
+From: Ross Bencina <rossb@users.sourceforge.net>
+Date: Wed, 15 Oct 2003 16:40:40 +0000
+Subject: [PATCH] inline asm version of CLZ() in intel syntax
+
+git-svn-id: https://supercollider.svn.sourceforge.net/svnroot/supercollider/trunk@1968 a380766d-ff14-0410-b294-a243070f3f08
+---
+ headers/plugin_interface/clz.h | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/headers/plugin_interface/clz.h b/headers/plugin_interface/clz.h
+index 16aa3ecf187..36aa1f2cf2f 100755
+--- a/headers/plugin_interface/clz.h
++++ b/headers/plugin_interface/clz.h
+@@ -43,8 +43,13 @@ static int CLZ( int arg )
+ {
+     asm{
+         bsr    eax, arg
++        jnz    non_zero
++        mov    arg, 32
++        jmp    end
++non_zero:
+         xor    eax, 31
+         mov    arg, eax
++end:
+     }
+     return arg;
+ }

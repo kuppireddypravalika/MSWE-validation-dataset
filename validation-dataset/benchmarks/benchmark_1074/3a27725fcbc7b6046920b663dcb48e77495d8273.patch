@@ -1,0 +1,37 @@
+From 3a27725fcbc7b6046920b663dcb48e77495d8273 Mon Sep 17 00:00:00 2001
+From: K <git@k47.cz>
+Date: Thu, 22 Aug 2024 11:37:15 +0200
+Subject: [PATCH] Optimize CMap::isInTheMap
+
+replace x >= 0 && x < size by (unsigned)x < size
+
+By converting signed coordinate to unsigned number, negative values became
+very large positive ones, larger than every positive signed number and
+therefore also bigger than the map size. As a result check against size
+also implicitly checks if coordinate is negative.
+
+Compiler cannot do this transformation automatically because it doesn't
+know that map dimensions are always positive.
+
+The change shrinks isInTheMap from 19 instructions to 11 on x86.
+---
+ lib/mapping/CMap.cpp | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/lib/mapping/CMap.cpp b/lib/mapping/CMap.cpp
+index f4ad85b4628..824dca05e55 100644
+--- a/lib/mapping/CMap.cpp
++++ b/lib/mapping/CMap.cpp
+@@ -334,7 +334,11 @@ bool CMap::isCoastalTile(const int3 & pos) const
+ 
+ bool CMap::isInTheMap(const int3 & pos) const
+ {
+-	return pos.x >= 0 && pos.y >= 0 && pos.z >= 0 && pos.x < width && pos.y < height && pos.z <= (twoLevel ? 1 : 0);
++	// Check whether coord < 0 is done implicitly. Negative signed int overflows to unsigned number larger than all signed ints.
++	return
++		static_cast<uint32_t>(pos.x) < static_cast<uint32_t>(width) &&
++		static_cast<uint32_t>(pos.y) < static_cast<uint32_t>(height) &&
++		static_cast<uint32_t>(pos.z) <= (twoLevel ? 1 : 0);
+ }
+ 
+ TerrainTile & CMap::getTile(const int3 & tile)

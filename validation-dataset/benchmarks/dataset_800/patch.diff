@@ -1,0 +1,33 @@
+From 676ed05d8c3f94c32dfb683eb4732fb003b7302c Mon Sep 17 00:00:00 2001
+From: Stephen G Tuggy <sgt@stephengtuggy.com>
+Date: Tue, 24 May 2022 14:53:51 -0700
+Subject: [PATCH] configuration_tests.cpp: Add GetFloat performance test,
+ getting the value of the same key 1,000,000x
+
+---
+ engine/src/configuration/tests/configuration_tests.cpp | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/engine/src/configuration/tests/configuration_tests.cpp b/engine/src/configuration/tests/configuration_tests.cpp
+index 9d5cdf1f08..56f193765f 100644
+--- a/engine/src/configuration/tests/configuration_tests.cpp
++++ b/engine/src/configuration/tests/configuration_tests.cpp
+@@ -25,6 +25,7 @@
+ 
+ #include <gtest/gtest.h>
+ #include "configuration/game_config.h"
++#include "vs_logging.h"
+ 
+ #include <string>
+ 
+@@ -81,4 +82,10 @@ TEST(LoadConfig, Sanity) {
+     EXPECT_EQ(test_string2, "hello");
+     EXPECT_EQ(escaped_string2, "#FF0000Hello\r\nthere!#000000");
+ 
++    VS_LOG_AND_FLUSH(fatal, "Starting GetFloat performance test");
++    for (int i = 0; i < 1000000; ++i) {
++        vega_config::GetGameConfig().GetFloat("test.subsection.subsection_float_variable", 11.1F);
++    }
++    VS_LOG_AND_FLUSH(fatal, "Finished GetFloat performance test");
++
+ }

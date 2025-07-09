@@ -1,0 +1,24 @@
+From e22b1ab58f9b23e305bbf115c2cf02b38eded375 Mon Sep 17 00:00:00 2001
+From: Stephan Hageboeck <stephan.hageboeck@cern.ch>
+Date: Wed, 14 Apr 2021 18:43:46 +0200
+Subject: [PATCH] [RF] Use deduplicated strings in RooRealVar.
+
+Since RooFit objects are named using deduplicated strings, one can save
+a bit of time in name comparisons. Only the pointers need to be compared.
+---
+ roofit/roofitcore/src/RooRealVar.cxx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/roofit/roofitcore/src/RooRealVar.cxx b/roofit/roofitcore/src/RooRealVar.cxx
+index 3b9005fbc8646..c3970d93afc9d 100644
+--- a/roofit/roofitcore/src/RooRealVar.cxx
++++ b/roofit/roofitcore/src/RooRealVar.cxx
+@@ -236,7 +236,7 @@ RooSpan<const double> RooRealVar::getValues(RooBatchCompute::RunContext& inputDa
+ 
+   for (const auto& var_span : inputData.spans) {
+     auto var = var_span.first;
+-    if (strcmp(var->GetName(), GetName()) == 0) {
++    if (var->namePtr() == namePtr()) {
+       // A variable with the same name exists in the input data. Use their values as ours.
+       inputData.spans[this] = var_span.second;
+       return var_span.second;

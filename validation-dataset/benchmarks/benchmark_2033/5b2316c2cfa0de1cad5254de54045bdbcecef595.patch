@@ -1,0 +1,24 @@
+From 5b2316c2cfa0de1cad5254de54045bdbcecef595 Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@gmail.com>
+Date: Sat, 3 Jun 2017 07:47:14 +0000
+Subject: [PATCH] [LazyValueInfo] Use Type::getIntegerBitWidth instead of
+ casting to IntegerType to call getBitWidth. NFC
+
+---
+ llvm/lib/Analysis/LazyValueInfo.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/llvm/lib/Analysis/LazyValueInfo.cpp b/llvm/lib/Analysis/LazyValueInfo.cpp
+index 5180f07eaa28..6a9ae6440ace 100644
+--- a/llvm/lib/Analysis/LazyValueInfo.cpp
++++ b/llvm/lib/Analysis/LazyValueInfo.cpp
+@@ -1213,8 +1213,7 @@ bool LazyValueInfoImpl::solveBlockValueCast(LVILatticeVal &BBLV,
+       LHSRange = LHSVal.getConstantRange();
+   }
+ 
+-  const unsigned ResultBitWidth =
+-    cast<IntegerType>(CI->getType())->getBitWidth();
++  const unsigned ResultBitWidth = CI->getType()->getIntegerBitWidth();
+ 
+   // NOTE: We're currently limited by the set of operations that ConstantRange
+   // can evaluate symbolically.  Enhancing that set will allows us to analyze

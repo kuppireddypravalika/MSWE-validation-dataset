@@ -1,0 +1,42 @@
+From 20e73d1a6bdf68b159724c7144ce34f47059b4d7 Mon Sep 17 00:00:00 2001
+From: pionere <pionere@freemail.hu>
+Date: Mon, 2 Jan 2023 08:33:59 +0100
+Subject: [PATCH] improve palette-index selection - skip indices 1-127 of the
+ default palette - do not assume the first color is black
+
+---
+ source/d1image.cpp | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
+
+diff --git a/source/d1image.cpp b/source/d1image.cpp
+index afb775571..cce1d332d 100644
+--- a/source/d1image.cpp
++++ b/source/d1image.cpp
+@@ -1,5 +1,7 @@
+ #include "d1image.h"
+ 
++#include <climits>
++
+ #include <QColor>
+ #include <QImage>
+ #include <QList>
+@@ -7,15 +9,12 @@
+ static quint8 getPalColor(D1Pal *pal, QColor color)
+ {
+     int res = 0;
+-    /* int bestR = abs(color.red() - 0)
+-       int bestG = abs(color.green() - 0)
+-       int bestB = abs(color.blue() - 0); */
+-    int bestR = (color.red() - 0) * (color.red() - 0);
+-    int bestG = (color.green() - 0) * (color.green() - 0);
+-    int bestB = (color.blue() - 0) * (color.blue() - 0);
+-    int best = bestR + bestG + bestB;
++    int best = INT_MAX;
+ 
+     for (int i = 0; i < D1PAL_COLORS; i++) {
++        if (i == 1 && pal->getFilePath() == D1Pal::DEFAULT_PATH) {
++            i = 128; // skip indices between 1 and 127 from the default palette
++        }
+         QColor palColor = pal->getColor(i);
+         /* int currR = abs(color.red() - palColor.red())
+            int currG = abs(color.green() - palColor.green())

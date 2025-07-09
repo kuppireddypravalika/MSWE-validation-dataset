@@ -1,0 +1,29 @@
+From 662cd9fc67f73a7a88e6592b7d344de1cbd40658 Mon Sep 17 00:00:00 2001
+From: Aleksandar Micic <amicic@ca.ibm.com>
+Date: Wed, 17 May 2017 14:56:21 -0400
+Subject: [PATCH] Include f/w-ed obj when iterating Evac in backout
+
+On platforms where Concurrent Scavenger (CS) is compile-time enabled,
+but CS not running, during backout, explicitly request inclusion of
+forwarded objects when iterating Evacuate space to find
+tenured-remembered objects (to un-remember them).
+
+Signed-off-by: Aleksandar Micic <amicic@ca.ibm.com>
+---
+ gc/base/standard/Scavenger.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/gc/base/standard/Scavenger.cpp b/gc/base/standard/Scavenger.cpp
+index 8489b819e0..f3a271d2d6 100644
+--- a/gc/base/standard/Scavenger.cpp
++++ b/gc/base/standard/Scavenger.cpp
+@@ -3444,6 +3444,9 @@ MM_Scavenger::completeBackOut(MM_EnvironmentStandard *env)
+ 				if (isObjectInEvacuateMemory((omrobjectptr_t)rootRegion->getLowAddress())) {
+ 					/* tell the object iterator to work on the given region */
+ 					GC_ObjectHeapIteratorAddressOrderedList evacuateHeapIterator(_extensions, rootRegion, false);
++#if defined(OMR_GC_CONCURRENT_SCAVENGER)
++					evacuateHeapIterator.includeForwardedObjects();
++#endif
+ 					omrobjectptr_t objectPtr = NULL;
+ 					omrobjectptr_t fwdObjectPtr = NULL;
+ 					while((objectPtr = evacuateHeapIterator.nextObjectNoAdvance()) != NULL) {

@@ -1,0 +1,37 @@
+From e7f91031418b648cb24eb453d8defd4a1464f9ea Mon Sep 17 00:00:00 2001
+From: Guillaume Klein <guillaume.klein@systrangroup.com>
+Date: Wed, 19 Dec 2018 11:12:19 +0100
+Subject: [PATCH] Use one less storage in MultiHeadAttention
+
+---
+ src/models/transformer.cc | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
+
+diff --git a/src/models/transformer.cc b/src/models/transformer.cc
+index 7894426b2..dc29eda49 100644
+--- a/src/models/transformer.cc
++++ b/src/models/transformer.cc
+@@ -281,13 +281,7 @@ namespace ctranslate2 {
+                                         StorageView* cached_keys,
+                                         StorageView* cached_values) {
+       Device device = queries.device();
+-
+-      StorageView normed_queries(device);
+-      _layer_norm(queries, normed_queries);
+-
+       StorageView fused_proj(device);
+-      _linear[0](normed_queries, fused_proj);
+-
+       StorageView queries_proj(device);
+       StorageView keys_proj(device);
+       StorageView values_proj(device);
+@@ -295,6 +289,9 @@ namespace ctranslate2 {
+       StorageView split_keys(device);
+       StorageView split_values(device);
+ 
++      _layer_norm(queries, queries_proj);
++      _linear[0](queries_proj, fused_proj);
++
+       if (memory) {
+         split_heads(fused_proj, split_queries);
+         if (cached_keys != nullptr && !cached_keys->empty()) {

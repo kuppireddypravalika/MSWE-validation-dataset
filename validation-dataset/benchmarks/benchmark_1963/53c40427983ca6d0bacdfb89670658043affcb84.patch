@@ -1,0 +1,34 @@
+From 53c40427983ca6d0bacdfb89670658043affcb84 Mon Sep 17 00:00:00 2001
+From: Jean-Philip Desjardins <jean-philip.desjardins@polymtl.ca>
+Date: Mon, 8 Sep 2014 21:38:42 -0400
+Subject: [PATCH] Allow reg, reg, var match to be a bit more optimized on
+ standard MD operations.
+
+---
+ src/Jitter_CodeGen_x86_Md.cpp | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/src/Jitter_CodeGen_x86_Md.cpp b/src/Jitter_CodeGen_x86_Md.cpp
+index 6028cb4e..96795e9e 100644
+--- a/src/Jitter_CodeGen_x86_Md.cpp
++++ b/src/Jitter_CodeGen_x86_Md.cpp
+@@ -129,11 +129,17 @@ void CCodeGen_x86::Emit_Md_RegVarVar(const STATEMENT& statement)
+ 	auto src1 = statement.src1->GetSymbol().get();
+ 	auto src2 = statement.src2->GetSymbol().get();
+ 
+-	assert(!((src1->m_type == SYM_REGISTER128) && (src1->m_valueLow == dst->m_valueLow)));
++	//If we get in here, it must absolutely mean that the second source isn't a register
++	//Otherwise, some of the assumuptions done below will be wrong (dst mustn't be equal to src2)
++	assert(src2->m_type != SYM_REGISTER);
+ 
+ 	auto dstRegister = m_mdRegisters[dst->m_valueLow];
+ 
+-	m_assembler.MovapsVo(dstRegister, MakeVariable128SymbolAddress(src1));
++	if(!dst->Equals(src1))
++	{
++		m_assembler.MovapsVo(dstRegister, MakeVariable128SymbolAddress(src1));
++	}
++
+ 	((m_assembler).*(MDOP::OpVo()))(dstRegister, MakeVariable128SymbolAddress(src2));
+ }
+ 

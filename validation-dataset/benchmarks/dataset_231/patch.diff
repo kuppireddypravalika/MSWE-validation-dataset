@@ -1,0 +1,39 @@
+From 374c57e7088118104b3f6dbb946faf81ed14ea53 Mon Sep 17 00:00:00 2001
+From: Lev Stipakov <lev@openvpn.net>
+Date: Thu, 13 Jun 2019 18:46:22 +0300
+Subject: [PATCH] frame_init.hpp: tweak wintun read buf size
+
+According to tests, this gives the best performance (up to 2 Gbit/s)
+
+Signed-off-by: Lev Stipakov <lev@openvpn.net>
+---
+ openvpn/frame/frame_init.hpp | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/openvpn/frame/frame_init.hpp b/openvpn/frame/frame_init.hpp
+index adc75ea27..c9417e697 100644
+--- a/openvpn/frame/frame_init.hpp
++++ b/openvpn/frame/frame_init.hpp
+@@ -28,6 +28,9 @@
+ 
+ #include <openvpn/frame/frame.hpp>
+ 
++// Lev: according to my tests, this gives the best performance (up to 2 Gbit/s)
++#define WINTUN_READ_BUF_SIZE 0x3C000
++
+ namespace openvpn {
+ 
+   inline Frame::Ptr frame_init(const bool align_adjust_3_1,
+@@ -52,11 +55,7 @@ namespace openvpn {
+     (*frame)[Frame::WRITE_SSL_CLEARTEXT] = Frame::Context(headroom, payload, tailroom, 0, align_block, BufferAllocated::GROW);
+     frame->standardize_capacity(~0);
+ 
+-    // Wintun could return 256 packets no larger than tun mtu,
+-    // each packet is prepended with 4 bytes size and 12 bytes
+-    // start padding and appended by up to 15 bytes end padding
+-    const size_t tun_mtu_wintun = tun_mtu > 0 ? tun_mtu : 1500;
+-    (*frame)[Frame::READ_WINTUN] = Frame::Context(0, (tun_mtu_wintun + 4 + 12 + 15) * 256, 0, 0, align_block, 0);
++    (*frame)[Frame::READ_WINTUN] = Frame::Context(0, WINTUN_READ_BUF_SIZE, 0, 0, align_block, 0);
+ 
+     if (verbose)
+       OPENVPN_LOG("Frame=" << headroom << '/' << payload << '/' << tailroom

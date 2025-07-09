@@ -1,0 +1,23 @@
+From 558defd69a041d32fed282dc226497f118b73f82 Mon Sep 17 00:00:00 2001
+From: Ye Luo <yeluo@anl.gov>
+Date: Fri, 1 Mar 2019 01:59:36 -0500
+Subject: [PATCH] Change NLPP default to the batched algorithm.
+
+---
+ src/QMCHamiltonians/ECPotentialBuilder.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/QMCHamiltonians/ECPotentialBuilder.cpp b/src/QMCHamiltonians/ECPotentialBuilder.cpp
+index d9f1b5f0cb..51b0125ddd 100644
+--- a/src/QMCHamiltonians/ECPotentialBuilder.cpp
++++ b/src/QMCHamiltonians/ECPotentialBuilder.cpp
+@@ -53,6 +53,9 @@ bool ECPotentialBuilder::put(xmlNodePtr cur)
+   }
+   std::string ecpFormat("table");
+   std::string NLPP_algo(omp_get_nested()?"batched":"default");
++#ifdef ENABLE_OFFLOAD
++  NLPP_algo = "batched"; // set "batched" as the default
++#endif
+   std::string pbc("yes");
+   std::string forces("no");
+   OhmmsAttributeSet pAttrib;

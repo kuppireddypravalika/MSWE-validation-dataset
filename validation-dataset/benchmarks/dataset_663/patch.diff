@@ -1,0 +1,35 @@
+From 8a96aabd002fc8076799f92befe9b4945ed98ed9 Mon Sep 17 00:00:00 2001
+From: Tobias Junghans <totimaju@gmail.com>
+Date: Fri, 24 Nov 2017 18:04:36 +0100
+Subject: [PATCH] Plugins: Platform: WindowsServiceCore: start server
+ immediately
+
+After starting up service look whether server needs to be started
+immediately instead of waiting for service stop event. This reduces
+start time by 1 second.
+---
+ plugins/platform/windows/WindowsServiceCore.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/plugins/platform/windows/WindowsServiceCore.cpp b/plugins/platform/windows/WindowsServiceCore.cpp
+index c586c8025..40bbd28c0 100644
+--- a/plugins/platform/windows/WindowsServiceCore.cpp
++++ b/plugins/platform/windows/WindowsServiceCore.cpp
+@@ -147,7 +147,7 @@ void WindowsServiceCore::manageServerInstances()
+ 
+ 	QTime lastServiceStart;
+ 
+-	while( WaitForSingleObject( m_stopServiceEvent, 1000 ) == WAIT_TIMEOUT )
++	do
+ 	{
+ 		bool sessionChanged = m_sessionChangeEvent.testAndSetOrdered( 1, 0 );
+ 
+@@ -193,7 +193,7 @@ void WindowsServiceCore::manageServerInstances()
+ 			oldSessionId = sessionId;
+ 			lastServiceStart.restart();
+ 		}
+-	}
++	} while( WaitForSingleObject( m_stopServiceEvent, 1000 ) == WAIT_TIMEOUT );
+ 
+ 	qInfo( "Service shutdown" );
+ 

@@ -1,0 +1,36 @@
+From 894f86709080fe8d20875b402adce679963c49c2 Mon Sep 17 00:00:00 2001
+From: Allan Sandfeld Jensen <allan.jensen@digia.com>
+Date: Thu, 10 Oct 2013 15:36:52 +0200
+Subject: [PATCH] Memory leak with Small-caps QRawFont
+
+Make sure we deallocate the scaled rawfont, when it is not used due
+to a cached engine being used instead.
+
+This fixes a major memory leak in Qt WebKit when using Small Caps in the
+complex font path. The complex font path is always used for small caps
+since Qt 5.1.
+
+Task-number: QTBUG-33576
+
+Change-Id: I500db9ae6f6576734f1a972387a1a488218a9db6
+Reviewed-by: pierre.rossi@digia.com
+Reviewed-by: Pierre Rossi <pierre.rossi@gmail.com>
+---
+ src/gui/text/qtextengine.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/gui/text/qtextengine.cpp b/src/gui/text/qtextengine.cpp
+index e571e8da8a80..c0e2c5b80398 100644
+--- a/src/gui/text/qtextengine.cpp
++++ b/src/gui/text/qtextengine.cpp
+@@ -1886,6 +1886,10 @@ QFontEngine *QTextEngine::fontEngine(const QScriptItem &si, QFixed *ascent, QFix
+                 scaledEngine = QFontEngineMultiQPA::createMultiFontEngine(scEngine, script);
+                 scaledEngine->ref.ref();
+                 feCache.prevScaledFontEngine = scaledEngine;
++                // If scEngine is not ref'ed by scaledEngine, make sure it is deallocated and not leaked.
++                if (!scEngine->ref.load())
++                    delete scEngine;
++
+             }
+         }
+     } else

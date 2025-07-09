@@ -1,0 +1,24 @@
+From 4dcbb958dcaccc0342cac3031a036f79fe12ade1 Mon Sep 17 00:00:00 2001
+From: Igor Kushnir <igorkuo@gmail.com>
+Date: Fri, 5 Feb 2021 21:49:45 +0200
+Subject: [PATCH] Eliminate QStringList <=> QList<QString> conversions
+
+The conversions prevented return value optimization and caused a
+-Wreturn-std-move Clang warning.
+---
+ YACReaderLibrary/db_helper.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/YACReaderLibrary/db_helper.cpp b/YACReaderLibrary/db_helper.cpp
+index 341ea50e2..3a0107560 100644
+--- a/YACReaderLibrary/db_helper.cpp
++++ b/YACReaderLibrary/db_helper.cpp
+@@ -166,7 +166,7 @@ QString DBHelper::getFolderName(qulonglong libraryId, qulonglong id)
+ }
+ QList<QString> DBHelper::getLibrariesNames()
+ {
+-    QStringList names = getLibraries().getNames();
++    auto names = getLibraries().getNames();
+     std::sort(names.begin(), names.end(), naturalSortLessThanCI);
+     return names;
+ }

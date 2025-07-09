@@ -1,0 +1,37 @@
+From ecf3e8dd5fb8bc5b8346583ec9a0cc17e6a46d0e Mon Sep 17 00:00:00 2001
+From: Bastian Rieck <bastian.rieck@iwr.uni-heidelberg.de>
+Date: Tue, 19 Dec 2017 13:43:25 +0100
+Subject: [PATCH] Rewrote matrix traversal
+
+This fixes issue #33 and provides an improved way to create the upper
+triangular part of the matrix only. Tested to ensure that the results
+are not different now.
+---
+ src/tools/topological_distance.cc | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
+
+diff --git a/src/tools/topological_distance.cc b/src/tools/topological_distance.cc
+index 701638b5..18a9438f 100644
+--- a/src/tools/topological_distance.cc
++++ b/src/tools/topological_distance.cc
+@@ -604,13 +604,15 @@ int main( int argc, char** argv )
+   std::vector< std::vector<double> > distances;
+   distances.resize( dataSets.size(), std::vector<double>( dataSets.size() ) );
+ 
+-  #pragma omp parallel for collapse(2)
+-  for( std::size_t row = 0; row < dataSets.size(); row++ )
+   {
+-    for( std::size_t col = 0; col < dataSets.size(); col++ )
++    std::size_t n = dataSets.size();
++    std::size_t m = dataSets.size() * ( dataSets.size() - 1 ) / 2;
++
++    #pragma omp parallel for
++    for( std::size_t k = 0; k < m; k++ )
+     {
+-      if( row <= col )
+-        continue;
++      auto row = std::size_t( double( n - 2 ) - std::floor( std::sqrt( -8*k + 4*n*(n-1) - 7 ) / 2.0 - 0.5 ) );
++      auto col = std::size_t( k + row + 1 - n*(n-1)/2 + (n-row)*( (n-row)-1 ) / 2 );
+ 
+       double d = 0.0;
+ 

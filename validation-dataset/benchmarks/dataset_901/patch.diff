@@ -1,0 +1,36 @@
+From cd68350d8ed2a681597eaf2c837c58eb4bcbaf65 Mon Sep 17 00:00:00 2001
+From: momo5502 <mauriceheumann@gmail.com>
+Date: Sat, 1 Oct 2022 20:16:12 +0200
+Subject: [PATCH] Speed up console logging by concatenating indiviual messages
+
+---
+ src/client/component/console.cpp | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/src/client/component/console.cpp b/src/client/component/console.cpp
+index 23a313db..c5d48391 100644
+--- a/src/client/component/console.cpp
++++ b/src/client/component/console.cpp
+@@ -230,14 +230,21 @@ namespace console
+ 			{
+ 				while (!terminate_runner)
+ 				{
++					std::string message_buffer{};
+ 					auto current_queue = empty_message_queue();
++
+ 					while (!current_queue.empty())
+ 					{
+ 						const auto& msg = current_queue.front();
+-						print_message_to_console(msg.data());
++						message_buffer.append(msg);
+ 						current_queue.pop();
+ 					}
+ 
++					if (!message_buffer.empty())
++					{
++						print_message_to_console(message_buffer.data());
++					}
++
+ 					std::this_thread::sleep_for(5ms);
+ 				}
+ 			});

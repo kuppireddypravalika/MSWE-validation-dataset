@@ -1,0 +1,38 @@
+From cd1eff1e1ef3097e5dd1a01f88eb1052ee63022d Mon Sep 17 00:00:00 2001
+From: Anton Kudryavtsev <a.kudryavtsev@netris.ru>
+Date: Tue, 26 Apr 2016 13:58:00 +0300
+Subject: [PATCH] qDBusInterfaceFromMetaObject: avoid quadratic complexity.
+
+Don't use QString::prepend() in the loop. Just compose
+temp string by appending, and then prepend whole temp string.
+
+Change-Id: I6efb2d20e03f6a3526103d3a9494d5d1b0fbbf81
+Reviewed-by: Marc Mutz <marc.mutz@kdab.com>
+Reviewed-by: Edward Welbourne <edward.welbourne@theqtcompany.com>
+Reviewed-by: Thiago Macieira <thiago.macieira@intel.com>
+---
+ src/dbus/qdbusmisc.cpp | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/src/dbus/qdbusmisc.cpp b/src/dbus/qdbusmisc.cpp
+index 0502bea0ac4a..930c3bd2da2e 100644
+--- a/src/dbus/qdbusmisc.cpp
++++ b/src/dbus/qdbusmisc.cpp
+@@ -99,9 +99,14 @@ QString qDBusInterfaceFromMetaObject(const QMetaObject *mo)
+             if (domainName.isEmpty()) {
+                  interface.prepend(QLatin1String("local."));
+             } else {
+-                interface.reserve(interface.size() + organizationDomain.size());
+-                for (const QStringRef &x : domainName)
+-                    interface.prepend(QLatin1Char('.')).prepend(x);
++                QString composedDomain;
++                // + 1 for additional dot, e.g. organizationDomain equals "example.com",
++                // then composedDomain will be equal "com.example."
++                composedDomain.reserve(organizationDomain.size() + 1);
++                for (auto it = domainName.rbegin(), end = domainName.rend(); it != end; ++it)
++                    composedDomain += *it + QLatin1Char('.');
++
++                interface.prepend(composedDomain);
+             }
+          }
+      }

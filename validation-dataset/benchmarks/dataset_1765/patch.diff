@@ -1,0 +1,26 @@
+From aac3a8309e0b8da174d19b878bca03d23e2edebb Mon Sep 17 00:00:00 2001
+From: Andrew Mustun <andrew@qcad.org>
+Date: Wed, 30 Mar 2016 08:44:29 +0200
+Subject: [PATCH] improve performance for RMath::eval in context of property
+ editor
+
+---
+ src/core/math/RMath.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/src/core/math/RMath.cpp b/src/core/math/RMath.cpp
+index e71496c081..8caf523f4b 100644
+--- a/src/core/math/RMath.cpp
++++ b/src/core/math/RMath.cpp
+@@ -147,6 +147,11 @@ double RMath::eval(const QString& expression, bool* ok) {
+         return RNANDOUBLE;
+     }
+ 
++    // handle *VARIES* from property editor efficiently:
++    if (expression.startsWith("*") && expression.endsWith("*")) {
++        return RNANDOUBLE;
++    }
++
+     if (ok!=NULL) {
+         *ok = true;
+     }

@@ -1,0 +1,46 @@
+From 34130b65f6c15127f99376ef21038a52d9cf64ac Mon Sep 17 00:00:00 2001
+From: Daniel Stevens <Dan.R.Stevens@gmail.com>
+Date: Sun, 14 Nov 2021 00:00:25 -0700
+Subject: [PATCH] Use heuristic for large increment
+
+Often a scroll bar is used for pixel level scrolling of some container
+it is attached to. In such cases, the scroll bar height is equal to the
+view area height. For pixel level scrolling, the total container size is
+generally the max value plus the view size (assuming there is data to
+scroll). In effect, when scrolled to the max position, the end of the
+container matches up with the end of the view.
+
+The large scroll increment should roughly match up with one view area
+height. Assuming pixel level scrolling, this is the view size, which
+matches the scroll bar height.
+
+Note for future: In some cases, a bit of scroll context is desired, so
+it may make sense to scroll by a bit less than the view size. This may
+depend a bit on what is displayed though. Roughly though, about the
+height of one line of text would be a reasonable scroll context overlap
+size. This should probably be a minimum of at least one line of text.
+That of course assumes scroll context is desired, which maybe it's not.
+---
+ OPHD/UI/Core/ScrollBar.cpp | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/OPHD/UI/Core/ScrollBar.cpp b/OPHD/UI/Core/ScrollBar.cpp
+index 660751426..ea08adfd6 100644
+--- a/OPHD/UI/Core/ScrollBar.cpp
++++ b/OPHD/UI/Core/ScrollBar.cpp
+@@ -253,9 +253,12 @@ void ScrollBar::onMouseUp(EventHandler::MouseButton button, int x, int y)
+ 	const auto mousePosition = NAS2D::Point{x, y};
+ 	if (mTrack.contains(mousePosition) && !mThumb.contains(mousePosition))
+ 	{
+-		const auto isDecrease = (mScrollBarType == ScrollBarType::Vertical) ?
+-			(y < mThumb.y) : (x < mThumb.x);
+-		changeValue((isDecrease ? -3 : 3));
++		const auto [clickPosition, thumbPosition, viewSize] =
++			(mScrollBarType == ScrollBarType::Vertical) ?
++				std::tuple{y, mThumb.y, mRect.height} : std::tuple{x, mThumb.x, mRect.width};
++		const auto changeAmount = (clickPosition < thumbPosition) ?
++			-viewSize : viewSize;
++		changeValue(changeAmount);
+ 	}
+ }
+ 

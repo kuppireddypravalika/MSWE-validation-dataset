@@ -1,0 +1,31 @@
+From 84f7697d59f32212b0122136fb06613aed8f4e4d Mon Sep 17 00:00:00 2001
+From: Phillip Kavan <pkavan@phosphorgames.com>
+Date: Mon, 29 Sep 2014 19:22:24 -0400
+Subject: [PATCH] [347216] Blueprints - Fix excessive compile times due to
+ chained child classes during reinstancing.
+
+- Modified FBlueprintCompileReinstancer::ReinstanceObjects() to recompile only direct descendants of the parent class, as nested child BPs cannot themselves be loaded without the rest of the chain preceding it.
+
+#codereview Nick.Whiting,Maciej.Mroz
+
+[CL 2313648 by Phillip Kavan in Main branch]
+---
+ .../UnrealEd/Private/Kismet2/KismetReinstanceUtilities.cpp    | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Engine/Source/Editor/UnrealEd/Private/Kismet2/KismetReinstanceUtilities.cpp b/Engine/Source/Editor/UnrealEd/Private/Kismet2/KismetReinstanceUtilities.cpp
+index ba0320a948b..00df11cf0dc 100644
+--- a/Engine/Source/Editor/UnrealEd/Private/Kismet2/KismetReinstanceUtilities.cpp
++++ b/Engine/Source/Editor/UnrealEd/Private/Kismet2/KismetReinstanceUtilities.cpp
+@@ -169,9 +169,9 @@ void FBlueprintCompileReinstancer::ReinstanceObjects()
+ 			if( BP->ParentClass == ClassToReinstance || BP->ParentClass == DuplicatedClass)
+ 			{
+ 				ReparentChild(BP);
++
++				FKismetEditorUtilities::CompileBlueprint(BP, false, bSkipGarbageCollection);
+ 			}
+-			
+-			FKismetEditorUtilities::CompileBlueprint(BP, false, bSkipGarbageCollection);
+ 		}
+ 	}
+ }

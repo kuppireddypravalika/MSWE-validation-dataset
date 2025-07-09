@@ -1,0 +1,30 @@
+From 1e06cd8abaec83cc3ae17bcb1a85785afc7d962f Mon Sep 17 00:00:00 2001
+From: paulc <paulc@acf43c95-373e-0410-b603-e72c3f656dc1>
+Date: Mon, 22 Mar 2010 11:30:24 +0000
+Subject: [PATCH] Fortify String appending against concurrency conditions so
+ the resulting string is at most garbled or truncated. It was possible to
+ overwrite arbitrary amounts of memory if the String itself or the appended
+ value were modified during the appending operation.
+
+git-svn-id: http://yate.null.ro/svn/yate/trunk@3133 acf43c95-373e-0410-b603-e72c3f656dc1
+---
+ engine/String.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/engine/String.cpp b/engine/String.cpp
+index 7f1a7f0c6..e9a091e14 100644
+--- a/engine/String.cpp
++++ b/engine/String.cpp
+@@ -562,8 +562,10 @@ String& String::operator+=(const char* value)
+ 	    char *tmp1 = m_string;
+ 	    char *tmp2 = (char *) ::malloc(len+1);
+ 	    if (tmp2) {
+-		::strcpy(tmp2,m_string);
+-		::strcat(tmp2,value);
++		::strncpy(tmp2,m_string,len);
++		tmp2[len] = 0;
++		::strncat(tmp2,value,len);
++		tmp2[len] = 0;
+ 		m_string = tmp2;
+ 		::free(tmp1);
+ 	    }

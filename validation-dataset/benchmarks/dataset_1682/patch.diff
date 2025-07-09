@@ -1,0 +1,24 @@
+From 34d1b179256706111703e557cd1d86b6f9a2180a Mon Sep 17 00:00:00 2001
+From: Robert Loehning <robert.loehning@qt.io>
+Date: Tue, 12 Nov 2019 11:26:39 +0100
+Subject: [PATCH] Fuzzing: Don't copy input data to QByteArray
+
+Change-Id: I1c83b2da19f9d73e4069ecb1f85af71e2ac2b96b
+Reviewed-by: Edward Welbourne <edward.welbourne@qt.io>
+---
+ tests/libfuzzer/qml/jsapi/evaluate/main.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tests/libfuzzer/qml/jsapi/evaluate/main.cpp b/tests/libfuzzer/qml/jsapi/evaluate/main.cpp
+index 9e90ba7cbd8..82b9847bca8 100644
+--- a/tests/libfuzzer/qml/jsapi/evaluate/main.cpp
++++ b/tests/libfuzzer/qml/jsapi/evaluate/main.cpp
+@@ -32,7 +32,7 @@
+ // libfuzzer test for QJSEngine::evaluate()
+ 
+ extern "C" int LLVMFuzzerTestOneInput(const char *Data, size_t Size) {
+-    const QByteArray ba(Data, Size);
++    const QByteArray ba = QByteArray::fromRawData(Data, Size);
+     // avoid potential endless loops
+     if (ba.contains("for") || ba.contains("while"))
+         return 1;

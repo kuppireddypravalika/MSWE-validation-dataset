@@ -1,0 +1,31 @@
+From c08d20c915788a54da4c793bd587c03812bf0328 Mon Sep 17 00:00:00 2001
+From: Kunal Tyagi <tyagi.kunal@live.com>
+Date: Thu, 9 Jan 2020 16:13:50 +0900
+Subject: [PATCH] moment_invariants.hpp: Using algorithms and Eigen functions
+ for better code
+
+---
+ features/include/pcl/features/impl/moment_invariants.hpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/features/include/pcl/features/impl/moment_invariants.hpp b/features/include/pcl/features/impl/moment_invariants.hpp
+index c39f7633395..14baabc6d89 100644
+--- a/features/include/pcl/features/impl/moment_invariants.hpp
++++ b/features/include/pcl/features/impl/moment_invariants.hpp
+@@ -90,12 +90,12 @@ pcl::MomentInvariantsEstimation<PointInT, PointOutT>::computePointMomentInvarian
+   float mu200 = 0, mu020 = 0, mu002 = 0, mu110 = 0, mu101 = 0, mu011  = 0;
+ 
+   // Iterate over the nearest neighbors set
+-  for (std::size_t nn_idx = 0; nn_idx < cloud.points.size (); ++nn_idx )
++  for (const auto& point: cloud.points)
+   {
+     // Demean the points
+-    temp_pt_[0] = cloud.points[nn_idx].x - xyz_centroid_[0];
+-    temp_pt_[1] = cloud.points[nn_idx].y - xyz_centroid_[1];
+-    temp_pt_[2] = cloud.points[nn_idx].z - xyz_centroid_[2];
++    temp_pt_[0] = point.x - xyz_centroid_[0];
++    temp_pt_[1] = point.y - xyz_centroid_[1];
++    temp_pt_[2] = point.z - xyz_centroid_[2];
+ 
+     mu200 += temp_pt_[0] * temp_pt_[0];
+     mu020 += temp_pt_[1] * temp_pt_[1];

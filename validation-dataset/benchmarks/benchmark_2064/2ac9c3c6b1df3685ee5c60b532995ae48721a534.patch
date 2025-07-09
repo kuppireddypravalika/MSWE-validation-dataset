@@ -1,0 +1,23 @@
+From 2ac9c3c6b1df3685ee5c60b532995ae48721a534 Mon Sep 17 00:00:00 2001
+From: Xottab-DUTY <xottab-duty@yandex.ru>
+Date: Thu, 13 Jun 2019 06:21:59 +0500
+Subject: [PATCH] xrCore/LocatorAPI.cpp: disable recursive filesystem root scan
+
+Scan only filesystem root itself, not subfolders.
+---
+ src/xrCore/LocatorAPI.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/xrCore/LocatorAPI.cpp b/src/xrCore/LocatorAPI.cpp
+index 2dc889b93dd..6f823decd29 100644
+--- a/src/xrCore/LocatorAPI.cpp
++++ b/src/xrCore/LocatorAPI.cpp
+@@ -934,7 +934,7 @@ void CLocatorAPI::_initialize(u32 flags, pcstr target_folder, pcstr fs_name)
+         IReader* pFSltx = setup_fs_ltx(fs_name);
+ 
+         FS_Path* pFSRoot = FS.get_path("$fs_root$");
+-        FS.rescan_path(pFSRoot->m_Path, pFSRoot->m_Flags.is(FS_Path::flRecurse));
++        FS.rescan_path(pFSRoot->m_Path, false);
+ 
+         // append all pathes
+         string_path id, root, add, def, capt;

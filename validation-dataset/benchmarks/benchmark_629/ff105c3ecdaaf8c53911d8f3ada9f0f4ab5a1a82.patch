@@ -1,0 +1,24 @@
+From ff105c3ecdaaf8c53911d8f3ada9f0f4ab5a1a82 Mon Sep 17 00:00:00 2001
+From: Raphael Riebl <raphael.riebl@thi.de>
+Date: Thu, 13 Sep 2018 18:39:08 +0200
+Subject: [PATCH] traci: optimise return type of VariableCache::get<>
+
+Change-Id: I4744d29144fb1cef8ca0ffd359ca808b77aff042
+---
+ src/traci/VariableCache.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/traci/VariableCache.h b/src/traci/VariableCache.h
+index 4bcf1a1a2..51e83673e 100644
+--- a/src/traci/VariableCache.h
++++ b/src/traci/VariableCache.h
+@@ -28,7 +28,8 @@ class VariableCache
+      * \param VAR variable identifier
+      */
+     template<int VAR>
+-    typename VariableTrait<VAR>::value_type get()
++    auto get() ->
++    decltype(libsumo::value_cast<typename VariableTrait<VAR>::value_type>(std::declval<const libsumo::TraCIValue&>()))
+     {
+         using value_type = typename VariableTrait<VAR>::value_type;
+ 

@@ -1,0 +1,32 @@
+From bc3658a99441a33bdfe9816fed445071b04391d4 Mon Sep 17 00:00:00 2001
+From: kdesnos <kdesnos@insa-rennes.fr>
+Date: Wed, 13 Nov 2019 15:40:41 +0100
+Subject: [PATCH] (Mutator) Back to 100% code coverage of LineMutator following
+ optimization of Environment Build.
+
+---
+ gegelatilib/src/mutator/lineMutator.cpp | 11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
+
+diff --git a/gegelatilib/src/mutator/lineMutator.cpp b/gegelatilib/src/mutator/lineMutator.cpp
+index 469f7f72..f5db431b 100644
+--- a/gegelatilib/src/mutator/lineMutator.cpp
++++ b/gegelatilib/src/mutator/lineMutator.cpp
+@@ -163,14 +163,9 @@ void Mutator::LineMutator::alterCorrectLine(Program::Line& line)
+ 			// Alter the operand if needed
+ 			if (!isValid) {
+ 				// Force only the change of data source (location can remain unchanged thanks to scaling).
+-				bool forcedChangeWorked = initRandomCorrectLineOperand(instruction, line, i, true, false, true);
+-				if (!forcedChangeWorked) {
+-					// in case the forced change didn't work, no data source has the right type
+-					// for the given instruction. fail.
+-					// This should never happen if there is a check for Instructions viability in the Environment
+-					// Construction.
+-					throw std::runtime_error("An Instruction has no valid dataSource in the DataHandlers.");
+-				}
++				// This can never fail since there is a check for Instructions viability during the Environment
++				// Construction. Hence, eithed isValid is true, OR a valid dataSource will be found among other data sources.
++				initRandomCorrectLineOperand(instruction, line, i, true, false, true);
+ 			}
+ 		}
+ 	}

@@ -1,0 +1,46 @@
+From bd89a0cfdf66cb868dbb85b7f4aa86a8fcb585a5 Mon Sep 17 00:00:00 2001
+From: David Anderson <danderson@mozilla.com>
+Date: Sat, 3 Jul 2010 13:21:23 -0700
+Subject: [PATCH] [JAEGER] Added fast-path for JSOP_OBJTOSTR.
+
+---
+ js/src/methodjit/nunbox/FastOps.cpp | 26 ++++++++++++++++++++++----
+ 1 file changed, 22 insertions(+), 4 deletions(-)
+
+diff --git a/js/src/methodjit/nunbox/FastOps.cpp b/js/src/methodjit/nunbox/FastOps.cpp
+index 56b8ee37f9b..b93ecab81cf 100644
+--- a/js/src/methodjit/nunbox/FastOps.cpp
++++ b/js/src/methodjit/nunbox/FastOps.cpp
+@@ -629,10 +629,28 @@ mjit::Compiler::jsop_relational(JSOp op, BoolStub stub, jsbytecode *target, JSOp
+ void
+ mjit::Compiler::jsop_objtostr()
+ {
+-    prepareStubCall();
+-    stubCall(stubs::ObjToStr, Uses(1), Defs(1));
+-    frame.pop();
+-    frame.pushSynced();
++    FrameEntry *top = frame.peek(-1);
++
++    if (top->isTypeKnown() && top->getKnownType() == JSVAL_TYPE_OBJECT) {
++        prepareStubCall();
++        stubCall(stubs::ObjToStr, Uses(1), Defs(1));
++        frame.pop();
++        frame.pushSynced();
++        return;
++    }
++
++    if (top->isTypeKnown())
++        return;
++
++    frame.giveOwnRegs(top);
++
++    Jump isObj = frame.testPrimitive(Assembler::NotEqual, top);
++    stubcc.linkExit(isObj);
++
++    stubcc.leave();
++    stubcc.call(stubs::ObjToStr);
++
++    stubcc.rejoin(1);
+ }
+ 
+ void

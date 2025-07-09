@@ -1,0 +1,28 @@
+From f51b536e0f9e983ed33a6714cc2feb9196f07d87 Mon Sep 17 00:00:00 2001
+From: Xottab-DUTY <xottab-duty@yandex.ru>
+Date: Tue, 27 Aug 2019 00:03:03 +0500
+Subject: [PATCH] xrEngine/GameMtlLib.cpp: reserve size for materials vector
+ instead of cleaning it
+
+There's no point in cleaning an empty vector, while reserving size can
+slightly speed up initialization. (A few lines above there is an assertions
+that all vectors are empty)
+---
+ src/xrEngine/GameMtlLib.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/xrEngine/GameMtlLib.cpp b/src/xrEngine/GameMtlLib.cpp
+index bf134c6c793..d3f0bd65285 100644
+--- a/src/xrEngine/GameMtlLib.cpp
++++ b/src/xrEngine/GameMtlLib.cpp
+@@ -97,8 +97,8 @@ void CGameMtlLibrary::Load()
+     material_index = fs.r_u32();
+     material_pair_index = fs.r_u32();
+ 
+-    materials.clear();
+-    material_pairs.clear();
++    materials.reserve(material_index);
++    material_pairs.reserve(material_pair_index);
+ 
+     IReader* OBJ = fs.open_chunk(GAMEMTLS_CHUNK_MTLS);
+     if (OBJ)

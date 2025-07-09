@@ -1,0 +1,26 @@
+From a053c4b751f55d2ce4860bc2ed2e48ca1beed033 Mon Sep 17 00:00:00 2001
+From: Craig Topper <craig.topper@gmail.com>
+Date: Tue, 6 Jun 2017 07:13:09 +0000
+Subject: [PATCH] [ValueTracking] Use APInt::intersects to avoid some temporary
+ APInts. NFC
+
+---
+ llvm/lib/Analysis/ValueTracking.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/llvm/lib/Analysis/ValueTracking.cpp b/llvm/lib/Analysis/ValueTracking.cpp
+index a5dceb6c2271..4f1a6c5138f8 100644
+--- a/llvm/lib/Analysis/ValueTracking.cpp
++++ b/llvm/lib/Analysis/ValueTracking.cpp
+@@ -1999,9 +1999,8 @@ static bool isKnownNonEqual(const Value *V1, const Value *V2, const Query &Q) {
+     KnownBits Known2(BitWidth);
+     computeKnownBits(V2, Known2, 0, Q);
+ 
+-    APInt OppositeBits = (Known1.Zero & Known2.One) |
+-                         (Known2.Zero & Known1.One);
+-    if (OppositeBits.getBoolValue())
++    if (Known1.Zero.intersects(Known2.One) ||
++        Known2.Zero.intersects(Known1.One))
+       return true;
+   }
+   return false;

@@ -1,0 +1,41 @@
+From 42c193df08362ba480cd9315af393081e553ab8c Mon Sep 17 00:00:00 2001
+From: Nathan Marley <nathan.marley@gmail.com>
+Date: Thu, 12 Jul 2018 16:08:22 +0700
+Subject: [PATCH] replace map count/insert w/emplace in instantx.cpp (#2165)
+
+* replace map count/insert w/emplace in instantx.cpp
+
+This feels like an optimization, something about:
+
+```
+if map.count(key)
+     return false
+else
+     insert(pair)
+     return true
+```
+
+... just feels icky. Plus, `vote.GetMasternodeOutpoint()` is only called
+once. The previous version might be slightly more readable, however.
+
+* use std::pair template constructor shortcut
+---
+ src/instantx.cpp | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/src/instantx.cpp b/src/instantx.cpp
+index 4bd0c0b483..afe7f7e10f 100644
+--- a/src/instantx.cpp
++++ b/src/instantx.cpp
+@@ -1146,10 +1146,7 @@ bool CTxLockVote::IsFailed() const
+ 
+ bool COutPointLock::AddVote(const CTxLockVote& vote)
+ {
+-    if(mapMasternodeVotes.count(vote.GetMasternodeOutpoint()))
+-        return false;
+-    mapMasternodeVotes.insert(std::make_pair(vote.GetMasternodeOutpoint(), vote));
+-    return true;
++    return mapMasternodeVotes.emplace(vote.GetMasternodeOutpoint(), vote).second;
+ }
+ 
+ std::vector<CTxLockVote> COutPointLock::GetVotes() const

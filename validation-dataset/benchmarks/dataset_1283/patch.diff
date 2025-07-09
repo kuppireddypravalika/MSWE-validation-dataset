@@ -1,0 +1,40 @@
+From 1cbff0fabebaa73aac6071e6cb2fd9505b12d741 Mon Sep 17 00:00:00 2001
+From: Robert McNamara <rmcnamara@mythtv.org>
+Date: Tue, 5 Oct 2010 01:11:02 +0000
+Subject: [PATCH] MythVideo: Remove a superfluous image hunt that was being run
+ on all items without artwork, even though an image hunt can by definition
+ only occur on a subfolder (which we were repeating right away afterwards
+ anyway).  This will be a negligable but worthwhile speed improvement.
+
+git-svn-id: http://svn.mythtv.org/svn/trunk@26645 7dbf422c-18fa-0310-86e9-fd20926502f2
+---
+ mythplugins/mythvideo/mythvideo/videodlg.cpp | 9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
+
+diff --git a/mythplugins/mythvideo/mythvideo/videodlg.cpp b/mythplugins/mythvideo/mythvideo/videodlg.cpp
+index 3fd6d24fa16..7b1c48aa584 100644
+--- a/mythplugins/mythvideo/mythvideo/videodlg.cpp
++++ b/mythplugins/mythvideo/mythvideo/videodlg.cpp
+@@ -1328,6 +1328,7 @@ void VideoDialog::UpdateItem(MythUIButtonListItem *item)
+     QString screenshot = GetScreenshot(node);
+     QString banner     = GetBanner(node);
+     QString fanart     = GetFanart(node);
++    int nodeInt = node->getInt();
+ 
+     if (!screenshot.isEmpty() && parent && metadata &&
+         ((QString::compare(parent->getString(),
+@@ -1336,14 +1337,6 @@ void VideoDialog::UpdateItem(MythUIButtonListItem *item)
+     {
+         item->SetImage(screenshot);
+     }
+-    else
+-    {
+-        if (coverimage.isEmpty())
+-            coverimage = GetFirstImage(node, "Coverart");
+-        item->SetImage(coverimage);
+-    }
+-
+-    int nodeInt = node->getInt();
+ 
+     if (coverimage.isEmpty() && nodeInt == kSubFolder)
+         coverimage = GetFirstImage(node, "Coverart");

@@ -1,0 +1,30 @@
+From c030ce9ea9732b30eae37ac061772affc9e72602 Mon Sep 17 00:00:00 2001
+From: Andrew Craik <ajcraik@ca.ibm.com>
+Date: Wed, 19 Jul 2017 09:49:39 -0400
+Subject: [PATCH] Reduce bit vector allocation in LocalCSE
+
+Currently the init function in LocalCSE will aggressively pre-allocate
+TR_BitVectors. Since most of these structures are fairly sparse we can
+save time and space by delaying allocation since allocation with stack
+regions is now cheap.
+
+Signed-off-by: Andrew Craik <ajcraik@ca.ibm.com>
+---
+ compiler/optimizer/OMRLocalCSE.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/compiler/optimizer/OMRLocalCSE.cpp b/compiler/optimizer/OMRLocalCSE.cpp
+index ab9fb17219..adbfd8d361 100644
+--- a/compiler/optimizer/OMRLocalCSE.cpp
++++ b/compiler/optimizer/OMRLocalCSE.cpp
+@@ -223,8 +223,8 @@ void OMR::LocalCSE::prePerformOnBlocks()
+    TR::Region &stackRegion = comp()->trMemory()->currentStackRegion();
+    _storeMap = new (stackRegion) StoreMap((StoreMapComparator()), StoreMapAllocator(stackRegion));
+ 
+-   int32_t symRefCount = comp()->getSymRefCount();
+-   int32_t nodeCount = comp()->getNodeCount();
++   int32_t symRefCount = 0;//comp()->getSymRefCount();
++   int32_t nodeCount = 0;//comp()->getNodeCount();
+    _seenCallSymbolReferences.init(symRefCount, stackRegion, growable);
+    _availableLoadExprs.init(symRefCount, stackRegion, growable);
+    _availablePinningArrayExprs.init(symRefCount, stackRegion, growable);

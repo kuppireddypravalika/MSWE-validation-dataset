@@ -1,0 +1,38 @@
+From 0b7401d3cdb4a2ecd266396ef1a77c8533a4476d Mon Sep 17 00:00:00 2001
+From: Owen Anderson <resistor@mac.com>
+Date: Sat, 22 Aug 2009 00:29:12 +0000
+Subject: [PATCH] Ease contention on this lock by noticing that all writes to
+ the VTs array will be of (dynamically) constant values, so races on it are
+ immaterial.  We just need to ensure that at least one write has completed
+ before return the pointer into it.
+
+With this change, parllc exhibits essentially no overhead on 403.gcc.
+
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@79708 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/CodeGen/SelectionDAG/SelectionDAG.cpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/lib/CodeGen/SelectionDAG/SelectionDAG.cpp b/lib/CodeGen/SelectionDAG/SelectionDAG.cpp
+index f5de81b9425..91f79146ece 100644
+--- a/lib/CodeGen/SelectionDAG/SelectionDAG.cpp
++++ b/lib/CodeGen/SelectionDAG/SelectionDAG.cpp
+@@ -5022,12 +5022,15 @@ static ManagedStatic<sys::SmartMutex<true> > VTMutex;
+ /// getValueTypeList - Return a pointer to the specified value type.
+ ///
+ const EVT *SDNode::getValueTypeList(EVT VT) {
+-  sys::SmartScopedLock<true> Lock(*VTMutex);
+   if (VT.isExtended()) {
+     return &(*EVTs->insert(VT).first);
+   } else {
++    // All writes to this location will have the same value, so it's ok
++    // to race on it.  We only need to ensure that at least one write has
++    // succeeded before we return the pointer into the array.
+     VTs[VT.getSimpleVT().SimpleTy] = VT;
+-    return &VTs[VT.getSimpleVT().SimpleTy];
++    sys::MemoryFence();
++    return VTs + VT.getSimpleVT().SimpleTy;
+   }
+ }
+ 

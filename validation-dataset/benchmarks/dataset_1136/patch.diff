@@ -1,0 +1,36 @@
+From b3226e433c8f057a906eac2375e4aef0c09100d0 Mon Sep 17 00:00:00 2001
+From: Andrey Kiselev <dron@ak4719.spb.edu>
+Date: Thu, 1 Jan 2004 19:49:50 +0000
+Subject: [PATCH] Use uint16 insted of int16 for the count of tie points.
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@5647 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ frmts/gtiff/geotiff.cpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/frmts/gtiff/geotiff.cpp b/frmts/gtiff/geotiff.cpp
+index bf1a0899b13f..e50e37db48ed 100644
+--- a/frmts/gtiff/geotiff.cpp
++++ b/frmts/gtiff/geotiff.cpp
+@@ -28,6 +28,9 @@
+  ******************************************************************************
+  *
+  * $Log$
++ * Revision 1.101  2004/01/01 19:49:50  dron
++ * Use uint16 insted of int16 for the count of tie points.
++ *
+  * Revision 1.100  2003/12/22 15:08:16  dron
+  * Check, whether all bands in input dataset has the same data type.
+  *
+@@ -2258,9 +2261,9 @@ CPLErr GTiffDataset::OpenOffset( TIFF *hTIFFIn, uint32 nDirOffsetIn,
+ /* -------------------------------------------------------------------- */
+     if( bBaseIn )
+     {
+-        char *pszTabWKT = NULL;
++        char    *pszTabWKT = NULL;
+         double	*padfTiePoints, *padfScale, *padfMatrix;
+-        int16	nCount;
++        uint16	nCount;
+ 
+         adfGeoTransform[0] = 0.0;
+         adfGeoTransform[1] = 1.0;

@@ -1,0 +1,32 @@
+From f0286bed310a4c832eb4495e8420ec06410e0407 Mon Sep 17 00:00:00 2001
+From: "Bohao(Aaron) Wang" <aaronwang0407@gmail.com>
+Date: Fri, 24 May 2019 15:02:14 -0400
+Subject: [PATCH] Overload function void incRefCountForOpaquePseudoRegister in
+ OMR
+
+This patch adds an overload function of
+incRefCountForOpaquePseudoRegister but with less parameters. This is the
+first step out 6 steps to simpify function
+incRefCountForOpaquePseudoRegister.
+
+Issue: eclipse/omr#1855
+Signed-off-by: Bohao(Aaron) Wang <aaronwang0407@gmail.com>
+---
+ compiler/codegen/OMRCodeGenerator.hpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/compiler/codegen/OMRCodeGenerator.hpp b/compiler/codegen/OMRCodeGenerator.hpp
+index f2e7c191a5..ee160dd287 100644
+--- a/compiler/codegen/OMRCodeGenerator.hpp
++++ b/compiler/codegen/OMRCodeGenerator.hpp
+@@ -468,7 +468,10 @@ class OMR_EXTENSIBLE CodeGenerator
+    rcount_t recursivelyDecReferenceCount(TR::Node*node);
+    void evaluateChildrenWithMultipleRefCount(TR::Node*node);
+ 
++   
+    void incRefCountForOpaquePseudoRegister(TR::Node * node, TR::CodeGenerator * cg, TR::Compilation * comp) {}
++   //OVERLOAD THE ABOVE FUNCTION:
++   void incRefCountForOpaquePseudoRegister(TR::Node * node) {}
+ 
+    void startUsingRegister(TR::Register *reg);
+    void stopUsingRegister(TR::Register *reg);

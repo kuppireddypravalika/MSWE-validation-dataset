@@ -1,0 +1,37 @@
+From 0fa458ee13ade9944b690485d58a7a766d6cdaed Mon Sep 17 00:00:00 2001
+From: Dominik Schreiber <mail@dominikschreiber.de>
+Date: Thu, 10 Feb 2022 18:14:29 +0100
+Subject: [PATCH] Increase thread pool size for ranks which are worker AND
+ client
+
+---
+ src/main.cpp | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/src/main.cpp b/src/main.cpp
+index dce88054..b3ee0382 100644
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -156,10 +156,6 @@ int main(int argc, char *argv[]) {
+ 
+     longStartupWarnMsg(rank, "Init'd params");
+ 
+-    ProcessWideThreadPool::init(std::max(4, 2*params.numThreadsPerProcess()));
+-
+-    longStartupWarnMsg(rank, "Init'd thread pool");
+-
+     bool quiet = params.quiet();
+     if (params.zeroOnlyLogging() && rank > 0) quiet = true;
+     std::string logdir = params.logDirectory();
+@@ -210,6 +206,11 @@ int main(int argc, char *argv[]) {
+         if (isClient(i)) clientRanks.push_back(i);
+     }
+     if (rank == 0) LOG(V3_VERB, "%i workers, %i clients\n", workerRanks.size(), clientRanks.size());
++
++    // Initialize thread pool
++    int threadPoolSize = std::max(4, 2*params.numThreadsPerProcess());
++    if (isClient(rank) && isWorker(rank)) threadPoolSize *= 2;
++    ProcessWideThreadPool::init(threadPoolSize);
+     
+     MPI_Comm clientComm, workerComm;
+     {

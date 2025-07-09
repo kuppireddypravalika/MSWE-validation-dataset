@@ -1,0 +1,47 @@
+From 8b2d7977ca74c09e12d235d16a5c6473e60e9961 Mon Sep 17 00:00:00 2001
+From: Marco Bubke <marco.bubke@qt.io>
+Date: Mon, 15 May 2023 14:04:34 +0200
+Subject: [PATCH] Utils: Make CTAD work with std::unexpected
+
+Aliases are not working with CTAD before C++ 20. Instead of aliasing
+some types we simply importing the namespace tl into the namespace
+Utils. This enables some not aliased things too.
+
+Change-Id: Ic61a50bedbbf7253ecb5bb1f6dc0624dcc704aa0
+Reviewed-by: <github-actions-qt-creator@cristianadam.eu>
+Reviewed-by: Marcus Tillmanns <marcus.tillmanns@qt.io>
+Reviewed-by: Qt CI Bot <qt_ci_bot@qt-project.org>
+---
+ src/libs/utils/expected.h | 15 +--------------
+ 1 file changed, 1 insertion(+), 14 deletions(-)
+
+diff --git a/src/libs/utils/expected.h b/src/libs/utils/expected.h
+index 943cfe5591f..33231c1246e 100644
+--- a/src/libs/utils/expected.h
++++ b/src/libs/utils/expected.h
+@@ -9,24 +9,11 @@
+ 
+ namespace Utils {
+ 
+-template<class T, class E>
+-using expected = tl::expected<T, E>;
++using namespace tl;
+ 
+ template<class T>
+ using expected_str = tl::expected<T, QString>;
+ 
+-template<class E>
+-using unexpected = tl::unexpected<E>;
+-using unexpect_t = tl::unexpect_t;
+-
+-static constexpr unexpect_t unexpect{};
+-
+-template<class E>
+-constexpr unexpected<std::decay_t<E>> make_unexpected(E &&e)
+-{
+-    return tl::make_unexpected(e);
+-}
+-
+ } // namespace Utils
+ 
+ //! If 'expected' has an error the error will be printed and the 'action' will be executed.

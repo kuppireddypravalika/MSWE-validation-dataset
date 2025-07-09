@@ -1,0 +1,23 @@
+From 72b407109d9dbeb72f2e52ddb02b067f97d2f7ff Mon Sep 17 00:00:00 2001
+From: tack <none@none>
+Date: Fri, 22 Jul 2005 10:10:41 +0100
+Subject: [PATCH] Squeeze result of rand() into an Alice integer
+
+---
+ vm-seam/alice/lib/system/UnsafeRand.cc | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/vm-seam/alice/lib/system/UnsafeRand.cc b/vm-seam/alice/lib/system/UnsafeRand.cc
+index 1881531c8..3efd980ec 100644
+--- a/vm-seam/alice/lib/system/UnsafeRand.cc
++++ b/vm-seam/alice/lib/system/UnsafeRand.cc
+@@ -14,7 +14,8 @@
+ #include "alice/Authoring.hh"
+ 
+ DEFINE0(UnsafeRand_rand) {
+-  RETURN_INT(rand());
++  int rnd = (int) ( ((double)MAX_VALID_INT)*rand()/(RAND_MAX+1.0));
++  RETURN_INT(rnd);
+ } END
+ 
+ DEFINE1(UnsafeRand_srand) {

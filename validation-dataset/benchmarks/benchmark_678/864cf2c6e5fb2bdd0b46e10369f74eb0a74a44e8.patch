@@ -1,0 +1,40 @@
+From 864cf2c6e5fb2bdd0b46e10369f74eb0a74a44e8 Mon Sep 17 00:00:00 2001
+From: delmon <delmon>
+Date: Thu, 24 Mar 2011 16:45:49 +0000
+Subject: [PATCH] Improvement of clitkGammaIndex.cxx by changing distance
+ computation class.
+
+---
+ tools/clitkGammaIndex.cxx | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/tools/clitkGammaIndex.cxx b/tools/clitkGammaIndex.cxx
+index 4748bff1..39cbf6f7 100644
+--- a/tools/clitkGammaIndex.cxx
++++ b/tools/clitkGammaIndex.cxx
+@@ -8,7 +8,7 @@ using std::endl;
+ #include <itkShiftScaleImageFilter.h>
+ #include <itkImageConstIteratorWithIndex.h>
+ #include <itkChangeInformationImageFilter.h>
+-#include <itkSignedDanielssonDistanceMapImageFilter.h>
++#include <itkSignedMaurerDistanceMapImageFilter.h>
+ 
+ #include "clitkGammaIndex_ggo.h"
+ 
+@@ -24,7 +24,7 @@ typedef itk::ChangeInformationImageFilter<Image> Scaler;
+ 
+ typedef itk::Image<unsigned char,image_dim+1> ImageBin;
+ typedef itk::Image<float,image_dim+1> ImageMap;
+-typedef itk::SignedDanielssonDistanceMapImageFilter<ImageBin,ImageMap> Mapper;
++typedef itk::SignedMaurerDistanceMapImageFilter<ImageBin,ImageMap> Mapper;
+ 
+ template <typename ImageType>
+ void SaveImage(const ImageType *image, const std::string &filename) {
+@@ -295,6 +295,7 @@ int main(int argc,char * argv[])
+   // compute distance map
+   Mapper::Pointer mapper = Mapper::New();
+   mapper->InsideIsPositiveOn();
++  mapper->SquaredDistanceOff();
+   mapper->UseImageSpacingOn();
+   mapper->SetInput(image_bin);
+   mapper->Update();

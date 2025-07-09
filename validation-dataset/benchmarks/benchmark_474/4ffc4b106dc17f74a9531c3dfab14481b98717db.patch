@@ -1,0 +1,40 @@
+From 4ffc4b106dc17f74a9531c3dfab14481b98717db Mon Sep 17 00:00:00 2001
+From: Tim Ambrogi <tim.ambrogi@gmail.com>
+Date: Thu, 19 May 2022 10:15:20 -0400
+Subject: [PATCH] Fixed critical bug causing tasks to leak when serially
+ assigning multiple times to a TaskHandle. Removed extraneous de-optimization
+ of WaitForAll awaiter.
+
+---
+ .../SquidTasks/Source/SquidTasks/Public/SquidTasks/Task.h     | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/unreal/Plugins/SquidTasks/Source/SquidTasks/Public/SquidTasks/Task.h b/unreal/Plugins/SquidTasks/Source/SquidTasks/Public/SquidTasks/Task.h
+index 7f3e2b7..555567a 100644
+--- a/unreal/Plugins/SquidTasks/Source/SquidTasks/Public/SquidTasks/Task.h
++++ b/unreal/Plugins/SquidTasks/Source/SquidTasks/Public/SquidTasks/Task.h
+@@ -225,7 +225,7 @@ class Task
+ 		AddRef();
+ 	}
+ 	Task(const Task& in_otherTask) /// Copy constructor (TaskHandle/WeakTaskHandle only)
+-		: Task(in_otherTask.GetInternalTask())
++		: m_taskInternal(in_otherTask.GetInternalTask())
+ 	{
+ 		static_assert(IsCopyable(), "Cannot copy-construct Task/WeakTask (only TaskHandle/WeakTaskHandle)");
+ 		AddRef();
+@@ -807,7 +807,6 @@ inline Task<> WaitForAny(TArray<TaskSingleEntry> in_entries)
+ }
+ 
+ /// Awaiter task that manages a set of other awaiters and waits until all of them are done
+-COROUTINE_OPTIMIZE_OFF // NOTE: There is a compiler optimization bug in versions of Clang used on some platforms that cause it to crash when compiling this function
+ inline Task<> WaitForAll(TArray<TaskSingleEntry> in_entries)
+ {
+ 	TASK_NAME_ENTRIES_ALL(__FUNCTION__, in_entries);
+@@ -834,7 +833,6 @@ inline Task<> WaitForAll(TArray<TaskSingleEntry> in_entries)
+ 		co_await Suspend();
+ 	}
+ }
+-COROUTINE_OPTIMIZE_ON
+ 
+ /// Awaiter task that behaves like WaitForAny(), but returns a value associated with whichever awaiter finishes first
+ template<class tValue>

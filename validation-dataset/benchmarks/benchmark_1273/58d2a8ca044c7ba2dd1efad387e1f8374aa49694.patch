@@ -1,0 +1,31 @@
+From 58d2a8ca044c7ba2dd1efad387e1f8374aa49694 Mon Sep 17 00:00:00 2001
+From: "Sean D. Cline" <sean.d.cline@gmail.com>
+Date: Sun, 25 Feb 2024 17:26:13 -0500
+Subject: [PATCH] Optimisation: Use a pointer dynamic_cast instead of an
+ exeption as control-flow.
+
+---
+ src/pystack.cpp | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/src/pystack.cpp b/src/pystack.cpp
+index 37b6081..4094e40 100644
+--- a/src/pystack.cpp
++++ b/src/pystack.cpp
+@@ -65,10 +65,12 @@ namespace {
+ 	{
+ 		ostringstream oss;
+ 
+-		try {
+-			auto& interpreterFrame = dynamic_cast<const PyInterpreterFrame&>(frame);
+-			oss << utils::link("[Frame]", "!pyinterpreterframe 0n"s + to_string(interpreterFrame.offset()), "Inspect interpreter frame (including localsplus).") << " ";
+-		} catch (bad_cast&) {
++		auto* interpreterFrame = dynamic_cast<const PyInterpreterFrame*>(&frame);
++		if (interpreterFrame) {
++			// 3.11+
++			oss << utils::link("[Frame]", "!pyinterpreterframe 0n"s + to_string(interpreterFrame->offset()), "Inspect interpreter frame (including localsplus).") << " ";
++		} else {
++			// <3.11
+ 			auto& frameObject = dynamic_cast<const PyFrameObject&>(frame);
+ 			oss << utils::link("[Frame]", "!pyobj 0n"s + to_string(frameObject.offset()), "Inspect frame object (including localsplus).") << " ";
+ 		}

@@ -1,0 +1,24 @@
+From 2ef8403bfae6938067ddc36807d53e30c97373d5 Mon Sep 17 00:00:00 2001
+From: Max Kellermann <max@duempel.org>
+Date: Fri, 19 Feb 2016 19:40:23 +0100
+Subject: [PATCH] tag/Id3Load: don't read again if we already have enough data
+
+---
+ src/tag/Id3Load.cxx | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/tag/Id3Load.cxx b/src/tag/Id3Load.cxx
+index 7e41c12e19..c202ac619a 100644
+--- a/src/tag/Id3Load.cxx
++++ b/src/tag/Id3Load.cxx
+@@ -72,6 +72,10 @@ tag_id3_read(FILE *stream, long offset, int whence)
+ 	if (tag_size <= 0) return nullptr;
+ 
+ 	/* Found a tag.  Allocate a buffer and read it in. */
++	if (size_t(tag_size) <= query_buffer_size)
++		/* we have enough data already */
++		return UniqueId3Tag(id3_tag_parse(query_buffer, tag_size));
++
+ 	std::unique_ptr<id3_byte_t[]> tag_buffer(new id3_byte_t[tag_size]);
+ 	int tag_buffer_size = fill_buffer(tag_buffer.get(), tag_size,
+ 					  stream, offset, whence);

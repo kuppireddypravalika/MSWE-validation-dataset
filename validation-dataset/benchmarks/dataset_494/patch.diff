@@ -1,0 +1,32 @@
+From f3a22f563d12df87b0739197ec1f1e063b113e3d Mon Sep 17 00:00:00 2001
+From: Xottab-DUTY <xottab-duty@yandex.ru>
+Date: Fri, 17 Jan 2020 22:35:57 +0500
+Subject: [PATCH] xrGame/ui/UIRankingWnd.cpp: optimized achievement creation
+
+---
+ src/xrGame/ui/UIRankingWnd.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/src/xrGame/ui/UIRankingWnd.cpp b/src/xrGame/ui/UIRankingWnd.cpp
+index 3a1752ad917..be74b00d631 100644
+--- a/src/xrGame/ui/UIRankingWnd.cpp
++++ b/src/xrGame/ui/UIRankingWnd.cpp
+@@ -225,7 +225,8 @@ void CUIRankingWnd::add_achievement(CUIXml& xml, shared_str const& achiev_id)
+         return;
+     }
+ 
+-    CUIAchievements* achievement = new CUIAchievements(m_achievements);
++    CUIAchievements* achievement = m_achieves_vec.emplace_back(new CUIAchievements(m_achievements));
++
+     achievement->init_from_xml(xml);
+ 
+     achievement->SetName(pSettings->r_string(achiev_id, "name"));
+@@ -234,8 +235,6 @@ void CUIRankingWnd::add_achievement(CUIXml& xml, shared_str const& achiev_id)
+     achievement->SetIcon(pSettings->r_string(achiev_id, "icon"));
+     achievement->SetFunctor(pSettings->r_string(achiev_id, "functor"));
+     achievement->SetRepeatable(!!READ_IF_EXISTS(pSettings, r_bool, achiev_id, "repeatable", false));
+-
+-    m_achieves_vec.push_back(achievement);
+ }
+ 
+ void CUIRankingWnd::update_info()

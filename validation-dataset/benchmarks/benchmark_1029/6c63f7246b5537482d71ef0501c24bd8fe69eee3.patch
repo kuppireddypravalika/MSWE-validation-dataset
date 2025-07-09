@@ -1,0 +1,45 @@
+From 6c63f7246b5537482d71ef0501c24bd8fe69eee3 Mon Sep 17 00:00:00 2001
+From: Martin Holtkamp <mholt012@gmail.com>
+Date: Tue, 11 Oct 2022 14:39:04 -0400
+Subject: [PATCH] FrameStep() now does a 60hz frame
+
+---
+ Engine/Source/Engine/Engine.cpp | 22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
+
+diff --git a/Engine/Source/Engine/Engine.cpp b/Engine/Source/Engine/Engine.cpp
+index fce0d948..f53374d1 100644
+--- a/Engine/Source/Engine/Engine.cpp
++++ b/Engine/Source/Engine/Engine.cpp
+@@ -260,19 +260,21 @@ bool Update()
+ 
+     gameDeltaTime *= GetTimeDilation();
+ 
+-    bool doFrameStep = sEngineState.mFrameStep;
++    if (IsPaused())
++    {
++        gameDeltaTime = 0.0f;
++    }
+ 
+-    if (!doFrameStep)
++    if (IsPlayingInEditor() && IsPlayInEditorPaused())
+     {
+-        if (IsPaused())
+-        {
+-            gameDeltaTime = 0.0f;
+-        }
++        gameDeltaTime = 0.0f;
++    }
+ 
+-        if (IsPlayingInEditor() && IsPlayInEditorPaused())
+-        {
+-            gameDeltaTime = 0.0f;
+-        }
++    bool doFrameStep = sEngineState.mFrameStep;
++    if (gameDeltaTime == 0.0f && doFrameStep)
++    {
++        // Force a 60 fps frame
++        gameDeltaTime = 0.016f;
+     }
+ 
+     sEngineState.mRealDeltaTime = realDeltaTime;

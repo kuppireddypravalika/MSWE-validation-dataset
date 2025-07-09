@@ -1,0 +1,22 @@
+From e81f9948a8bc98e300469e0016a46236e1b0fa1b Mon Sep 17 00:00:00 2001
+From: Ryan Pavlik <ryan@sensics.com>
+Date: Mon, 11 May 2015 13:31:52 -0500
+Subject: [PATCH] Do an emplace_back instead of push_back.
+
+---
+ driver_osvr.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/driver_osvr.cpp b/driver_osvr.cpp
+index 6e75c62..9dac05f 100644
+--- a/driver_osvr.cpp
++++ b/driver_osvr.cpp
+@@ -94,7 +94,7 @@ vr::HmdError CDriver_OSVR::Init(const char* pchUserConfigDir, const char* pchDri
+ 
+ 	const std::string display_description = context_->getStringParameter("/display");
+ 	osvr::clientkit::Interface head_tracker_interface = context_->getInterface("/me/head");
+-	hmds_.push_back(std::make_unique<OSVRHmd>(display_description, &head_tracker_interface));
++	hmds_.emplace_back(std::make_unique<OSVRHmd>(display_description, &head_tracker_interface));
+ 
+ 	client_->start();
+ 

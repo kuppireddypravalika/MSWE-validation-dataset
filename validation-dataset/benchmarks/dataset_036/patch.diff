@@ -1,0 +1,31 @@
+From 7fe5d390e4c211fcc05d9be744f2ffb21ac31d76 Mon Sep 17 00:00:00 2001
+From: csoler <csoler@users.sourceforge.net>
+Date: Sun, 24 Jan 2021 22:33:13 +0100
+Subject: [PATCH] async markRead in posted to make it faster
+
+---
+ retroshare-gui/src/gui/Posted/PostedPostsModel.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/retroshare-gui/src/gui/Posted/PostedPostsModel.cpp b/retroshare-gui/src/gui/Posted/PostedPostsModel.cpp
+index 94290e3a5a..908c76385e 100644
+--- a/retroshare-gui/src/gui/Posted/PostedPostsModel.cpp
++++ b/retroshare-gui/src/gui/Posted/PostedPostsModel.cpp
+@@ -732,13 +732,13 @@ void RsPostedPostsModel::setAllMsgReadStatus(bool read)
+     for(uint32_t i=0;i<mPosts.size();++i)
+         pairs.push_back(RsGxsGrpMsgIdPair(mPosts[i].mMeta.mGroupId,mPosts[i].mMeta.mMsgId));
+ 
+-    RsThread::async([read,pairs]()
+-    {
+         // Call blocking API
+ 
+-        for(auto& p:pairs)
++    for(auto& p:pairs)
++        RsThread::async([read,p]()
++        {
+             rsPosted->setPostReadStatus(p,read);
+-    } );
++        } );
+ }
+ void RsPostedPostsModel::setMsgReadStatus(const QModelIndex& i,bool read_status)
+ {

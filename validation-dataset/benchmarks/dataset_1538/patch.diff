@@ -1,0 +1,22 @@
+From ead5317d7b4cdc51be3f61db272f659de336b9c2 Mon Sep 17 00:00:00 2001
+From: gulliver <gulliver@fargonauten.de>
+Date: Thu, 24 Feb 2011 21:26:09 +0000
+Subject: [PATCH] reserve enough space (2*length)
+
+---
+ src/library/field.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/library/field.cpp b/src/library/field.cpp
+index 5839ea9e..e4f5fa10 100644
+--- a/src/library/field.cpp
++++ b/src/library/field.cpp
+@@ -107,7 +107,7 @@ string Blob::toHex(void) const
+   }
+   else
+   {
+-    result.reserve(m_length);
++    result.reserve(2*m_length);
+     for (size_t i = 0; i < m_length;i++)
+     {
+       result.push_back( hexDigits[(m_data[i]&0xf0) >>4]);

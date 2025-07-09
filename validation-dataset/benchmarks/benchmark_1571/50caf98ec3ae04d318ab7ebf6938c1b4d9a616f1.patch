@@ -1,0 +1,27 @@
+From 50caf98ec3ae04d318ab7ebf6938c1b4d9a616f1 Mon Sep 17 00:00:00 2001
+From: J-Donald Tournier <jdtournier@gmail.com>
+Date: Fri, 25 Nov 2016 13:02:57 +0000
+Subject: [PATCH] dwidenoise: add brackets to final recombine step
+
+This addresses the huge drop in performance observed with Eigen 3.3, as
+discussed in #833.
+---
+ cmd/dwidenoise.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/cmd/dwidenoise.cpp b/cmd/dwidenoise.cpp
+index e4a6adeba3..b822a67422 100644
+--- a/cmd/dwidenoise.cpp
++++ b/cmd/dwidenoise.cpp
+@@ -149,9 +149,9 @@ class DenoisingFunctor
+       s.head (cutoff_p).setZero();
+       s.tail (r-cutoff_p).setOnes();
+       if (m <= n) 
+-        X.col (n/2) = eig.eigenvectors() * s.asDiagonal() * eig.eigenvectors().adjoint() * X.col(n/2);
++        X.col (n/2) = eig.eigenvectors() * ( s.asDiagonal() * ( eig.eigenvectors().adjoint() * X.col(n/2) ));
+       else 
+-        X.col (n/2) = X * eig.eigenvectors() * s.asDiagonal() * eig.eigenvectors().adjoint().col(n/2);
++        X.col (n/2) = X * ( eig.eigenvectors() * ( s.asDiagonal() * eig.eigenvectors().adjoint().col(n/2) ));
+     }
+ 
+     // Store output

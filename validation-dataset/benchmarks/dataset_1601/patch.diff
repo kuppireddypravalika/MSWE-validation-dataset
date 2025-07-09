@@ -1,0 +1,22 @@
+From ee68ab9860e8296086c6994fe23e5cef05b831e3 Mon Sep 17 00:00:00 2001
+From: Harald Lang <harald.lang@in.tum.de>
+Date: Fri, 25 Oct 2019 17:59:27 +0200
+Subject: [PATCH] call shrink after insert, otherwise memory consumption
+ explodes after a few insert when using WAH as diff structure
+
+---
+ src/dtl/bitmap/diff/diff.hpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/dtl/bitmap/diff/diff.hpp b/src/dtl/bitmap/diff/diff.hpp
+index e59fa6d8..54a87a21 100644
+--- a/src/dtl/bitmap/diff/diff.hpp
++++ b/src/dtl/bitmap/diff/diff.hpp
+@@ -97,6 +97,7 @@ class diff {
+     u1 current_val = bitmap_val ^ diff_val;
+     if (current_val != val) {
+       diff_->set(i, bitmap_val ^ val);
++      diff_->shrink();
+     }
+   }
+ 

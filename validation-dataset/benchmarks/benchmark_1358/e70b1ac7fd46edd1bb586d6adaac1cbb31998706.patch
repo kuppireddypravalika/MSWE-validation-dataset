@@ -1,0 +1,32 @@
+From e70b1ac7fd46edd1bb586d6adaac1cbb31998706 Mon Sep 17 00:00:00 2001
+From: Guido Tack <guido.tack@monash.edu>
+Date: Sat, 5 Nov 2016 11:40:56 +1100
+Subject: [PATCH] Don't simply remove variables whose right hand side has
+ become redundant during optimisation. Fixes #123.
+
+---
+ lib/optimize.cpp | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/lib/optimize.cpp b/lib/optimize.cpp
+index 37e60da41..57ef5d7ac 100644
+--- a/lib/optimize.cpp
++++ b/lib/optimize.cpp
+@@ -989,7 +989,16 @@ namespace MiniZinc {
+           }
+           CollectDecls cd(env.vo,deletedVarDecls,ii);
+           topDown(cd,c);
+-          env.flat_removeItem(ii);
++
++          if (VarDeclI* vdi = ii->dyn_cast<VarDeclI>()) {
++            vdi->e()->e(constants().boollit(is_true));
++            pushDependentConstraints(env, vdi->e()->id(), constraintQueue);
++            if (env.vo.occurrences(vdi->e())==0) {
++              vdi->remove();
++            }
++          } else {
++            env.flat_removeItem(ii);
++          }
+         }
+       } else if (c->id()==constants().ids.bool2int) {
+         VarDeclI* vdi = ii->cast<VarDeclI>();

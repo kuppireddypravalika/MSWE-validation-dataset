@@ -1,0 +1,23 @@
+From 71518a48d04f5b5d84a89af3296abf4e92ccb7d0 Mon Sep 17 00:00:00 2001
+From: "bernard.parisse" <bernard.parisse@23ce0884-8a58-47d3-bc5c-ddf1cd5b9f9e>
+Date: Thu, 15 Oct 2020 16:59:35 +0000
+Subject: [PATCH] [giac] attempt to improve
+ solve(sqrt(abs(x^2-25)+25)=abs(x+4)+4);
+
+git-svn-id: https://dev.geogebra.org/svn/trunk/geogebra/giac@69642 23ce0884-8a58-47d3-bc5c-ddf1cd5b9f9e
+---
+ src/giac/cpp/solve.cc | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/giac/cpp/solve.cc b/src/giac/cpp/solve.cc
+index 79334b79..b60818a7 100644
+--- a/src/giac/cpp/solve.cc
++++ b/src/giac/cpp/solve.cc
+@@ -2050,6 +2050,7 @@ namespace giac {
+ 	continue;
+       vecteur res;
+       gen ee=subst(expr,*itla,g,false,contextptr);
++      ee=simplifier(ee,contextptr);
+       vecteur v1=solve(ee,x,isolate_mode,contextptr);
+       const_iterateur it=v1.begin(),itend=v1.end();
+       for (;it!=itend;++it){

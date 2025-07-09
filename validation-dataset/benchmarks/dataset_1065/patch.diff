@@ -1,0 +1,26 @@
+From 3d52e7834cad73f843ba5825dec5f46d46d40870 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Sun, 8 Apr 2012 13:03:59 +0000
+Subject: [PATCH] VFK: speed-up access to temporary sqlite DB by setting
+ synchronous = OFF
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@24207 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/ogr/ogrsf_frmts/vfk/vfkreadersqlite.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/gdal/ogr/ogrsf_frmts/vfk/vfkreadersqlite.cpp b/gdal/ogr/ogrsf_frmts/vfk/vfkreadersqlite.cpp
+index 54b5565e546b..c5fb31ad595a 100644
+--- a/gdal/ogr/ogrsf_frmts/vfk/vfkreadersqlite.cpp
++++ b/gdal/ogr/ogrsf_frmts/vfk/vfkreadersqlite.cpp
+@@ -65,6 +65,10 @@ VFKReaderSQLite::VFKReaderSQLite(const char *pszFilename) : VFKReader(pszFilenam
+ 	CPLError(CE_Failure, CPLE_AppDefined, 
+ 		 "Creating in-memory SQLite DB failed");
+     }
++
++    char* pszErrMsg = NULL;
++    sqlite3_exec( m_poDB, "PRAGMA synchronous = OFF", NULL, NULL, &pszErrMsg );
++    sqlite3_free( pszErrMsg );
+ }
+ 
+ /*!

@@ -1,0 +1,30 @@
+From 0254c279dabbacfb894c606933f5d04b523b7de8 Mon Sep 17 00:00:00 2001
+From: NotCompsky <adammarkgray@gmail.com>
+Date: Sun, 19 Jul 2020 14:12:50 +0100
+Subject: [PATCH] Performance		Use compile-time strlen.
+
+---
+ utils/src/init.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/utils/src/init.cpp b/utils/src/init.cpp
+index 952ffd91..81e1e160 100644
+--- a/utils/src/init.cpp
++++ b/utils/src/init.cpp
+@@ -1,6 +1,6 @@
+ #include <compsky/mysql/create_config.hpp>
+ #include <cstdlib> // for malloc
+-#include <string.h> // for strlen
++#include <string> // for char_traits
+ 
+ 
+ namespace compsky {
+@@ -18,7 +18,7 @@ int main(){
+ 		#include "procedures.sql"
+ 	;
+ 
+-	void* dummy = malloc(strlen(sql) + 1024);
++	void* dummy = malloc(std::char_traits<char>::length(sql) + 1024);
+ 	if (dummy == nullptr)
+ 		return 1;
+ 

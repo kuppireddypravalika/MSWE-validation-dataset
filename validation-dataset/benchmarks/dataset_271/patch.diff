@@ -1,0 +1,28 @@
+From e2041b16f49450f80263bf87486dae6d0e8e14ba Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Thu, 16 Nov 2017 08:54:39 +0000
+Subject: [PATCH] ENVI: improve file size consistency check to avoid OOM
+ situations. Fixes https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=4241.
+ Credit to OSS Fuzz
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@40726 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/frmts/raw/envidataset.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/gdal/frmts/raw/envidataset.cpp b/gdal/frmts/raw/envidataset.cpp
+index 97b83f607e12..7a1e8c7cfa62 100644
+--- a/gdal/frmts/raw/envidataset.cpp
++++ b/gdal/frmts/raw/envidataset.cpp
+@@ -2339,8 +2339,9 @@ GDALDataset *ENVIDataset::Open( GDALOpenInfo *poOpenInfo )
+         static_cast<vsi_l_offset>(nPixelOffset) * poDS->nRasterXSize > 20000 )
+     {
+         vsi_l_offset nExpectedFileSize =
+-                nHeaderSize + nBandOffset * (nBands - 1) +
+-                            (poDS->nRasterXSize-1) * nPixelOffset;
++            nHeaderSize + nBandOffset * (nBands - 1) +
++            (poDS->nRasterYSize-1) * static_cast<vsi_l_offset>(nLineOffset) +
++            (poDS->nRasterXSize-1) * static_cast<vsi_l_offset>(nPixelOffset);
+         CPL_IGNORE_RET_VAL( VSIFSeekL(poDS->fpImage, 0, SEEK_END) );
+         vsi_l_offset nFileSize = VSIFTellL(poDS->fpImage);
+         if( nFileSize < nExpectedFileSize )

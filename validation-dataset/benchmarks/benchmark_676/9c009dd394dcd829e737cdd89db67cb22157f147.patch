@@ -1,0 +1,29 @@
+From 9c009dd394dcd829e737cdd89db67cb22157f147 Mon Sep 17 00:00:00 2001
+From: Liqiang Lu <116412316+liqiangxl@users.noreply.github.com>
+Date: Fri, 27 Sep 2024 13:54:06 -0400
+Subject: [PATCH] only set maxrregcount when want to use less than 255
+ registers (#2968)
+
+With maxrregcount = 255, compiler may use more registers and lead to lower occupancy.
+See https://docs.google.com/document/d/14GFuGodBatD-g7_Ws--4QEjPZGAAPOPZOhjrETX-gX8/edit#heading=h.rxgxv47beek8 for details.
+---
+ csrc/fusion_executor/executor_utils.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/csrc/fusion_executor/executor_utils.cpp b/csrc/fusion_executor/executor_utils.cpp
+index 3d7c80a49f9..e39c6b993b0 100644
+--- a/csrc/fusion_executor/executor_utils.cpp
++++ b/csrc/fusion_executor/executor_utils.cpp
+@@ -811,8 +811,10 @@ std::optional<int64_t> getMaxRegCount(
+     max_register = env_max_reg_count;
+   }
+ 
+-  // At this point, max_register should be <= max_register_limit if set
+-  if (max_register <= max_register_limit) {
++  // only need to set this option when we want to limit the register usage,
++  // otherwise compiler with cuda-12.7 may use more registers than needed,
++  // which may cause lower occupancy and performance regression.
++  if (max_register < max_register_limit) {
+     return max_register;
+   } else {
+     return std::optional<int64_t>();

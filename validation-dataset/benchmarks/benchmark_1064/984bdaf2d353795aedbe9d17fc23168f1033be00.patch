@@ -1,0 +1,38 @@
+From 984bdaf2d353795aedbe9d17fc23168f1033be00 Mon Sep 17 00:00:00 2001
+From: John Criswell <criswell@uiuc.edu>
+Date: Mon, 1 Dec 2008 17:25:29 +0000
+Subject: [PATCH] Switched to the new LLVM memcpy()/memset()/memmove()
+ intrinsic names.
+
+git-svn-id: https://llvm.org/svn/llvm-project/poolalloc/trunk@60356 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ lib/DSA/Local.cpp | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
+
+diff --git a/lib/DSA/Local.cpp b/lib/DSA/Local.cpp
+index 41ff5802..2d9cb8d9 100644
+--- a/lib/DSA/Local.cpp
++++ b/lib/DSA/Local.cpp
+@@ -575,10 +575,8 @@ bool GraphBuilder::visitIntrinsic(CallSite CS, Function *F) {
+   case Intrinsic::dbg_region_start:
+   case Intrinsic::dbg_declare:
+     return true;  // noop
+-  case Intrinsic::memcpy_i32: 
+-  case Intrinsic::memcpy_i64:
+-  case Intrinsic::memmove_i32:
+-  case Intrinsic::memmove_i64: {
++  case Intrinsic::memcpy: 
++  case Intrinsic::memmove: {
+     // Merge the first & second arguments, and mark the memory read and
+     // modified.
+     DSNodeHandle RetNH = getValueDest(**CS.arg_begin());
+@@ -587,8 +585,7 @@ bool GraphBuilder::visitIntrinsic(CallSite CS, Function *F) {
+       N->setModifiedMarker()->setReadMarker();
+     return true;
+   }
+-  case Intrinsic::memset_i32:
+-  case Intrinsic::memset_i64:
++  case Intrinsic::memset:
+     // Mark the memory modified.
+     if (DSNode *N = getValueDest(**CS.arg_begin()).getNode())
+       N->setModifiedMarker();

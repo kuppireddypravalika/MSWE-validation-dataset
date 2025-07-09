@@ -1,0 +1,28 @@
+From 71ff2d3571e00e2859fab1f290230eeabb677706 Mon Sep 17 00:00:00 2001
+From: Milian Wolff <milian.wolff@kdab.com>
+Date: Thu, 30 Apr 2015 15:56:16 +0200
+Subject: [PATCH] Do not query the row count repeatedly.
+
+The compiler is not smart enough to hoist this call out
+of the loop. But we can expect that the row count will not
+change during a call to filterAcceptsRow.
+
+Also pushed this change upstream to kf5 kitemmodels with commit
+704fdba37be1e690e7a91b443304c22b47b2bfb5
+---
+ 3rdparty/kde/krecursivefilterproxymodel.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/3rdparty/kde/krecursivefilterproxymodel.cpp b/3rdparty/kde/krecursivefilterproxymodel.cpp
+index 7e72e10b5d..8219ef483c 100644
+--- a/3rdparty/kde/krecursivefilterproxymodel.cpp
++++ b/3rdparty/kde/krecursivefilterproxymodel.cpp
+@@ -301,7 +301,7 @@ bool KRecursiveFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelInd
+     Q_ASSERT(source_index.isValid());
+     bool accepted = false;
+ 
+-    for (int row = 0; row < sourceModel()->rowCount(source_index); ++row) {
++    for (int row = 0, rows = sourceModel()->rowCount(source_index); row < rows; ++row) {
+         if (filterAcceptsRow(row, source_index)) {
+             accepted = true;
+             break;

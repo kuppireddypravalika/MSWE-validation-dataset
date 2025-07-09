@@ -1,0 +1,28 @@
+From 36a2d853bd42658a71610e270001a86bb10e9abd Mon Sep 17 00:00:00 2001
+From: Warren Dukes <warren.dukes@gmail.com>
+Date: Fri, 22 Oct 2004 20:43:20 +0000
+Subject: [PATCH] use vbr for now, less cpu usage for some reason
+
+git-svn-id: https://svn.musicpd.org/mpd/trunk@2304 09075e82-0dd4-0310-85a5-a0d7c8717e4f
+---
+ src/audioOutput_shout.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/src/audioOutput_shout.c b/src/audioOutput_shout.c
+index 12162b2406..fdf1937a45 100644
+--- a/src/audioOutput_shout.c
++++ b/src/audioOutput_shout.c
+@@ -202,11 +202,8 @@ static int shout_openDevice(AudioOutput * audioOutput,
+ 
+ 	vorbis_info_init(&(sd->vi));
+ 
+-#define BITRATE 128
+-
+-	if( 0 != vorbis_encode_init(&(sd->vi), audioFormat->channels,
+-			audioFormat->sampleRate, BITRATE*1000, BITRATE*1000,
+-			BITRATE*1000))
++	if( 0 != vorbis_encode_init_vbr(&(sd->vi), audioFormat->channels,
++			audioFormat->sampleRate, 0.5) )
+ 	{
+ 		ERROR("problem seting up vorbis encoder for shout\n");
+ 		vorbis_info_clear(&(sd->vi));

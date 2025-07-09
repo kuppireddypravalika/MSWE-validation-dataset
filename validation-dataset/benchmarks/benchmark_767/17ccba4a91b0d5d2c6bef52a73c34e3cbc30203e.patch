@@ -1,0 +1,21 @@
+From 17ccba4a91b0d5d2c6bef52a73c34e3cbc30203e Mon Sep 17 00:00:00 2001
+From: Guillaume Klein <guillaume.klein@systrangroup.com>
+Date: Tue, 10 Dec 2019 16:43:33 +0100
+Subject: [PATCH] Parallelize outer loop when running gemm_batch without MKL
+
+---
+ src/primitives/cpu.cc | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/primitives/cpu.cc b/src/primitives/cpu.cc
+index 092ef1339..67b889663 100644
+--- a/src/primitives/cpu.cc
++++ b/src/primitives/cpu.cc
+@@ -589,6 +589,7 @@ namespace ctranslate2 {
+ 
+     free_data(ptr_array);
+ #else
++    #pragma omp parallel for
+     for (dim_t i = 0; i < batch_size; ++i) {
+       const float* a_i = a + (i * m * k);
+       const float* b_i = b + (i * k * n);

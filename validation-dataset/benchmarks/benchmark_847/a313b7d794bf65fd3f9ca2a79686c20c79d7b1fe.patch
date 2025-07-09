@@ -1,0 +1,37 @@
+From a313b7d794bf65fd3f9ca2a79686c20c79d7b1fe Mon Sep 17 00:00:00 2001
+From: Sebastian Rettenberger <rettenbs@in.tum.de>
+Date: Tue, 13 Nov 2012 09:41:27 +0100
+Subject: [PATCH] Replace some loops with memcp
+
+---
+ src/SWE_Block.cpp | 13 ++-----------
+ 1 file changed, 2 insertions(+), 11 deletions(-)
+
+diff --git a/src/SWE_Block.cpp b/src/SWE_Block.cpp
+index 0306fd9..bcbb4ac 100644
+--- a/src/SWE_Block.cpp
++++ b/src/SWE_Block.cpp
+@@ -346,21 +346,12 @@ void SWE_Block::setBoundaryType( const BoundaryEdge i_edge,
+   boundary[i_edge] = i_boundaryType;
+   neighbour[i_edge] = i_inflow;
+ 
+-  // TODO unrolling seams to help vectorization, but only for the first 2 loops ...
+-
+   // set bathymetry values in the ghost layer, if necessary
+-  float* tmp = b.elemVector();
+   if( boundary[BND_LEFT] == OUTFLOW || boundary[BND_LEFT] == WALL ) {
+-//#pragma unroll(4)
+-	  for(int j=0; j<=ny+1; j++) {
+-		  b[0][j] = b[1][j];
+-	  }
++	  memcpy(b[0], b[1], sizeof(float)*(ny+2));
+   }
+   if( boundary[BND_RIGHT] == OUTFLOW || boundary[BND_RIGHT] == WALL ) {
+-//#pragma unroll(4)
+-	  for(int j=0; j<=ny+1; j++) {
+-		  b[nx+1][j] = b[nx][j];
+-	  }
++	  memcpy(b[nx+1], b[nx], sizeof(float)*(ny+2));
+   }
+   if( boundary[BND_BOTTOM] == OUTFLOW || boundary[BND_BOTTOM] == WALL ) {
+ 	  for(int i=0; i<=nx+1; i++) {

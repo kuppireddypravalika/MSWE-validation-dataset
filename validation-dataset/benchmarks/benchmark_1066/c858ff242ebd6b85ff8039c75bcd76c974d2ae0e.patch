@@ -1,0 +1,22 @@
+From c858ff242ebd6b85ff8039c75bcd76c974d2ae0e Mon Sep 17 00:00:00 2001
+From: Lou Hafer <lou@sfu.ca>
+Date: Wed, 25 Jul 2007 15:49:53 +0000
+Subject: [PATCH] INT_MAX -> COIN_INT_MAX (GCC 4.3)
+
+---
+ Osi/src/OsiGlpk/OsiGlpkSolverInterface.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Osi/src/OsiGlpk/OsiGlpkSolverInterface.cpp b/Osi/src/OsiGlpk/OsiGlpkSolverInterface.cpp
+index 7b9d56eb..a4947540 100644
+--- a/Osi/src/OsiGlpk/OsiGlpkSolverInterface.cpp
++++ b/Osi/src/OsiGlpk/OsiGlpkSolverInterface.cpp
+@@ -3121,7 +3121,7 @@ void OGSI::gutsOfConstructor()
+   matrixByRow_ = NULL;
+   matrixByCol_ = NULL;
+ 
+-  maxIteration_ = INT_MAX;
++  maxIteration_ = COIN_INT_MAX;
+   hotStartMaxIteration_ = 0;
+   nameDisc_ = 0;
+ 

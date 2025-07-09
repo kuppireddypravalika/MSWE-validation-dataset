@@ -1,0 +1,23 @@
+From 255cc12c485c640e3008039f352ec36b3539f4f2 Mon Sep 17 00:00:00 2001
+From: alessandro <alessandro@yuneecresearch.com>
+Date: Thu, 19 Apr 2018 14:59:55 +0200
+Subject: [PATCH] tap_esc: removed a zero-memset
+
+---
+ src/drivers/tap_esc/tap_esc.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/drivers/tap_esc/tap_esc.cpp b/src/drivers/tap_esc/tap_esc.cpp
+index 27100715b385..d3a7a3b39096 100644
+--- a/src/drivers/tap_esc/tap_esc.cpp
++++ b/src/drivers/tap_esc/tap_esc.cpp
+@@ -364,8 +364,7 @@ void TAP_ESC::subscribe()
+ 
+ void TAP_ESC::send_esc_outputs(const uint16_t *pwm, const uint8_t motor_cnt)
+ {
+-	uint16_t rpm[TAP_ESC_MAX_MOTOR_NUM];
+-	memset(rpm, 0, sizeof(rpm));
++	uint16_t rpm[TAP_ESC_MAX_MOTOR_NUM] = {};
+ 
+ 	for (uint8_t i = 0; i < motor_cnt; i++) {
+ 		rpm[i] = pwm[i];

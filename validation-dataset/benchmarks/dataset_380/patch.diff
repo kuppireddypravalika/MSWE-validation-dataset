@@ -1,0 +1,25 @@
+From 70d011a4e1814a30fb24b93eb72af869cfef9f16 Mon Sep 17 00:00:00 2001
+From: Christopher Alfeld <calfeld@qualys.com>
+Date: Tue, 7 Aug 2012 15:08:02 -0500
+Subject: [PATCH] htp_responce.c: Fix memory bug involved in gzip
+ decompression.
+
+---
+ htp/htp_response.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/htp/htp_response.c b/htp/htp_response.c
+index c9d30a25..07f43e97 100644
+--- a/htp/htp_response.c
++++ b/htp/htp_response.c
+@@ -331,6 +331,10 @@ int htp_connp_RES_BODY_DETERMINE(htp_connp_t *connp) {
+             }
+ 
+             if (connp->out_tx->response_content_encoding != COMPRESSION_NONE) {
++                if (connp->out_decompressor != NULL) {
++                    connp->out_decompressor->destroy(connp->out_decompressor);
++                    connp->out_decompressor = NULL;
++                }                
+                 connp->out_decompressor = (htp_decompressor_t *) htp_gzip_decompressor_create(connp,
+                     connp->out_tx->response_content_encoding);
+                 if (connp->out_decompressor != NULL) {

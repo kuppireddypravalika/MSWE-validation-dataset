@@ -1,0 +1,31 @@
+From af32319803847dd97a4df7a6fc6100e193403fb2 Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Mon, 11 Apr 2016 10:09:21 +0200
+Subject: [PATCH] QTreeView: re-use cached values in rowsInserted()
+
+The parentRowCount and the delta were already calculated
+a few lines up, so don't recalculate them here.
+
+This improves performance (rowCount() is a virtual function),
+as well as readability (delta is more readable than end -
+begin + 1).
+
+Change-Id: Iabe88852a61f7ef52139e1ba446e9d3f87d6bd04
+Reviewed-by: Friedemann Kleint <Friedemann.Kleint@theqtcompany.com>
+---
+ src/widgets/itemviews/qtreeview.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/widgets/itemviews/qtreeview.cpp b/src/widgets/itemviews/qtreeview.cpp
+index e6a6b2a447d0..135c417f151f 100644
+--- a/src/widgets/itemviews/qtreeview.cpp
++++ b/src/widgets/itemviews/qtreeview.cpp
+@@ -2568,7 +2568,7 @@ void QTreeView::rowsInserted(const QModelIndex &parent, int start, int end)
+     if (((parentItem != -1) && d->viewItems.at(parentItem).expanded)
+         || (parent == d->root)) {
+         d->doDelayedItemsLayout();
+-    } else if (parentItem != -1 && (d->model->rowCount(parent) == end - start + 1)) {
++    } else if (parentItem != -1 && parentRowCount == delta) {
+         // the parent just went from 0 children to more. update to re-paint the decoration
+         d->viewItems[parentItem].hasChildren = true;
+         viewport()->update();

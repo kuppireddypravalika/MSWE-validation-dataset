@@ -1,0 +1,23 @@
+From 14763caf15b310160b889db8f91b9c64ef293640 Mon Sep 17 00:00:00 2001
+From: Miikka Silfverberg <miikka.silfverberg@helsinki.fi>
+Date: Fri, 11 Sep 2015 11:20:37 +0300
+Subject: [PATCH] Faster input reading using
+ std::ios_base::sync_with_stdio(false);
+
+---
+ src/tagger/finnpos-label.cc | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/tagger/finnpos-label.cc b/src/tagger/finnpos-label.cc
+index 452a8f7..e018793 100644
+--- a/src/tagger/finnpos-label.cc
++++ b/src/tagger/finnpos-label.cc
+@@ -29,6 +29,8 @@
+ 
+ int main(int argc, char * argv[])
+ {
++  std::ios_base::sync_with_stdio(false);
++
+   if (argc != 2)
+     {
+       std::cerr <<  "USAGE: " << argv[0] << " model_file"

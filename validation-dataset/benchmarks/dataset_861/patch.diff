@@ -1,0 +1,31 @@
+From 9f41b0f21a2079a281960bc4c14d5fb34d3daff5 Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Sat, 1 Sep 2018 00:14:51 -0400
+Subject: [PATCH] [libromdata] WiiWIBN: Double the animation speed.
+
+This more closely matches the Wii system menu in Dolphin.
+
+TODO: Also GameCube icons?
+---
+ src/libromdata/Console/WiiWIBN.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/libromdata/Console/WiiWIBN.cpp b/src/libromdata/Console/WiiWIBN.cpp
+index 3562f4f44f..a485e66d3c 100644
+--- a/src/libromdata/Console/WiiWIBN.cpp
++++ b/src/libromdata/Console/WiiWIBN.cpp
+@@ -172,11 +172,12 @@ const rp_image *WiiWIBNPrivate::loadIcon(void)
+ 		}
+ 
+ 		// Icon delay.
+-		// Using 125ms for the fastest speed.
++		// Using 62ms for the fastest speed.
+ 		// TODO: Verify this?
++		static const uint16_t ms_tbl[4] = {0, 62/*.5*/, 125, 250};
+ 		iconAnimData->delays[i].numer = static_cast<uint16_t>(delay);
+ 		iconAnimData->delays[i].denom = 8;
+-		iconAnimData->delays[i].ms = delay * 125;
++		iconAnimData->delays[i].ms = ms_tbl[delay];
+ 
+ 		// Wii save icons are always RGB5A3.
+ 		iconAnimData->frames[i] = ImageDecoder::fromGcn16(ImageDecoder::PXF_RGB5A3,

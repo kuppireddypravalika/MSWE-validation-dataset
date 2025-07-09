@@ -1,0 +1,26 @@
+From addf3f60b007aac417c0a54f5b01450f29dc849a Mon Sep 17 00:00:00 2001
+From: Matthias Groncki <matthias.groncki@acadia.inc>
+Date: Mon, 3 Jul 2023 10:12:18 +0200
+Subject: [PATCH] QPR-11817 handle zero survival probabilities in the
+ performance optimization for cdo sensi calculations
+
+---
+ OREData/ored/portfolio/cdo.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/OREData/ored/portfolio/cdo.cpp b/OREData/ored/portfolio/cdo.cpp
+index 7357bc05f8..9f996e443b 100644
+--- a/OREData/ored/portfolio/cdo.cpp
++++ b/OREData/ored/portfolio/cdo.cpp
+@@ -488,6 +488,11 @@ void SyntheticCDO::build(const boost::shared_ptr<EngineFactory>& engineFactory)
+                 vector<Handle<Quote>> spreads(times.size());
+                 std::transform(times.begin(), times.end(), spreads.begin(), [&baseCurve, &targetCurve](Time t) {
+                     Probability spread = targetCurve->survivalProbability(t, true) / baseCurve->survivalProbability(t, true);
++                    // In case extrapolated survivalprob is 0, we set it to a small value because
++                    // the spreaded survival prob curve doesn't allow zero spreads 
++                    if (close_enough(spread, 0.0)) {
++                        spread = 1e-18;
++                    }
+                     return Handle<Quote>(boost::make_shared<SimpleQuote>(spread));
+                 });
+                 clientCurve = Handle<DefaultProbabilityTermStructure>(

@@ -1,0 +1,26 @@
+From 2c9ecb1dbdd9a5ca260d8264c20616de8956a0e7 Mon Sep 17 00:00:00 2001
+From: moneta <lorenzo.moneta@cern.ch>
+Date: Thu, 10 Nov 2022 16:53:16 +0100
+Subject: [PATCH] [hist][tformula] Use TMath::Sq instead of TMath::Power for ^2
+ in TTFormula expressions
+
+---
+ hist/hist/src/TFormula.cxx | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/hist/hist/src/TFormula.cxx b/hist/hist/src/TFormula.cxx
+index b0021d1ce97d4..a4856c686bc47 100644
+--- a/hist/hist/src/TFormula.cxx
++++ b/hist/hist/src/TFormula.cxx
+@@ -1716,6 +1716,11 @@ void TFormula::HandleExponentiation(TString &formula)
+          TString pattern = TString::Format("%s^%s", left.Data(), right.Data());
+          TString replacement = TString::Format("pow(%s,%s)", left.Data(), right.Data());
+ 
++         // special case for square function
++         if (right == "2"){
++            replacement = TString::Format("TMath::Sq(%s)",left.Data());
++         }
++
+          // std::cout << "pattern : " << pattern << std::endl;
+          // std::cout << "replacement : " << replacement << std::endl;
+          formula.Replace(leftPos, pattern.Length(), replacement, replacement.Length());

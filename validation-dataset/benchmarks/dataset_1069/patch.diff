@@ -1,0 +1,29 @@
+From a2e482cdc76d0a60995715bc7646e27f82f82ae1 Mon Sep 17 00:00:00 2001
+From: Even Rouault <even.rouault@mines-paris.org>
+Date: Mon, 24 Sep 2012 22:42:10 +0000
+Subject: [PATCH] SQLite: optimize GetFeatureCount() on a result SQL layer
+ whose statement if 'SELECT COUNT(*) FROM ...'
+
+git-svn-id: https://svn.osgeo.org/gdal/trunk@24970 f0d54148-0727-0410-94bb-9a71ac55c965
+---
+ gdal/ogr/ogrsf_frmts/sqlite/ogrsqliteselectlayer.cpp | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/gdal/ogr/ogrsf_frmts/sqlite/ogrsqliteselectlayer.cpp b/gdal/ogr/ogrsf_frmts/sqlite/ogrsqliteselectlayer.cpp
+index b5d6492249fd..f644f967b829 100644
+--- a/gdal/ogr/ogrsf_frmts/sqlite/ogrsqliteselectlayer.cpp
++++ b/gdal/ogr/ogrsf_frmts/sqlite/ogrsqliteselectlayer.cpp
+@@ -120,6 +120,13 @@ int OGRSQLiteSelectLayer::GetFeatureCount( int bForce )
+     if( bEmptyLayer )
+         return 0;
+ 
++    if( m_poAttrQuery == NULL &&
++        EQUALN(osSQLCurrent, "SELECT COUNT(*) FROM", strlen("SELECT COUNT(*) FROM")) &&
++        osSQLCurrent.ifind(" UNION ") == std::string::npos &&
++        osSQLCurrent.ifind(" INTERSECT ") == std::string::npos &&
++        osSQLCurrent.ifind(" EXCEPT ") == std::string::npos )
++        return 1;
++
+     if( m_poAttrQuery != NULL || (m_poFilterGeom != NULL && !bSpatialFilterInSQL) )
+         return OGRLayer::GetFeatureCount(bForce);
+ 

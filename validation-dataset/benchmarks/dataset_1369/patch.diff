@@ -1,0 +1,26 @@
+From 7858500fe1686eba9f3dbb9408d888dd7e3c6c5a Mon Sep 17 00:00:00 2001
+From: senquack <dansilsby@gmail.com>
+Date: Sat, 17 Sep 2016 11:28:21 -0400
+Subject: [PATCH] misc: Initialize unused placeholder savestate data in
+ SaveState() to zero
+
+36864 bytes (128*96*3 bytes) is reserved towards beginning of savestate files,
+presumably for some future embedded screenshot data. Better to initialize this
+to zero (using calloc in place of malloc) for better compressability.
+---
+ src/misc.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/misc.cpp b/src/misc.cpp
+index 9aef4406..6bc5a0ed 100644
+--- a/src/misc.cpp
++++ b/src/misc.cpp
+@@ -640,7 +640,7 @@ int SaveState(const char *file) {
+ 
+ 	// senquack - This is used for a small embedded screenshot in PCSX Rearmed,
+ 	//  but here and in original PCSX4ALL code is just an unused placeholder.
+-	if ((pMem = (unsigned char *)malloc(128*96*3)) == NULL ||
++	if ((pMem = (unsigned char *)calloc(128*96*3, 1)) == NULL ||
+ 	     SaveFuncs.write(f, pMem, 128*96*3) != (128*96*3))
+ 		goto error;
+ 	free(pMem);

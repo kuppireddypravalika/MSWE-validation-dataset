@@ -1,0 +1,29 @@
+From f9eee6bff6717c0754afacc67659106f2bd010e6 Mon Sep 17 00:00:00 2001
+From: Tim Corringham <tcorring@amd.com>
+Date: Mon, 11 May 2020 16:49:25 +0100
+Subject: [PATCH] Set SkipUniformRegions for StructurizeCGF pass
+
+The default for the SkipUniformRegions option for the LLVM StructurizeCFG pass
+was recently changed from true to false - this was to avoid bad effects seen
+with some compute workloads. However, this change impacted the performance of
+some shaders.
+
+This change uses the LLVM option -structurizecfg-skip-uniform-regions to
+set the value of SkipUniformRegions to true for shaders, thereby restoring
+the performance for the impacted shaders.
+---
+ lgc/state/LgcContext.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/lgc/state/LgcContext.cpp b/lgc/state/LgcContext.cpp
+index d14595e6bb..d9531e29a4 100644
+--- a/lgc/state/LgcContext.cpp
++++ b/lgc/state/LgcContext.cpp
+@@ -141,6 +141,7 @@ void LgcContext::initialize() {
+   setOptionDefault("amdgpu-atomic-optimizations", "1");
+   setOptionDefault("use-gpu-divergence-analysis", "1");
+   setOptionDefault("amdgpu-conditional-discard-transformations", "1");
++  setOptionDefault("structurizecfg-skip-uniform-regions", "1");
+ }
+ 
+ // =====================================================================================================================

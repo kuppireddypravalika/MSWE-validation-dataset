@@ -1,0 +1,33 @@
+From 92692442a243a5ec081bde30abb6f9807b0d2633 Mon Sep 17 00:00:00 2001
+From: Andreas Gal <gal@uci.edu>
+Date: Sun, 25 Apr 2010 08:51:05 -0400
+Subject: [PATCH] optimize JSON stringify. bug 561592. r=dvander
+
+---
+ js/src/json.cpp | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/js/src/json.cpp b/js/src/json.cpp
+index 94f6b7525f9..a3387d55c61 100644
+--- a/js/src/json.cpp
++++ b/js/src/json.cpp
+@@ -514,11 +514,6 @@ JSBool
+ js_Stringify(JSContext *cx, jsval *vp, JSObject *replacer, jsval space,
+              JSCharBuffer &cb)
+ {
+-    // XXX stack
+-    JSObject *stack = JS_NewArrayObject(cx, 0, NULL);
+-    if (!stack)
+-        return JS_FALSE;
+-
+     StringifyContext scx(cx, cb, replacer);
+     if (!InitializeGap(cx, space, scx.gap))
+         return JS_FALSE;
+@@ -527,6 +522,7 @@ js_Stringify(JSContext *cx, jsval *vp, JSObject *replacer, jsval space,
+     if (!obj)
+         return JS_FALSE;
+ 
++    AutoObjectRooter tvr(cx, obj);
+     if (!obj->defineProperty(cx, ATOM_TO_JSID(cx->runtime->atomState.emptyAtom),
+                              *vp, NULL, NULL, JSPROP_ENUMERATE)) {
+         return JS_FALSE;

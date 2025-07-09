@@ -1,0 +1,46 @@
+From 7210c68c70d8720aa23f83b79dc95af803818779 Mon Sep 17 00:00:00 2001
+From: David Korth <gerbilsoft@gerbilsoft.com>
+Date: Fri, 18 Nov 2016 22:34:18 -0500
+Subject: [PATCH] [libromdata] GameBoyAdvance: Read directly into d->romHeader.
+
+There's no point in using a separate GBA_RomHeader struct and then copying
+afterwards, since we won't use d->romHeader if it turns out the ROM image
+isn't valid.
+---
+ src/libromdata/GameBoyAdvance.cpp | 14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
+
+diff --git a/src/libromdata/GameBoyAdvance.cpp b/src/libromdata/GameBoyAdvance.cpp
+index 0d072bb15e..2393e4614e 100644
+--- a/src/libromdata/GameBoyAdvance.cpp
++++ b/src/libromdata/GameBoyAdvance.cpp
+@@ -103,25 +103,19 @@ GameBoyAdvance::GameBoyAdvance(IRpFile *file)
+ 	}
+ 
+ 	// Read the ROM header.
+-	GBA_RomHeader romHeader;
+ 	m_file->rewind();
+-	size_t size = m_file->read(&romHeader, sizeof(romHeader));
+-	if (size != sizeof(romHeader))
++	size_t size = m_file->read(&d->romHeader, sizeof(d->romHeader));
++	if (size != sizeof(d->romHeader))
+ 		return;
+ 
+ 	// Check if this ROM image is supported.
+ 	DetectInfo info;
+ 	info.header.addr = 0;
+-	info.header.size = sizeof(romHeader);
+-	info.header.pData = reinterpret_cast<const uint8_t*>(&romHeader);
++	info.header.size = sizeof(d->romHeader);
++	info.header.pData = reinterpret_cast<const uint8_t*>(&d->romHeader);
+ 	info.ext = nullptr;	// Not needed for GBA.
+ 	info.szFile = 0;	// Not needed for GBA.
+ 	m_isValid = (isRomSupported_static(&info) >= 0);
+-
+-	if (m_isValid) {
+-		// Save the ROM header.
+-		memcpy(&d->romHeader, &romHeader, sizeof(d->romHeader));
+-	}
+ }
+ 
+ GameBoyAdvance::~GameBoyAdvance()

@@ -1,0 +1,30 @@
+From 119c581dd1e0b9164e1631f43820abc3dee82e27 Mon Sep 17 00:00:00 2001
+From: Thiago Macieira <thiago.macieira@intel.com>
+Date: Thu, 10 Jan 2013 23:08:45 -0800
+Subject: [PATCH] Simplify checking of the SHM/SEM Unix key file's existence
+
+We don't need to stat(2) the file to check if it exists before
+creating it. We're about to open(2) with O_CREAT|O_EXCL, which will
+not recreate it if it existed.
+
+Change-Id: I2d2176054e7776a32a4520832ee104b9c4ccf748
+Reviewed-by: Giuseppe D'Angelo <giuseppe.dangelo@kdab.com>
+Reviewed-by: Richard J. Moore <rich@kde.org>
+---
+ src/corelib/kernel/qsharedmemory_unix.cpp | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/src/corelib/kernel/qsharedmemory_unix.cpp b/src/corelib/kernel/qsharedmemory_unix.cpp
+index 6bcb4076b492..7b64ff118127 100644
+--- a/src/corelib/kernel/qsharedmemory_unix.cpp
++++ b/src/corelib/kernel/qsharedmemory_unix.cpp
+@@ -151,9 +151,6 @@ key_t QSharedMemoryPrivate::handle()
+   */
+ int QSharedMemoryPrivate::createUnixKeyFile(const QString &fileName)
+ {
+-    if (QFile::exists(fileName))
+-        return 0;
+-
+     int fd = qt_safe_open(QFile::encodeName(fileName).constData(),
+             O_EXCL | O_CREAT | O_RDWR, 0640);
+     if (-1 == fd) {

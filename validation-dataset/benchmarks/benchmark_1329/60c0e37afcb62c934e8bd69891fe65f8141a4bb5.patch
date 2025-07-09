@@ -1,0 +1,38 @@
+From 60c0e37afcb62c934e8bd69891fe65f8141a4bb5 Mon Sep 17 00:00:00 2001
+From: Chris Lattner <sabre@nondot.org>
+Date: Mon, 1 Mar 2010 07:54:59 +0000
+Subject: [PATCH] Emit type checks late instead of early, this encourages
+ structural matching code to be factored and shared this shrinks the X86 isel
+ table from 86537 to 83890 bytes.
+
+git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@97442 91177308-0d34-0410-b5e6-96231b3b80d8
+---
+ utils/TableGen/DAGISelMatcherGen.cpp | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/utils/TableGen/DAGISelMatcherGen.cpp b/utils/TableGen/DAGISelMatcherGen.cpp
+index 62442d0c22c..cc3c4f14b4b 100644
+--- a/utils/TableGen/DAGISelMatcherGen.cpp
++++ b/utils/TableGen/DAGISelMatcherGen.cpp
+@@ -460,8 +460,9 @@ void MatcherGen::EmitMatchCode(const TreePatternNode *N,
+   // If N and NodeNoTypes don't agree on a type, then this is a case where we
+   // need to do a type check.  Emit the check, apply the tyep to NodeNoTypes and
+   // reinfer any correlated types.
++  unsigned NodeType = EEVT::isUnknown;
+   if (NodeNoTypes->getExtTypes() != N->getExtTypes()) {
+-    AddMatcher(new CheckTypeMatcher(N->getTypeNum(0)));
++    NodeType = N->getTypeNum(0);
+     NodeNoTypes->setTypes(N->getExtTypes());
+     InferPossibleTypes();
+   }
+@@ -488,6 +489,10 @@ void MatcherGen::EmitMatchCode(const TreePatternNode *N,
+     EmitLeafMatchCode(N);
+   else
+     EmitOperatorMatchCode(N, NodeNoTypes);
++  
++  if (NodeType != EEVT::isUnknown)
++    AddMatcher(new CheckTypeMatcher((MVT::SimpleValueType)NodeType));
++
+ }
+ 
+ /// EmitMatcherCode - Generate the code that matches the predicate of this

@@ -1,0 +1,22 @@
+From 89290e2cb30881a615854da7cef5ba2fe73ba09f Mon Sep 17 00:00:00 2001
+From: Volker Krause <volker.krause@kdab.com>
+Date: Sun, 15 Nov 2015 17:18:55 +0100
+Subject: [PATCH] Reserve before filling QStringList.
+
+Found by clazy.
+---
+ core/tools/messagehandler/backtrace_unix.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/core/tools/messagehandler/backtrace_unix.cpp b/core/tools/messagehandler/backtrace_unix.cpp
+index d3ec367485..916c5f042b 100644
+--- a/core/tools/messagehandler/backtrace_unix.cpp
++++ b/core/tools/messagehandler/backtrace_unix.cpp
+@@ -114,6 +114,7 @@ Backtrace backtraceList(int levels)
+     n = qMin(n, levels);
+   }
+ 
++  s.reserve(n);
+   for (int i = 0; i < n; ++i) {
+     s << maybeDemangledName(strings[i]);
+   }

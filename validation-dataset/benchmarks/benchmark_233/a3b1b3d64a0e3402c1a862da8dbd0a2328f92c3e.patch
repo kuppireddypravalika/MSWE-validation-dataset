@@ -1,0 +1,22 @@
+From a3b1b3d64a0e3402c1a862da8dbd0a2328f92c3e Mon Sep 17 00:00:00 2001
+From: alandefreitas <alandefreitas@gmail.com>
+Date: Wed, 8 Sep 2021 03:09:21 -0300
+Subject: [PATCH] Explicitly cast string `value_type` before `std::fill`
+
+---
+ source/small/string.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/source/small/string.h b/source/small/string.h
+index 8e925af..ae2d902 100644
+--- a/source/small/string.h
++++ b/source/small/string.h
+@@ -1137,7 +1137,7 @@ namespace small {
+             // Fill the buffer with new elements
+             if constexpr (!is_same_utf_encoding_v<value_type, Char>) {
+                 if (codeunits_per_codepoint == 1) {
+-                    std::fill(begin() + pos_idx, new_pos, ch);
++                    std::fill(begin() + pos_idx, new_pos, static_cast<value_type>(ch));
+                 } else {
+                     to_utf(&ch, 1, buffer_.data() + pos_idx, codeunits_per_codepoint);
+                     size_type n_to_copy = count_code_points;

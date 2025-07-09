@@ -1,0 +1,20 @@
+From d3504f4dfb7c988de880ebee3f6b721b17d4145f Mon Sep 17 00:00:00 2001
+From: Dmitry Tsarevich <dimhotepus@gmail.com>
+Date: Fri, 25 Sep 2020 00:20:03 +0300
+Subject: [PATCH] [perf] Emplace instead of insert
+
+---
+ src/xrScriptEngine/script_process.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/xrScriptEngine/script_process.cpp b/src/xrScriptEngine/script_process.cpp
+index 613078e5fd4..6511aa81ffe 100644
+--- a/src/xrScriptEngine/script_process.cpp
++++ b/src/xrScriptEngine/script_process.cpp
+@@ -91,5 +91,5 @@ void CScriptProcess::update()
+ 
+ void CScriptProcess::add_script(LPCSTR script_name, bool do_string, bool reload)
+ {
+-    m_scripts_to_run.push_back(CScriptToRun(script_name, do_string, reload));
++    m_scripts_to_run.emplace_back(script_name, do_string, reload);
+ }

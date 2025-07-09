@@ -1,0 +1,26 @@
+From bea83c8df941ef363ee6e804699c2c53bbad2c20 Mon Sep 17 00:00:00 2001
+From: Ghabry <gabriel+github@mastergk.de>
+Date: Mon, 6 May 2019 22:53:23 +0200
+Subject: [PATCH] Sprite: Fix the Out of bounds check code, prevents
+ unnecessary memory allocations
+
+---
+ src/sprite.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/sprite.cpp b/src/sprite.cpp
+index 0fc19264bd..b9075da504 100644
+--- a/src/sprite.cpp
++++ b/src/sprite.cpp
+@@ -105,8 +105,9 @@ void Sprite::BlitScreenIntern(Bitmap const& draw_bitmap,
+ }
+ 
+ BitmapRef Sprite::Refresh(Rect& rect) {
+-	if (zoom_x_effect != 1.0 && zoom_y_effect != 1.0 && angle_effect != 0.0 && waver_effect_depth != 0) {
+-		// TODO: Out of bounds check adjustments for zoom, angle and waver
++	if (zoom_x_effect == 1.0 && zoom_y_effect == 1.0 && angle_effect == 0.0 && waver_effect_depth == 0) {
++		// Prevent effect sprite creation when not in the viewport
++		// TODO: Out of bounds math adjustments for zoom, angle and waver
+ 		// but even without this will catch most of the cases
+ 		if (Rect(x - ox, y - oy, GetWidth(), GetHeight()).IsOutOfBounds(Rect(0, 0, SCREEN_TARGET_WIDTH, SCREEN_TARGET_HEIGHT))) {
+ 			return BitmapRef();
