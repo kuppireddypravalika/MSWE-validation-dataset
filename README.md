@@ -135,6 +135,3 @@ You will see a performance breakdown printed directly to terminal.
 
 ---
 
-## 👩‍🏫 Maintainer
-
-Created and maintained by [Pravalika Kuppireddy](https://github.com/kuppireddypravalika)
