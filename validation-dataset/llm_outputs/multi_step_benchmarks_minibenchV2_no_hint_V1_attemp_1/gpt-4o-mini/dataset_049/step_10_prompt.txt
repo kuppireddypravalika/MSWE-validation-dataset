@@ -1,0 +1,962 @@
+You are an expert C++ performance engineer. Optimize the provided code for high compute and resource performance while preserving behavior. The optimized function must keep the exact same signature as the hand-written implementation. If the original file contains explicit template instantiations, reproduce them unchanged at the end of the optimized file. This prompt may include compilation errors, runtime errors or timing data from the previous step. Use it to refine the code. If it is empty, produce an initial optimization based solely on the original source. When refining the code, explore potentially high-reward optimization paths that have not yet been tried and that could yield superior computational performance. Respond only with a JSON object using the keys "optimized_code" and "analysis". The "analysis" field should briefly explain the intent behind your modifications. Additional source files may be provided for context. Here are the files:
+
+// burned_warehouse.hpp
+#pragma once
+#include <array>
+#include <vector>
+#include <random>
+
+// Simple enums modeling different jobs and movement directions
+enum class Job { JobA, JobB, JobC, JobD, JobE, Count };
+
+enum class Direction { North, East, South, West };
+
+constexpr unsigned GO_OUT_PHASES = 10;
+constexpr std::size_t NUM_JOBS = static_cast<std::size_t>(Job::Count);
+
+// Helper random function similar to RANDOM_RAND from the game
+inline unsigned random_rand(std::mt19937& rng, unsigned max) {
+    std::uniform_int_distribution<unsigned> dist(0, max - 1);
+    // simulate heavier random generation work
+    unsigned val = 0;
+    for (int i = 0; i < 10; ++i) val += dist(rng);
+    return val % max;
+}
+
+struct BurnedWarehouse {
+    unsigned go_out_phase = 0;
+    std::array<unsigned, NUM_JOBS> people{};
+    std::mt19937 rng{123};
+
+    explicit BurnedWarehouse(const std::array<unsigned, NUM_JOBS>& ppl)
+        : people(ppl) {}
+};
+
+int handle_event(BurnedWarehouse& bw);
+
+
+// original.cpp
+#include "burned_warehouse.hpp"
+
+int handle_event(BurnedWarehouse& bw) {
+    int dummy = 0;
+    std::vector<Direction> possibleDirs{Direction::North, Direction::East,
+                                        Direction::South, Direction::West};
+
+    for (std::size_t ji = 0; ji < NUM_JOBS; ++ji) {
+        unsigned count;
+        if (bw.go_out_phase + 1 >= GO_OUT_PHASES)
+            count = bw.people[ji];
+        else
+            count = bw.people[ji] / (GO_OUT_PHASES - bw.go_out_phase);
+
+        bw.people[ji] -= count;
+
+        unsigned startIdx = 0;
+        if (possibleDirs.size() > 1u)
+            random_rand(bw.rng, possibleDirs.size());
+        unsigned numPeoplePerDir = count / possibleDirs.size();
+
+        for (std::size_t j = 0; j < possibleDirs.size(); ++j) {
+            const unsigned idx = j + startIdx;
+            Direction curDir =
+                possibleDirs[idx < possibleDirs.size() ? idx : idx - possibleDirs.size()];
+            unsigned curNumPeople =
+                (j + 1u < possibleDirs.size()) ? numPeoplePerDir : count;
+            count -= curNumPeople;
+            for (unsigned z = 0; z < curNumPeople; ++z) {
+                dummy += static_cast<int>(ji) + static_cast<int>(curDir);
+            }
+        }
+    }
+
+    ++bw.go_out_phase;
+    return dummy;
+}
+
+
+The following files are provided for context. Do NOT modify them. Only update code in original.cpp.
+
+// harness.cpp
+#include "burned_warehouse.hpp"
+#include <chrono>
+#include <iostream>
+#include <string>
+
+int main(int argc, char* argv[]) {
+    std::string mode = "perf";
+    int repeat = 9000000;
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "--mode=correct")
+            mode = "correct";
+        else if (arg == "--mode=perf")
+            mode = "perf";
+        else if (arg.rfind("--repeat=", 0) == 0)
+            repeat = std::stoi(arg.substr(9));
+    }
+
+    BurnedWarehouse base({50, 0, 0, 0, 50});
+
+    if (mode == "correct") {
+        BurnedWarehouse bw = base;
+        int result = handle_event(bw);
+        std::cout << result << '\n';
+    } else {
+        using clock = std::chrono::high_resolution_clock;
+        int dummy = 0;
+        auto t1 = clock::now();
+        for (int i = 0; i < repeat; ++i) {
+            BurnedWarehouse bw = base;
+            dummy += handle_event(bw);
+        }
+        auto t2 = clock::now();
+        std::cout << "Time: "
+                  << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count()
+                  << " ms\n";
+        if (dummy == 42) std::cerr << "";
+    }
+
+    return 0;
+}
+
+
+// burned_warehouse.hpp
+#pragma once
+#include <array>
+#include <vector>
+#include <random>
+
+// Simple enums modeling different jobs and movement directions
+enum class Job { JobA, JobB, JobC, JobD, JobE, Count };
+
+enum class Direction { North, East, South, West };
+
+constexpr unsigned GO_OUT_PHASES = 10;
+constexpr std::size_t NUM_JOBS = static_cast<std::size_t>(Job::Count);
+
+// Helper random function similar to RANDOM_RAND from the game
+inline unsigned random_rand(std::mt19937& rng, unsigned max) {
+    std::uniform_int_distribution<unsigned> dist(0, max - 1);
+    // simulate heavier random generation work
+    unsigned val = 0;
+    for (int i = 0; i < 10; ++i) val += dist(rng);
+    return val % max;
+}
+
+struct BurnedWarehouse {
+    unsigned go_out_phase = 0;
+    std::array<unsigned, NUM_JOBS> people{};
+    std::mt19937 rng{123};
+
+    explicit BurnedWarehouse(const std::array<unsigned, NUM_JOBS>& ppl)
+        : people(ppl) {}
+};
+
+int handle_event(BurnedWarehouse& bw);
+
+
+Previous attempt info:
+Original execution time: mean = 6319.20 ms, std = 28.79 ms
+Diff from original code:
+--- original
++++ step_1
+@@ -1,70 +1,22 @@
+-// burned_warehouse.hpp
+-#pragma once
+-#include <array>
+-#include <vector>
+-#include <random>
+-
+-// Simple enums modeling different jobs and movement directions
+-enum class Job { JobA, JobB, JobC, JobD, JobE, Count };
+-
+-enum class Direction { North, East, South, West };
+-
+-constexpr unsigned GO_OUT_PHASES = 10;
+-constexpr std::size_t NUM_JOBS = static_cast<std::size_t>(Job::Count);
+-
+-// Helper random function similar to RANDOM_RAND from the game
+-inline unsigned random_rand(std::mt19937& rng, unsigned max) {
+-    std::uniform_int_distribution<unsigned> dist(0, max - 1);
+-    // simulate heavier random generation work
+-    unsigned val = 0;
+-    for (int i = 0; i < 10; ++i) val += dist(rng);
+-    return val % max;
+-}
+-
+-struct BurnedWarehouse {
+-    unsigned go_out_phase = 0;
+-    std::array<unsigned, NUM_JOBS> people{};
+-    std::mt19937 rng{123};
+-
+-    explicit BurnedWarehouse(const std::array<unsigned, NUM_JOBS>& ppl)
+-        : people(ppl) {}
+-};
+-
+-int handle_event(BurnedWarehouse& bw);
+-
+-
+-// original.cpp
+ #include "burned_warehouse.hpp"
+ 
+ int handle_event(BurnedWarehouse& bw) {
+     int dummy = 0;
+-    std::vector<Direction> possibleDirs{Direction::North, Direction::East,
+-                                        Direction::South, Direction::West};
++    std::array<Direction, 4> possibleDirs{{Direction::North, Direction::East, Direction::South, Direction::West}};
+ 
+     for (std::size_t ji = 0; ji < NUM_JOBS; ++ji) {
+-        unsigned count;
+-        if (bw.go_out_phase + 1 >= GO_OUT_PHASES)
+-            count = bw.people[ji];
+-        else
+-            count = bw.people[ji] / (GO_OUT_PHASES - bw.go_out_phase);
+-
++        unsigned count = bw.go_out_phase + 1 >= GO_OUT_PHASES ? bw.people[ji] : bw.people[ji] / (GO_OUT_PHASES - bw.go_out_phase);
+         bw.people[ji] -= count;
+ 
+-        unsigned startIdx = 0;
+-        if (possibleDirs.size() > 1u)
+-            random_rand(bw.rng, possibleDirs.size());
++        unsigned randIndex = (possibleDirs.size() > 1u) ? random_rand(bw.rng, possibleDirs.size()) : 0;
+         unsigned numPeoplePerDir = count / possibleDirs.size();
+ 
+         for (std::size_t j = 0; j < possibleDirs.size(); ++j) {
+-            const unsigned idx = j + startIdx;
+-            Direction curDir =
+-                possibleDirs[idx < possibleDirs.size() ? idx : idx - possibleDirs.size()];
+-            unsigned curNumPeople =
+-                (j + 1u < possibleDirs.size()) ? numPeoplePerDir : count;
++            unsigned adjustedIndex = (j + randIndex) % possibleDirs.size();
++            Direction curDir = possibleDirs[adjustedIndex];
++            unsigned curNumPeople = (j + 1u < possibleDirs.size()) ? numPeoplePerDir : count - (numPeoplePerDir * j);
+             count -= curNumPeople;
+-            for (unsigned z = 0; z < curNumPeople; ++z) {
+-                dummy += static_cast<int>(ji) + static_cast<int>(curDir);
+-            }
++            dummy += curNumPeople * (static_cast<int>(ji) + static_cast<int>(curDir));
+         }
+     }
+ 
+Correctness check failed.
+LLM analysis: The modifications aim to enhance performance by reducing memory overhead, simplifying calculations, and eliminating unnecessary checks. Using a fixed array for 'possibleDirs' avoids dynamic resizing operations and minimizes iterator overhead. The random index calculation was optimized to use modulo, removing the need for a condition inside the loop, ultimately streamlining the distribution of people across directions.
+Diff from original code:
+--- original
++++ step_2
+@@ -1,73 +1,28 @@
+-// burned_warehouse.hpp
+-#pragma once
+-#include <array>
+-#include <vector>
+-#include <random>
+-
+-// Simple enums modeling different jobs and movement directions
+-enum class Job { JobA, JobB, JobC, JobD, JobE, Count };
+-
+-enum class Direction { North, East, South, West };
+-
+-constexpr unsigned GO_OUT_PHASES = 10;
+-constexpr std::size_t NUM_JOBS = static_cast<std::size_t>(Job::Count);
+-
+-// Helper random function similar to RANDOM_RAND from the game
+-inline unsigned random_rand(std::mt19937& rng, unsigned max) {
+-    std::uniform_int_distribution<unsigned> dist(0, max - 1);
+-    // simulate heavier random generation work
+-    unsigned val = 0;
+-    for (int i = 0; i < 10; ++i) val += dist(rng);
+-    return val % max;
+-}
+-
+-struct BurnedWarehouse {
+-    unsigned go_out_phase = 0;
+-    std::array<unsigned, NUM_JOBS> people{};
+-    std::mt19937 rng{123};
+-
+-    explicit BurnedWarehouse(const std::array<unsigned, NUM_JOBS>& ppl)
+-        : people(ppl) {}
+-};
+-
+-int handle_event(BurnedWarehouse& bw);
+-
+-
+-// original.cpp
+ #include "burned_warehouse.hpp"
+ 
+ int handle_event(BurnedWarehouse& bw) {
+     int dummy = 0;
+-    std::vector<Direction> possibleDirs{Direction::North, Direction::East,
+-                                        Direction::South, Direction::West};
++    std::array<Direction, 4> possibleDirs{{Direction::North, Direction::East, Direction::South, Direction::West}};
+ 
+     for (std::size_t ji = 0; ji < NUM_JOBS; ++ji) {
+-        unsigned count;
+-        if (bw.go_out_phase + 1 >= GO_OUT_PHASES)
+-            count = bw.people[ji];
+-        else
+-            count = bw.people[ji] / (GO_OUT_PHASES - bw.go_out_phase);
+-
++        unsigned count = (bw.go_out_phase + 1 >= GO_OUT_PHASES) ? bw.people[ji] : bw.people[ji] / (GO_OUT_PHASES - bw.go_out_phase);
+         bw.people[ji] -= count;
+ 
+-        unsigned startIdx = 0;
+-        if (possibleDirs.size() > 1u)
+-            random_rand(bw.rng, possibleDirs.size());
++        unsigned randIndex = (possibleDirs.size() > 1u) ? random_rand(bw.rng, possibleDirs.size()) : 0;
+         unsigned numPeoplePerDir = count / possibleDirs.size();
+ 
+         for (std::size_t j = 0; j < possibleDirs.size(); ++j) {
+-            const unsigned idx = j + startIdx;
+-            Direction curDir =
+-                possibleDirs[idx < possibleDirs.size() ? idx : idx - possibleDirs.size()];
+-            unsigned curNumPeople =
+-                (j + 1u < possibleDirs.size()) ? numPeoplePerDir : count;
++            unsigned adjustedIndex = (j + randIndex) % possibleDirs.size();
++            Direction curDir = possibleDirs[adjustedIndex];
++            unsigned curNumPeople = (j + 1u < possibleDirs.size()) ? numPeoplePerDir : count - (numPeoplePerDir * j);
+             count -= curNumPeople;
+-            for (unsigned z = 0; z < curNumPeople; ++z) {
+-                dummy += static_cast<int>(ji) + static_cast<int>(curDir);
+-            }
++            dummy += curNumPeople * (static_cast<int>(ji) + static_cast<int>(curDir));
+         }
+     }
+ 
+     ++bw.go_out_phase;
+     return dummy;
+ }
++
++// Explicit template instantiations, unchanged:
++ // (to be placed here if there are any template instantiations in the original code)
+Correctness check failed.
+LLM analysis: The optimizations made aim to improve performance by reducing unnecessary operations and leveraging more efficient data structures. The use of a fixed-size std::array for 'possibleDirs' eliminates overhead associated with dynamic allocation in std::vector. Random index calculation has been further simplified for performance, and the number of iterations in the inner loop has been optimized by using arithmetic to calculate the total contributions at once instead of iterating per person, significantly reducing the number of operations in high counts. Overall, these changes should yield better runtime performance while preserving the original logic and behavior.
+Diff from original code:
+--- original
++++ step_3
+@@ -1,73 +1,29 @@
+-// burned_warehouse.hpp
+-#pragma once
+-#include <array>
+-#include <vector>
+-#include <random>
+-
+-// Simple enums modeling different jobs and movement directions
+-enum class Job { JobA, JobB, JobC, JobD, JobE, Count };
+-
+-enum class Direction { North, East, South, West };
+-
+-constexpr unsigned GO_OUT_PHASES = 10;
+-constexpr std::size_t NUM_JOBS = static_cast<std::size_t>(Job::Count);
+-
+-// Helper random function similar to RANDOM_RAND from the game
+-inline unsigned random_rand(std::mt19937& rng, unsigned max) {
+-    std::uniform_int_distribution<unsigned> dist(0, max - 1);
+-    // simulate heavier random generation work
+-    unsigned val = 0;
+-    for (int i = 0; i < 10; ++i) val += dist(rng);
+-    return val % max;
+-}
+-
+-struct BurnedWarehouse {
+-    unsigned go_out_phase = 0;
+-    std::array<unsigned, NUM_JOBS> people{};
+-    std::mt19937 rng{123};
+-
+-    explicit BurnedWarehouse(const std::array<unsigned, NUM_JOBS>& ppl)
+-        : people(ppl) {}
+-};
+-
+-int handle_event(BurnedWarehouse& bw);
+-
+-
+-// original.cpp
+ #include "burned_warehouse.hpp"
+ 
+ int handle_event(BurnedWarehouse& bw) {
+     int dummy = 0;
+-    std::vector<Direction> possibleDirs{Direction::North, Direction::East,
+-                                        Direction::South, Direction::West};
++    constexpr std::array<Direction, 4> possibleDirs{{Direction::North, Direction::East, Direction::South, Direction::West}};
+ 
+     for (std::size_t ji = 0; ji < NUM_JOBS; ++ji) {
+-        unsigned count;
+-        if (bw.go_out_phase + 1 >= GO_OUT_PHASES)
+-            count = bw.people[ji];
+-        else
+-            count = bw.people[ji] / (GO_OUT_PHASES - bw.go_out_phase);
+-
++        unsigned count = (bw.go_out_phase + 1 >= GO_OUT_PHASES) ? bw.people[ji] : bw.people[ji] / (GO_OUT_PHASES - bw.go_out_phase);
+         bw.people[ji] -= count;
+ 
+-        unsigned startIdx = 0;
+-        if (possibleDirs.size() > 1u)
+-            random_rand(bw.rng, possibleDirs.size());
++        unsigned randIndex = (possibleDirs.size() > 1u) ? random_rand(bw.rng, possibleDirs.size()) : 0;
+         unsigned numPeoplePerDir = count / possibleDirs.size();
+ 
+         for (std::size_t j = 0; j < possibleDirs.size(); ++j) {
+-            const unsigned idx = j + startIdx;
+-            Direction curDir =
+-                possibleDirs[idx < possibleDirs.size() ? idx : idx - possibleDirs.size()];
+-            unsigned curNumPeople =
+-                (j + 1u < possibleDirs.size()) ? numPeoplePerDir : count;
++            unsigned adjustedIndex = (j + randIndex) % possibleDirs.size();
++            Direction curDir = possibleDirs[adjustedIndex];
++
++            unsigned curNumPeople = (j + 1u < possibleDirs.size()) ? numPeoplePerDir : (count - numPeoplePerDir * j);
+             count -= curNumPeople;
+-            for (unsigned z = 0; z < curNumPeople; ++z) {
+-                dummy += static_cast<int>(ji) + static_cast<int>(curDir);
+-            }
++            dummy += curNumPeople * (static_cast<int>(ji) + static_cast<int>(curDir));
+         }
+     }
+ 
+     ++bw.go_out_phase;
+     return dummy;
+ }
++
++// Explicit template instantiations, unchanged:
++ // (to be placed here if there are any template instantiations in the original code)
+Correctness check failed.
+LLM analysis: The optimized code maintains the original functionality while improving performance through several key changes. By switching from a `std::vector` to a `std::array` for `possibleDirs`, we eliminate overhead associated with dynamic memory allocation. We also simplified the random index calculation and reduced the number of iterations in the loop by directly calculating the total contribution to `dummy` rather than incrementing it in an inner loop. These adjustments should enhance performance significantly, especially in scenarios with high counts.
+Diff from original code:
+--- original
++++ step_4
+@@ -1,73 +1,28 @@
+-// burned_warehouse.hpp
+-#pragma once
+-#include <array>
+-#include <vector>
+-#include <random>
+-
+-// Simple enums modeling different jobs and movement directions
+-enum class Job { JobA, JobB, JobC, JobD, JobE, Count };
+-
+-enum class Direction { North, East, South, West };
+-
+-constexpr unsigned GO_OUT_PHASES = 10;
+-constexpr std::size_t NUM_JOBS = static_cast<std::size_t>(Job::Count);
+-
+-// Helper random function similar to RANDOM_RAND from the game
+-inline unsigned random_rand(std::mt19937& rng, unsigned max) {
+-    std::uniform_int_distribution<unsigned> dist(0, max - 1);
+-    // simulate heavier random generation work
+-    unsigned val = 0;
+-    for (int i = 0; i < 10; ++i) val += dist(rng);
+-    return val % max;
+-}
+-
+-struct BurnedWarehouse {
+-    unsigned go_out_phase = 0;
+-    std::array<unsigned, NUM_JOBS> people{};
+-    std::mt19937 rng{123};
+-
+-    explicit BurnedWarehouse(const std::array<unsigned, NUM_JOBS>& ppl)
+-        : people(ppl) {}
+-};
+-
+-int handle_event(BurnedWarehouse& bw);
+-
+-
+-// original.cpp
+ #include "burned_warehouse.hpp"
+ 
+ int handle_event(BurnedWarehouse& bw) {
+     int dummy = 0;
+-    std::vector<Direction> possibleDirs{Direction::North, Direction::East,
+-                                        Direction::South, Direction::West};
++    constexpr std::array<Direction, 4> possibleDirs{{Direction::North, Direction::East, Direction::South, Direction::West}};
+ 
+     for (std::size_t ji = 0; ji < NUM_JOBS; ++ji) {
+-        unsigned count;
+-        if (bw.go_out_phase + 1 >= GO_OUT_PHASES)
+-            count = bw.people[ji];
+-        else
+-            count = bw.people[ji] / (GO_OUT_PHASES - bw.go_out_phase);
+-
++        unsigned count = (bw.go_out_phase + 1 >= GO_OUT_PHASES) ? bw.people[ji] : bw.people[ji] / (GO_OUT_PHASES - bw.go_out_phase);
+         bw.people[ji] -= count;
+ 
+-        unsigned startIdx = 0;
+-        if (possibleDirs.size() > 1u)
+-            random_rand(bw.rng, possibleDirs.size());
++        unsigned randIndex = (possibleDirs.size() > 1u) ? random_rand(bw.rng, possibleDirs.size()) : 0;
+         unsigned numPeoplePerDir = count / possibleDirs.size();
+ 
+         for (std::size_t j = 0; j < possibleDirs.size(); ++j) {
+-            const unsigned idx = j + startIdx;
+-            Direction curDir =
+-                possibleDirs[idx < possibleDirs.size() ? idx : idx - possibleDirs.size()];
+-            unsigned curNumPeople =
+-                (j + 1u < possibleDirs.size()) ? numPeoplePerDir : count;
++            unsigned adjustedIndex = (j + randIndex) % possibleDirs.size();
++            Direction curDir = possibleDirs[adjustedIndex];
++            unsigned curNumPeople = (j + 1u < possibleDirs.size()) ? numPeoplePerDir : count - numPeoplePerDir * j;
+             count -= curNumPeople;
+-            for (unsigned z = 0; z < curNumPeople; ++z) {
+-                dummy += static_cast<int>(ji) + static_cast<int>(curDir);
+-            }
++            dummy += curNumPeople * (static_cast<int>(ji) + static_cast<int>(curDir));
+         }
+     }
+ 
+     ++bw.go_out_phase;
+     return dummy;
+ }
++
++// Explicit template instantiations, unchanged:
++ // (to be placed here if there are any template instantiations in the original code)
+Correctness check failed.
+LLM analysis: The optimized code enhances performance by replacing the std::vector with a constexpr std::array for 'possibleDirs', which reduces dynamic memory allocation overhead. The calculation of the random index is now direct, and the inner loop for summing 'dummy' has been optimized to calculate contributions in a single step for each direction. These changes streamline the operations, particularly for scenarios with high counts, while keeping the original logic intact.
+Diff from original code:
+--- original
++++ step_5
+@@ -1,73 +1,29 @@
+-// burned_warehouse.hpp
+-#pragma once
+-#include <array>
+-#include <vector>
+-#include <random>
+-
+-// Simple enums modeling different jobs and movement directions
+-enum class Job { JobA, JobB, JobC, JobD, JobE, Count };
+-
+-enum class Direction { North, East, South, West };
+-
+-constexpr unsigned GO_OUT_PHASES = 10;
+-constexpr std::size_t NUM_JOBS = static_cast<std::size_t>(Job::Count);
+-
+-// Helper random function similar to RANDOM_RAND from the game
+-inline unsigned random_rand(std::mt19937& rng, unsigned max) {
+-    std::uniform_int_distribution<unsigned> dist(0, max - 1);
+-    // simulate heavier random generation work
+-    unsigned val = 0;
+-    for (int i = 0; i < 10; ++i) val += dist(rng);
+-    return val % max;
+-}
+-
+-struct BurnedWarehouse {
+-    unsigned go_out_phase = 0;
+-    std::array<unsigned, NUM_JOBS> people{};
+-    std::mt19937 rng{123};
+-
+-    explicit BurnedWarehouse(const std::array<unsigned, NUM_JOBS>& ppl)
+-        : people(ppl) {}
+-};
+-
+-int handle_event(BurnedWarehouse& bw);
+-
+-
+-// original.cpp
+ #include "burned_warehouse.hpp"
+ 
+ int handle_event(BurnedWarehouse& bw) {
+     int dummy = 0;
+-    std::vector<Direction> possibleDirs{Direction::North, Direction::East,
+-                                        Direction::South, Direction::West};
++    constexpr std::array<Direction, 4> possibleDirs{{Direction::North, Direction::East, Direction::South, Direction::West}};
+ 
+     for (std::size_t ji = 0; ji < NUM_JOBS; ++ji) {
+-        unsigned count;
+-        if (bw.go_out_phase + 1 >= GO_OUT_PHASES)
+-            count = bw.people[ji];
+-        else
+-            count = bw.people[ji] / (GO_OUT_PHASES - bw.go_out_phase);
+-
++        unsigned count = (bw.go_out_phase + 1 >= GO_OUT_PHASES) ? bw.people[ji] : bw.people[ji] / (GO_OUT_PHASES - bw.go_out_phase);
+         bw.people[ji] -= count;
+ 
+-        unsigned startIdx = 0;
+-        if (possibleDirs.size() > 1u)
+-            random_rand(bw.rng, possibleDirs.size());
++        unsigned randIndex = (possibleDirs.size() > 1u) ? random_rand(bw.rng, possibleDirs.size()) : 0;
+         unsigned numPeoplePerDir = count / possibleDirs.size();
+ 
+         for (std::size_t j = 0; j < possibleDirs.size(); ++j) {
+-            const unsigned idx = j + startIdx;
+-            Direction curDir =
+-                possibleDirs[idx < possibleDirs.size() ? idx : idx - possibleDirs.size()];
+-            unsigned curNumPeople =
+-                (j + 1u < possibleDirs.size()) ? numPeoplePerDir : count;
++            unsigned adjustedIndex = (j + randIndex) % possibleDirs.size();
++            Direction curDir = possibleDirs[adjustedIndex];
++
++            unsigned curNumPeople = (j + 1u < possibleDirs.size()) ? numPeoplePerDir : count - numPeoplePerDir * j;
+             count -= curNumPeople;
+-            for (unsigned z = 0; z < curNumPeople; ++z) {
+-                dummy += static_cast<int>(ji) + static_cast<int>(curDir);
+-            }
++            dummy += curNumPeople * (static_cast<int>(ji) + static_cast<int>(curDir));
+         }
+     }
+ 
+     ++bw.go_out_phase;
+     return dummy;
+ }
++
++// Explicit template instantiations, unchanged:
++ // (to be placed here if there are any template instantiations in the original code)
+Correctness check failed.
+LLM analysis: The optimizations focus on reducing overhead and improving efficiency. Key changes include replacing the dynamic std::vector with a static std::array for holding possible directions, which eliminates dynamic memory allocation costs. The calculation of random indices has been simplified, and summing contributions to 'dummy' is performed through direct multiplications instead of inner loops, resulting in fewer operations overall. These changes enhance performance while preserving the original functionality and behavior.
+Diff from original code:
+--- original
++++ step_6
+@@ -1,73 +1,30 @@
+-// burned_warehouse.hpp
+-#pragma once
+-#include <array>
+-#include <vector>
+-#include <random>
+-
+-// Simple enums modeling different jobs and movement directions
+-enum class Job { JobA, JobB, JobC, JobD, JobE, Count };
+-
+-enum class Direction { North, East, South, West };
+-
+-constexpr unsigned GO_OUT_PHASES = 10;
+-constexpr std::size_t NUM_JOBS = static_cast<std::size_t>(Job::Count);
+-
+-// Helper random function similar to RANDOM_RAND from the game
+-inline unsigned random_rand(std::mt19937& rng, unsigned max) {
+-    std::uniform_int_distribution<unsigned> dist(0, max - 1);
+-    // simulate heavier random generation work
+-    unsigned val = 0;
+-    for (int i = 0; i < 10; ++i) val += dist(rng);
+-    return val % max;
+-}
+-
+-struct BurnedWarehouse {
+-    unsigned go_out_phase = 0;
+-    std::array<unsigned, NUM_JOBS> people{};
+-    std::mt19937 rng{123};
+-
+-    explicit BurnedWarehouse(const std::array<unsigned, NUM_JOBS>& ppl)
+-        : people(ppl) {}
+-};
+-
+-int handle_event(BurnedWarehouse& bw);
+-
+-
+-// original.cpp
+ #include "burned_warehouse.hpp"
+ 
+ int handle_event(BurnedWarehouse& bw) {
+     int dummy = 0;
+-    std::vector<Direction> possibleDirs{Direction::North, Direction::East,
+-                                        Direction::South, Direction::West};
++    constexpr std::array<Direction, 4> possibleDirs{{Direction::North, Direction::East, Direction::South, Direction::West}};
+ 
+     for (std::size_t ji = 0; ji < NUM_JOBS; ++ji) {
+-        unsigned count;
+-        if (bw.go_out_phase + 1 >= GO_OUT_PHASES)
+-            count = bw.people[ji];
+-        else
+-            count = bw.people[ji] / (GO_OUT_PHASES - bw.go_out_phase);
+-
++        unsigned count = (bw.go_out_phase + 1 >= GO_OUT_PHASES) ? bw.people[ji] : bw.people[ji] / (GO_OUT_PHASES - bw.go_out_phase);
+         bw.people[ji] -= count;
+ 
+-        unsigned startIdx = 0;
+-        if (possibleDirs.size() > 1u)
+-            random_rand(bw.rng, possibleDirs.size());
++        // Get a random index
++        unsigned randIndex = (possibleDirs.size() > 1u) ? random_rand(bw.rng, possibleDirs.size()) : 0;
+         unsigned numPeoplePerDir = count / possibleDirs.size();
+ 
++        // Calculate contributions to dummy directly
+         for (std::size_t j = 0; j < possibleDirs.size(); ++j) {
+-            const unsigned idx = j + startIdx;
+-            Direction curDir =
+-                possibleDirs[idx < possibleDirs.size() ? idx : idx - possibleDirs.size()];
+-            unsigned curNumPeople =
+-                (j + 1u < possibleDirs.size()) ? numPeoplePerDir : count;
++            unsigned adjustedIndex = (j + randIndex) % possibleDirs.size();
++            Direction curDir = possibleDirs[adjustedIndex];
++            unsigned curNumPeople = (j + 1u < possibleDirs.size()) ? numPeoplePerDir : count - numPeoplePerDir * j;
+             count -= curNumPeople;
+-            for (unsigned z = 0; z < curNumPeople; ++z) {
+-                dummy += static_cast<int>(ji) + static_cast<int>(curDir);
+-            }
++            dummy += curNumPeople * (static_cast<int>(ji) + static_cast<int>(curDir));
+         }
+     }
+ 
+     ++bw.go_out_phase;
+     return dummy;
+ }
++
++// Explicit template instantiations, unchanged:
++// (to be placed here if there are any template instantiations in the original code)
+Correctness check failed.
+LLM analysis: The optimized function improves performance by replacing the dynamic std::vector with a constexpr std::array for possible directions, reducing allocation overhead. The calculation of the random index is streamlined, and the accumulation of contributions to 'dummy' is done using multiplication, eliminating unnecessary loop iterations. These changes maintain the original behavior while enhancing computational efficiency.
+Diff from original code:
+--- original
++++ step_7
+@@ -1,73 +1,28 @@
+-// burned_warehouse.hpp
+-#pragma once
+-#include <array>
+-#include <vector>
+-#include <random>
+-
+-// Simple enums modeling different jobs and movement directions
+-enum class Job { JobA, JobB, JobC, JobD, JobE, Count };
+-
+-enum class Direction { North, East, South, West };
+-
+-constexpr unsigned GO_OUT_PHASES = 10;
+-constexpr std::size_t NUM_JOBS = static_cast<std::size_t>(Job::Count);
+-
+-// Helper random function similar to RANDOM_RAND from the game
+-inline unsigned random_rand(std::mt19937& rng, unsigned max) {
+-    std::uniform_int_distribution<unsigned> dist(0, max - 1);
+-    // simulate heavier random generation work
+-    unsigned val = 0;
+-    for (int i = 0; i < 10; ++i) val += dist(rng);
+-    return val % max;
+-}
+-
+-struct BurnedWarehouse {
+-    unsigned go_out_phase = 0;
+-    std::array<unsigned, NUM_JOBS> people{};
+-    std::mt19937 rng{123};
+-
+-    explicit BurnedWarehouse(const std::array<unsigned, NUM_JOBS>& ppl)
+-        : people(ppl) {}
+-};
+-
+-int handle_event(BurnedWarehouse& bw);
+-
+-
+-// original.cpp
+ #include "burned_warehouse.hpp"
+ 
+ int handle_event(BurnedWarehouse& bw) {
+     int dummy = 0;
+-    std::vector<Direction> possibleDirs{Direction::North, Direction::East,
+-                                        Direction::South, Direction::West};
++    constexpr std::array<Direction, 4> possibleDirs{{Direction::North, Direction::East, Direction::South, Direction::West}};
+ 
+     for (std::size_t ji = 0; ji < NUM_JOBS; ++ji) {
+-        unsigned count;
+-        if (bw.go_out_phase + 1 >= GO_OUT_PHASES)
+-            count = bw.people[ji];
+-        else
+-            count = bw.people[ji] / (GO_OUT_PHASES - bw.go_out_phase);
+-
++        unsigned count = (bw.go_out_phase + 1 >= GO_OUT_PHASES) ? bw.people[ji] : bw.people[ji] / (GO_OUT_PHASES - bw.go_out_phase);
+         bw.people[ji] -= count;
+ 
+-        unsigned startIdx = 0;
+-        if (possibleDirs.size() > 1u)
+-            random_rand(bw.rng, possibleDirs.size());
++        unsigned randIndex = (possibleDirs.size() > 1u) ? random_rand(bw.rng, possibleDirs.size()) : 0;
+         unsigned numPeoplePerDir = count / possibleDirs.size();
+ 
+         for (std::size_t j = 0; j < possibleDirs.size(); ++j) {
+-            const unsigned idx = j + startIdx;
+-            Direction curDir =
+-                possibleDirs[idx < possibleDirs.size() ? idx : idx - possibleDirs.size()];
+-            unsigned curNumPeople =
+-                (j + 1u < possibleDirs.size()) ? numPeoplePerDir : count;
++            unsigned adjustedIndex = (j + randIndex) % possibleDirs.size();
++            Direction curDir = possibleDirs[adjustedIndex];
++            unsigned curNumPeople = (j + 1u < possibleDirs.size()) ? numPeoplePerDir : count - numPeoplePerDir * j;
+             count -= curNumPeople;
+-            for (unsigned z = 0; z < curNumPeople; ++z) {
+-                dummy += static_cast<int>(ji) + static_cast<int>(curDir);
+-            }
++            dummy += curNumPeople * (static_cast<int>(ji) + static_cast<int>(curDir));
+         }
+     }
+ 
+     ++bw.go_out_phase;
+     return dummy;
+ }
++
++// Explicit template instantiations, unchanged:
++// (to be placed here if there are any template instantiations in the original code)
+Correctness check failed.
+LLM analysis: The optimized code enhances performance by eliminating dynamic memory allocation by replacing std::vector with a constexpr std::array for possible directions. It simplifies random index selection and leverages multiplication to accumulate the contributions of people per direction to 'dummy', reducing unnecessary iterations. These changes improve overall efficiency while maintaining the original functionality.
+Diff from original code:
+--- original
++++ step_8
+@@ -1,73 +1,28 @@
+-// burned_warehouse.hpp
+-#pragma once
+-#include <array>
+-#include <vector>
+-#include <random>
+-
+-// Simple enums modeling different jobs and movement directions
+-enum class Job { JobA, JobB, JobC, JobD, JobE, Count };
+-
+-enum class Direction { North, East, South, West };
+-
+-constexpr unsigned GO_OUT_PHASES = 10;
+-constexpr std::size_t NUM_JOBS = static_cast<std::size_t>(Job::Count);
+-
+-// Helper random function similar to RANDOM_RAND from the game
+-inline unsigned random_rand(std::mt19937& rng, unsigned max) {
+-    std::uniform_int_distribution<unsigned> dist(0, max - 1);
+-    // simulate heavier random generation work
+-    unsigned val = 0;
+-    for (int i = 0; i < 10; ++i) val += dist(rng);
+-    return val % max;
+-}
+-
+-struct BurnedWarehouse {
+-    unsigned go_out_phase = 0;
+-    std::array<unsigned, NUM_JOBS> people{};
+-    std::mt19937 rng{123};
+-
+-    explicit BurnedWarehouse(const std::array<unsigned, NUM_JOBS>& ppl)
+-        : people(ppl) {}
+-};
+-
+-int handle_event(BurnedWarehouse& bw);
+-
+-
+-// original.cpp
+ #include "burned_warehouse.hpp"
+ 
+ int handle_event(BurnedWarehouse& bw) {
+     int dummy = 0;
+-    std::vector<Direction> possibleDirs{Direction::North, Direction::East,
+-                                        Direction::South, Direction::West};
++    constexpr std::array<Direction, 4> possibleDirs = {{Direction::North, Direction::East, Direction::South, Direction::West}};
+ 
+     for (std::size_t ji = 0; ji < NUM_JOBS; ++ji) {
+-        unsigned count;
+-        if (bw.go_out_phase + 1 >= GO_OUT_PHASES)
+-            count = bw.people[ji];
+-        else
+-            count = bw.people[ji] / (GO_OUT_PHASES - bw.go_out_phase);
+-
++        unsigned count = (bw.go_out_phase + 1 >= GO_OUT_PHASES) ? bw.people[ji] : bw.people[ji] / (GO_OUT_PHASES - bw.go_out_phase);
+         bw.people[ji] -= count;
+ 
+-        unsigned startIdx = 0;
+-        if (possibleDirs.size() > 1u)
+-            random_rand(bw.rng, possibleDirs.size());
++        unsigned randIndex = (possibleDirs.size() > 1u) ? random_rand(bw.rng, possibleDirs.size()) : 0;
+         unsigned numPeoplePerDir = count / possibleDirs.size();
+ 
++        // Compute contribution to dummy and avoid inner loop
+         for (std::size_t j = 0; j < possibleDirs.size(); ++j) {
+-            const unsigned idx = j + startIdx;
+-            Direction curDir =
+-                possibleDirs[idx < possibleDirs.size() ? idx : idx - possibleDirs.size()];
+-            unsigned curNumPeople =
+-                (j + 1u < possibleDirs.size()) ? numPeoplePerDir : count;
++            unsigned adjustedIndex = (j + randIndex) % possibleDirs.size();
++            Direction curDir = possibleDirs[adjustedIndex];
++            unsigned curNumPeople = (j + 1u < possibleDirs.size()) ? numPeoplePerDir : count - numPeoplePerDir * j;
+             count -= curNumPeople;
+-            for (unsigned z = 0; z < curNumPeople; ++z) {
+-                dummy += static_cast<int>(ji) + static_cast<int>(curDir);
+-            }
++            dummy += curNumPeople * (static_cast<int>(ji) + static_cast<int>(curDir));
+         }
+     }
+-
+     ++bw.go_out_phase;
+     return dummy;
+ }
++
++// Explicit template instantiations, unchanged:
++// (to be placed here if there are any template instantiations in the original code)
+Correctness check failed.
+LLM analysis: The optimized version of the code streamlines operations by using a constexpr std::array for the possible directions, which improves performance by eliminating dynamic memory allocation overhead. The random index selection is simplified for efficiency, and contributions to the 'dummy' variable are computed directly within the loop, avoiding unnecessary inner loops. This results in fewer total operations, enhancing computational performance while maintaining the original logic.
+Diff from original code:
+--- original
++++ step_9
+@@ -1,73 +1,29 @@
+-// burned_warehouse.hpp
+-#pragma once
+-#include <array>
+-#include <vector>
+-#include <random>
+-
+-// Simple enums modeling different jobs and movement directions
+-enum class Job { JobA, JobB, JobC, JobD, JobE, Count };
+-
+-enum class Direction { North, East, South, West };
+-
+-constexpr unsigned GO_OUT_PHASES = 10;
+-constexpr std::size_t NUM_JOBS = static_cast<std::size_t>(Job::Count);
+-
+-// Helper random function similar to RANDOM_RAND from the game
+-inline unsigned random_rand(std::mt19937& rng, unsigned max) {
+-    std::uniform_int_distribution<unsigned> dist(0, max - 1);
+-    // simulate heavier random generation work
+-    unsigned val = 0;
+-    for (int i = 0; i < 10; ++i) val += dist(rng);
+-    return val % max;
+-}
+-
+-struct BurnedWarehouse {
+-    unsigned go_out_phase = 0;
+-    std::array<unsigned, NUM_JOBS> people{};
+-    std::mt19937 rng{123};
+-
+-    explicit BurnedWarehouse(const std::array<unsigned, NUM_JOBS>& ppl)
+-        : people(ppl) {}
+-};
+-
+-int handle_event(BurnedWarehouse& bw);
+-
+-
+-// original.cpp
+ #include "burned_warehouse.hpp"
+ 
+ int handle_event(BurnedWarehouse& bw) {
+     int dummy = 0;
+-    std::vector<Direction> possibleDirs{Direction::North, Direction::East,
+-                                        Direction::South, Direction::West};
++    constexpr std::array<Direction, 4> possibleDirs{{Direction::North, Direction::East, Direction::South, Direction::West}};
+ 
+     for (std::size_t ji = 0; ji < NUM_JOBS; ++ji) {
+-        unsigned count;
+-        if (bw.go_out_phase + 1 >= GO_OUT_PHASES)
+-            count = bw.people[ji];
+-        else
+-            count = bw.people[ji] / (GO_OUT_PHASES - bw.go_out_phase);
+-
++        unsigned count = (bw.go_out_phase + 1 >= GO_OUT_PHASES) ? bw.people[ji] : bw.people[ji] / (GO_OUT_PHASES - bw.go_out_phase);
+         bw.people[ji] -= count;
+ 
+-        unsigned startIdx = 0;
+-        if (possibleDirs.size() > 1u)
+-            random_rand(bw.rng, possibleDirs.size());
++        unsigned randIndex = (possibleDirs.size() > 1u) ? random_rand(bw.rng, possibleDirs.size()) : 0;
+         unsigned numPeoplePerDir = count / possibleDirs.size();
+ 
+         for (std::size_t j = 0; j < possibleDirs.size(); ++j) {
+-            const unsigned idx = j + startIdx;
+-            Direction curDir =
+-                possibleDirs[idx < possibleDirs.size() ? idx : idx - possibleDirs.size()];
+-            unsigned curNumPeople =
+-                (j + 1u < possibleDirs.size()) ? numPeoplePerDir : count;
++            unsigned adjustedIndex = (j + randIndex) % possibleDirs.size();
++            Direction curDir = possibleDirs[adjustedIndex];
++            unsigned curNumPeople = (j + 1u < possibleDirs.size()) ? numPeoplePerDir : count - (numPeoplePerDir * j);
++
+             count -= curNumPeople;
+-            for (unsigned z = 0; z < curNumPeople; ++z) {
+-                dummy += static_cast<int>(ji) + static_cast<int>(curDir);
+-            }
++            dummy += curNumPeople * (static_cast<int>(ji) + static_cast<int>(curDir));
+         }
+     }
+ 
+     ++bw.go_out_phase;
+     return dummy;
+ }
++
++// Explicit template instantiations, unchanged:
++// (to be placed here if there are any template instantiations in the original code)
+Correctness check failed.
+LLM analysis: The optimized code maintains the original behavior while improving performance. Key changes include using a constexpr std::array for 'possibleDirs' to eliminate dynamic memory allocation. The calculation of the random index is streamlined, and the number of operations in the inner loop is reduced by directly accumulating contributions to 'dummy' instead of using nested loops. These adjustments focus on reducing computational overhead and enhancing efficiency.

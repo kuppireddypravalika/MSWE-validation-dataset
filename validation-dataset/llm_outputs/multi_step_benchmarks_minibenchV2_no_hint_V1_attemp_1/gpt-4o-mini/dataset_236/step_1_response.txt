@@ -1,0 +1,6 @@
+```json
+{
+  "optimized_code": "#include \"styled_renderable.hpp\"\n\nvoid render_item(StyledRenderable& item) {\n    // Store the results of IsItemActivated and IsItemDeactivated to avoid repetitive calls.\n    bool activated = ImGuiSim::IsItemActivated();\n    bool deactivated = ImGuiSim::IsItemDeactivated();\n    \n    // Only check for activation if it has been activated.\n    if (activated && item.OnActivate) {\n        item.Manager->Call(item.OnActivate, item.Handle);\n    }\n    // Only check for deactivation if it has been deactivated.\n    if (deactivated && item.OnDeactivate) {\n        item.Manager->Call(item.OnDeactivate, item.Handle);\n    }\n}\n\n\n// Explicit template instantiations\n", 
+  "analysis": "The optimizations are centered around reducing redundant calls to the IsItemActivated() and IsItemDeactivated() functions. By storing their results in local variables, we avoid recalculating these values multiple times while keeping the logic intact. This change should improve performance, especially under high iteration counts in the main loop."
+}
+```

@@ -45,7 +45,6 @@ from evaluation_scripts.validate import (
     measure_performance,
     mean,
     std,
-    run_executable,
     parse_all_optimization_logs,
 )
 
@@ -95,9 +94,33 @@ def compile_with_llm(bench_dir: Path, llm_file: Path, exe_name: str) -> Tuple[Pa
     return exe_path, diag_path
 
 
-def run_benchmark(exe: Path, runs: int):
-    """Return timing measurements for the given executable."""
-    return measure_performance(str(exe), runs)
+def run_benchmark(exe: Path, runs: int, timeout: float | None = None):
+    """Return timing measurements for the given executable.
+
+    Parameters
+    ----------
+    exe : Path
+        Executable to run.
+    runs : int
+        Number of iterations.
+    timeout : float | None
+        Maximum allowed seconds per run. The process is killed if it exceeds
+        this limit.
+    """
+    return measure_performance(str(exe), runs, timeout=timeout)
+
+
+def run_executable_with_timeout(cmd: list[str], timeout: float | None = None) -> list[float]:
+    """Execute ``cmd`` and parse float output values with an optional timeout."""
+    output = subprocess.check_output(cmd, timeout=timeout)
+    tokens = output.decode().split()
+    results: list[float] = []
+    for t in tokens:
+        try:
+            results.append(float(t))
+        except ValueError:
+            continue
+    return results
 
 
 def generate_json_report(
@@ -314,6 +337,9 @@ def main():
 
         base_orig_times = run_benchmark(Path(baseline_execs["original"]), args.runs)
         base_opt_times = run_benchmark(Path(baseline_execs["optimized"]), args.runs)
+        timeout = None
+        if base_orig_times:
+            timeout = mean(base_orig_times) / 1000.0 + 3.0
 
         correctness_passed = True
         individual_runs = []
@@ -339,8 +365,14 @@ def main():
         # Perform correctness and performance checks only if compilation succeeded
         if llm_exe:
             try:
-                orig_vals = run_executable([baseline_execs["original"], "--mode=correct"])
-                llm_vals = run_executable([llm_exe, "--mode=correct"])
+                orig_vals = run_executable_with_timeout([
+                    baseline_execs["original"],
+                    "--mode=correct",
+                ], timeout=timeout)
+                llm_vals = run_executable_with_timeout([
+                    llm_exe,
+                    "--mode=correct",
+                ], timeout=timeout)
                 correctness_passed = all(abs(o - l) < 1e-6 for o, l in zip(orig_vals, llm_vals))
             except subprocess.CalledProcessError as e:
                 failure_message = f"Execution failed: {e}"

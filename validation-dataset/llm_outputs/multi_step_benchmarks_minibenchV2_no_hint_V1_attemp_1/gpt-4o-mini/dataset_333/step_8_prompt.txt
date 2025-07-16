@@ -1,0 +1,446 @@
+You are an expert C++ performance engineer. Optimize the provided code for high compute and resource performance while preserving behavior. The optimized function must keep the exact same signature as the hand-written implementation. If the original file contains explicit template instantiations, reproduce them unchanged at the end of the optimized file. This prompt may include compilation errors, runtime errors or timing data from the previous step. Use it to refine the code. If it is empty, produce an initial optimization based solely on the original source. When refining the code, explore potentially high-reward optimization paths that have not yet been tried and that could yield superior computational performance. Respond only with a JSON object using the keys "optimized_code" and "analysis". The "analysis" field should briefly explain the intent behind your modifications. Additional source files may be provided for context. Here are the files:
+
+// original.cpp
+#include <vector>
+#include <cmath>
+#include <mutex>
+#include <cstdio>
+
+struct BoundingBox { double dummy[2]; };
+
+static void build_aabb_tree() {
+    volatile double sum = 0.0;
+    for (size_t i = 0; i < 180000000; ++i) {
+        sum += std::sin(i * 0.00001);
+    }
+    if (sum < 0) std::printf("%f", sum);
+}
+
+class Grid {
+public:
+    void findIntersectingCells(const BoundingBox&, std::vector<size_t>* cells) {
+        thread_local bool built = false;
+        if (!built) {
+            std::lock_guard<std::mutex> lock(mutex_);
+            build_aabb_tree();
+            built = true;
+        }
+        cells->push_back(1);
+    }
+private:
+    static std::mutex mutex_;
+};
+
+std::mutex Grid::mutex_;
+
+size_t calculate_intersections(int tris) {
+    Grid grid;
+    std::vector<BoundingBox> boxes(tris);
+    size_t total = 0;
+#pragma omp parallel num_threads(6) reduction(+:total)
+    {
+        std::vector<size_t> out;
+#pragma omp for
+        for (int i = 0; i < tris; ++i) {
+            grid.findIntersectingCells(boxes[i], &out);
+            total += out.size();
+            out.clear();
+        }
+    }
+    return total;
+}
+
+
+The following files are provided for context. Do NOT modify them. Only update code in original.cpp.
+
+// harness.cpp
+#include <chrono>
+#include <iostream>
+#include <string>
+
+size_t calculate_intersections(int tris);
+
+int main(int argc, char** argv) {
+    std::string mode = "perf";
+    int tris = 10;
+    int repeat = 1;
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "--mode=correct") mode = "correct";
+        else if (arg == "--mode=perf") mode = "perf";
+        else if (arg.rfind("--tris=",0)==0) tris = std::stoi(arg.substr(7));
+        else if (arg.rfind("--repeat=",0)==0) repeat = std::stoi(arg.substr(9));
+    }
+
+    if (mode == "correct") {
+        size_t sum = calculate_intersections(tris);
+        std::cout << sum << '\n';
+    } else {
+        using clock = std::chrono::high_resolution_clock;
+        auto t1 = clock::now();
+        for (int i = 0; i < repeat; ++i) {
+            calculate_intersections(tris);
+        }
+        auto t2 = clock::now();
+        std::cout << "Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms\n";
+    }
+    return 0;
+}
+
+
+Previous attempt info:
+Original execution time: mean = 8348.20 ms, std = 2.77 ms
+Diff from original code:
+--- original
++++ step_1
+@@ -1,8 +1,8 @@
+-// original.cpp
+ #include <vector>
+ #include <cmath>
+ #include <mutex>
+ #include <cstdio>
++#include <omp.h>
+ 
+ struct BoundingBox { double dummy[2]; };
+ 
+@@ -16,14 +16,14 @@
+ 
+ class Grid {
+ public:
+-    void findIntersectingCells(const BoundingBox&, std::vector<size_t>* cells) {
++    void findIntersectingCells(const BoundingBox&, std::vector<size_t>& cells) {
+         thread_local bool built = false;
+         if (!built) {
+             std::lock_guard<std::mutex> lock(mutex_);
+             build_aabb_tree();
+             built = true;
+         }
+-        cells->push_back(1);
++        cells.push_back(1);
+     }
+ private:
+     static std::mutex mutex_;
+@@ -40,10 +40,10 @@
+         std::vector<size_t> out;
+ #pragma omp for
+         for (int i = 0; i < tris; ++i) {
+-            grid.findIntersectingCells(boxes[i], &out);
++            grid.findIntersectingCells(boxes[i], out);
+             total += out.size();
+-            out.clear();
+         }
+     }
+     return total;
+ }
++
+Correctness check failed.
+LLM analysis: The optimization reduces overhead by using pass-by-reference for the 'cells' vector in the 'findIntersectingCells' method instead of a pointer, which eliminates the need for dereferencing in the parallel loop. This can lead to better performance due to the reduction of unnecessary pointer indirection. Additionally, there’s removed unnecessary clear() calls from the 'out' vector, as it is declared inside the parallel construct scope and gets reinitialized for each thread's iteration. Moreover, we keep using OpenMP's parallelization to maintain concurrency.
+Diff from original code:
+--- original
++++ step_2
+@@ -1,10 +1,10 @@
+-// original.cpp
+ #include <vector>
+ #include <cmath>
+ #include <mutex>
+ #include <cstdio>
++#include <omp.h>
+ 
+-struct BoundingBox { double dummy[2]; };
++struct BoundingBox { double dummy[2]; }; 
+ 
+ static void build_aabb_tree() {
+     volatile double sum = 0.0;
+@@ -16,34 +16,35 @@
+ 
+ class Grid {
+ public:
+-    void findIntersectingCells(const BoundingBox&, std::vector<size_t>* cells) {
+-        thread_local bool built = false;
++    void findIntersectingCells(const BoundingBox&, std::vector<size_t>& cells) {
++        static thread_local bool built = false;
+         if (!built) {
+             std::lock_guard<std::mutex> lock(mutex_);
+             build_aabb_tree();
+             built = true;
+         }
+-        cells->push_back(1);
++        cells.push_back(1);
+     }
+ private:
+     static std::mutex mutex_;
+ };
+ 
+-std::mutex Grid::mutex_;
++std::mutex Grid::mutex_; 
+ 
+ size_t calculate_intersections(int tris) {
+     Grid grid;
+     std::vector<BoundingBox> boxes(tris);
++    std::vector<size_t> out;
+     size_t total = 0;
+ #pragma omp parallel num_threads(6) reduction(+:total)
+     {
+-        std::vector<size_t> out;
++        out.resize(tris);
+ #pragma omp for
+         for (int i = 0; i < tris; ++i) {
+-            grid.findIntersectingCells(boxes[i], &out);
++            grid.findIntersectingCells(boxes[i], out);
+             total += out.size();
+-            out.clear();
+         }
+     }
+     return total;
+ }
++
+Correctness check failed.
+LLM analysis: The optimization includes several modifications aimed at improving both the clarity and performance of the code. Notably, I've moved the declaration of the 'out' vector outside of the OpenMP parallel region, reducing overhead from repeated allocations for each thread and ensuring that each iteration updates a shared vector efficiently. Additionally, I've retained the use of 'std::vector<size_t>' passed by reference in 'findIntersectingCells', which matches the signature in your request and avoids pointer overhead. The use of static 'thread_local' within the mutex ensures that each thread correctly maintains its own state for the 'built' flag, thus preventing unnecessary memory contention. These changes should yield better performance while preserving the original behavior of the code.
+Diff from original code:
+--- original
++++ step_3
+@@ -1,8 +1,8 @@
+-// original.cpp
+ #include <vector>
+ #include <cmath>
+ #include <mutex>
+ #include <cstdio>
++#include <omp.h>
+ 
+ struct BoundingBox { double dummy[2]; };
+ 
+@@ -16,14 +16,14 @@
+ 
+ class Grid {
+ public:
+-    void findIntersectingCells(const BoundingBox&, std::vector<size_t>* cells) {
+-        thread_local bool built = false;
++    void findIntersectingCells(const BoundingBox&, std::vector<size_t>& cells) {
++        static thread_local bool built = false;
+         if (!built) {
+             std::lock_guard<std::mutex> lock(mutex_);
+             build_aabb_tree();
+             built = true;
+         }
+-        cells->push_back(1);
++        cells.push_back(1);
+     }
+ private:
+     static std::mutex mutex_;
+@@ -38,12 +38,15 @@
+ #pragma omp parallel num_threads(6) reduction(+:total)
+     {
+         std::vector<size_t> out;
++        out.reserve(tris);
+ #pragma omp for
+         for (int i = 0; i < tris; ++i) {
+-            grid.findIntersectingCells(boxes[i], &out);
++            out.clear();
++            grid.findIntersectingCells(boxes[i], out);
+             total += out.size();
+-            out.clear();
+         }
+     }
+     return total;
+ }
++
++// Explicit template instantiations (if any)
+Compilation succeeded. Execution time: mean = 8321.00 ms, std = 4.74 ms. Original execution time: mean = 8348.20 ms, std = 2.77 ms
+LLM analysis: The optimization refines the parallel computation by ensuring that each thread reuses its 'out' vector through an explicit clear, rather than unnecessary resizing inside the parallel region. It leverages 'thread_local' for the 'built' state in a static context to minimize mutex contention, allowing threads to build the AABB tree only once. Additionally, the performance is reinforced by reserving space in 'out' for potential sizes before filling it up. Overall, these changes aim for reduced contention, better data locality, and less memory overhead while preserving the same overall functionality.
+Diff from original code:
+--- original
++++ step_4
+@@ -3,6 +3,7 @@
+ #include <cmath>
+ #include <mutex>
+ #include <cstdio>
++#include <omp.h>
+ 
+ struct BoundingBox { double dummy[2]; };
+ 
+@@ -16,14 +17,14 @@
+ 
+ class Grid {
+ public:
+-    void findIntersectingCells(const BoundingBox&, std::vector<size_t>* cells) {
+-        thread_local bool built = false;
++    void findIntersectingCells(const BoundingBox&, std::vector<size_t>& cells) {
++        static thread_local bool built = false;
+         if (!built) {
+             std::lock_guard<std::mutex> lock(mutex_);
+             build_aabb_tree();
+             built = true;
+         }
+-        cells->push_back(1);
++        cells.push_back(1);
+     }
+ private:
+     static std::mutex mutex_;
+@@ -38,12 +39,15 @@
+ #pragma omp parallel num_threads(6) reduction(+:total)
+     {
+         std::vector<size_t> out;
++        out.reserve(1); // Reservation to avoid unnecessary allocations
+ #pragma omp for
+         for (int i = 0; i < tris; ++i) {
+-            grid.findIntersectingCells(boxes[i], &out);
++            out.clear();
++            grid.findIntersectingCells(boxes[i], out);
+             total += out.size();
+-            out.clear();
+         }
+     }
+     return total;
+ }
++
++// Explicit template instantiations (if any)
+Compilation succeeded. Execution time: mean = 8365.20 ms, std = 6.26 ms. Original execution time: mean = 8348.20 ms, std = 2.77 ms
+LLM analysis: The optimization focuses on enhancing performance by statically defining a thread-local variable for the built flag in the 'Grid' class, reducing lock contention. A proper reserve for the 'out' vector minimizes memory allocations and improves efficiency. The approach retains the behavior of the original code while better utilizing memory and ensuring that threads interact optimally. Overall, these changes target computational efficiency and reduced overhead in multi-threaded execution.
+Diff from original code:
+--- original
++++ step_5
+@@ -3,6 +3,7 @@
+ #include <cmath>
+ #include <mutex>
+ #include <cstdio>
++#include <omp.h>
+ 
+ struct BoundingBox { double dummy[2]; };
+ 
+@@ -16,14 +17,14 @@
+ 
+ class Grid {
+ public:
+-    void findIntersectingCells(const BoundingBox&, std::vector<size_t>* cells) {
+-        thread_local bool built = false;
++    void findIntersectingCells(const BoundingBox&, std::vector<size_t>& cells) {
++        static thread_local bool built = false;
+         if (!built) {
+             std::lock_guard<std::mutex> lock(mutex_);
+             build_aabb_tree();
+             built = true;
+         }
+-        cells->push_back(1);
++        cells.push_back(1);
+     }
+ private:
+     static std::mutex mutex_;
+@@ -38,12 +39,15 @@
+ #pragma omp parallel num_threads(6) reduction(+:total)
+     {
+         std::vector<size_t> out;
++        out.reserve(1); // Reservation to avoid unnecessary allocations
+ #pragma omp for
+         for (int i = 0; i < tris; ++i) {
+-            grid.findIntersectingCells(boxes[i], &out);
++            out.clear();
++            grid.findIntersectingCells(boxes[i], out);
+             total += out.size();
+-            out.clear();
+         }
+     }
+     return total;
+ }
++
++// Explicit template instantiations (if any)
+Compilation succeeded. Execution time: mean = 8366.20 ms, std = 7.79 ms. Original execution time: mean = 8348.20 ms, std = 2.77 ms
+LLM analysis: The optimized code focuses on reducing memory allocation overhead and improving concurrency. The 'out' vector is cleared within each thread to ensure it is reused, and the static thread-local flag prevents unnecessary mutex locking, thus reducing contention. Reserving space in 'out' avoids reallocations during the size push. These adjustments aim to enhance overall compute performance while maintaining the original functionality.
+Diff from original code:
+--- original
++++ step_6
+@@ -3,6 +3,7 @@
+ #include <cmath>
+ #include <mutex>
+ #include <cstdio>
++#include <omp.h>
+ 
+ struct BoundingBox { double dummy[2]; };
+ 
+@@ -16,14 +17,14 @@
+ 
+ class Grid {
+ public:
+-    void findIntersectingCells(const BoundingBox&, std::vector<size_t>* cells) {
+-        thread_local bool built = false;
++    void findIntersectingCells(const BoundingBox&, std::vector<size_t>& cells) {
++        static thread_local bool built = false;
+         if (!built) {
+             std::lock_guard<std::mutex> lock(mutex_);
+             build_aabb_tree();
+             built = true;
+         }
+-        cells->push_back(1);
++        cells.push_back(1);
+     }
+ private:
+     static std::mutex mutex_;
+@@ -38,12 +39,15 @@
+ #pragma omp parallel num_threads(6) reduction(+:total)
+     {
+         std::vector<size_t> out;
++        out.reserve(1); // Reservation to avoid unnecessary allocations
+ #pragma omp for
+         for (int i = 0; i < tris; ++i) {
+-            grid.findIntersectingCells(boxes[i], &out);
++            out.clear(); // Clear vector to reuse
++            grid.findIntersectingCells(boxes[i], out);
+             total += out.size();
+-            out.clear();
+         }
+     }
+     return total;
+ }
++
++// Explicit template instantiations (if any)
+Compilation succeeded. Execution time: mean = 8362.40 ms, std = 1.14 ms. Original execution time: mean = 8348.20 ms, std = 2.77 ms
+LLM analysis: The optimized code improves computational performance by minimizing memory allocations through reserving space for the 'out' vector in the parallel region. The use of a static thread-local variable for the 'built' flag reduces the lock contention when building the AABB tree, ensuring threads only lock when necessary. Each thread now clears 'out' each iteration, allowing for optimal reuse of its memory. Overall, the changes target lower overhead and improve concurrency while keeping the original functionality intact.
+Diff from original code:
+--- original
++++ step_7
+@@ -3,6 +3,7 @@
+ #include <cmath>
+ #include <mutex>
+ #include <cstdio>
++#include <omp.h>
+ 
+ struct BoundingBox { double dummy[2]; };
+ 
+@@ -16,14 +17,14 @@
+ 
+ class Grid {
+ public:
+-    void findIntersectingCells(const BoundingBox&, std::vector<size_t>* cells) {
+-        thread_local bool built = false;
++    void findIntersectingCells(const BoundingBox&, std::vector<size_t>& cells) {
++        static thread_local bool built = false;
+         if (!built) {
+             std::lock_guard<std::mutex> lock(mutex_);
+             build_aabb_tree();
+             built = true;
+         }
+-        cells->push_back(1);
++        cells.push_back(1);
+     }
+ private:
+     static std::mutex mutex_;
+@@ -38,12 +39,15 @@
+ #pragma omp parallel num_threads(6) reduction(+:total)
+     {
+         std::vector<size_t> out;
++        out.reserve(1); // Reservation to avoid unnecessary allocations
+ #pragma omp for
+         for (int i = 0; i < tris; ++i) {
+-            grid.findIntersectingCells(boxes[i], &out);
++            out.clear(); // Clear vector to reuse
++            grid.findIntersectingCells(boxes[i], out);
+             total += out.size();
+-            out.clear();
+         }
+     }
+     return total;
+ }
++
++// Explicit template instantiations (if any)
+Compilation succeeded. Execution time: mean = 8364.00 ms, std = 3.16 ms. Original execution time: mean = 8348.20 ms, std = 2.77 ms
+LLM analysis: The optimized code improves performance by utilizing thread-local storage for the 'built' flag to minimize lock contention and ensure each thread builds the AABB tree only if necessary. The 'out' vector is cleared at the start of each iteration, and space is reserved in advance for it to reduce dynamic allocation overhead. These changes preserve the original behavior while enhancing computational efficiency in a multi-threaded environment.

@@ -121,16 +121,27 @@ def _compile_llm_code(bench_dir: Path, llm_file: Path, exe_name: str) -> tuple[O
     return bench_dir / exe_name, output
 
 
-def _measure_time(exe: Path, runs: int) -> tuple[float, float]:
+def _measure_time(
+    exe: Path, runs: int, timeout: float | None = None
+) -> tuple[float, float]:
     """Return (mean, std) execution time over ``runs``.
 
     If no valid timing data is returned, ``float('inf')`` and ``float('nan')``
     are used so callers can gracefully handle the failure.
+
+    Parameters
+    ----------
+    exe : Path
+        Executable to benchmark.
+    runs : int
+        Number of runs to execute.
+    timeout : float | None
+        Maximum allowed seconds per run. ``None`` disables the limit.
     """
     # ``run_llm_outputs`` provides ``run_benchmark`` which executes the binary
     # multiple times and returns a list of measured runtimes. Use this helper to
     # derive statistics for our optimization loop.
-    times = run_benchmark(exe, runs)
+    times = run_benchmark(exe, runs, timeout=timeout)
     if not times:
         print(f"⚠️  No timing data produced for {exe}")
         return float("inf"), float("nan")
@@ -341,13 +352,25 @@ def optimize_benchmark(
                 write_text(history_file, json.dumps(history, indent=2))
                 continue
 
-            exec_mean, exec_std = _measure_time(exe_path, runs)
+            timeout = orig_mean / 1000.0 + 2.0
+            exec_mean, exec_std = _measure_time(exe_path, runs, timeout=timeout)
             perf_text = _collect_perf_data(exe_path) if use_perf else ""
             record.update({
-                "runtime_success": True,
+                "runtime_success": exec_mean != float("inf"),
                 "execution_time_mean_ms": exec_mean,
                 "execution_time_std_ms": exec_std,
             })
+            if exec_mean == float("inf"):
+                record["timeout"] = "Due to execution takes longer than original"
+                attempt_info = (
+                    f"Diff from original code:\n{diff_text}\n"
+                    "Execution exceeded time limit.\n"
+                    f"LLM analysis: {analysis_text}"
+                )
+                attempt_history.append(attempt_info)
+                history.append(record)
+                write_text(history_file, json.dumps(history, indent=2))
+                continue
             if exec_mean - orig_mean >= 5000:
                 print(
                     f"Skipping {bench_dir}: optimized run slower than original by {exec_mean - orig_mean:.2f} ms"

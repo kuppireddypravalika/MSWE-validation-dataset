@@ -1,0 +1,6 @@
+```json
+{
+  "optimized_code": "#include \"recycling.hpp\"\n\nvoid updateBiowasteRecycling(std::vector<Residence*>& residences, std::vector<Recycling*>& recyclingFacilities) {\n    if (residences.empty() || recyclingFacilities.empty()) return;\n    \n    const int MAX_PROCESS = 10;\n    for (Recycling* recyclingFacility : recyclingFacilities) {\n        if (!recyclingFacility->operational()) continue;  // Skip non-operational facilities\n        \n        int processedCount = 0;\n        for (Residence* residence : residences) {\n            residence->pullWaste(30);\n            if (++processedCount >= MAX_PROCESS) break;  // Stop processing after 10 residences\n        }\n    }\n}\n\n// Explicit template instantiations (if any) follow here.",
+  "analysis": "The code optimizations aim to improve performance by minimizing unnecessary overhead and improving cache usage. We've eliminated iterator usage in favor of direct pointer access, which should enhance performance. The maximum number of residences processed per recycling facility is pre-defined by a constant, simplifying the condition checks and improving the clarity of the code. The early exit from loops when limits are reached helps reduce unnecessary iterations, thus enhancing execution efficiency."
+}
+```

@@ -1,0 +1,6 @@
+```json
+{
+  "optimized_code": "#include \"recycling.hpp\"\n\nvoid updateBiowasteRecycling(std::vector<Residence*>& residences,\n                             std::vector<Recycling*>& recyclingFacilities) {\n    if (residences.empty() || recyclingFacilities.empty()) return;\n\n    for (auto recyclingFacility : recyclingFacilities) {\n        // Check if the recycling facility is operational and reserve iterators only when necessary\n        if (!recyclingFacility->operational()) { continue; }\n\n        int count = 0;\n        // Directly access elements instead of using an iterator\n        for (size_t i = 0; i < residences.size() && count < 10; ++i) {\n            Residence* residence = residences[i]; // Avoid using iterator to access residence\n            residence->pullWaste(30);\n            ++count;\n        }\n    }\n}\n\n\n// Explicit template instantiations (if any) follow here.",
+  "analysis": "The optimizations include removing unnecessary iterator usage to directly access elements in the residences vector, which reduces overhead. I also combined the loop condition checks to minimize the number of comparisons made. Additionally, the operational check is now performed upon each recycling facility without iterating through the residences unnecessarily when operational status is false."
+}
+```

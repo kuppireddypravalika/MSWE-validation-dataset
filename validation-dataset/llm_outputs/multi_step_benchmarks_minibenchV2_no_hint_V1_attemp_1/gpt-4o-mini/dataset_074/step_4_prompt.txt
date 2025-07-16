@@ -1,0 +1,247 @@
+You are an expert C++ performance engineer. Optimize the provided code for high compute and resource performance while preserving behavior. The optimized function must keep the exact same signature as the hand-written implementation. If the original file contains explicit template instantiations, reproduce them unchanged at the end of the optimized file. This prompt may include compilation errors, runtime errors or timing data from the previous step. Use it to refine the code. If it is empty, produce an initial optimization based solely on the original source. When refining the code, explore potentially high-reward optimization paths that have not yet been tried and that could yield superior computational performance. Respond only with a JSON object using the keys "optimized_code" and "analysis". The "analysis" field should briefly explain the intent behind your modifications. Additional source files may be provided for context. Here are the files:
+
+// original.cpp
+#include <vector>
+#include <cmath>
+#include <omp.h>
+
+static double distance_func(const std::vector<double>& a,
+                            const std::vector<double>& b) {
+    double d = 0.0;
+    for (size_t i = 0; i < a.size(); ++i) {
+        double diff = a[i] - b[i];
+        d += diff * diff;
+    }
+    return std::sqrt(d);
+}
+
+// Original pairwise traversal using two nested loops
+void compute_distance_matrix(const std::vector<std::vector<double>>& data,
+                             std::vector<std::vector<double>>& dist) {
+    size_t n = data.size();
+    #pragma omp parallel for collapse(2)
+    for (size_t row = 0; row < n; ++row) {
+        for (size_t col = 0; col < n; ++col) {
+            if (row <= col)
+                continue;
+            double d = distance_func(data[row], data[col]);
+            dist[row][col] = d;
+            dist[col][row] = d;
+        }
+    }
+}
+
+
+The following files are provided for context. Do NOT modify them. Only update code in original.cpp.
+
+// harness.cpp
+#include <chrono>
+#include <iostream>
+#include <random>
+#include <string>
+#include <vector>
+
+// function under test
+void compute_distance_matrix(const std::vector<std::vector<double>>&,
+                             std::vector<std::vector<double>>&);
+
+static std::vector<std::vector<double>> make_data(std::size_t n, std::size_t dim) {
+    std::mt19937 gen(42);
+    std::uniform_real_distribution<double> dist(0.0, 1.0);
+    std::vector<std::vector<double>> data(n, std::vector<double>(dim));
+    for (auto& v : data)
+        for (auto& x : v)
+            x = dist(gen);
+    return data;
+}
+
+int main(int argc, char* argv[]) {
+    std::string mode = "perf";
+    std::size_t sets = 800;
+    std::size_t dim = 64;
+    int repeat = 600;
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "--mode=correct")
+            mode = "correct";
+        else if (arg == "--mode=perf")
+            mode = "perf";
+        else if (arg.rfind("--sets=", 0) == 0)
+            sets = static_cast<std::size_t>(std::stoul(arg.substr(7)));
+        else if (arg.rfind("--dim=", 0) == 0)
+            dim = static_cast<std::size_t>(std::stoul(arg.substr(6)));
+        else if (arg.rfind("--repeat=", 0) == 0)
+            repeat = std::stoi(arg.substr(9));
+    }
+
+    auto data = make_data(sets, dim);
+    std::vector<std::vector<double>> dist(sets, std::vector<double>(sets));
+
+    if (mode == "correct") {
+        compute_distance_matrix(data, dist);
+        double sum = 0.0;
+        for (const auto& row : dist)
+            for (double v : row)
+                sum += v;
+        std::cout << sum << '\n';
+    } else {
+        using clock = std::chrono::high_resolution_clock;
+        auto start = clock::now();
+        for (int r = 0; r < repeat; ++r)
+            compute_distance_matrix(data, dist);
+        auto end = clock::now();
+        std::cout << "Time: "
+                  << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
+                  << " ms\n";
+    }
+    return 0;
+}
+
+
+Previous attempt info:
+Original execution time: mean = 477.60 ms, std = 4.56 ms
+Diff from original code:
+--- original
++++ step_1
+@@ -1,4 +1,3 @@
+-// original.cpp
+ #include <vector>
+ #include <cmath>
+ #include <omp.h>
+@@ -6,22 +5,22 @@
+ static double distance_func(const std::vector<double>& a,
+                             const std::vector<double>& b) {
+     double d = 0.0;
+-    for (size_t i = 0; i < a.size(); ++i) {
++    size_t size = a.size();
++    #pragma omp simd
++    for (size_t i = 0; i < size; ++i) {
+         double diff = a[i] - b[i];
+         d += diff * diff;
+     }
+     return std::sqrt(d);
+ }
+ 
+-// Original pairwise traversal using two nested loops
++// Optimized pairwise traversal using two nested loops with reduction
+ void compute_distance_matrix(const std::vector<std::vector<double>>& data,
+                              std::vector<std::vector<double>>& dist) {
+     size_t n = data.size();
+-    #pragma omp parallel for collapse(2)
++    #pragma omp parallel for collapse(2) schedule(dynamic)
+     for (size_t row = 0; row < n; ++row) {
+-        for (size_t col = 0; col < n; ++col) {
+-            if (row <= col)
+-                continue;
++        for (size_t col = row + 1; col < n; ++col) {
+             double d = distance_func(data[row], data[col]);
+             dist[row][col] = d;
+             dist[col][row] = d;
+Compilation failed. Output:
+/workspace/llm_outputs/multi_step_benchmarks_minibenchV2_no_hint_V1_attemp_1/gpt-4o-mini/dataset_074/step_1.cpp: In function ‘void compute_distance_matrix(const std::vector<std::vector<double> >&, std::vector<std::vector<double> >&)’:
+/workspace/llm_outputs/multi_step_benchmarks_minibenchV2_no_hint_V1_attemp_1/gpt-4o-mini/dataset_074/step_1.cpp:22:5: error: ‘schedule’ clause may not appear on non-rectangular ‘for’
+   22 |     for (size_t row = 0; row < n; ++row) {
+      |     ^~~
+
+LLM analysis: The optimized version improves performance by leveraging SIMD (Single Instruction, Multiple Data) instructions in the distance computation using `#pragma omp simd`, which allows vectorization of the loop. Also, by changing the nested loops to only calculate distances for `col` values greater than `row`, redundant calculations are avoided, thus saving compute cycles. The `schedule(dynamic)` clause enables better load balancing, especially for larger datasets across the available threads.
+Diff from original code:
+--- original
++++ step_2
+@@ -6,25 +6,36 @@
+ static double distance_func(const std::vector<double>& a,
+                             const std::vector<double>& b) {
+     double d = 0.0;
+-    for (size_t i = 0; i < a.size(); ++i) {
++    size_t size = a.size();
++    #pragma omp simd reduction(+:d)
++    for (size_t i = 0; i < size; ++i) {
+         double diff = a[i] - b[i];
+         d += diff * diff;
+     }
+     return std::sqrt(d);
+ }
+ 
+-// Original pairwise traversal using two nested loops
++// Optimized pairwise traversal using two nested loops with reduction
+ void compute_distance_matrix(const std::vector<std::vector<double>>& data,
+                              std::vector<std::vector<double>>& dist) {
+     size_t n = data.size();
+-    #pragma omp parallel for collapse(2)
++    #pragma omp parallel for
+     for (size_t row = 0; row < n; ++row) {
+-        for (size_t col = 0; col < n; ++col) {
+-            if (row <= col)
+-                continue;
++        for (size_t col = row + 1; col < n; ++col) {
+             double d = distance_func(data[row], data[col]);
+             dist[row][col] = d;
+             dist[col][row] = d;
+         }
+     }
+ }
++
++// Explicit instantiations
++#include <vector>
++#include <cmath>
++#include <omp.h>
++
++static double distance_func(const std::vector<double>& a,
++                            const std::vector<double>& b);
++
++void compute_distance_matrix(const std::vector<std::vector<double>>& data,
++                             std::vector<std::vector<double>>& dist);
+Compilation succeeded. Execution time: mean = 546.00 ms, std = 40.88 ms. Original execution time: mean = 477.60 ms, std = 4.56 ms
+LLM analysis: The optimized code reduces the computational overhead by improving how we calculate distances. By using OpenMP's SIMD directive with a reduction on the distance variable in the distance function, we enable vectorization over the distance computation which can lead to significant performance improvements. The outer loop over rows retains parallelization without a dynamic schedule, which can be beneficial for small sub-problems in parallel execution, reducing the overhead from load balancing. The inner loop now directly starts from 'row + 1' to avoid redundant distance calculations, thus minimizing the computations performed.
+Diff from original code:
+--- original
++++ step_3
+@@ -1,4 +1,3 @@
+-// original.cpp
+ #include <vector>
+ #include <cmath>
+ #include <omp.h>
+@@ -6,25 +5,35 @@
+ static double distance_func(const std::vector<double>& a,
+                             const std::vector<double>& b) {
+     double d = 0.0;
+-    for (size_t i = 0; i < a.size(); ++i) {
++    size_t size = a.size();
++    #pragma omp simd reduction(+:d)
++    for (size_t i = 0; i < size; ++i) {
+         double diff = a[i] - b[i];
+         d += diff * diff;
+     }
+     return std::sqrt(d);
+ }
+ 
+-// Original pairwise traversal using two nested loops
+ void compute_distance_matrix(const std::vector<std::vector<double>>& data,
+                              std::vector<std::vector<double>>& dist) {
+     size_t n = data.size();
+-    #pragma omp parallel for collapse(2)
++    #pragma omp parallel for
+     for (size_t row = 0; row < n; ++row) {
+-        for (size_t col = 0; col < n; ++col) {
+-            if (row <= col)
+-                continue;
++        for (size_t col = row + 1; col < n; ++col) {
+             double d = distance_func(data[row], data[col]);
+             dist[row][col] = d;
+             dist[col][row] = d;
+         }
+     }
+ }
++
++// Explicit instantiations
++#include <vector>
++#include <cmath>
++#include <omp.h>
++
++static double distance_func(const std::vector<double>& a,
++                            const std::vector<double>& b);
++
++void compute_distance_matrix(const std::vector<std::vector<double>>& data,
++                             std::vector<std::vector<double>>& dist);
+Compilation succeeded. Execution time: mean = 543.80 ms, std = 38.13 ms. Original execution time: mean = 477.60 ms, std = 4.56 ms
+LLM analysis: The code has been optimized by utilizing OpenMP's SIMD directives for vectorization in the distance computation, thereby exploiting parallel and vectorized execution paths. Additionally, the inner loop in 'compute_distance_matrix' now only runs from 'row + 1' to 'n', avoiding redundant symmetric calculations, which saves computation time. The overall parallelization strategy has been retained while the reduction clause on 'd' ensures correctness during accumulation.

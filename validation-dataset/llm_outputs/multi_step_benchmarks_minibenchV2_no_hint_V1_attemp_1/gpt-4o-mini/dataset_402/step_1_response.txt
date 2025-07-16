@@ -1,0 +1,6 @@
+```json
+{
+  "optimized_code": "#include <vector>\n#include <string>\n#include <algorithm>\n\nlong long render(const std::vector<std::string>& items,\n                 std::size_t scrollOffset,\n                 int lineHeight,\n                 int areaHeight)\n{\n    long long sum = 0;\n    int y = -static_cast<int>(scrollOffset);\n    const int itemsSize = static_cast<int>(items.size());\n    int maxVisibleLines = areaHeight / lineHeight;\n\n    // Determine the start and end indices for our visible items.\n    int startIdx = std::max(0, y / lineHeight);\n    int endIdx = std::min(itemsSize, startIdx + maxVisibleLines);\n\n    for (int i = startIdx; i < endIdx; ++i) {\n        for (char c : items[i]) sum += c;\n        sum += y;\n        y += lineHeight;\n    }\n    return sum;\n}",
+  "analysis": "The optimized code minimizes the number of iterations over the `items` vector by calculating the range of visible items based on the `scrollOffset`, `lineHeight`, and `areaHeight`. This avoids checking visibility for every item, thereby enhancing performance. Additionally, we store the size of `items` in a variable to prevent multiple calls to `items.size()`. All changes maintain the original function signature and ensure that the overall behavior remains unchanged."
+}
+```

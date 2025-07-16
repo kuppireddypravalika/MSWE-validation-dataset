@@ -1,0 +1,618 @@
+You are an expert C++ performance engineer. Optimize the provided code for high compute and resource performance while preserving behavior. The optimized function must keep the exact same signature as the hand-written implementation. If the original file contains explicit template instantiations, reproduce them unchanged at the end of the optimized file. This prompt may include compilation errors, runtime errors or timing data from the previous step. Use it to refine the code. If it is empty, produce an initial optimization based solely on the original source. When refining the code, explore potentially high-reward optimization paths that have not yet been tried and that could yield superior computational performance. Respond only with a JSON object using the keys "optimized_code" and "analysis". The "analysis" field should briefly explain the intent behind your modifications. Additional source files may be provided for context. Here are the files:
+
+// original.cpp
+#include <string>
+#include <cctype>
+#include <cstring>
+
+// Minimal string implementation which reallocates on every append
+class SimpleString {
+    char* data = nullptr;
+    size_t len = 0;
+    size_t cap = 0;
+public:
+    SimpleString() = default;
+    explicit SimpleString(const std::string& s) { *this = s; }
+    SimpleString(const SimpleString& other) { *this = other; }
+    SimpleString(SimpleString&& other) noexcept { data = other.data; len = other.len; cap = other.cap; other.data = nullptr; other.len = other.cap = 0; }
+    ~SimpleString() { delete[] data; }
+    SimpleString& operator=(const SimpleString& other) {
+        if (this != &other) { resize(other.len); std::memcpy(data, other.data, len); }
+        return *this;
+    }
+    SimpleString& operator=(const std::string& s) { resize(s.size()); std::memcpy(data, s.data(), len); return *this; }
+    void resize(size_t n) {
+        if (cap < n) {
+            char* newd = new char[n];
+            if (data) std::memcpy(newd, data, len);
+            delete[] data;
+            data = newd;
+            cap = n;
+        }
+        len = n;
+    }
+    size_t size() const { return len; }
+    SimpleString substr(size_t pos, size_t n) const { return SimpleString(std::string(data + pos, n)); }
+    SimpleString substr(size_t pos) const { return SimpleString(std::string(data + pos, len - pos)); }
+    void append(const SimpleString& s) {
+        size_t old = len;
+        resize(len + s.len);
+        std::memcpy(data + old, s.data, s.len);
+    }
+    void append(const std::string& s) {
+        size_t old = len;
+        resize(len + s.size());
+        std::memcpy(data + old, s.data(), s.size());
+    }
+    std::string str() const { return std::string(data, len); }
+};
+
+static bool iequals(const std::string &a, const std::string &b) {
+    if (a.size() != b.size()) return false;
+    for (size_t i = 0; i < a.size(); ++i) {
+        if (std::tolower(static_cast<unsigned char>(a[i])) !=
+            std::tolower(static_cast<unsigned char>(b[i])))
+            return false;
+    }
+    return true;
+}
+
+void search_replace(std::string &text, const std::string &find, const std::string &replace) {
+    SimpleString Left, Right(text);
+    bool replaced = false;
+    int pos = 0;
+    while (pos <= static_cast<int>(Right.size() - find.size())) {
+        if (iequals(Right.substr(pos, find.size()).str(), find)) {
+            Left.append(Right.substr(0, pos));
+            Left.append(replace);
+            Right = Right.substr(pos + find.size());
+            replaced = true;
+            pos = 0;
+        }
+        else {
+            ++pos;
+        }
+    }
+    if (replaced) {
+        text = Left.str(); // leftover dropped
+    }
+}
+
+// explicit instantiation for benchmark usage
+void search_replace(std::string&, const std::string&, const std::string&);
+
+
+The following files are provided for context. Do NOT modify them. Only update code in original.cpp.
+
+// harness.cpp
+#include <chrono>
+#include <iostream>
+#include <random>
+#include <string>
+
+void search_replace(std::string& text, const std::string& find, const std::string& replace);
+
+static std::string generate_text(size_t groups) {
+    std::mt19937 gen(42);
+    std::uniform_int_distribution<int> dist('a', 'z');
+    std::string text;
+    text.reserve(groups * 24); // include filler characters
+    for (size_t i = 0; i < groups; ++i) {
+        text += "abc";
+        if (i + 1 < groups) {
+            for (int j = 0; j < 20; ++j) text.push_back(static_cast<char>(dist(gen)));
+        }
+    }
+    return text;
+}
+
+int main(int argc, char* argv[]) {
+    std::string mode = "perf";
+    size_t size = 5000;
+    int repeat = 100;
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "--mode=correct") mode = "correct";
+        else if (arg == "--mode=perf") mode = "perf";
+        else if (arg.rfind("--size=",0)==0) size = std::stoul(arg.substr(7));
+        else if (arg.rfind("--repeat=",0)==0) repeat = std::stoi(arg.substr(9));
+    }
+
+    std::string base = generate_text(size);
+    const std::string pattern = "abc";
+    const std::string repl = "XYZ";
+
+    if (mode == "correct") {
+        std::string text = base;
+        search_replace(text, pattern, repl);
+        long long sum = 0;
+        for (char c : text) sum += c;
+        std::cout << sum << "\n";
+    } else {
+        using clock = std::chrono::high_resolution_clock;
+        long long dummy = 0;
+        auto t1 = clock::now();
+        for (int r = 0; r < repeat; ++r) {
+            std::string text = base;
+            search_replace(text, pattern, repl);
+            dummy += text.size();
+        }
+        auto t2 = clock::now();
+        std::cout << "Time: "
+                  << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count()
+                  << " ms\n";
+        if (dummy == 42) std::cerr << ""; // prevent optimization
+    }
+    return 0;
+}
+
+
+Previous attempt info:
+Original execution time: mean = 9082.20 ms, std = 190.42 ms
+Diff from original code:
+--- original
++++ step_1
+@@ -1,4 +1,3 @@
+-// original.cpp
+ #include <string>
+ #include <cctype>
+ #include <cstring>
+@@ -12,7 +11,10 @@
+     SimpleString() = default;
+     explicit SimpleString(const std::string& s) { *this = s; }
+     SimpleString(const SimpleString& other) { *this = other; }
+-    SimpleString(SimpleString&& other) noexcept { data = other.data; len = other.len; cap = other.cap; other.data = nullptr; other.len = other.cap = 0; }
++    SimpleString(SimpleString&& other) noexcept : data(other.data), len(other.len), cap(other.cap) {
++        other.data = nullptr; 
++        other.len = other.cap = 0;
++    }
+     ~SimpleString() { delete[] data; }
+     SimpleString& operator=(const SimpleString& other) {
+         if (this != &other) { resize(other.len); std::memcpy(data, other.data, len); }
+@@ -56,24 +58,17 @@
+ }
+ 
+ void search_replace(std::string &text, const std::string &find, const std::string &replace) {
+-    SimpleString Left, Right(text);
+-    bool replaced = false;
+-    int pos = 0;
+-    while (pos <= static_cast<int>(Right.size() - find.size())) {
+-        if (iequals(Right.substr(pos, find.size()).str(), find)) {
+-            Left.append(Right.substr(0, pos));
+-            Left.append(replace);
+-            Right = Right.substr(pos + find.size());
+-            replaced = true;
+-            pos = 0;
+-        }
+-        else {
+-            ++pos;
+-        }
++    if (find.empty()) return; // early exit for empty find string
++    SimpleString Left;  
++    SimpleString Right(text);  
++    size_t pos = 0;
++    while ((pos = Right.substr(pos, Right.size()).str().find(find)) != std::string::npos) {
++        Left.append(Right.substr(0, pos));
++        Left.append(replace);
++        Right = Right.substr(pos + find.size());
+     }
+-    if (replaced) {
+-        text = Left.str(); // leftover dropped
+-    }
++    Left.append(Right.str()); // append any remaining text
++    text = Left.str();
+ }
+ 
+ // explicit instantiation for benchmark usage
+Correctness check failed.
+LLM analysis: The optimization involved eliminating unnecessary repeated calls to the `substr` method and combining memory operations. I also introduced an early exit for the case where the 'find' string is empty to avoid unnecessary processing. The `search_replace` logic is now streamlined to directly track the position where the replacement should occur, which avoids the need for the temporary state and repetitive memory allocations that can degrade performance. This should improve performance significantly by reducing the overhead of memory management and substring operations.
+Diff from original code:
+--- original
++++ step_2
+@@ -1,4 +1,3 @@
+-// original.cpp
+ #include <string>
+ #include <cctype>
+ #include <cstring>
+@@ -12,7 +11,10 @@
+     SimpleString() = default;
+     explicit SimpleString(const std::string& s) { *this = s; }
+     SimpleString(const SimpleString& other) { *this = other; }
+-    SimpleString(SimpleString&& other) noexcept { data = other.data; len = other.len; cap = other.cap; other.data = nullptr; other.len = other.cap = 0; }
++    SimpleString(SimpleString&& other) noexcept : data(other.data), len(other.len), cap(other.cap) {
++        other.data = nullptr;
++        other.len = other.cap = 0;
++    }
+     ~SimpleString() { delete[] data; }
+     SimpleString& operator=(const SimpleString& other) {
+         if (this != &other) { resize(other.len); std::memcpy(data, other.data, len); }
+@@ -56,24 +58,19 @@
+ }
+ 
+ void search_replace(std::string &text, const std::string &find, const std::string &replace) {
+-    SimpleString Left, Right(text);
+-    bool replaced = false;
+-    int pos = 0;
+-    while (pos <= static_cast<int>(Right.size() - find.size())) {
+-        if (iequals(Right.substr(pos, find.size()).str(), find)) {
+-            Left.append(Right.substr(0, pos));
+-            Left.append(replace);
+-            Right = Right.substr(pos + find.size());
+-            replaced = true;
+-            pos = 0;
+-        }
+-        else {
+-            ++pos;
+-        }
++    if (find.empty()) return; // early exit for empty find string
++    SimpleString Left;
++    SimpleString Right(text);
++    size_t pos = 0;
++    while (true) {
++        pos = Right.str().find(find, pos);
++        if (pos == std::string::npos) break;
++        Left.append(Right.substr(0, pos));
++        Left.append(replace);
++        pos += find.size();
+     }
+-    if (replaced) {
+-        text = Left.str(); // leftover dropped
+-    }
++    Left.append(Right.str().substr(pos)); // append any remaining text
++    text = Left.str();
+ }
+ 
+ // explicit instantiation for benchmark usage
+Runtime error: Command '['benchmarks/dataset_009/bench_llm_step_2', '--mode=correct']' died with <Signals.SIGABRT: 6>.
+LLM analysis: The optimization focuses on the `search_replace` function, eliminating redundant calls and improving memory management. The code now uses a direct call to `str().find()` on `Right` to locate substrings instead of repeatedly generating substrings, which reduces performance overhead. The handling of the empty `find` case allows an early return, saving unnecessary computations. The outcome is a streamlined process that significantly improves execution time while preserving the original behavior.
+Diff from original code:
+--- original
++++ step_3
+@@ -1,4 +1,3 @@
+-// original.cpp
+ #include <string>
+ #include <cctype>
+ #include <cstring>
+@@ -12,7 +11,11 @@
+     SimpleString() = default;
+     explicit SimpleString(const std::string& s) { *this = s; }
+     SimpleString(const SimpleString& other) { *this = other; }
+-    SimpleString(SimpleString&& other) noexcept { data = other.data; len = other.len; cap = other.cap; other.data = nullptr; other.len = other.cap = 0; }
++    SimpleString(SimpleString&& other) noexcept : data(other.data), len(other.len), cap(other.cap) {
++        other.data = nullptr;
++        other.len = 0;
++        other.cap = 0;
++    }
+     ~SimpleString() { delete[] data; }
+     SimpleString& operator=(const SimpleString& other) {
+         if (this != &other) { resize(other.len); std::memcpy(data, other.data, len); }
+@@ -56,24 +59,19 @@
+ }
+ 
+ void search_replace(std::string &text, const std::string &find, const std::string &replace) {
+-    SimpleString Left, Right(text);
+-    bool replaced = false;
+-    int pos = 0;
+-    while (pos <= static_cast<int>(Right.size() - find.size())) {
+-        if (iequals(Right.substr(pos, find.size()).str(), find)) {
+-            Left.append(Right.substr(0, pos));
+-            Left.append(replace);
+-            Right = Right.substr(pos + find.size());
+-            replaced = true;
+-            pos = 0;
+-        }
+-        else {
+-            ++pos;
+-        }
++    if (find.empty()) return; // early exit for empty find string
++    SimpleString Left;
++    SimpleString Right(text);
++    size_t pos = 0;
++    while (true) {
++        pos = Right.str().find(find, pos);
++        if (pos == std::string::npos) break;
++        Left.append(Right.substr(0, pos));
++        Left.append(replace);
++        pos += find.size();
+     }
+-    if (replaced) {
+-        text = Left.str(); // leftover dropped
+-    }
++    Left.append(Right.str().substr(pos)); // append any remaining text
++    text = Left.str();
+ }
+ 
+ // explicit instantiation for benchmark usage
+Runtime error: Command '['benchmarks/dataset_009/bench_llm_step_3', '--mode=correct']' died with <Signals.SIGABRT: 6>.
+LLM analysis: The optimized code reduces unnecessary substring creations and minimizes memory reallocations. Instead of creating numerous `SimpleString` instances during the search and replace operations, the code works directly with string indices to locate matches in a more efficient manner. By avoiding repeated allocations and using direct string manipulations, overall performance is enhanced while ensuring the original functionality is preserved.
+Diff from original code:
+--- original
++++ step_4
+@@ -1,9 +1,8 @@
+-// original.cpp
+ #include <string>
+ #include <cctype>
+ #include <cstring>
+ 
+-// Minimal string implementation which reallocates on every append
++// Minimal string implementation which avoids unnecessary reallocations
+ class SimpleString {
+     char* data = nullptr;
+     size_t len = 0;
+@@ -12,7 +11,9 @@
+     SimpleString() = default;
+     explicit SimpleString(const std::string& s) { *this = s; }
+     SimpleString(const SimpleString& other) { *this = other; }
+-    SimpleString(SimpleString&& other) noexcept { data = other.data; len = other.len; cap = other.cap; other.data = nullptr; other.len = other.cap = 0; }
++    SimpleString(SimpleString&& other) noexcept : data(other.data), len(other.len), cap(other.cap) {
++        other.data = nullptr; other.len = other.cap = 0;
++    }
+     ~SimpleString() { delete[] data; }
+     SimpleString& operator=(const SimpleString& other) {
+         if (this != &other) { resize(other.len); std::memcpy(data, other.data, len); }
+@@ -48,32 +49,26 @@
+ static bool iequals(const std::string &a, const std::string &b) {
+     if (a.size() != b.size()) return false;
+     for (size_t i = 0; i < a.size(); ++i) {
+-        if (std::tolower(static_cast<unsigned char>(a[i])) !=
+-            std::tolower(static_cast<unsigned char>(b[i])))
++        if (std::tolower(static_cast<unsigned char>(a[i])) != std::tolower(static_cast<unsigned char>(b[i])))
+             return false;
+     }
+     return true;
+ }
+ 
+ void search_replace(std::string &text, const std::string &find, const std::string &replace) {
+-    SimpleString Left, Right(text);
+-    bool replaced = false;
+-    int pos = 0;
+-    while (pos <= static_cast<int>(Right.size() - find.size())) {
+-        if (iequals(Right.substr(pos, find.size()).str(), find)) {
+-            Left.append(Right.substr(0, pos));
+-            Left.append(replace);
+-            Right = Right.substr(pos + find.size());
+-            replaced = true;
+-            pos = 0;
+-        }
+-        else {
+-            ++pos;
+-        }
++    if (find.empty()) return; // early exit for empty find string
++    SimpleString Left;
++    SimpleString Right(text);
++    size_t pos = 0;
++    size_t find_len = find.size();
++
++    while ((pos = Right.str().find(find, pos)) != std::string::npos) {
++        Left.append(Right.substr(0, pos));
++        Left.append(replace);
++        pos += find_len;
+     }
+-    if (replaced) {
+-        text = Left.str(); // leftover dropped
+-    }
++    Left.append(Right.str().substr(pos)); // append any remaining text
++    text = Left.str();
+ }
+ 
+ // explicit instantiation for benchmark usage
+Runtime error: Command '['benchmarks/dataset_009/bench_llm_step_4', '--mode=correct']' died with <Signals.SIGABRT: 6>.
+LLM analysis: The primary optimization strategy was to reduce unnecessary memory allocations and repeated substring creations. By directly using the `find` method on the underlying string in `Right`, the code becomes more efficient in locating the 'find' string positions. I also introduced an early exit for scenarios where 'find' is empty. The function retains the same functionality while significantly improving the overall execution speed.
+Diff from original code:
+--- original
++++ step_5
+@@ -1,9 +1,8 @@
+-// original.cpp
+ #include <string>
+ #include <cctype>
+ #include <cstring>
+ 
+-// Minimal string implementation which reallocates on every append
++// Minimal string implementation which avoids unnecessary reallocations
+ class SimpleString {
+     char* data = nullptr;
+     size_t len = 0;
+@@ -12,7 +11,9 @@
+     SimpleString() = default;
+     explicit SimpleString(const std::string& s) { *this = s; }
+     SimpleString(const SimpleString& other) { *this = other; }
+-    SimpleString(SimpleString&& other) noexcept { data = other.data; len = other.len; cap = other.cap; other.data = nullptr; other.len = other.cap = 0; }
++    SimpleString(SimpleString&& other) noexcept : data(other.data), len(other.len), cap(other.cap) {
++        other.data = nullptr; other.len = other.cap = 0;
++    }
+     ~SimpleString() { delete[] data; }
+     SimpleString& operator=(const SimpleString& other) {
+         if (this != &other) { resize(other.len); std::memcpy(data, other.data, len); }
+@@ -48,32 +49,26 @@
+ static bool iequals(const std::string &a, const std::string &b) {
+     if (a.size() != b.size()) return false;
+     for (size_t i = 0; i < a.size(); ++i) {
+-        if (std::tolower(static_cast<unsigned char>(a[i])) !=
+-            std::tolower(static_cast<unsigned char>(b[i])))
++        if (std::tolower(static_cast<unsigned char>(a[i])) != std::tolower(static_cast<unsigned char>(b[i])))
+             return false;
+     }
+     return true;
+ }
+ 
+ void search_replace(std::string &text, const std::string &find, const std::string &replace) {
+-    SimpleString Left, Right(text);
+-    bool replaced = false;
+-    int pos = 0;
+-    while (pos <= static_cast<int>(Right.size() - find.size())) {
+-        if (iequals(Right.substr(pos, find.size()).str(), find)) {
+-            Left.append(Right.substr(0, pos));
+-            Left.append(replace);
+-            Right = Right.substr(pos + find.size());
+-            replaced = true;
+-            pos = 0;
+-        }
+-        else {
+-            ++pos;
+-        }
++    if (find.empty()) return; // early exit for empty find string
++    SimpleString Left;
++    SimpleString Right(text);
++    size_t pos = 0;
++    size_t find_len = find.size();
++
++    while ((pos = Right.str().find(find, pos)) != std::string::npos) {
++        Left.append(Right.substr(0, pos));
++        Left.append(replace);
++        pos += find_len;
+     }
+-    if (replaced) {
+-        text = Left.str(); // leftover dropped
+-    }
++    Left.append(Right.str().substr(pos)); // append any remaining text
++    text = Left.str();
+ }
+ 
+ // explicit instantiation for benchmark usage
+Runtime error: Command '['benchmarks/dataset_009/bench_llm_step_5', '--mode=correct']' died with <Signals.SIGABRT: 6>.
+LLM analysis: The optimized code reduces memory reallocations and improves efficiency by directly managing substring operations. By tracking the index of the next replacement and minimizing copies of substrings, the performance is significantly enhanced. Early exits for empty 'find' strings also save unnecessary processing.
+Diff from original code:
+--- original
++++ step_6
+@@ -3,7 +3,7 @@
+ #include <cctype>
+ #include <cstring>
+ 
+-// Minimal string implementation which reallocates on every append
++// Minimal string implementation which avoids unnecessary reallocations
+ class SimpleString {
+     char* data = nullptr;
+     size_t len = 0;
+@@ -12,7 +12,9 @@
+     SimpleString() = default;
+     explicit SimpleString(const std::string& s) { *this = s; }
+     SimpleString(const SimpleString& other) { *this = other; }
+-    SimpleString(SimpleString&& other) noexcept { data = other.data; len = other.len; cap = other.cap; other.data = nullptr; other.len = other.cap = 0; }
++    SimpleString(SimpleString&& other) noexcept : data(other.data), len(other.len), cap(other.cap) {
++        other.data = nullptr; other.len = other.cap = 0;
++    }
+     ~SimpleString() { delete[] data; }
+     SimpleString& operator=(const SimpleString& other) {
+         if (this != &other) { resize(other.len); std::memcpy(data, other.data, len); }
+@@ -48,32 +50,26 @@
+ static bool iequals(const std::string &a, const std::string &b) {
+     if (a.size() != b.size()) return false;
+     for (size_t i = 0; i < a.size(); ++i) {
+-        if (std::tolower(static_cast<unsigned char>(a[i])) !=
+-            std::tolower(static_cast<unsigned char>(b[i])))
++        if (std::tolower(static_cast<unsigned char>(a[i])) != std::tolower(static_cast<unsigned char>(b[i])))
+             return false;
+     }
+     return true;
+ }
+ 
+ void search_replace(std::string &text, const std::string &find, const std::string &replace) {
+-    SimpleString Left, Right(text);
+-    bool replaced = false;
+-    int pos = 0;
+-    while (pos <= static_cast<int>(Right.size() - find.size())) {
+-        if (iequals(Right.substr(pos, find.size()).str(), find)) {
+-            Left.append(Right.substr(0, pos));
+-            Left.append(replace);
+-            Right = Right.substr(pos + find.size());
+-            replaced = true;
+-            pos = 0;
+-        }
+-        else {
+-            ++pos;
+-        }
++    if (find.empty()) return; // early exit for empty find string
++    SimpleString Left;
++    SimpleString Right(text);
++    size_t pos = 0;
++    size_t find_len = find.size();
++
++    while ((pos = Right.str().find(find, pos)) != std::string::npos) {
++        Left.append(Right.substr(0, pos));
++        Left.append(replace);
++        pos += find_len;
+     }
+-    if (replaced) {
+-        text = Left.str(); // leftover dropped
+-    }
++    Left.append(Right.str().substr(pos)); // append any remaining text
++    text = Left.str();
+ }
+ 
+ // explicit instantiation for benchmark usage
+Runtime error: Command '['benchmarks/dataset_009/bench_llm_step_6', '--mode=correct']' died with <Signals.SIGABRT: 6>.
+LLM analysis: The optimization focuses on reducing memory allocations and improving substring handling. We directly utilize the underlying string's `find` method for locating substrings instead of excessive substring creations. Additionally, we added an early return for cases where the 'find' string is empty, streamlining the process. Overall, this approach maintains the original functionality while significantly enhancing performance.
+Diff from original code:
+--- original
++++ step_7
+@@ -1,9 +1,8 @@
+-// original.cpp
+ #include <string>
+ #include <cctype>
+ #include <cstring>
+ 
+-// Minimal string implementation which reallocates on every append
++// Minimal string implementation which avoids unnecessary reallocations
+ class SimpleString {
+     char* data = nullptr;
+     size_t len = 0;
+@@ -12,7 +11,9 @@
+     SimpleString() = default;
+     explicit SimpleString(const std::string& s) { *this = s; }
+     SimpleString(const SimpleString& other) { *this = other; }
+-    SimpleString(SimpleString&& other) noexcept { data = other.data; len = other.len; cap = other.cap; other.data = nullptr; other.len = other.cap = 0; }
++    SimpleString(SimpleString&& other) noexcept : data(other.data), len(other.len), cap(other.cap) {
++        other.data = nullptr; other.len = other.cap = 0;
++    }
+     ~SimpleString() { delete[] data; }
+     SimpleString& operator=(const SimpleString& other) {
+         if (this != &other) { resize(other.len); std::memcpy(data, other.data, len); }
+@@ -48,32 +49,26 @@
+ static bool iequals(const std::string &a, const std::string &b) {
+     if (a.size() != b.size()) return false;
+     for (size_t i = 0; i < a.size(); ++i) {
+-        if (std::tolower(static_cast<unsigned char>(a[i])) !=
+-            std::tolower(static_cast<unsigned char>(b[i])))
++        if (std::tolower(static_cast<unsigned char>(a[i])) != std::tolower(static_cast<unsigned char>(b[i])))
+             return false;
+     }
+     return true;
+ }
+ 
+ void search_replace(std::string &text, const std::string &find, const std::string &replace) {
+-    SimpleString Left, Right(text);
+-    bool replaced = false;
+-    int pos = 0;
+-    while (pos <= static_cast<int>(Right.size() - find.size())) {
+-        if (iequals(Right.substr(pos, find.size()).str(), find)) {
+-            Left.append(Right.substr(0, pos));
+-            Left.append(replace);
+-            Right = Right.substr(pos + find.size());
+-            replaced = true;
+-            pos = 0;
+-        }
+-        else {
+-            ++pos;
+-        }
++    if (find.empty()) return; // early exit for empty find string
++    SimpleString Left;
++    SimpleString Right(text);
++    size_t pos = 0;
++    size_t find_len = find.size();
++
++    while ((pos = Right.str().find(find, pos)) != std::string::npos) {
++        Left.append(Right.substr(0, pos));
++        Left.append(replace);
++        pos += find_len;
+     }
+-    if (replaced) {
+-        text = Left.str(); // leftover dropped
+-    }
++    Left.append(Right.str().substr(pos)); // append any remaining text
++    text = Left.str();
+ }
+ 
+ // explicit instantiation for benchmark usage
+Runtime error: Command '['benchmarks/dataset_009/bench_llm_step_7', '--mode=correct']' died with <Signals.SIGABRT: 6>.
+LLM analysis: The optimized code enhances performance by reducing memory reallocations and minimizing unnecessary substring creations. The use of the underlying string's find method directly on 'Right' streamlines substring searching, significantly reducing overhead. Additionally, an early exit for an empty 'find' string avoids needless processing. Overall, the revised approach should lead to better execution times while maintaining the original functionality.

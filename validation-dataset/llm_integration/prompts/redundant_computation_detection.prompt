@@ -1,23 +1,60 @@
+
 Prompt for LLM to Identify Commits Eliminating Redundant Computation:
+
 You are given a software commit patch (diff). Your task is to carefully analyze the patch and determine if the commit primarily focuses on eliminating redundant or unnecessary computations.
 
-Redundant or unnecessary computations include scenarios such as:
+A redundant or unnecessary computation is one where the code repeatedly or unnecessarily performs operations whose results can efficiently be reused, cached, or calculated fewer times.
 
-- **RF** – repeated function or method calls with the same inputs
-- **RC** – redundant calculation or recomputation of values that do not change across different parts of the code
-- **LI** – computations within loops that yield invariant results and can safely be moved outside the loop
-- **DB** – repeated database or API calls that could be batched or cached
-- **UE** – unnecessary recalculation of expensive operations across different function calls
-- **CE** – removing duplicated conditional checks or unnecessary evaluations
+Carefully identify exactly which category (if any) of redundancy the patch eliminates based on the following precise definitions:
 
-Return a JSON object with exactly three keys. ``redundancy_type`` must be the
-two-letter code from the list above (e.g. ``RF`` or ``RC``):
+1. **RF (Repeated Function Calls)**
+
+   - Definition: Repeatedly calling the exact same function or method with identical input parameters unnecessarily.
+   - Includes resource or memory allocations repeatedly executed within loops instead of once outside the loop.
+   - Example: Calling `strlen(str)` multiple times inside a loop without caching the length.
+   - Contrast: Unlike LI, RF specifically includes repeated function calls and resource initialization.
+
+2. **RC (Redundant Calculation)**
+
+   - Definition: Recomputing the same arithmetic or logical expressions unnecessarily multiple times without intermediate changes.
+   - Example: Calculating `sqrt(a*a + b*b)` multiple times without caching the result.
+   - Contrast: Unlike RF, RC involves calculations or arithmetic expressions explicitly recomputed repeatedly.
+
+3. **LI (Loop-Invariant Computation)**
+
+   - Definition: Calculations or expressions whose results never change during any loop iteration and thus can safely be computed once and moved entirely outside the loop.
+   - Explicitly excludes resource allocations or initializations (which are RF).
+   - Example: Calculating a constant like `2 * PI * radius` each iteration unnecessarily.
+   - Contrast: LI computations yield identical results every iteration, not involving function/resource calls.
+
+4. **DB (Repeated Database or API Calls)**
+
+   - Definition: Multiple redundant external database or API calls that could instead be combined, batched, or cached.
+   - Example: Multiple identical SQL queries executed repeatedly instead of caching the result.
+   - Contrast: Unlike RC or RF, DB specifically relates to external services or APIs.
+
+5. **UE (Unnecessary Expensive Recalculation)**
+
+   - Definition: Unnecessary recalculations of computationally intensive operations without caching or reuse.
+   - Example: Parsing a large JSON repeatedly without reusing parsed data.
+   - Contrast: UE emphasizes expensive computations repeated unnecessarily across functions or contexts.
+
+6. **CE (Duplicated Conditional Evaluation)**
+
+   - Definition: Multiple evaluations of the exact same conditional check unnecessarily.
+   - Example: Checking `if (x > 0 && y < 10)` multiple times without storing the result.
+   - Contrast: CE explicitly involves logical conditional checks duplicated unnecessarily.
+
+Your response must strictly follow this exact JSON format:
+
 ```
 {
   "eliminates_redundant_computation": <true|false>,
-  "reason": "<brief one or two line explanation>",
-  "redundancy_type": "<two-letter redundancy code>"
+  "reason": "<brief one or two line explanation clearly indicating the redundancy eliminated>",
+  "redundancy_type": "<exactly one two-letter redundancy code from above>"
 }
 ```
-<Diff – unified "git show --patch" output>
 
+If the provided commit does not primarily eliminate redundant computation, set `eliminates_redundant_computation` to `false`, and `redundancy_type` as `null`.
+
+<Diff – unified "git show --patch" output>

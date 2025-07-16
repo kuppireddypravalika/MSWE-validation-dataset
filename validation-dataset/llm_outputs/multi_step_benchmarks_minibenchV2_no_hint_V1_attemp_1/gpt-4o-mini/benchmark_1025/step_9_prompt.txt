@@ -1,0 +1,725 @@
+You are an expert C++ performance engineer. Optimize the provided code for high compute and resource performance while preserving behavior. The optimized function must keep the exact same signature as the hand-written implementation. If the original file contains explicit template instantiations, reproduce them unchanged at the end of the optimized file. This prompt may include compilation errors, runtime errors or timing data from the previous step. Use it to refine the code. If it is empty, produce an initial optimization based solely on the original source. When refining the code, explore potentially high-reward optimization paths that have not yet been tried and that could yield superior computational performance. Respond only with a JSON object using the keys "optimized_code" and "analysis". The "analysis" field should briefly explain the intent behind your modifications. Additional source files may be provided for context. Here are the files:
+
+// original.cpp
+#include <vector>
+#include <cstring>
+#include <omp.h>
+
+#define SPLA_OMP_PRAGMA(x) _Pragma(x)
+
+template <typename T>
+struct Matrix {
+    int cols, rows;
+    std::vector<T> data;
+    Matrix(int c, int r) : cols(c), rows(r), data(c*r) {}
+    T* ptr(int c, int r) { return data.data() + c*rows + r; }
+    T& operator()(int c, int r) { return data[c*rows + r]; }
+    const T& operator()(int c, int r) const { return data[c*rows + r]; }
+};
+
+struct BlockInfo {
+    int globalSubRowIdx;
+    int globalSubColIdx;
+    int numRows;
+    int numCols;
+    int localRowIdx;
+    int localColIdx;
+    int mpiRank;
+};
+
+template <typename T>
+struct TileHost {
+    Matrix<T> C;
+    Matrix<T> tile;
+    std::vector<BlockInfo> blockInfos;
+    int rank;
+    int numThreads;
+    T beta;
+    TileHost(int rows, int cols, int threads)
+        : C(cols, rows), tile(cols, rows), rank(0), numThreads(threads), beta(0) {
+        blockInfos.push_back({0,0,rows,cols,0,0,0});
+        for(int c=0;c<cols;++c)
+            for(int r=0;r<rows;++r)
+                tile(c,r) = static_cast<T>(r + c*rows);
+    }
+    void extract() {
+        for(const auto& info : blockInfos) {
+            int tileRowOffset = info.globalSubRowIdx - blockInfos.front().globalSubRowIdx;
+            int tileColOffset = info.globalSubColIdx - blockInfos.front().globalSubColIdx;
+            if(info.mpiRank == rank || info.mpiRank < 0) {
+                if(beta == T(0.0) || beta == T(-0.0)) {
+                    SPLA_OMP_PRAGMA("omp parallel for schedule(static) num_threads(numThreads)")
+                    for(int col=0; col<info.numCols; ++col) {
+                        std::memcpy(C.ptr(info.localColIdx + col, info.localRowIdx),
+                                    tile.ptr(col + tileColOffset, tileRowOffset),
+                                    info.numRows * sizeof(T));
+                    }
+                } else {
+                    SPLA_OMP_PRAGMA("omp parallel for schedule(static) num_threads(numThreads)")
+                    for(int col=0; col<info.numCols; ++col) {
+                        for(int row=0; row<info.numRows; ++row) {
+                            C(info.localColIdx + col, info.localRowIdx + row) =
+                                beta * C(info.localColIdx + col, info.localRowIdx + row) +
+                                tile(col + tileColOffset, row + tileRowOffset);
+                        }
+                    }
+                }
+            }
+        }
+    }
+};
+
+extern "C" double run(size_t repeat) {
+    const int size = 32;
+    TileHost<double> host(size, size, omp_get_max_threads());
+    double sum = 0.0;
+    for(size_t i=0;i<repeat;++i) {
+        host.extract();
+        sum += host.C(0,0);
+    }
+    return sum;
+}
+
+
+The following files are provided for context. Do NOT modify them. Only update code in original.cpp.
+
+// harness.cpp
+#include <chrono>
+#include <iostream>
+#include <string>
+#include <omp.h>
+
+extern "C" double run(size_t repeat);
+
+int main(int argc, char* argv[]) {
+    std::string mode = "perf";
+    size_t repeat = 1500000;
+
+    for(int i=1;i<argc;++i){
+        std::string arg = argv[i];
+        if(arg=="--mode=correct") mode = "correct";
+        else if(arg=="--mode=perf") mode = "perf";
+        else if(arg.rfind("--repeat=",0)==0) repeat = std::stoull(arg.substr(9));
+    }
+
+    if(mode=="correct") {
+        double result = run(10);
+        std::cout << result << '\n';
+    } else {
+        using clock = std::chrono::high_resolution_clock;
+        auto t1 = clock::now();
+        double dummy = run(repeat);
+        auto t2 = clock::now();
+        std::cout << "Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count() << " ms\n";
+        if(dummy==123456789.0) std::cerr << ""; // prevent optimization
+    }
+}
+
+
+Previous attempt info:
+Original execution time: mean = 6148.40 ms, std = 144.29 ms
+Diff from original code:
+--- original
++++ step_1
+@@ -1,4 +1,3 @@
+-// original.cpp
+ #include <vector>
+ #include <cstring>
+ #include <omp.h>
+@@ -9,10 +8,10 @@
+ struct Matrix {
+     int cols, rows;
+     std::vector<T> data;
+-    Matrix(int c, int r) : cols(c), rows(r), data(c*r) {}
+-    T* ptr(int c, int r) { return data.data() + c*rows + r; }
+-    T& operator()(int c, int r) { return data[c*rows + r]; }
+-    const T& operator()(int c, int r) const { return data[c*rows + r]; }
++    Matrix(int c, int r) : cols(c), rows(r), data(c * r) {}
++    T* ptr(int c, int r) { return data.data() + c * rows + r; }
++    T& operator()(int c, int r) { return data[c * rows + r]; }
++    const T& operator()(int c, int r) const { return data[c * rows + r]; }
+ };
+ 
+ struct BlockInfo {
+@@ -35,30 +34,29 @@
+     T beta;
+     TileHost(int rows, int cols, int threads)
+         : C(cols, rows), tile(cols, rows), rank(0), numThreads(threads), beta(0) {
+-        blockInfos.push_back({0,0,rows,cols,0,0,0});
+-        for(int c=0;c<cols;++c)
+-            for(int r=0;r<rows;++r)
+-                tile(c,r) = static_cast<T>(r + c*rows);
++        blockInfos.push_back({0, 0, rows, cols, 0, 0, 0});
++        for (int c = 0; c < cols; ++c)
++            for (int r = 0; r < rows; ++r)
++                tile(c, r) = static_cast<T>(r + c * rows);
+     }
+     void extract() {
+-        for(const auto& info : blockInfos) {
++        for (const auto& info : blockInfos) {
+             int tileRowOffset = info.globalSubRowIdx - blockInfos.front().globalSubRowIdx;
+             int tileColOffset = info.globalSubColIdx - blockInfos.front().globalSubColIdx;
+-            if(info.mpiRank == rank || info.mpiRank < 0) {
+-                if(beta == T(0.0) || beta == T(-0.0)) {
++            if (info.mpiRank == rank || info.mpiRank < 0) {
++                // Utilize the pointer arithmetic to avoid repeated indexing
++                T* C_ptr = C.ptr(info.localColIdx + 0, info.localRowIdx);
++                const T* tile_ptr = tile.ptr(tileColOffset, tileRowOffset);
++                if (beta == T(0.0) || beta == T(-0.0)) {
+                     SPLA_OMP_PRAGMA("omp parallel for schedule(static) num_threads(numThreads)")
+-                    for(int col=0; col<info.numCols; ++col) {
+-                        std::memcpy(C.ptr(info.localColIdx + col, info.localRowIdx),
+-                                    tile.ptr(col + tileColOffset, tileRowOffset),
+-                                    info.numRows * sizeof(T));
++                    for (int col = 0; col < info.numCols; ++col) {
++                        std::memcpy(C_ptr + col * info.numRows, tile_ptr + col * info.numRows, info.numRows * sizeof(T));
+                     }
+                 } else {
+                     SPLA_OMP_PRAGMA("omp parallel for schedule(static) num_threads(numThreads)")
+-                    for(int col=0; col<info.numCols; ++col) {
+-                        for(int row=0; row<info.numRows; ++row) {
+-                            C(info.localColIdx + col, info.localRowIdx + row) =
+-                                beta * C(info.localColIdx + col, info.localRowIdx + row) +
+-                                tile(col + tileColOffset, row + tileRowOffset);
++                    for (int col = 0; col < info.numCols; ++col) {
++                        for (int row = 0; row < info.numRows; ++row) {
++                            C_ptr[col * info.numRows + row] = beta * C_ptr[col * info.numRows + row] + tile_ptr[col * info.numRows + row];
+                         }
+                     }
+                 }
+@@ -71,9 +69,14 @@
+     const int size = 32;
+     TileHost<double> host(size, size, omp_get_max_threads());
+     double sum = 0.0;
+-    for(size_t i=0;i<repeat;++i) {
++    for (size_t i = 0; i < repeat; ++i) {
+         host.extract();
+-        sum += host.C(0,0);
++        sum += host.C(0, 0);
+     }
+     return sum;
+ }
++
++
++// Explicit template instantiations
++template struct Matrix<double>;
++template struct TileHost<double>;
+Compilation succeeded. Execution time: mean = 6176.40 ms, std = 123.35 ms. Original execution time: mean = 6148.40 ms, std = 144.29 ms
+LLM analysis: The optimized code primarily focuses on enhancing the performance of the copy operations within the `extract()` function by reducing the frequency of indexed access to the arrays. It achieves this by using pointer arithmetic, assigning pointers to required locations before the loop to avoid computing indices multiple times. This modification decreases overhead and aids in caching efficiency, which should contribute to better overall performance while keeping the behavior of the code intact.
+Diff from original code:
+--- original
++++ step_2
+@@ -9,10 +9,10 @@
+ struct Matrix {
+     int cols, rows;
+     std::vector<T> data;
+-    Matrix(int c, int r) : cols(c), rows(r), data(c*r) {}
+-    T* ptr(int c, int r) { return data.data() + c*rows + r; }
+-    T& operator()(int c, int r) { return data[c*rows + r]; }
+-    const T& operator()(int c, int r) const { return data[c*rows + r]; }
++    Matrix(int c, int r) : cols(c), rows(r), data(c * r) {}
++    T* ptr(int c, int r) { return data.data() + c * rows + r; }
++    T& operator()(int c, int r) { return data[c * rows + r]; }
++    const T& operator()(int c, int r) const { return data[c * rows + r]; }
+ };
+ 
+ struct BlockInfo {
+@@ -35,30 +35,25 @@
+     T beta;
+     TileHost(int rows, int cols, int threads)
+         : C(cols, rows), tile(cols, rows), rank(0), numThreads(threads), beta(0) {
+-        blockInfos.push_back({0,0,rows,cols,0,0,0});
+-        for(int c=0;c<cols;++c)
+-            for(int r=0;r<rows;++r)
+-                tile(c,r) = static_cast<T>(r + c*rows);
++        blockInfos.push_back({0, 0, rows, cols, 0, 0, 0});
++        for (int c = 0; c < cols; ++c)
++            for (int r = 0; r < rows; ++r)
++                tile(c, r) = static_cast<T>(r + c * rows);
+     }
+     void extract() {
+-        for(const auto& info : blockInfos) {
++        for (const auto& info : blockInfos) {
+             int tileRowOffset = info.globalSubRowIdx - blockInfos.front().globalSubRowIdx;
+             int tileColOffset = info.globalSubColIdx - blockInfos.front().globalSubColIdx;
+-            if(info.mpiRank == rank || info.mpiRank < 0) {
+-                if(beta == T(0.0) || beta == T(-0.0)) {
+-                    SPLA_OMP_PRAGMA("omp parallel for schedule(static) num_threads(numThreads)")
+-                    for(int col=0; col<info.numCols; ++col) {
+-                        std::memcpy(C.ptr(info.localColIdx + col, info.localRowIdx),
+-                                    tile.ptr(col + tileColOffset, tileRowOffset),
+-                                    info.numRows * sizeof(T));
+-                    }
+-                } else {
+-                    SPLA_OMP_PRAGMA("omp parallel for schedule(static) num_threads(numThreads)")
+-                    for(int col=0; col<info.numCols; ++col) {
+-                        for(int row=0; row<info.numRows; ++row) {
+-                            C(info.localColIdx + col, info.localRowIdx + row) =
+-                                beta * C(info.localColIdx + col, info.localRowIdx + row) +
+-                                tile(col + tileColOffset, row + tileRowOffset);
++            if (info.mpiRank == rank || info.mpiRank < 0) {
++                SPLA_OMP_PRAGMA("omp parallel for schedule(static) num_threads(numThreads)")
++                for (int col = 0; col < info.numCols; ++col) {
++                    T *C_ptr = C.ptr(info.localColIdx + col, info.localRowIdx);
++                    const T *tile_ptr = tile.ptr(col + tileColOffset, tileRowOffset);
++                    if (beta == T(0.0) || beta == T(-0.0)) {
++                        std::memcpy(C_ptr, tile_ptr, info.numRows * sizeof(T));
++                    } else {
++                        for (int row = 0; row < info.numRows; ++row) {
++                            C_ptr[row] = beta * C_ptr[row] + tile_ptr[row];
+                         }
+                     }
+                 }
+@@ -71,9 +66,13 @@
+     const int size = 32;
+     TileHost<double> host(size, size, omp_get_max_threads());
+     double sum = 0.0;
+-    for(size_t i=0;i<repeat;++i) {
++    for (size_t i = 0; i < repeat; ++i) {
+         host.extract();
+-        sum += host.C(0,0);
++        sum += host.C(0, 0);
+     }
+     return sum;
+ }
++
++// Explicit template instantiations
++template struct Matrix<double>;
++template struct TileHost<double>;
+Compilation succeeded. Execution time: mean = 6139.00 ms, std = 145.09 ms. Original execution time: mean = 6148.40 ms, std = 144.29 ms
+LLM analysis: This optimized version seeks to improve performance by restructuring the `extract` method to minimize redundancy in accessing matrix elements. The key change is obtaining the pointers to the current row in matrix C and the corresponding row in the tile matrix once per column iteration, thus reducing repeated calculations. By using `std::memcpy` for the copy when `beta` is zero, we leverage bulk memory operations, which should be more efficient. This approach maintains the original behavior while aiming to enhance speed and resource utilization.
+Diff from original code:
+--- original
++++ step_3
+@@ -9,10 +9,10 @@
+ struct Matrix {
+     int cols, rows;
+     std::vector<T> data;
+-    Matrix(int c, int r) : cols(c), rows(r), data(c*r) {}
+-    T* ptr(int c, int r) { return data.data() + c*rows + r; }
+-    T& operator()(int c, int r) { return data[c*rows + r]; }
+-    const T& operator()(int c, int r) const { return data[c*rows + r]; }
++    Matrix(int c, int r) : cols(c), rows(r), data(c * r) {}
++    T* ptr(int c, int r) { return data.data() + c * rows + r; }
++    T& operator()(int c, int r) { return data[c * rows + r]; }
++    const T& operator()(int c, int r) const { return data[c * rows + r]; }
+ };
+ 
+ struct BlockInfo {
+@@ -35,30 +35,25 @@
+     T beta;
+     TileHost(int rows, int cols, int threads)
+         : C(cols, rows), tile(cols, rows), rank(0), numThreads(threads), beta(0) {
+-        blockInfos.push_back({0,0,rows,cols,0,0,0});
+-        for(int c=0;c<cols;++c)
+-            for(int r=0;r<rows;++r)
+-                tile(c,r) = static_cast<T>(r + c*rows);
++        blockInfos.push_back({0, 0, rows, cols, 0, 0, 0});
++        for(int c = 0; c < cols; ++c)
++            for(int r = 0; r < rows; ++r)
++                tile(c, r) = static_cast<T>(r + c * rows);
+     }
+     void extract() {
+         for(const auto& info : blockInfos) {
+             int tileRowOffset = info.globalSubRowIdx - blockInfos.front().globalSubRowIdx;
+             int tileColOffset = info.globalSubColIdx - blockInfos.front().globalSubColIdx;
+             if(info.mpiRank == rank || info.mpiRank < 0) {
+-                if(beta == T(0.0) || beta == T(-0.0)) {
+-                    SPLA_OMP_PRAGMA("omp parallel for schedule(static) num_threads(numThreads)")
+-                    for(int col=0; col<info.numCols; ++col) {
+-                        std::memcpy(C.ptr(info.localColIdx + col, info.localRowIdx),
+-                                    tile.ptr(col + tileColOffset, tileRowOffset),
+-                                    info.numRows * sizeof(T));
+-                    }
+-                } else {
+-                    SPLA_OMP_PRAGMA("omp parallel for schedule(static) num_threads(numThreads)")
+-                    for(int col=0; col<info.numCols; ++col) {
+-                        for(int row=0; row<info.numRows; ++row) {
+-                            C(info.localColIdx + col, info.localRowIdx + row) =
+-                                beta * C(info.localColIdx + col, info.localRowIdx + row) +
+-                                tile(col + tileColOffset, row + tileRowOffset);
++                SPLA_OMP_PRAGMA("omp parallel for schedule(static) num_threads(numThreads)")
++                for(int col = 0; col < info.numCols; ++col) {
++                    T* C_ptr = C.ptr(info.localColIdx + col, info.localRowIdx);
++                    const T* tile_ptr = tile.ptr(col + tileColOffset, tileRowOffset);
++                    if (beta == T(0.0) || beta == T(-0.0)) {
++                        std::memcpy(C_ptr, tile_ptr, info.numRows * sizeof(T));
++                    } else {
++                        for(int row = 0; row < info.numRows; ++row) {
++                            C_ptr[row] = beta * C_ptr[row] + tile_ptr[row];
+                         }
+                     }
+                 }
+@@ -71,9 +66,13 @@
+     const int size = 32;
+     TileHost<double> host(size, size, omp_get_max_threads());
+     double sum = 0.0;
+-    for(size_t i=0;i<repeat;++i) {
++    for(size_t i = 0; i < repeat; ++i) {
+         host.extract();
+-        sum += host.C(0,0);
++        sum += host.C(0, 0);
+     }
+     return sum;
+ }
++
++// Explicit template instantiations
++template struct Matrix<double>;
++template struct TileHost<double>;
+Compilation succeeded. Execution time: mean = 6154.40 ms, std = 82.71 ms. Original execution time: mean = 6148.40 ms, std = 144.29 ms
+LLM analysis: The optimized code focuses on reducing pointer dereferencing within the `extract` method while ensuring the original functionality is preserved. It enhances performance by minimizing redundant computations and takes advantage of bulk memory operations using `std::memcpy` when applicable. By structuring the loop to obtain the current row pointers for both matrices once per column iteration, it enhances data locality and aligns better with caching strategies, potentially improving overall execution speed and resource efficiency.
+Diff from original code:
+--- original
++++ step_4
+@@ -9,10 +9,10 @@
+ struct Matrix {
+     int cols, rows;
+     std::vector<T> data;
+-    Matrix(int c, int r) : cols(c), rows(r), data(c*r) {}
+-    T* ptr(int c, int r) { return data.data() + c*rows + r; }
+-    T& operator()(int c, int r) { return data[c*rows + r]; }
+-    const T& operator()(int c, int r) const { return data[c*rows + r]; }
++    Matrix(int c, int r) : cols(c), rows(r), data(c * r) {}
++    T* ptr(int c, int r) { return data.data() + c * rows + r; }
++    T& operator()(int c, int r) { return data[c * rows + r]; }
++    const T& operator()(int c, int r) const { return data[c * rows + r]; }
+ };
+ 
+ struct BlockInfo {
+@@ -35,30 +35,32 @@
+     T beta;
+     TileHost(int rows, int cols, int threads)
+         : C(cols, rows), tile(cols, rows), rank(0), numThreads(threads), beta(0) {
+-        blockInfos.push_back({0,0,rows,cols,0,0,0});
+-        for(int c=0;c<cols;++c)
+-            for(int r=0;r<rows;++r)
+-                tile(c,r) = static_cast<T>(r + c*rows);
++        blockInfos.push_back({0, 0, rows, cols, 0, 0, 0});
++        for (int c = 0; c < cols; ++c)
++            for (int r = 0; r < rows; ++r)
++                tile(c, r) = static_cast<T>(r + c * rows);
+     }
+     void extract() {
+-        for(const auto& info : blockInfos) {
++        for (const auto& info : blockInfos) {
+             int tileRowOffset = info.globalSubRowIdx - blockInfos.front().globalSubRowIdx;
+             int tileColOffset = info.globalSubColIdx - blockInfos.front().globalSubColIdx;
+-            if(info.mpiRank == rank || info.mpiRank < 0) {
+-                if(beta == T(0.0) || beta == T(-0.0)) {
++            if (info.mpiRank == rank || info.mpiRank < 0) {
++                T* C_ptr_base = C.ptr(info.localColIdx, info.localRowIdx);
++                const T* tile_ptr_base = tile.ptr(tileColOffset, tileRowOffset);
++                if (beta == T(0.0) || beta == T(-0.0)) {
+                     SPLA_OMP_PRAGMA("omp parallel for schedule(static) num_threads(numThreads)")
+-                    for(int col=0; col<info.numCols; ++col) {
+-                        std::memcpy(C.ptr(info.localColIdx + col, info.localRowIdx),
+-                                    tile.ptr(col + tileColOffset, tileRowOffset),
++                    for (int col = 0; col < info.numCols; ++col) {
++                        std::memcpy(C_ptr_base + col * info.numRows,
++                                    tile_ptr_base + col * info.numRows,
+                                     info.numRows * sizeof(T));
+                     }
+                 } else {
+                     SPLA_OMP_PRAGMA("omp parallel for schedule(static) num_threads(numThreads)")
+-                    for(int col=0; col<info.numCols; ++col) {
+-                        for(int row=0; row<info.numRows; ++row) {
+-                            C(info.localColIdx + col, info.localRowIdx + row) =
+-                                beta * C(info.localColIdx + col, info.localRowIdx + row) +
+-                                tile(col + tileColOffset, row + tileRowOffset);
++                    for (int col = 0; col < info.numCols; ++col) {
++                        T* C_ptr = C_ptr_base + col * info.numRows;
++                        const T* tile_ptr = tile_ptr_base + col * info.numRows;
++                        for (int row = 0; row < info.numRows; ++row) {
++                            C_ptr[row] = beta * C_ptr[row] + tile_ptr[row];
+                         }
+                     }
+                 }
+@@ -71,9 +73,13 @@
+     const int size = 32;
+     TileHost<double> host(size, size, omp_get_max_threads());
+     double sum = 0.0;
+-    for(size_t i=0;i<repeat;++i) {
++    for (size_t i = 0; i < repeat; ++i) {
+         host.extract();
+-        sum += host.C(0,0);
++        sum += host.C(0, 0);
+     }
+     return sum;
+ }
++
++// Explicit template instantiations
++template struct Matrix<double>;
++template struct TileHost<double>;
+Compilation succeeded. Execution time: mean = 6098.20 ms, std = 38.40 ms. Original execution time: mean = 6148.40 ms, std = 144.29 ms
+LLM analysis: The optimized code improves performance in the `extract` method by reducing pointer dereferencing and repeated calculations within the nested loops. The base pointers for matrices C and tile are calculated once at the beginning of each main loop iteration, which reduces the computation needed inside the inner loops. The use of `std::memcpy` is preserved for the zero-beta case to leverage optimized memory copying, thus maintaining data locality and caching efficiency. This structure aims to maintain behavior while maximizing computational efficiency.
+Diff from original code:
+--- original
++++ step_5
+@@ -1,4 +1,3 @@
+-// original.cpp
+ #include <vector>
+ #include <cstring>
+ #include <omp.h>
+@@ -9,10 +8,10 @@
+ struct Matrix {
+     int cols, rows;
+     std::vector<T> data;
+-    Matrix(int c, int r) : cols(c), rows(r), data(c*r) {}
+-    T* ptr(int c, int r) { return data.data() + c*rows + r; }
+-    T& operator()(int c, int r) { return data[c*rows + r]; }
+-    const T& operator()(int c, int r) const { return data[c*rows + r]; }
++    Matrix(int c, int r) : cols(c), rows(r), data(c * r) {}
++    T* ptr(int c, int r) { return data.data() + c * rows + r; }
++    T& operator()(int c, int r) { return data[c * rows + r]; }
++    const T& operator()(int c, int r) const { return data[c * rows + r]; }
+ };
+ 
+ struct BlockInfo {
+@@ -35,30 +34,32 @@
+     T beta;
+     TileHost(int rows, int cols, int threads)
+         : C(cols, rows), tile(cols, rows), rank(0), numThreads(threads), beta(0) {
+-        blockInfos.push_back({0,0,rows,cols,0,0,0});
+-        for(int c=0;c<cols;++c)
+-            for(int r=0;r<rows;++r)
+-                tile(c,r) = static_cast<T>(r + c*rows);
++        blockInfos.push_back({0, 0, rows, cols, 0, 0, 0});
++        for (int c = 0; c < cols; ++c)
++            for (int r = 0; r < rows; ++r)
++                tile(c, r) = static_cast<T>(r + c * rows);
+     }
+     void extract() {
+-        for(const auto& info : blockInfos) {
++        for (const auto& info : blockInfos) {
+             int tileRowOffset = info.globalSubRowIdx - blockInfos.front().globalSubRowIdx;
+             int tileColOffset = info.globalSubColIdx - blockInfos.front().globalSubColIdx;
+-            if(info.mpiRank == rank || info.mpiRank < 0) {
+-                if(beta == T(0.0) || beta == T(-0.0)) {
++            if (info.mpiRank == rank || info.mpiRank < 0) {
++                T* C_ptr_base = C.ptr(info.localColIdx, info.localRowIdx);
++                const T* tile_ptr_base = tile.ptr(tileColOffset, tileRowOffset);
++                if (beta == T(0.0) || beta == T(-0.0)) {
+                     SPLA_OMP_PRAGMA("omp parallel for schedule(static) num_threads(numThreads)")
+-                    for(int col=0; col<info.numCols; ++col) {
+-                        std::memcpy(C.ptr(info.localColIdx + col, info.localRowIdx),
+-                                    tile.ptr(col + tileColOffset, tileRowOffset),
++                    for (int col = 0; col < info.numCols; ++col) {
++                        std::memcpy(C_ptr_base + col * info.numRows,
++                                    tile_ptr_base + col * info.numRows,
+                                     info.numRows * sizeof(T));
+                     }
+                 } else {
+                     SPLA_OMP_PRAGMA("omp parallel for schedule(static) num_threads(numThreads)")
+-                    for(int col=0; col<info.numCols; ++col) {
+-                        for(int row=0; row<info.numRows; ++row) {
+-                            C(info.localColIdx + col, info.localRowIdx + row) =
+-                                beta * C(info.localColIdx + col, info.localRowIdx + row) +
+-                                tile(col + tileColOffset, row + tileRowOffset);
++                    for (int col = 0; col < info.numCols; ++col) {
++                        T* C_ptr = C_ptr_base + col * info.numRows;
++                        const T* tile_ptr = tile_ptr_base + col * info.numRows;
++                        for (int row = 0; row < info.numRows; ++row) {
++                            C_ptr[row] = beta * C_ptr[row] + tile_ptr[row];
+                         }
+                     }
+                 }
+@@ -71,9 +72,13 @@
+     const int size = 32;
+     TileHost<double> host(size, size, omp_get_max_threads());
+     double sum = 0.0;
+-    for(size_t i=0;i<repeat;++i) {
++    for (size_t i = 0; i < repeat; ++i) {
+         host.extract();
+-        sum += host.C(0,0);
++        sum += host.C(0, 0);
+     }
+     return sum;
+ }
++
++// Explicit template instantiations
++template struct Matrix<double>;
++template struct TileHost<double>;
+Compilation succeeded. Execution time: mean = 6140.20 ms, std = 71.10 ms. Original execution time: mean = 6148.40 ms, std = 144.29 ms
+LLM analysis: The optimized code improves the performance of the extract method by minimizing repeated pointer dereferencing and calculations within nested loops. Base pointers for matrices C and the tile are calculated once at the beginning of each iteration, which allows for faster access within inner loops. Memory copying using std::memcpy is preserved for zero-beta cases, maximizing efficiency for large data transfers. Overall, this restructuring maximizes computational efficiency while maintaining the original behavior of the code.
+LLM response could not be parsed: 'optimized_code'
+Raw response:
+```json
+{
+  "optimized_code": "
+// original.cpp\n#include <vector>\n#include <cstring>\n#include <omp.h>\n\n#define SPLA_OMP_PRAGMA(x) _Pragma(x)\n\ntemplate <typename T>\nstruct Matrix {\n    int cols, rows;\n    std::vector<T> data;\n    Matrix(int c, int r) : cols(c), rows(r), data(c * r) {}\n    T* ptr(int c, int r) { return data.data() + c * rows + r; }\n    T& operator()(int c, int r) { return data[c * rows + r]; }\n    const T& operator()(int c, int r) const { return data[c * rows + r]; }\n};\n\nstruct BlockInfo {\n    int globalSubRowIdx;\n    int globalSubColIdx;\n    int numRows;\n    int numCols;\n    int localRowIdx;\n    int localColIdx;\n    int mpiRank;\n};\n\ntemplate <typename T>\nstruct TileHost {\n    Matrix<T> C;\n    Matrix<T> tile;\n    std::vector<BlockInfo> blockInfos;\n    int rank;\n    int numThreads;\n    T beta;\n    TileHost(int rows, int cols, int threads)\n        : C(cols, rows), tile(cols, rows), rank(0), numThreads(threads), beta(0) {\n        blockInfos.push_back({0, 0, rows, cols, 0, 0, 0});\n        for (int c = 0; c < cols; ++c)\n            for (int r = 0; r < rows; ++r)\n                tile(c, r) = static_cast<T>(r + c * rows);\n    }\n    void extract() {\n        for (const auto& info : blockInfos) {\n            int tileRowOffset = info.globalSubRowIdx - blockInfos.front().globalSubRowIdx;\n            int tileColOffset = info.globalSubColIdx - blockInfos.front().globalSubColIdx;\n            if (info.mpiRank == rank || info.mpiRank < 0) {\n                T* C_ptr_base = C.ptr(info.localColIdx, info.localRowIdx);\n                const T* tile_ptr_base = tile.ptr(tileColOffset, tileRowOffset);\n                if (beta == T(0.0) || beta == T(-0.0)) {\n                    SPLA_OMP_PRAGMA(\"omp parallel for schedule(static) num_threads(numThreads)\")\n                    for (int col = 0; col < info.numCols; ++col) {\n                        std::memcpy(C_ptr_base + col * info.numRows,\n                                    tile_ptr_base + col * info.numRows,\n                                    info.numRows * sizeof(T));\n                    }\n                } else {\n                    SPLA_OMP_PRAGMA(\"omp parallel for schedule(static) num_threads(numThreads)\")\n                    for (int col = 0; col < info.numCols; ++col) {\n                        T* C_ptr = C_ptr_base + col * info.numRows;\n                        const T* tile_ptr = tile_ptr_base + col * info.numRows;\n                        for (int row = 0; row < info.numRows; ++row) {\n                            C_ptr[row] = beta * C_ptr[row] + tile_ptr[row];\n                        }\n                    }\n                }\n            }\n        }\n    }\n};\n\nextern \"C\" double run(size_t repeat) {\n    const int size = 32;\n    TileHost<double> host(size, size, omp_get_max_threads());\n    double sum = 0.0;\n    for (size_t i = 0; i < repeat; ++i) {\n        host.extract();\n        sum += host.C(0, 0);\n    }\n    return sum;\n}\n\n// Explicit template instantiations\ntemplate struct Matrix<double>;\ntemplate struct TileHost<double>;",
+  "analysis": "The optimized code focuses on improving performance within the 'extract' method by reducing pointer dereference counts and minimizing repeated calculations associated with accessing matrix elements. Base pointers are pre-calculated at the beginning of outer loops to enhance access speed and cache efficiency. The use of 'std::memcpy' is employed for bulk memory operations in cases where 'beta' is zero, facilitating faster data transfers. Overall, this approach aims to maximize computational efficiency and take full advantage of modern CPU architectures while maintaining the original behavior."
+}
+```
+Diff from original code:
+--- original
++++ step_7
+@@ -9,10 +9,10 @@
+ struct Matrix {
+     int cols, rows;
+     std::vector<T> data;
+-    Matrix(int c, int r) : cols(c), rows(r), data(c*r) {}
+-    T* ptr(int c, int r) { return data.data() + c*rows + r; }
+-    T& operator()(int c, int r) { return data[c*rows + r]; }
+-    const T& operator()(int c, int r) const { return data[c*rows + r]; }
++    Matrix(int c, int r) : cols(c), rows(r), data(c * r) {}
++    T* ptr(int c, int r) { return data.data() + c * rows + r; }
++    T& operator()(int c, int r) { return data[c * rows + r]; }
++    const T& operator()(int c, int r) const { return data[c * rows + r]; }
+ };
+ 
+ struct BlockInfo {
+@@ -35,30 +35,32 @@
+     T beta;
+     TileHost(int rows, int cols, int threads)
+         : C(cols, rows), tile(cols, rows), rank(0), numThreads(threads), beta(0) {
+-        blockInfos.push_back({0,0,rows,cols,0,0,0});
+-        for(int c=0;c<cols;++c)
+-            for(int r=0;r<rows;++r)
+-                tile(c,r) = static_cast<T>(r + c*rows);
++        blockInfos.push_back({0, 0, rows, cols, 0, 0, 0});
++        for (int c = 0; c < cols; ++c)
++            for (int r = 0; r < rows; ++r)
++                tile(c, r) = static_cast<T>(r + c * rows);
+     }
+     void extract() {
+-        for(const auto& info : blockInfos) {
++        for (const auto& info : blockInfos) {
+             int tileRowOffset = info.globalSubRowIdx - blockInfos.front().globalSubRowIdx;
+             int tileColOffset = info.globalSubColIdx - blockInfos.front().globalSubColIdx;
+-            if(info.mpiRank == rank || info.mpiRank < 0) {
+-                if(beta == T(0.0) || beta == T(-0.0)) {
++            if (info.mpiRank == rank || info.mpiRank < 0) {
++                T* C_ptr_base = C.ptr(info.localColIdx, info.localRowIdx);
++                const T* tile_ptr_base = tile.ptr(tileColOffset, tileRowOffset);
++                if (beta == T(0.0) || beta == T(-0.0)) {
+                     SPLA_OMP_PRAGMA("omp parallel for schedule(static) num_threads(numThreads)")
+-                    for(int col=0; col<info.numCols; ++col) {
+-                        std::memcpy(C.ptr(info.localColIdx + col, info.localRowIdx),
+-                                    tile.ptr(col + tileColOffset, tileRowOffset),
++                    for (int col = 0; col < info.numCols; ++col) {
++                        std::memcpy(C_ptr_base + col * info.numRows,
++                                    tile_ptr_base + col * info.numRows,
+                                     info.numRows * sizeof(T));
+                     }
+                 } else {
+                     SPLA_OMP_PRAGMA("omp parallel for schedule(static) num_threads(numThreads)")
+-                    for(int col=0; col<info.numCols; ++col) {
+-                        for(int row=0; row<info.numRows; ++row) {
+-                            C(info.localColIdx + col, info.localRowIdx + row) =
+-                                beta * C(info.localColIdx + col, info.localRowIdx + row) +
+-                                tile(col + tileColOffset, row + tileRowOffset);
++                    for (int col = 0; col < info.numCols; ++col) {
++                        T* C_ptr = C_ptr_base + col * info.numRows;
++                        const T* tile_ptr = tile_ptr_base + col * info.numRows;
++                        for (int row = 0; row < info.numRows; ++row) {
++                            C_ptr[row] = beta * C_ptr[row] + tile_ptr[row];
+                         }
+                     }
+                 }
+@@ -71,9 +73,13 @@
+     const int size = 32;
+     TileHost<double> host(size, size, omp_get_max_threads());
+     double sum = 0.0;
+-    for(size_t i=0;i<repeat;++i) {
++    for (size_t i = 0; i < repeat; ++i) {
+         host.extract();
+-        sum += host.C(0,0);
++        sum += host.C(0, 0);
+     }
+     return sum;
+ }
++
++// Explicit template instantiations
++template struct Matrix<double>;
++template struct TileHost<double>;
+Compilation succeeded. Execution time: mean = 6129.60 ms, std = 161.07 ms. Original execution time: mean = 6148.40 ms, std = 144.29 ms
+LLM analysis: The optimized code focuses on improving performance within the 'extract' method by reducing pointer dereference counts and minimizing repeated calculations associated with accessing matrix elements. Base pointers are pre-calculated at the beginning of outer loops to enhance access speed and cache efficiency. The use of 'std::memcpy' is employed for bulk memory operations in cases where 'beta' is zero, facilitating faster data transfers. Overall, this approach aims to maximize computational efficiency and take full advantage of modern CPU architectures while maintaining the original behavior.
+Diff from original code:
+--- original
++++ step_8
+@@ -1,4 +1,3 @@
+-// original.cpp
+ #include <vector>
+ #include <cstring>
+ #include <omp.h>
+@@ -9,10 +8,10 @@
+ struct Matrix {
+     int cols, rows;
+     std::vector<T> data;
+-    Matrix(int c, int r) : cols(c), rows(r), data(c*r) {}
+-    T* ptr(int c, int r) { return data.data() + c*rows + r; }
+-    T& operator()(int c, int r) { return data[c*rows + r]; }
+-    const T& operator()(int c, int r) const { return data[c*rows + r]; }
++    Matrix(int c, int r) : cols(c), rows(r), data(c * r) {}
++    T* ptr(int c, int r) { return data.data() + c * rows + r; }
++    T& operator()(int c, int r) { return data[c * rows + r]; }
++    const T& operator()(int c, int r) const { return data[c * rows + r]; }
+ };
+ 
+ struct BlockInfo {
+@@ -35,30 +34,32 @@
+     T beta;
+     TileHost(int rows, int cols, int threads)
+         : C(cols, rows), tile(cols, rows), rank(0), numThreads(threads), beta(0) {
+-        blockInfos.push_back({0,0,rows,cols,0,0,0});
+-        for(int c=0;c<cols;++c)
+-            for(int r=0;r<rows;++r)
+-                tile(c,r) = static_cast<T>(r + c*rows);
++        blockInfos.push_back({0, 0, rows, cols, 0, 0, 0});
++        for (int c = 0; c < cols; ++c)
++            for (int r = 0; r < rows; ++r)
++                tile(c, r) = static_cast<T>(r + c * rows);
+     }
+     void extract() {
+-        for(const auto& info : blockInfos) {
++        for (const auto& info : blockInfos) {
+             int tileRowOffset = info.globalSubRowIdx - blockInfos.front().globalSubRowIdx;
+             int tileColOffset = info.globalSubColIdx - blockInfos.front().globalSubColIdx;
+-            if(info.mpiRank == rank || info.mpiRank < 0) {
+-                if(beta == T(0.0) || beta == T(-0.0)) {
++            if (info.mpiRank == rank || info.mpiRank < 0) {
++                T* C_ptr_base = C.ptr(info.localColIdx, info.localRowIdx);
++                const T* tile_ptr_base = tile.ptr(tileColOffset, tileRowOffset);
++                if (beta == T(0.0) || beta == T(-0.0)) {
+                     SPLA_OMP_PRAGMA("omp parallel for schedule(static) num_threads(numThreads)")
+-                    for(int col=0; col<info.numCols; ++col) {
+-                        std::memcpy(C.ptr(info.localColIdx + col, info.localRowIdx),
+-                                    tile.ptr(col + tileColOffset, tileRowOffset),
++                    for (int col = 0; col < info.numCols; ++col) {
++                        std::memcpy(C_ptr_base + col * info.numRows,
++                                    tile_ptr_base + col * info.numRows,
+                                     info.numRows * sizeof(T));
+                     }
+                 } else {
+                     SPLA_OMP_PRAGMA("omp parallel for schedule(static) num_threads(numThreads)")
+-                    for(int col=0; col<info.numCols; ++col) {
+-                        for(int row=0; row<info.numRows; ++row) {
+-                            C(info.localColIdx + col, info.localRowIdx + row) =
+-                                beta * C(info.localColIdx + col, info.localRowIdx + row) +
+-                                tile(col + tileColOffset, row + tileRowOffset);
++                    for (int col = 0; col < info.numCols; ++col) {
++                        T* C_ptr = C_ptr_base + col * info.numRows;
++                        const T* tile_ptr = tile_ptr_base + col * info.numRows;
++                        for (int row = 0; row < info.numRows; ++row) {
++                            C_ptr[row] = beta * C_ptr[row] + tile_ptr[row];
+                         }
+                     }
+                 }
+@@ -71,9 +72,13 @@
+     const int size = 32;
+     TileHost<double> host(size, size, omp_get_max_threads());
+     double sum = 0.0;
+-    for(size_t i=0;i<repeat;++i) {
++    for (size_t i = 0; i < repeat; ++i) {
+         host.extract();
+-        sum += host.C(0,0);
++        sum += host.C(0, 0);
+     }
+     return sum;
+ }
++
++// Explicit template instantiations
++template struct Matrix<double>;
++template struct TileHost<double>;
+Compilation succeeded. Execution time: mean = 6136.20 ms, std = 133.94 ms. Original execution time: mean = 6148.40 ms, std = 144.29 ms
+LLM analysis: The optimized code focuses on improving performance within the 'extract' method by reducing pointer dereference counts and minimizing repeated calculations associated with accessing matrix elements. Base pointers are pre-calculated at the beginning of outer loops to enhance access speed and cache efficiency. The use of 'std::memcpy' is employed for bulk memory operations in cases where 'beta' is zero, facilitating faster data transfers. Overall, this approach aims to maximize computational efficiency and take full advantage of modern CPU architectures while maintaining the original behavior.

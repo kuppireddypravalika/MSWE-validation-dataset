@@ -23,6 +23,60 @@ sys.path.insert(0, str(REPO_ROOT))
 from llm_integration.llm_api_utils import call_llm
 from scripts.utilities import read_text, write_text
 
+CONTEXT_LINES = 50
+
+
+def _read_lines(path: Path) -> list[str]:
+    """Return lines from ``path`` or an empty list on error."""
+    try:
+        with path.open(encoding="utf-8", errors="ignore") as f:
+            return f.readlines()
+    except Exception:
+        return []
+
+
+def _snippet(path: Path, start: int, length: int) -> str:
+    """Return text snippet from ``path`` around ``start``."""
+    lines = _read_lines(path)
+    if not lines:
+        return ""
+    begin = max(start - CONTEXT_LINES - 1, 0)
+    end = min(start + length + CONTEXT_LINES - 1, len(lines))
+    snippet = ''.join(lines[begin:end])
+    return f"File: {path.name} lines {begin + 1}-{end}\n" + snippet
+
+
+def _collect_before_context(diff_text: str, bench_dir: Path) -> str:
+    """Return snippets from ``*.before`` files referenced by ``diff_text``."""
+    try:
+        with (bench_dir / "files.json").open(encoding="utf-8") as f:
+            mapping = json.load(f)
+    except Exception:
+        mapping = {}
+
+    context_parts: list[str] = []
+    current_file: Path | None = None
+    for line in diff_text.splitlines():
+        if line.startswith("diff --git"):
+            m = re.search(r"a/(\S+) b/(\S+)", line)
+            if m:
+                fname = Path(m.group(2)).name
+                current_file = bench_dir / f"{fname}.before"
+                if not current_file.exists() and fname in mapping:
+                    current_file = bench_dir / f"{Path(mapping[fname]).name}.before"
+                if not current_file.exists():
+                    current_file = None
+        elif line.startswith("@@") and current_file is not None:
+            m = re.search(r"-([0-9]+)(?:,([0-9]+))?", line)
+            if m:
+                start = int(m.group(1))
+                length = int(m.group(2) or "1")
+                snippet = _snippet(current_file, start, length)
+                if snippet:
+                    context_parts.append(snippet)
+
+    return "\n".join(context_parts)
+
 # Supported redundancy codes from the detection prompt
 REDUNDANCY_CODES = {
     "RF": "repeated function calls",
@@ -73,9 +127,12 @@ def _parse_json_response(text: str) -> dict:
     raise json.JSONDecodeError("No valid JSON object found", text, 0)
 
 
-def analyze_patch(patch_text: str, model: str) -> dict | None:
+def analyze_patch(patch_text: str, model: str, before_context: str = "") -> dict | None:
     """Return the LLM JSON result for ``patch_text`` or ``None`` on error."""
-    safe_patch = patch_text.replace("{", "{{").replace("}", "}}")
+    combined = patch_text
+    if before_context:
+        combined += "\n\n" + before_context
+    safe_patch = combined.replace("{", "{{").replace("}", "}}")
     prompt = build_prompt(safe_patch)
     print(f"Sending prompt to LLM:\n{prompt}\n")
     try:
@@ -98,12 +155,14 @@ def _normalize_redundancy_type(value: str | None) -> str | None:
     return key if key in REDUNDANCY_CODES else None
 
 
-def patch_eliminates_redundancy(patch_text: str, model: str) -> tuple[bool, dict | None]:
+def patch_eliminates_redundancy(
+    patch_text: str, model: str, before_context: str = ""
+) -> tuple[bool, dict | None]:
     """Return ``(True, data)`` if patch removes redundant computation.
 
     ``data`` will include ``reason`` and ``redundancy_type`` if available.
     """
-    data = analyze_patch(patch_text, model)
+    data = analyze_patch(patch_text, model, before_context)
     if not data:
         return False, data
     code = _normalize_redundancy_type(data.get("redundancy_type"))
@@ -118,15 +177,19 @@ def benchmark_eliminates_redundancy(bench_dir: Path, model: str) -> tuple[bool, 
     ``data`` mirrors the response from :func:`patch_eliminates_redundancy`.
     """
     patch_parts = []
+    context_parts = []
     for patch_file in bench_dir.glob("*.diff"):
         try:
-            patch_parts.append(read_text(patch_file))
+            text = read_text(patch_file)
         except Exception:
             continue
+        patch_parts.append(text)
+        context_parts.append(_collect_before_context(text, bench_dir))
     if not patch_parts:
         return False, None
     patch_text = "\n\n".join(patch_parts)
-    return patch_eliminates_redundancy(patch_text, model)
+    before_ctx = "\n".join(p for p in context_parts if p)
+    return patch_eliminates_redundancy(patch_text, model, before_ctx)
 
 
 def _bench_name(i: int, prefix: str) -> str:

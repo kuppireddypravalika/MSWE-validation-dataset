@@ -1,0 +1,166 @@
+You are an expert C++ performance engineer. Optimize the provided code for high compute and resource performance while preserving behavior. The optimized function must keep the exact same signature as the hand-written implementation. If the original file contains explicit template instantiations, reproduce them unchanged at the end of the optimized file. This prompt may include compilation errors, runtime errors or timing data from the previous step. Use it to refine the code. If it is empty, produce an initial optimization based solely on the original source. When refining the code, explore potentially high-reward optimization paths that have not yet been tried and that could yield superior computational performance. Respond only with a JSON object using the keys "optimized_code" and "analysis". The "analysis" field should briefly explain the intent behind your modifications. Additional source files may be provided for context. Here are the files:
+
+// original.cpp
+#include "tensor.hpp"
+#include <algorithm>
+#include <vector>
+
+void topk(const Tensor<float>& input, Tensor<float>& output, Tensor<int64_t>& indices, std::size_t k) {
+    std::size_t row = input.rows;
+    std::size_t col = input.cols;
+    for (std::size_t i = 0; i < row; ++i) {
+        std::vector<std::pair<float, std::size_t>> vec;
+        vec.reserve(col);
+        for (std::size_t j = 0; j < col; ++j) {
+            vec.emplace_back(input(i, j), j);
+        }
+        std::partial_sort(vec.begin(), vec.begin() + k, vec.end(),
+                          [](const auto& l, const auto& r) { return l.first > r.first; });
+        for (std::size_t j = 0; j < k; ++j) {
+            output(i, j) = vec[j].first;
+            indices(i, j) = static_cast<int64_t>(vec[j].second);
+        }
+    }
+}
+
+
+// tensor.hpp
+#pragma once
+#include <vector>
+
+template <typename T>
+struct Tensor {
+    std::size_t rows{0}, cols{0};
+    std::vector<T> data;
+    Tensor(std::size_t r=0, std::size_t c=0): rows(r), cols(c), data(r*c) {}
+    T& operator()(std::size_t i, std::size_t j) { return data[i*cols + j]; }
+    const T& operator()(std::size_t i, std::size_t j) const { return data[i*cols + j]; }
+};
+
+
+The following files are provided for context. Do NOT modify them. Only update code in original.cpp.
+
+// harness.cpp
+#include "tensor.hpp"
+#include <chrono>
+#include <iostream>
+#include <random>
+#include <string>
+
+void topk(const Tensor<float>& input, Tensor<float>& output, Tensor<int64_t>& indices, std::size_t k);
+
+Tensor<float> make_input(std::size_t rows, std::size_t cols) {
+    Tensor<float> t(rows, cols);
+    std::mt19937 gen(42);
+    std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+    for (auto& v : t.data) v = dist(gen);
+    return t;
+}
+
+int main(int argc, char* argv[]) {
+    std::string mode = "perf";
+    std::size_t rows = 2048;
+    std::size_t cols = 1024;
+    std::size_t k = 10;
+    int repeat = 1000;
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "--mode=correct") mode = "correct";
+        else if (arg == "--mode=perf") mode = "perf";
+        else if (arg.rfind("--rows=",0) == 0) rows = std::stoul(arg.substr(7));
+        else if (arg.rfind("--cols=",0) == 0) cols = std::stoul(arg.substr(7));
+        else if (arg.rfind("--k=",0) == 0) k = std::stoul(arg.substr(4));
+        else if (arg.rfind("--repeat=",0) == 0) repeat = std::stoi(arg.substr(9));
+    }
+
+    Tensor<float> input = make_input(rows, cols);
+    Tensor<float> output(rows, k);
+    Tensor<int64_t> indices(rows, k);
+
+    if (mode == "correct") {
+        topk(input, output, indices, k);
+        long long sum = 0;
+        for (float v : output.data) sum += static_cast<long long>(v);
+        for (int64_t v : indices.data) sum += v;
+        std::cout << sum << '\n';
+    } else {
+        using clock = std::chrono::high_resolution_clock;
+        long long dummy = 0;
+        auto t1 = clock::now();
+        for (int r = 0; r < repeat; ++r) {
+            topk(input, output, indices, k);
+            dummy += static_cast<long long>(output(0,0));
+        }
+        auto t2 = clock::now();
+        std::cout << "Time: "
+                  << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count()
+                  << " ms\n";
+        if (dummy == 42) std::cerr << "";
+    }
+    return 0;
+}
+
+
+// tensor.hpp
+#pragma once
+#include <vector>
+
+template <typename T>
+struct Tensor {
+    std::size_t rows{0}, cols{0};
+    std::vector<T> data;
+    Tensor(std::size_t r=0, std::size_t c=0): rows(r), cols(c), data(r*c) {}
+    T& operator()(std::size_t i, std::size_t j) { return data[i*cols + j]; }
+    const T& operator()(std::size_t i, std::size_t j) const { return data[i*cols + j]; }
+};
+
+
+Previous attempt info:
+Original execution time: mean = 5055.40 ms, std = 33.03 ms
+Diff from original code:
+--- original
++++ step_1
+@@ -1,7 +1,8 @@
+-// original.cpp
+ #include "tensor.hpp"
+ #include <algorithm>
+ #include <vector>
++#include <utility>
++#include <limits>
+ 
+ void topk(const Tensor<float>& input, Tensor<float>& output, Tensor<int64_t>& indices, std::size_t k) {
+     std::size_t row = input.rows;
+@@ -12,8 +13,9 @@
+         for (std::size_t j = 0; j < col; ++j) {
+             vec.emplace_back(input(i, j), j);
+         }
+-        std::partial_sort(vec.begin(), vec.begin() + k, vec.end(),
+-                          [](const auto& l, const auto& r) { return l.first > r.first; });
++        // Use std::nth_element to optimize finding top-k elements.
++        std::nth_element(vec.begin(), vec.begin() + k, vec.end(), std::greater<>());
++        std::sort(vec.begin(), vec.begin() + k, std::greater<>());  // Sort the top-k elements for output order.
+         for (std::size_t j = 0; j < k; ++j) {
+             output(i, j) = vec[j].first;
+             indices(i, j) = static_cast<int64_t>(vec[j].second);
+@@ -21,16 +23,5 @@
+     }
+ }
+ 
+-
+-// tensor.hpp
+-#pragma once
+-#include <vector>
+-
+-template <typename T>
+-struct Tensor {
+-    std::size_t rows{0}, cols{0};
+-    std::vector<T> data;
+-    Tensor(std::size_t r=0, std::size_t c=0): rows(r), cols(c), data(r*c) {}
+-    T& operator()(std::size_t i, std::size_t j) { return data[i*cols + j]; }
+-    const T& operator()(std::size_t i, std::size_t j) const { return data[i*cols + j]; }
+-};
++// Explicit template instantiations
++// Assuming previous explicit template instantiations are required. Reproduce here if they exist in the original code.
+Execution exceeded time limit.
+LLM analysis: In the optimized code, I replaced the std::partial_sort with std::nth_element to achieve better performance by reducing the complexity of finding the top-k elements. Then I sort the top-k elements to maintain the order as required for output. This approach generally provides improved performance, especially with larger input sizes where k is much smaller than col.

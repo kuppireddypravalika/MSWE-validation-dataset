@@ -2,9 +2,10 @@
 """Summarize multi-step benchmark performance.
 
 This script parses ``attempts.json`` files under a multi-step output
- directory and writes a consolidated JSON report containing the best
- LLM result for each benchmark along with baseline and human optimized
- timings.
+directory and writes a consolidated JSON report containing the best
+LLM result for each benchmark along with baseline and human optimized
+timings. The resulting summary also records the benchmark category
+as defined in ``minibenchv2.json``.
 """
 
 from __future__ import annotations
@@ -13,6 +14,23 @@ import argparse
 import json
 from pathlib import Path
 from typing import Any, Dict, Optional
+
+
+def _load_categories(path: Path) -> Dict[str, str]:
+    """Return mapping of benchmark name to category."""
+    with path.open() as f:
+        data = json.load(f)
+
+    mapping: Dict[str, str] = {}
+    if isinstance(data, dict):
+        for cat, items in data.items():
+            if not isinstance(items, list):
+                continue
+            for item in items:
+                name = item.get("name") if isinstance(item, dict) else item
+                if isinstance(name, str):
+                    mapping[name] = cat
+    return mapping
 
 
 def _classify(entry: Dict[str, Any]) -> str:
@@ -26,7 +44,7 @@ def _classify(entry: Dict[str, Any]) -> str:
     return "OK"
 
 
-def _process_dir(bench_dir: Path) -> Dict[str, Any]:
+def _process_dir(bench_dir: Path, categories: Dict[str, str]) -> Dict[str, Any]:
     """Return summary for one benchmark directory."""
     path = bench_dir / "attempts.json"
     with path.open() as f:
@@ -73,6 +91,7 @@ def _process_dir(bench_dir: Path) -> Dict[str, Any]:
 
     result: Dict[str, Any] = {
         "name": bench_dir.name,
+        "category": categories.get(bench_dir.name),
         "original": original,
         "human_optimized": human,
         "status": status or "UNKNOWN",
@@ -86,17 +105,23 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Collect multi-step benchmark results")
     parser.add_argument(
         "--root",
-        default="llm_outputs/multi_step_benchmarks_minibench30_no_hint_V1_attemp_1/gpt-4o-mini",
+        default="llm_outputs/multi_step_benchmarks_minibenchV2_no_hint_V1_attemp_1/gpt-4o-mini",
         help="Directory with multi-step outputs",
     )
     parser.add_argument(
         "--output",
-        default="reports/multi_step_benchmarks_minibench30_runtime_summary.json",
+        default="reports/multi_step_benchmarks_minibenchV2_runtime_summary.json",
         help="File to write aggregated results",
+    )
+    parser.add_argument(
+        "--benchmarks-json",
+        default="minibenchv2.json",
+        help="Benchmark category mapping JSON",
     )
     args = parser.parse_args()
 
     root = Path(args.root)
+    categories = _load_categories(Path(args.benchmarks_json))
     results = []
     for entry in sorted(root.iterdir()):
         if not entry.is_dir():
@@ -104,7 +129,7 @@ def main() -> None:
         attempts_file = entry / "attempts.json"
         if not attempts_file.exists():
             continue
-        results.append(_process_dir(entry))
+        results.append(_process_dir(entry, categories))
 
     out_path = Path(args.output)
     out_path.parent.mkdir(parents=True, exist_ok=True)

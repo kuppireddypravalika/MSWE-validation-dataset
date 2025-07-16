@@ -1,0 +1,635 @@
+You are an expert C++ performance engineer. Optimize the provided code for high compute and resource performance while preserving behavior. The optimized function must keep the exact same signature as the hand-written implementation. If the original file contains explicit template instantiations, reproduce them unchanged at the end of the optimized file. This prompt may include compilation errors, runtime errors or timing data from the previous step. Use it to refine the code. If it is empty, produce an initial optimization based solely on the original source. When refining the code, explore potentially high-reward optimization paths that have not yet been tried and that could yield superior computational performance. Respond only with a JSON object using the keys "optimized_code" and "analysis". The "analysis" field should briefly explain the intent behind your modifications. Additional source files may be provided for context. Here are the files:
+
+// original.cpp
+#include <vector>
+#include <cstddef>
+
+struct PointIndices { std::vector<int> indices; };
+
+size_t assemble_regions(const std::vector<int>& indices,
+                        const std::vector<int>& point_labels,
+                        const std::vector<int>& segment_labels,
+                        const std::vector<unsigned int>& num_pts_in_region,
+                        int num_regions)
+{
+    std::vector<PointIndices> clusters;
+    clusters.clear();
+    PointIndices segment;
+    clusters.resize(num_regions, segment);
+    for (int i_seg = 0; i_seg < num_regions; i_seg++) {
+        clusters[i_seg].indices.resize(num_pts_in_region[i_seg]);
+    }
+
+    std::vector<int> counter(num_regions, 0);
+    int point_number = static_cast<int>(indices.size());
+    for (int i_point = 0; i_point < point_number; i_point++) {
+        int point_index = indices[i_point];
+        int index = point_labels[point_index];
+        index = segment_labels[index];
+        clusters[index].indices[counter[index]] = point_index;
+        counter[index] += 1;
+    }
+
+    // now we need to erase empty regions
+    auto i_region = clusters.begin();
+    while (i_region != clusters.end()) {
+        if (i_region->indices.empty())
+            i_region = clusters.erase(i_region);
+        else
+            ++i_region;
+    }
+
+    return clusters.size();
+}
+
+
+The following files are provided for context. Do NOT modify them. Only update code in original.cpp.
+
+// harness.cpp
+#include <chrono>
+#include <iostream>
+#include <string>
+#include <vector>
+
+// function declaration
+size_t assemble_regions(const std::vector<int>& indices,
+                        const std::vector<int>& point_labels,
+                        const std::vector<int>& segment_labels,
+                        const std::vector<unsigned int>& num_pts_in_region,
+                        int num_regions);
+
+static void generate_data(int num_regions, int pts_per_region,
+                          std::vector<int>& indices,
+                          std::vector<int>& point_labels,
+                          std::vector<int>& segment_labels,
+                          std::vector<unsigned int>& num_pts_in_region)
+{
+    segment_labels.resize(num_regions);
+    num_pts_in_region.resize(num_regions);
+
+    int total_points = 0;
+    for (int i = 0; i < num_regions; ++i) {
+        segment_labels[i] = i;
+        if (i % 3 == 0) {
+            num_pts_in_region[i] = 0; // empty cluster
+        } else {
+            num_pts_in_region[i] = pts_per_region;
+            total_points += pts_per_region;
+        }
+    }
+
+    indices.resize(total_points);
+    point_labels.resize(total_points);
+    int idx = 0;
+    for (int i = 0; i < num_regions; ++i) {
+        for (unsigned j = 0; j < num_pts_in_region[i]; ++j) {
+            indices[idx] = idx;
+            point_labels[idx] = i;
+            ++idx;
+        }
+    }
+}
+
+int main(int argc, char* argv[]) {
+    std::string mode = "perf";
+    int repeat = 2500; // tuned for >10s on reference hardware
+    int regions = 3000;
+    int pts = 3;
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "--mode=correct")
+            mode = "correct";
+        else if (arg == "--mode=perf")
+            mode = "perf";
+        else if (arg.rfind("--repeat=",0)==0)
+            repeat = std::stoi(arg.substr(9));
+        else if (arg.rfind("--regions=",0)==0)
+            regions = std::stoi(arg.substr(10));
+        else if (arg.rfind("--pts=",0)==0)
+            pts = std::stoi(arg.substr(6));
+    }
+
+    std::vector<int> indices;
+    std::vector<int> point_labels;
+    std::vector<int> segment_labels;
+    std::vector<unsigned int> num_pts_in_region;
+    generate_data(regions, pts, indices, point_labels, segment_labels, num_pts_in_region);
+
+    if (mode == "correct") {
+        size_t out = assemble_regions(indices, point_labels, segment_labels, num_pts_in_region, regions);
+        std::cout << out << "\n";
+        return 0;
+    }
+
+    using clock = std::chrono::high_resolution_clock;
+    size_t dummy = 0;
+    auto t1 = clock::now();
+    for (int r = 0; r < repeat; ++r)
+        dummy += assemble_regions(indices, point_labels, segment_labels, num_pts_in_region, regions);
+    auto t2 = clock::now();
+    std::cout << "Time: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count()
+              << " ms\n";
+    if (dummy == 123456789) std::cerr << "";
+    return 0;
+}
+
+
+Previous attempt info:
+Original execution time: mean = 3869.20 ms, std = 1.64 ms
+Diff from original code:
+--- original
++++ step_1
+@@ -1,6 +1,6 @@
+-// original.cpp
+ #include <vector>
+ #include <cstddef>
++#include <algorithm>
+ 
+ struct PointIndices { std::vector<int> indices; };
+ 
+@@ -10,32 +10,31 @@
+                         const std::vector<unsigned int>& num_pts_in_region,
+                         int num_regions)
+ {
+-    std::vector<PointIndices> clusters;
+-    clusters.clear();
+-    PointIndices segment;
+-    clusters.resize(num_regions, segment);
+-    for (int i_seg = 0; i_seg < num_regions; i_seg++) {
+-        clusters[i_seg].indices.resize(num_pts_in_region[i_seg]);
++    std::vector<PointIndices> clusters(num_regions);
++    std::vector<int> counter(num_regions, 0);
++    int point_number = static_cast<int>(indices.size());
++
++    // Reserve space upfront to avoid frequent allocations
++    for (int i = 0; i < num_regions; ++i) {
++        clusters[i].indices.reserve(num_pts_in_region[i]);
+     }
+ 
+-    std::vector<int> counter(num_regions, 0);
+-    int point_number = static_cast<int>(indices.size());
+     for (int i_point = 0; i_point < point_number; i_point++) {
+         int point_index = indices[i_point];
+         int index = point_labels[point_index];
+         index = segment_labels[index];
+-        clusters[index].indices[counter[index]] = point_index;
+-        counter[index] += 1;
++        if (index < num_regions) { // Ensure index is valid
++            clusters[index].indices.push_back(point_index);
++        }
+     }
+ 
+-    // now we need to erase empty regions
+-    auto i_region = clusters.begin();
+-    while (i_region != clusters.end()) {
+-        if (i_region->indices.empty())
+-            i_region = clusters.erase(i_region);
+-        else
+-            ++i_region;
+-    }
++    // Remove empty regions (compact the vector)
++    clusters.erase(std::remove_if(clusters.begin(), clusters.end(), [](const PointIndices& cluster) {
++        return cluster.indices.empty();
++    }), clusters.end());
+ 
+     return clusters.size();
+ }
++
++
++// Explicit template instantiations
+Compilation succeeded. Execution time: mean = 173.20 ms, std = 0.45 ms. Original execution time: mean = 3869.20 ms, std = 1.64 ms
+LLM analysis: The optimizations focus on improving memory allocation performance by reserving space for indices in each PointIndices object and using push_back() instead of manual assignment, which avoids potential out-of-bounds access. The removal of empty regions is handled efficiently using std::remove_if and erase, which both improve performance and maintain clarity.
+Diff from original code:
+--- original
++++ step_2
+@@ -1,6 +1,7 @@
+ // original.cpp
+ #include <vector>
+ #include <cstddef>
++#include <algorithm>
+ 
+ struct PointIndices { std::vector<int> indices; };
+ 
+@@ -10,32 +11,30 @@
+                         const std::vector<unsigned int>& num_pts_in_region,
+                         int num_regions)
+ {
+-    std::vector<PointIndices> clusters;
+-    clusters.clear();
+-    PointIndices segment;
+-    clusters.resize(num_regions, segment);
+-    for (int i_seg = 0; i_seg < num_regions; i_seg++) {
+-        clusters[i_seg].indices.resize(num_pts_in_region[i_seg]);
++    std::vector<PointIndices> clusters(num_regions);
++    std::vector<int> counter(num_regions, 0);
++    int point_number = static_cast<int>(indices.size());
++
++    // Reserve space upfront to avoid frequent allocations
++    for (int i = 0; i < num_regions; ++i) {
++        clusters[i].indices.reserve(num_pts_in_region[i]);
+     }
+ 
+-    std::vector<int> counter(num_regions, 0);
+-    int point_number = static_cast<int>(indices.size());
+     for (int i_point = 0; i_point < point_number; i_point++) {
+         int point_index = indices[i_point];
+         int index = point_labels[point_index];
+         index = segment_labels[index];
+-        clusters[index].indices[counter[index]] = point_index;
+-        counter[index] += 1;
++        if (index < num_regions) { // Ensure index is valid
++            clusters[index].indices.push_back(point_index);
++        }
+     }
+ 
+-    // now we need to erase empty regions
+-    auto i_region = clusters.begin();
+-    while (i_region != clusters.end()) {
+-        if (i_region->indices.empty())
+-            i_region = clusters.erase(i_region);
+-        else
+-            ++i_region;
+-    }
++    // Remove empty regions (compact the vector)
++    clusters.erase(std::remove_if(clusters.begin(), clusters.end(), [](const PointIndices& cluster) {
++        return cluster.indices.empty();
++    }), clusters.end());
+ 
+     return clusters.size();
+ }
++
++// Explicit template instantiations
+Compilation succeeded. Execution time: mean = 172.60 ms, std = 0.55 ms. Original execution time: mean = 3869.20 ms, std = 1.64 ms
+LLM analysis: The optimization focuses on efficient memory usage by reserving space in advance for the 'indices' vectors in each PointIndices object. It also replaces indexed access with push_back to prevent potential out-of-bounds errors. The compacting of the 'clusters' vector now uses std::remove_if for better clarity and performance. These changes significantly reduce execution time and improve overall resource management.
+Diff from original code:
+--- original
++++ step_3
+@@ -1,8 +1,8 @@
+-// original.cpp
+ #include <vector>
+ #include <cstddef>
++#include <algorithm>
+ 
+-struct PointIndices { std::vector<int> indices; };
++struct PointIndices { std::vector<int> indices; }; 
+ 
+ size_t assemble_regions(const std::vector<int>& indices,
+                         const std::vector<int>& point_labels,
+@@ -10,32 +10,26 @@
+                         const std::vector<unsigned int>& num_pts_in_region,
+                         int num_regions)
+ {
+-    std::vector<PointIndices> clusters;
+-    clusters.clear();
+-    PointIndices segment;
+-    clusters.resize(num_regions, segment);
+-    for (int i_seg = 0; i_seg < num_regions; i_seg++) {
+-        clusters[i_seg].indices.resize(num_pts_in_region[i_seg]);
++    std::vector<PointIndices> clusters(num_regions);
++    for (int i = 0; i < num_regions; ++i) {
++        clusters[i].indices.reserve(num_pts_in_region[i]);
+     }
+ 
+-    std::vector<int> counter(num_regions, 0);
+     int point_number = static_cast<int>(indices.size());
+     for (int i_point = 0; i_point < point_number; i_point++) {
+         int point_index = indices[i_point];
+-        int index = point_labels[point_index];
+-        index = segment_labels[index];
+-        clusters[index].indices[counter[index]] = point_index;
+-        counter[index] += 1;
++        int index = segment_labels[point_labels[point_index]];
++        if (index < num_regions) { // Ensure index is valid
++            clusters[index].indices.push_back(point_index);
++        }
+     }
+ 
+-    // now we need to erase empty regions
+-    auto i_region = clusters.begin();
+-    while (i_region != clusters.end()) {
+-        if (i_region->indices.empty())
+-            i_region = clusters.erase(i_region);
+-        else
+-            ++i_region;
+-    }
++    // Remove empty regions (compact the vector)
++    clusters.erase(std::remove_if(clusters.begin(), clusters.end(), [](const PointIndices& cluster) {
++        return cluster.indices.empty();
++    }), clusters.end());
+ 
+     return clusters.size();
+ }
++
++// Explicit template instantiations
+Compilation succeeded. Execution time: mean = 166.80 ms, std = 1.79 ms. Original execution time: mean = 3869.20 ms, std = 1.64 ms
+LLM analysis: The optimized code improves memory allocation and performance by initializing the clusters vector directly with the needed size and reserving space for indices based on num_pts_in_region. The inner loop for populating the indices has been modified for clarity by accessing segment_labels directly, ensuring that there are no out-of-bounds accesses. Additionally, utilizing push_back() improves safety and maintainability. Finally, std::remove_if streamlines the removal of empty regions, enhancing clarity and performance.
+Diff from original code:
+--- original
++++ step_4
+@@ -1,8 +1,8 @@
+-// original.cpp
+ #include <vector>
+ #include <cstddef>
++#include <algorithm>
+ 
+-struct PointIndices { std::vector<int> indices; };
++struct PointIndices { std::vector<int> indices; }; 
+ 
+ size_t assemble_regions(const std::vector<int>& indices,
+                         const std::vector<int>& point_labels,
+@@ -10,32 +10,26 @@
+                         const std::vector<unsigned int>& num_pts_in_region,
+                         int num_regions)
+ {
+-    std::vector<PointIndices> clusters;
+-    clusters.clear();
+-    PointIndices segment;
+-    clusters.resize(num_regions, segment);
+-    for (int i_seg = 0; i_seg < num_regions; i_seg++) {
+-        clusters[i_seg].indices.resize(num_pts_in_region[i_seg]);
++    std::vector<PointIndices> clusters(num_regions);
++    for (int i = 0; i < num_regions; ++i) {
++        clusters[i].indices.reserve(num_pts_in_region[i]);
+     }
+ 
+-    std::vector<int> counter(num_regions, 0);
+     int point_number = static_cast<int>(indices.size());
+     for (int i_point = 0; i_point < point_number; i_point++) {
+         int point_index = indices[i_point];
+-        int index = point_labels[point_index];
+-        index = segment_labels[index];
+-        clusters[index].indices[counter[index]] = point_index;
+-        counter[index] += 1;
++        int index = segment_labels[point_labels[point_index]];
++        if (index < num_regions) { // Ensure index is valid
++            clusters[index].indices.push_back(point_index);
++        }
+     }
+ 
+-    // now we need to erase empty regions
+-    auto i_region = clusters.begin();
+-    while (i_region != clusters.end()) {
+-        if (i_region->indices.empty())
+-            i_region = clusters.erase(i_region);
+-        else
+-            ++i_region;
+-    }
++    // Remove empty regions (compact the vector)
++    clusters.erase(std::remove_if(clusters.begin(), clusters.end(), [](const PointIndices& cluster) {
++        return cluster.indices.empty();
++    }), clusters.end());
+ 
+     return clusters.size();
+ }
++
++// Explicit template instantiations
+Compilation succeeded. Execution time: mean = 165.40 ms, std = 0.89 ms. Original execution time: mean = 3869.20 ms, std = 1.64 ms
+LLM analysis: The optimization improves performance by directly populating the clusters vector with the required size and reserving space for indices preemptively. The logic to access the segment labels has been streamlined into a single line, reducing operation count and improving readability. Using 'push_back()' enhances memory safety by dynamically adjusting the size as needed. The removal of empty regions has been efficiently processed using 'std::remove_if', enhancing performance and clarity without changing behavior.
+Diff from original code:
+--- original
++++ step_5
+@@ -1,8 +1,9 @@
+ // original.cpp
+ #include <vector>
+ #include <cstddef>
++#include <algorithm>
+ 
+-struct PointIndices { std::vector<int> indices; };
++struct PointIndices { std::vector<int> indices; }; 
+ 
+ size_t assemble_regions(const std::vector<int>& indices,
+                         const std::vector<int>& point_labels,
+@@ -10,32 +11,26 @@
+                         const std::vector<unsigned int>& num_pts_in_region,
+                         int num_regions)
+ {
+-    std::vector<PointIndices> clusters;
+-    clusters.clear();
+-    PointIndices segment;
+-    clusters.resize(num_regions, segment);
+-    for (int i_seg = 0; i_seg < num_regions; i_seg++) {
+-        clusters[i_seg].indices.resize(num_pts_in_region[i_seg]);
++    std::vector<PointIndices> clusters(num_regions);
++    for (int i = 0; i < num_regions; ++i) {
++        clusters[i].indices.reserve(num_pts_in_region[i]);
+     }
+ 
+-    std::vector<int> counter(num_regions, 0);
+     int point_number = static_cast<int>(indices.size());
+     for (int i_point = 0; i_point < point_number; i_point++) {
+         int point_index = indices[i_point];
+-        int index = point_labels[point_index];
+-        index = segment_labels[index];
+-        clusters[index].indices[counter[index]] = point_index;
+-        counter[index] += 1;
++        int index = segment_labels[point_labels[point_index]];
++        if (index < num_regions) { // Ensure index is valid
++            clusters[index].indices.push_back(point_index);
++        }
+     }
+ 
+-    // now we need to erase empty regions
+-    auto i_region = clusters.begin();
+-    while (i_region != clusters.end()) {
+-        if (i_region->indices.empty())
+-            i_region = clusters.erase(i_region);
+-        else
+-            ++i_region;
+-    }
++    // Remove empty regions (compact the vector)
++    clusters.erase(std::remove_if(clusters.begin(), clusters.end(), [](const PointIndices& cluster) {
++        return cluster.indices.empty();
++    }), clusters.end());
+ 
+     return clusters.size();
+ }
++
++// Explicit template instantiations
+Compilation succeeded. Execution time: mean = 166.20 ms, std = 0.45 ms. Original execution time: mean = 3869.20 ms, std = 1.64 ms
+LLM analysis: The optimized version of assemble_regions aims to improve performance through several key enhancements. Firstly, a vector of PointIndices is initialized directly with the required size, ensuring no unnecessary resizing occurs during population. Secondly, the space for indices in each PointIndices is reserved upfront, which minimizes reallocations. The index retrieval process has also been streamlined to reduce multiple accesses to the labels, using a single line to compute the final index. Lastly, the removal of empty regions utilizes std::remove_if for better efficiency and clarity. These changes have dramatically reduced the execution time while preserving the original behavior.
+Diff from original code:
+--- original
++++ step_6
+@@ -1,8 +1,9 @@
+ // original.cpp
+ #include <vector>
+ #include <cstddef>
++#include <algorithm>
+ 
+-struct PointIndices { std::vector<int> indices; };
++struct PointIndices { std::vector<int> indices; }; 
+ 
+ size_t assemble_regions(const std::vector<int>& indices,
+                         const std::vector<int>& point_labels,
+@@ -10,32 +11,26 @@
+                         const std::vector<unsigned int>& num_pts_in_region,
+                         int num_regions)
+ {
+-    std::vector<PointIndices> clusters;
+-    clusters.clear();
+-    PointIndices segment;
+-    clusters.resize(num_regions, segment);
+-    for (int i_seg = 0; i_seg < num_regions; i_seg++) {
+-        clusters[i_seg].indices.resize(num_pts_in_region[i_seg]);
++    std::vector<PointIndices> clusters(num_regions);
++    for (int i = 0; i < num_regions; ++i) {
++        clusters[i].indices.reserve(num_pts_in_region[i]);
+     }
+ 
+-    std::vector<int> counter(num_regions, 0);
+     int point_number = static_cast<int>(indices.size());
+     for (int i_point = 0; i_point < point_number; i_point++) {
+         int point_index = indices[i_point];
+-        int index = point_labels[point_index];
+-        index = segment_labels[index];
+-        clusters[index].indices[counter[index]] = point_index;
+-        counter[index] += 1;
++        int index = segment_labels[point_labels[point_index]];
++        if (index < num_regions) { // Ensure index is valid
++            clusters[index].indices.push_back(point_index);
++        }
+     }
+ 
+-    // now we need to erase empty regions
+-    auto i_region = clusters.begin();
+-    while (i_region != clusters.end()) {
+-        if (i_region->indices.empty())
+-            i_region = clusters.erase(i_region);
+-        else
+-            ++i_region;
+-    }
++    // Remove empty regions (compact the vector)
++    clusters.erase(std::remove_if(clusters.begin(), clusters.end(), [](const PointIndices& cluster) {
++        return cluster.indices.empty();
++    }), clusters.end());
+ 
+     return clusters.size();
+ }
++
++// Explicit template instantiations
+Compilation succeeded. Execution time: mean = 166.00 ms, std = 1.00 ms. Original execution time: mean = 3869.20 ms, std = 1.64 ms
+LLM analysis: The optimized version improves performance by initializing the clusters vector directly to its required size and reserving space for indices beforehand, minimizing reallocations. It also simplifies index retrieval into a single line to reduce overhead and uses push_back for adding points, which enhances safety. The removal of empty regions efficiently employs std::remove_if for better performance and clarity, significantly reducing execution time while retaining the original function's behavior.
+Diff from original code:
+--- original
++++ step_7
+@@ -1,8 +1,9 @@
+ // original.cpp
+ #include <vector>
+ #include <cstddef>
++#include <algorithm>
+ 
+-struct PointIndices { std::vector<int> indices; };
++struct PointIndices { std::vector<int> indices; }; 
+ 
+ size_t assemble_regions(const std::vector<int>& indices,
+                         const std::vector<int>& point_labels,
+@@ -10,32 +11,25 @@
+                         const std::vector<unsigned int>& num_pts_in_region,
+                         int num_regions)
+ {
+-    std::vector<PointIndices> clusters;
+-    clusters.clear();
+-    PointIndices segment;
+-    clusters.resize(num_regions, segment);
+-    for (int i_seg = 0; i_seg < num_regions; i_seg++) {
+-        clusters[i_seg].indices.resize(num_pts_in_region[i_seg]);
++    std::vector<PointIndices> clusters(num_regions);
++    for (int i = 0; i < num_regions; ++i) {
++        clusters[i].indices.reserve(num_pts_in_region[i]);
+     }
+ 
+-    std::vector<int> counter(num_regions, 0);
+     int point_number = static_cast<int>(indices.size());
+     for (int i_point = 0; i_point < point_number; i_point++) {
+         int point_index = indices[i_point];
+-        int index = point_labels[point_index];
+-        index = segment_labels[index];
+-        clusters[index].indices[counter[index]] = point_index;
+-        counter[index] += 1;
++        int index = segment_labels[point_labels[point_index]];
++        if (index < num_regions) {
++            clusters[index].indices.push_back(point_index);
++        }
+     }
+ 
+-    // now we need to erase empty regions
+-    auto i_region = clusters.begin();
+-    while (i_region != clusters.end()) {
+-        if (i_region->indices.empty())
+-            i_region = clusters.erase(i_region);
+-        else
+-            ++i_region;
+-    }
++    clusters.erase(std::remove_if(clusters.begin(), clusters.end(), [](const PointIndices& cluster) {
++        return cluster.indices.empty();
++    }), clusters.end());
+ 
+     return clusters.size();
+ }
++
++// Explicit template instantiations
+Compilation succeeded. Execution time: mean = 166.60 ms, std = 0.55 ms. Original execution time: mean = 3869.20 ms, std = 1.64 ms
+LLM analysis: The optimized code focuses on performance improvements through efficient memory allocation and element access. By reserving space for indices upfront, the code minimizes reallocations. The index retrieval has been streamlined to reduce computational overhead. Using push_back increases safety, and the removal of empty regions employs std::remove_if for better clarity and efficiency. These changes significantly reduce execution time while maintaining the original functionality.
+Diff from original code:
+--- original
++++ step_8
+@@ -1,8 +1,9 @@
+ // original.cpp
+ #include <vector>
+ #include <cstddef>
++#include <algorithm>
+ 
+-struct PointIndices { std::vector<int> indices; };
++struct PointIndices { std::vector<int> indices; }; 
+ 
+ size_t assemble_regions(const std::vector<int>& indices,
+                         const std::vector<int>& point_labels,
+@@ -10,32 +11,25 @@
+                         const std::vector<unsigned int>& num_pts_in_region,
+                         int num_regions)
+ {
+-    std::vector<PointIndices> clusters;
+-    clusters.clear();
+-    PointIndices segment;
+-    clusters.resize(num_regions, segment);
+-    for (int i_seg = 0; i_seg < num_regions; i_seg++) {
+-        clusters[i_seg].indices.resize(num_pts_in_region[i_seg]);
++    std::vector<PointIndices> clusters(num_regions);
++    for (int i = 0; i < num_regions; ++i) {
++        clusters[i].indices.reserve(num_pts_in_region[i]);
+     }
+ 
+-    std::vector<int> counter(num_regions, 0);
+     int point_number = static_cast<int>(indices.size());
+     for (int i_point = 0; i_point < point_number; i_point++) {
+         int point_index = indices[i_point];
+-        int index = point_labels[point_index];
+-        index = segment_labels[index];
+-        clusters[index].indices[counter[index]] = point_index;
+-        counter[index] += 1;
++        int index = segment_labels[point_labels[point_index]];
++        if (index < num_regions) {
++            clusters[index].indices.push_back(point_index);
++        }
+     }
+ 
+-    // now we need to erase empty regions
+-    auto i_region = clusters.begin();
+-    while (i_region != clusters.end()) {
+-        if (i_region->indices.empty())
+-            i_region = clusters.erase(i_region);
+-        else
+-            ++i_region;
+-    }
++    clusters.erase(std::remove_if(clusters.begin(), clusters.end(), [](const PointIndices& cluster) {
++        return cluster.indices.empty();
++    }), clusters.end());
+ 
+     return clusters.size();
+ }
++
++// Explicit template instantiations
+Compilation succeeded. Execution time: mean = 166.00 ms, std = 0.00 ms. Original execution time: mean = 3869.20 ms, std = 1.64 ms
+LLM analysis: The optimized version focuses on several key performance improvements, including: reserving space for 'indices' in advance to minimize reallocations, streamlining index retrieval to reduce overhead, utilizing 'push_back()' for memory safety, and employing 'std::remove_if' to efficiently remove empty regions. These enhancements maintain the original behavior while drastically improving execution time.

@@ -65,13 +65,46 @@ def _load_context_files(bench_dir: Path) -> str:
 
 
 def _load_benchmarks(path: Path) -> list[str]:
+    """Return benchmark names parsed from ``path``.
+
+    The loader supports both the original ``{"benchmarks": [...]}`` layout and
+    the new ``{category: [names...]}`` layout used by ``minibenchv2.json``.
+    ``item`` entries may be strings or objects containing a ``name`` field.
+    Duplicate names are removed while preserving file order.
+    """
+
     with path.open() as f:
         data = json.load(f)
-    benches = []
-    for item in data.get("benchmarks", []):
-        name = item.get("name") if isinstance(item, dict) else item
-        if name:
+
+    seen: set[str] = set()
+    benches: list[str] = []
+
+    def _add(name: str) -> None:
+        if name and name not in seen:
+            seen.add(name)
             benches.append(name)
+
+    if isinstance(data, dict):
+        if "benchmarks" in data:
+            entries = data.get("benchmarks", [])
+            for item in entries:
+                name = item.get("name") if isinstance(item, dict) else item
+                if isinstance(name, str):
+                    _add(name)
+        else:
+            for items in data.values():
+                if not isinstance(items, list):
+                    continue
+                for entry in items:
+                    name = entry.get("name") if isinstance(entry, dict) else entry
+                    if isinstance(name, str):
+                        _add(name)
+    elif isinstance(data, list):
+        for item in data:
+            name = item.get("name") if isinstance(item, dict) else item
+            if isinstance(name, str):
+                _add(name)
+
     return benches
 
 
@@ -115,6 +148,28 @@ def main() -> None:
         if not (bench_dir / "bench_config.json").exists():
             print(f"⚠️  Skipping {bench}: missing bench_config.json")
             continue
+        # Skip benchmarks that were already fully processed. A benchmark is
+        # considered complete when its ``attempts.json`` file contains a record
+        # with ``description`` set to ``human_optimized``. This prevents
+        # re-running expensive optimization steps when the results already
+        # exist under the output directory.
+        out_dir = (
+            Path("llm_outputs")
+            / args.output_root
+            / args.model
+            / bench
+        )
+        history_file = out_dir / "attempts.json"
+        if history_file.exists():
+            try:
+                history = json.loads(read_text(history_file))
+            except Exception:
+                history = []
+            if isinstance(history, list) and any(
+                entry.get("description") == "human_optimized" for entry in history
+            ):
+                print(f"✅ Skipping {bench}: already optimized")
+                continue
         qa_text = _load_qna(bench, args.model) if args.use_qna else ""
         context_text = _load_context_files(bench_dir)
         note = (

@@ -1,0 +1,260 @@
+You are an expert C++ performance engineer. Optimize the provided code for high compute and resource performance while preserving behavior. The optimized function must keep the exact same signature as the hand-written implementation. If the original file contains explicit template instantiations, reproduce them unchanged at the end of the optimized file. This prompt may include compilation errors, runtime errors or timing data from the previous step. Use it to refine the code. If it is empty, produce an initial optimization based solely on the original source. When refining the code, explore potentially high-reward optimization paths that have not yet been tried and that could yield superior computational performance. Respond only with a JSON object using the keys "optimized_code" and "analysis". The "analysis" field should briefly explain the intent behind your modifications. Additional source files may be provided for context. Here are the files:
+
+// original.cpp
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <vector>
+
+enum { SORT_A_TO_Z = 0, SORT_Z_TO_A = 1 };
+
+struct RomSelection {
+    char name[128];
+    char fullpath[256];
+    int id;
+    int size;
+    RomSelection* next;
+};
+
+static RomSelection* list = nullptr;
+static int gSortOrder = SORT_A_TO_Z;
+
+static void swap_nodes(RomSelection* a, RomSelection* b) {
+    char nametmp[128], pathtmp[256];
+    sprintf(nametmp, "%s", a->name);
+    sprintf(pathtmp, "%s", a->fullpath);
+    int idtmp = a->id;
+    int sizetmp = a->size;
+
+    sprintf(a->name, "%s", b->name);
+    sprintf(a->fullpath, "%s", b->fullpath);
+    a->id = b->id;
+    a->size = b->size;
+
+    sprintf(b->name, "%s", nametmp);
+    sprintf(b->fullpath, "%s", pathtmp);
+    b->id = idtmp;
+    b->size = sizetmp;
+}
+
+static void sort_list(RomSelection* start, int order) {
+    if (!start) return;
+    int swapped;
+    RomSelection* ptr1;
+    RomSelection* lptr = nullptr;
+    do {
+        swapped = 0;
+        ptr1 = start;
+        while (ptr1->next != lptr) {
+            bool cond = false;
+            switch(order) {
+                case SORT_Z_TO_A:
+                    cond = std::strcmp(ptr1->name, ptr1->next->name) < 0;
+                    break;
+                case SORT_A_TO_Z:
+                    cond = std::strcmp(ptr1->name, ptr1->next->name) > 0;
+                    break;
+                default: break;
+            }
+            if (cond) {
+                swap_nodes(ptr1, ptr1->next);
+                swapped = 1;
+            }
+            ptr1 = ptr1->next;
+        }
+        lptr = ptr1;
+    } while (swapped);
+}
+
+static void ensure_list(int count) {
+    if (list) return;
+    static std::vector<RomSelection> storage;
+    storage.resize(count);
+    for (int i=0;i<count;i++) {
+        sprintf(storage[i].name, "%07d", rand()%100000);
+        sprintf(storage[i].fullpath, "rom_%05d", i);
+        storage[i].id = i;
+        storage[i].size = i;
+        storage[i].next = (i+1<count)? &storage[i+1] : nullptr;
+    }
+    list = &storage[0];
+}
+
+size_t draw_loop(int loops) {
+    const int roms = 15000;
+    ensure_list(roms);
+
+    for (int i=0;i<loops;i++) {
+        if (i == loops/2) gSortOrder = SORT_Z_TO_A; // change order once
+        sort_list(list, gSortOrder);
+    }
+
+    size_t sum=0; RomSelection* p=list; while(p){ sum += static_cast<unsigned char>(p->name[0]); p=p->next; }
+    return sum;
+}
+
+
+
+The following files are provided for context. Do NOT modify them. Only update code in original.cpp.
+
+// harness.cpp
+#include <chrono>
+#include <iostream>
+#include <string>
+
+size_t draw_loop(int loops);
+
+int main(int argc, char** argv) {
+    std::string mode = "perf";
+    int repeat = 110000;
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "--mode=correct") mode = "correct";
+        else if (arg == "--mode=perf") mode = "perf";
+        else if (arg.rfind("--repeat=",0)==0) repeat = std::stoi(arg.substr(9));
+    }
+
+    if (mode == "correct") {
+        size_t sum = draw_loop(1); // single run for deterministic output
+        std::cout << sum << "\n";
+    } else {
+        using clock = std::chrono::high_resolution_clock;
+        auto t1 = clock::now();
+        draw_loop(repeat);
+        auto t2 = clock::now();
+        std::cout << "Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms\n";
+    }
+    return 0;
+}
+
+
+
+Previous attempt info:
+Original execution time: mean = 36479.00 ms, std = 1567.20 ms
+Diff from original code:
+--- original
++++ step_1
+@@ -1,4 +1,3 @@
+-// original.cpp
+ #include <cstdio>
+ #include <cstdlib>
+ #include <cstring>
+@@ -18,21 +17,11 @@
+ static int gSortOrder = SORT_A_TO_Z;
+ 
+ static void swap_nodes(RomSelection* a, RomSelection* b) {
+-    char nametmp[128], pathtmp[256];
+-    sprintf(nametmp, "%s", a->name);
+-    sprintf(pathtmp, "%s", a->fullpath);
+-    int idtmp = a->id;
+-    int sizetmp = a->size;
+-
+-    sprintf(a->name, "%s", b->name);
+-    sprintf(a->fullpath, "%s", b->fullpath);
+-    a->id = b->id;
+-    a->size = b->size;
+-
+-    sprintf(b->name, "%s", nametmp);
+-    sprintf(b->fullpath, "%s", pathtmp);
+-    b->id = idtmp;
+-    b->size = sizetmp;
++    // Use std::swap to optimize swapping
++    std::swap(a->id, b->id);
++    std::swap(a->size, b->size);
++    std::swap_ranges(std::begin(a->name), std::end(a->name), std::begin(b->name));
++    std::swap_ranges(std::begin(a->fullpath), std::end(a->fullpath), std::begin(b->fullpath));
+ }
+ 
+ static void sort_list(RomSelection* start, int order) {
+@@ -45,20 +34,19 @@
+         ptr1 = start;
+         while (ptr1->next != lptr) {
+             bool cond = false;
+-            switch(order) {
+-                case SORT_Z_TO_A:
+-                    cond = std::strcmp(ptr1->name, ptr1->next->name) < 0;
+-                    break;
+-                case SORT_A_TO_Z:
+-                    cond = std::strcmp(ptr1->name, ptr1->next->name) > 0;
+-                    break;
+-                default: break;
++            // Optimize comparison using direct pointer access
++            const RomSelection* nextPtr = ptr1->next;
++            int cmpResult = std::strcmp(ptr1->name, nextPtr->name);
++            if (order == SORT_Z_TO_A) {
++                cond = cmpResult < 0;
++            } else {
++                cond = cmpResult > 0;
+             }
+             if (cond) {
+-                swap_nodes(ptr1, ptr1->next);
++                swap_nodes(ptr1, nextPtr);
+                 swapped = 1;
+             }
+-            ptr1 = ptr1->next;
++            ptr1 = nextPtr;
+         }
+         lptr = ptr1;
+     } while (swapped);
+@@ -68,12 +56,13 @@
+     if (list) return;
+     static std::vector<RomSelection> storage;
+     storage.resize(count);
+-    for (int i=0;i<count;i++) {
+-        sprintf(storage[i].name, "%07d", rand()%100000);
+-        sprintf(storage[i].fullpath, "rom_%05d", i);
++    for (int i = 0; i < count; i++) {
++        // Avoid using sprintf for better performance
++        snprintf(storage[i].name, sizeof(storage[i].name), "%07d", rand() % 100000);
++        snprintf(storage[i].fullpath, sizeof(storage[i].fullpath), "rom_%05d", i);
+         storage[i].id = i;
+         storage[i].size = i;
+-        storage[i].next = (i+1<count)? &storage[i+1] : nullptr;
++        storage[i].next = (i + 1 < count) ? &storage[i + 1] : nullptr;
+     }
+     list = &storage[0];
+ }
+@@ -82,12 +71,20 @@
+     const int roms = 15000;
+     ensure_list(roms);
+ 
+-    for (int i=0;i<loops;i++) {
+-        if (i == loops/2) gSortOrder = SORT_Z_TO_A; // change order once
++    for (int i = 0; i < loops; i++) {
++        if (i == loops / 2) gSortOrder = SORT_Z_TO_A; // change order once
+         sort_list(list, gSortOrder);
+     }
+ 
+-    size_t sum=0; RomSelection* p=list; while(p){ sum += static_cast<unsigned char>(p->name[0]); p=p->next; }
++    size_t sum = 0;
++    RomSelection* p = list;
++    while (p) {
++        sum += static_cast<unsigned char>(p->name[0]);
++        p = p->next;
++    }
+     return sum;
+ }
+ 
++
++// Explicit instantiations
++
+Compilation failed. Output:
+cc1plus: warning: ignoring possibly conflicting option ‘-fopt-info-all’
+cc1plus: warning: ignoring possibly conflicting option ‘-fopt-info-all’
+/workspace/llm_outputs/multi_step_benchmarks_minibenchV2_no_hint_V1_attemp_1/gpt-4o-mini/dataset_006/step_1.cpp: In function ‘void sort_list(RomSelection*, int)’:
+/workspace/llm_outputs/multi_step_benchmarks_minibenchV2_no_hint_V1_attemp_1/gpt-4o-mini/dataset_006/step_1.cpp:46:34: error: invalid conversion from ‘const RomSelection*’ to ‘RomSelection*’ [-fpermissive]
+   46 |                 swap_nodes(ptr1, nextPtr);
+      |                                  ^~~~~~~
+      |                                  |
+      |                                  const RomSelection*
+/workspace/llm_outputs/multi_step_benchmarks_minibenchV2_no_hint_V1_attemp_1/gpt-4o-mini/dataset_006/step_1.cpp:19:55: note:   initializing argument 2 of ‘void swap_nodes(RomSelection*, RomSelection*)’
+   19 | static void swap_nodes(RomSelection* a, RomSelection* b) {
+      |                                         ~~~~~~~~~~~~~~^
+/workspace/llm_outputs/multi_step_benchmarks_minibenchV2_no_hint_V1_attemp_1/gpt-4o-mini/dataset_006/step_1.cpp:49:20: error: invalid conversion from ‘const RomSelection*’ to ‘RomSelection*’ [-fpermissive]
+   49 |             ptr1 = nextPtr;
+      |                    ^~~~~~~
+      |                    |
+      |                    const RomSelection*
+
+LLM analysis: The optimization focuses on improving memory access patterns and reducing overhead. Swap operations now utilize std::swap and std::swap_ranges for better performance. Instead of sprintf, snprintf is used to avoid potential buffer overflows and for better clarity. Comparisons in the sort are also optimized by pre-fetching next pointers. These changes aim to reduce CPU cycles spent in swapping and comparing strings while maintaining the functionality.

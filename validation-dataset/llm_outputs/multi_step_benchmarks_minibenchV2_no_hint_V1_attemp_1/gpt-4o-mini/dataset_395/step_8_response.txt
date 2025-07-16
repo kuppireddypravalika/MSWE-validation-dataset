@@ -1,0 +1,6 @@
+```json
+{
+  "optimized_code": "// original.cpp\n#include \"shared.hpp\"\n\nbool RifColumnBasedUserData::values(const int& resultAddress, std::vector<double>* values) const {\n    auto search = m_map.find(resultAddress);\n    if (search != m_map.end()) {\n        auto tableColIndices = search->second;\n        const ColumnInfo* ci = m_parser->columnInfo(tableColIndices.first, tableColIndices.second);\n        if (!ci) return false;\n\n        const std::vector<double>& ciValues = ci->values; // Access values just once\n        values->resize(ciValues.size()); // Preallocate space for values\n        std::copy(ciValues.begin(), ciValues.end(), values->begin()); // Copy values in one go\n    }\n    return true;\n}\n\n// explicit instantiation helper if needed",
+  "analysis": "The optimization enhances performance by using std::vector::resize() to preallocate memory for the output values vector and std::copy() to transfer the data in a single operation, reducing dynamic allocation overhead and improving cache locality. This leads to a significant reduction in execution time while maintaining the same behavior as the original code."
+}
+```

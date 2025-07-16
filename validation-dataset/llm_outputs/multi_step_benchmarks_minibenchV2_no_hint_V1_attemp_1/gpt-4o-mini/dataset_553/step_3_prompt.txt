@@ -1,0 +1,195 @@
+You are an expert C++ performance engineer. Optimize the provided code for high compute and resource performance while preserving behavior. The optimized function must keep the exact same signature as the hand-written implementation. If the original file contains explicit template instantiations, reproduce them unchanged at the end of the optimized file. This prompt may include compilation errors, runtime errors or timing data from the previous step. Use it to refine the code. If it is empty, produce an initial optimization based solely on the original source. When refining the code, explore potentially high-reward optimization paths that have not yet been tried and that could yield superior computational performance. Respond only with a JSON object using the keys "optimized_code" and "analysis". The "analysis" field should briefly explain the intent behind your modifications. Additional source files may be provided for context. Here are the files:
+
+// original.cpp
+#include <cstdint>
+#include <cstddef>
+#include <algorithm>
+
+struct MP3FrameHeader { volatile unsigned channels; };
+struct MP3Frame { MP3FrameHeader header; };
+struct MP3DecodeData {
+    static constexpr std::size_t BUFFER_SIZE = 64;
+    int16_t outputBuffer[BUFFER_SIZE];
+    MP3Frame frame;
+};
+
+__attribute__((noinline)) unsigned MAD_NCHANNELS(const MP3FrameHeader* h) { return h->channels; }
+
+long long process(MP3DecodeData& data, unsigned pcm_length) {
+    unsigned i = 0;
+    long long acc = 0;
+    while (i < pcm_length) {
+        unsigned num_samples = sizeof(data.outputBuffer) /
+            (2 * MAD_NCHANNELS(&data.frame.header));
+        if (num_samples > pcm_length - i)
+            num_samples = pcm_length - i;
+        for (unsigned j = 0; j < num_samples * data.frame.header.channels; ++j) {
+            unsigned idx = j % MP3DecodeData::BUFFER_SIZE;
+            acc += data.outputBuffer[idx];
+        }
+        i += num_samples;
+    }
+    return acc;
+}
+
+
+
+The following files are provided for context. Do NOT modify them. Only update code in original.cpp.
+
+// harness.cpp
+#include <chrono>
+#include <iostream>
+#include <string>
+#include <random>
+
+struct MP3FrameHeader { volatile unsigned channels; };
+struct MP3Frame { MP3FrameHeader header; };
+struct MP3DecodeData {
+    static constexpr std::size_t BUFFER_SIZE = 64;
+    int16_t outputBuffer[BUFFER_SIZE];
+    MP3Frame frame;
+};
+
+long long process(MP3DecodeData& data, unsigned pcm_length);
+long long process(MP3DecodeData& data, unsigned pcm_length);
+
+MP3DecodeData make_data(unsigned channels) {
+    MP3DecodeData d;
+    d.frame.header.channels = channels;
+    std::mt19937 gen(42);
+    std::uniform_int_distribution<int16_t> dist(0, 32767);
+    for (std::size_t i = 0; i < MP3DecodeData::BUFFER_SIZE; ++i)
+        d.outputBuffer[i] = dist(gen);
+    return d;
+}
+
+int main(int argc, char* argv[]) {
+    std::string mode = "perf";
+    std::string impl = "original";
+    unsigned pcm_length = 1 << 18; // default 256k
+    int repeat = 33000; // ensure original runtime >= 10s
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "--mode=correct") mode = "correct";
+        else if (arg == "--mode=perf") mode = "perf";
+        else if (arg == "--impl=optimized") impl = "optimized";
+        else if (arg == "--impl=original") impl = "original";
+        else if (arg.rfind("--pcm=",0)==0) pcm_length = static_cast<unsigned>(std::stoul(arg.substr(6)));
+        else if (arg.rfind("--repeat=",0)==0) repeat = std::stoi(arg.substr(9));
+    }
+
+    MP3DecodeData base = make_data(2);
+    long long result = 0;
+    if (mode == "correct") {
+        MP3DecodeData data = base;
+        if (impl == "optimized")
+            result = process(data, pcm_length);
+        else
+            result = process(data, pcm_length);
+        std::cout << result << '\n';
+    } else {
+        using clock = std::chrono::high_resolution_clock;
+        auto t1 = clock::now();
+        for (int r = 0; r < repeat; ++r) {
+            MP3DecodeData data = base;
+            if (impl == "optimized")
+                result += process(data, pcm_length);
+            else
+                result += process(data, pcm_length);
+        }
+        auto t2 = clock::now();
+        std::cout << "Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms\n";
+    }
+    return 0;
+}
+
+
+
+Previous attempt info:
+Original execution time: mean = 7887.40 ms, std = 13.32 ms
+Diff from original code:
+--- original
++++ step_1
+@@ -1,4 +1,3 @@
+-// original.cpp
+ #include <cstdint>
+ #include <cstddef>
+ #include <algorithm>
+@@ -16,17 +15,20 @@
+ long long process(MP3DecodeData& data, unsigned pcm_length) {
+     unsigned i = 0;
+     long long acc = 0;
++    const unsigned BUFFER_SIZE = MP3DecodeData::BUFFER_SIZE;
++    const unsigned channels = data.frame.header.channels;
++    const unsigned samples_per_iteration = BUFFER_SIZE / (2 * channels);
++
+     while (i < pcm_length) {
+-        unsigned num_samples = sizeof(data.outputBuffer) /
+-            (2 * MAD_NCHANNELS(&data.frame.header));
+-        if (num_samples > pcm_length - i)
+-            num_samples = pcm_length - i;
+-        for (unsigned j = 0; j < num_samples * data.frame.header.channels; ++j) {
+-            unsigned idx = j % MP3DecodeData::BUFFER_SIZE;
+-            acc += data.outputBuffer[idx];
++        unsigned num_samples = std::min(samples_per_iteration, pcm_length - i);
++        unsigned end = i + num_samples;
++
++        for (unsigned j = i; j < end; j += channels) {
++            for (unsigned ch = 0; ch < channels; ++ch) {
++                acc += data.outputBuffer[j % BUFFER_SIZE];
++            }
+         }
+-        i += num_samples;
++        i = end;
+     }
+     return acc;
+ }
+-
+Correctness check failed.
+LLM analysis: The optimized code reduces the number of divisions by cache optimal accesses and uses loop unrolling for processing channels, significantly enhancing performance. Cache locality is improved by accessing data in a predictable manner, minimizing cache misses.
+Diff from original code:
+--- original
++++ step_2
+@@ -1,4 +1,3 @@
+-// original.cpp
+ #include <cstdint>
+ #include <cstddef>
+ #include <algorithm>
+@@ -14,19 +13,24 @@
+ __attribute__((noinline)) unsigned MAD_NCHANNELS(const MP3FrameHeader* h) { return h->channels; }
+ 
+ long long process(MP3DecodeData& data, unsigned pcm_length) {
+-    unsigned i = 0;
++    const unsigned BUFFER_SIZE = MP3DecodeData::BUFFER_SIZE;
++    const unsigned channels = data.frame.header.channels;
++    const unsigned samples_per_iteration = BUFFER_SIZE / (2 * channels);
+     long long acc = 0;
+-    while (i < pcm_length) {
+-        unsigned num_samples = sizeof(data.outputBuffer) /
+-            (2 * MAD_NCHANNELS(&data.frame.header));
+-        if (num_samples > pcm_length - i)
+-            num_samples = pcm_length - i;
+-        for (unsigned j = 0; j < num_samples * data.frame.header.channels; ++j) {
+-            unsigned idx = j % MP3DecodeData::BUFFER_SIZE;
+-            acc += data.outputBuffer[idx];
++
++    for (unsigned i = 0; i < pcm_length; ) {
++        unsigned num_samples = std::min(samples_per_iteration, pcm_length - i);
++        unsigned end = i + num_samples;
++
++        for (unsigned j = i; j < end; j += channels) {
++            for (unsigned ch = 0; ch < channels; ++ch) {
++                acc += data.outputBuffer[(j / channels) % BUFFER_SIZE];
++            }
+         }
+-        i += num_samples;
++        i = end;
+     }
+     return acc;
+ }
+ 
++
++// Explicit template instantiations (if any) should be added here
+Correctness check failed.
+LLM analysis: The revised implementation enhances performance by improving loop iteration structure, ensuring fewer divisions, and helping cache locality through more predictable access patterns. Instead of using modular arithmetic for buffer indexing, it reduces index calculations in the innermost loop. Additionally, the channel processing has been altered to respect cache line optimizations while maintaining the correct mathematical accumulation. The overall logic remains intact to preserve functionality.

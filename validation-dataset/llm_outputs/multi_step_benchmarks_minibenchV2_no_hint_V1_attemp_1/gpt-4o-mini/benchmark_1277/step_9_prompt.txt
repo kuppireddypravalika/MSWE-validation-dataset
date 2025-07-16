@@ -1,0 +1,858 @@
+You are an expert C++ performance engineer. Optimize the provided code for high compute and resource performance while preserving behavior. The optimized function must keep the exact same signature as the hand-written implementation. If the original file contains explicit template instantiations, reproduce them unchanged at the end of the optimized file. This prompt may include compilation errors, runtime errors or timing data from the previous step. Use it to refine the code. If it is empty, produce an initial optimization based solely on the original source. When refining the code, explore potentially high-reward optimization paths that have not yet been tried and that could yield superior computational performance. Respond only with a JSON object using the keys "optimized_code" and "analysis". The "analysis" field should briefly explain the intent behind your modifications. Additional source files may be provided for context. Here are the files:
+
+// original.cpp
+#include <cmath>
+#include <unordered_map>
+#include <set>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
+// Mimic the expensive two-electron integral loops from Ambit.
+// The original version always launches an OpenMP parallel region
+// even when only checking integral sizes.
+
+unsigned int CalculateTwoElectronIntegrals(bool check_size_only, int size) {
+    std::set<int> found_keys;
+    std::unordered_map<int,double> integrals;
+
+#pragma omp parallel
+    {
+#pragma omp for schedule(static)
+        for (int i1 = 0; i1 < size; ++i1) {
+            for (int i2 = 0; i2 < size; ++i2) {
+                for (int i3 = 0; i3 < size; ++i3) {
+                    for (int i4 = 0; i4 < size; ++i4) {
+                        int key = (((i1 * size + i2) * size + i3) * size + i4);
+                        if (check_size_only) {
+#ifdef _OPENMP
+#pragma omp critical(TWO_ELECTRON_SLATER)
+#endif
+                            found_keys.insert(key);
+                        } else {
+                            double radial = std::sin(i1 * i2 + i3 * i4) *
+                                             std::sqrt(i1 + i2 + i3 + i4 + 1.0);
+#ifdef _OPENMP
+#pragma omp critical(TWO_ELECTRON_SLATER)
+#endif
+                            integrals[key] = radial;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return check_size_only ? found_keys.size() : integrals.size();
+}
+
+
+The following files are provided for context. Do NOT modify them. Only update code in original.cpp.
+
+// harness.cpp
+#include <chrono>
+#include <iostream>
+#include <string>
+
+// Declaration of the benchmark function implemented in original.cpp or optimized.cpp
+unsigned int CalculateTwoElectronIntegrals(bool check_size_only, int size);
+
+int main(int argc, char* argv[]) {
+    std::string mode = "perf";
+    int size = 60;      // workload dimension
+    int repeat = 1;
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "--mode=correct") mode = "correct";
+        else if (arg == "--mode=perf") mode = "perf";
+        else if (arg.rfind("--size=",0)==0) size = std::stoi(arg.substr(7));
+        else if (arg.rfind("--repeat=",0)==0) repeat = std::stoi(arg.substr(9));
+    }
+
+    if (mode == "correct") {
+        unsigned int res = CalculateTwoElectronIntegrals(false, size);
+        std::cout << res << '\n';
+        return 0;
+    }
+
+    using clock = std::chrono::high_resolution_clock;
+    auto t1 = clock::now();
+    unsigned int dummy = 0;
+    for (int r = 0; r < repeat; ++r) {
+        dummy += CalculateTwoElectronIntegrals(true, size);
+    }
+    auto t2 = clock::now();
+
+    std::cout << "Time: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count()
+              << " ms\n";
+    if (dummy == 123456789u) std::cerr << "";
+    return 0;
+}
+
+
+Previous attempt info:
+Original execution time: mean = 7465.20 ms, std = 1684.28 ms
+Diff from original code:
+--- original
++++ step_1
+@@ -1,4 +1,3 @@
+-// original.cpp
+ #include <cmath>
+ #include <unordered_map>
+ #include <set>
+@@ -6,39 +5,58 @@
+ #include <omp.h>
+ #endif
+ 
+-// Mimic the expensive two-electron integral loops from Ambit.
+-// The original version always launches an OpenMP parallel region
+-// even when only checking integral sizes.
+-
++// Optimized version of the two-electron integral calculation
+ unsigned int CalculateTwoElectronIntegrals(bool check_size_only, int size) {
+     std::set<int> found_keys;
+     std::unordered_map<int,double> integrals;
+ 
++    if (check_size_only) {
++        // Use a local array to optimize memory access and prevent critical sections
++        std::vector<int> local_keys(size * size * size * size);
++
+ #pragma omp parallel
+     {
+-#pragma omp for schedule(static)
++        // Using reduction with a lock-free method by counting found keys in local array
++        #pragma omp for schedule(static)
+         for (int i1 = 0; i1 < size; ++i1) {
+             for (int i2 = 0; i2 < size; ++i2) {
+                 for (int i3 = 0; i3 < size; ++i3) {
+                     for (int i4 = 0; i4 < size; ++i4) {
+                         int key = (((i1 * size + i2) * size + i3) * size + i4);
+-                        if (check_size_only) {
+-#ifdef _OPENMP
+-#pragma omp critical(TWO_ELECTRON_SLATER)
+-#endif
+-                            found_keys.insert(key);
+-                        } else {
++                        local_keys[key] = 1;
++                    }
++                }
++            }
++        }
++    }
++        // Since `local_keys` is thread-local, we must collect results after parallel region
++        for (int i = 0; i < size * size * size * size; ++i) {
++            if (local_keys[i]) {
++                found_keys.insert(i);
++            }
++        }
++        return found_keys.size();
++    } else {
++        // Avoid critical sections by storing results directly into the map in a thread-safe manner
++        #pragma omp parallel
++        {
++            #pragma omp for schedule(static)
++            for (int i1 = 0; i1 < size; ++i1) {
++                for (int i2 = 0; i2 < size; ++i2) {
++                    for (int i3 = 0; i3 < size; ++i3) {
++                        for (int i4 = 0; i4 < size; ++i4) {
++                            int key = (((i1 * size + i2) * size + i3) * size + i4);
+                             double radial = std::sin(i1 * i2 + i3 * i4) *
+                                              std::sqrt(i1 + i2 + i3 + i4 + 1.0);
+-#ifdef _OPENMP
+-#pragma omp critical(TWO_ELECTRON_SLATER)
+-#endif
+-                            integrals[key] = radial;
++                            integrals[key] = radial; // No critical section needed here
+                         }
+                     }
+                 }
+             }
+         }
++        return integrals.size();
+     }
+-    return check_size_only ? found_keys.size() : integrals.size();
+ }
++
++// Explicit template instantiations
++// <insert necessary explicit template instantiations here>
+Compilation failed. Output:
+cc1plus: warning: ignoring possibly conflicting option ‘-fopt-info-all’
+cc1plus: warning: ignoring possibly conflicting option ‘-fopt-info-all’
+/workspace/llm_outputs/multi_step_benchmarks_minibenchV2_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_1277/step_1.cpp: In function ‘unsigned int CalculateTwoElectronIntegrals(bool, int)’:
+/workspace/llm_outputs/multi_step_benchmarks_minibenchV2_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_1277/step_1.cpp:15:14: error: ‘vector’ is not a member of ‘std’
+   15 |         std::vector<int> local_keys(size * size * size * size);
+      |              ^~~~~~
+/workspace/llm_outputs/multi_step_benchmarks_minibenchV2_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_1277/step_1.cpp:6:1: note: ‘std::vector’ is defined in header ‘<vector>’; did you forget to ‘#include <vector>’?
+    5 | #include <omp.h>
+  +++ |+#include <vector>
+    6 | #endif
+/workspace/llm_outputs/multi_step_benchmarks_minibenchV2_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_1277/step_1.cpp:15:21: error: expected primary-expression before ‘int’
+   15 |         std::vector<int> local_keys(size * size * size * size);
+      |                     ^~~
+/workspace/llm_outputs/multi_step_benchmarks_minibenchV2_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_1277/step_1.cpp:26:25: error: ‘local_keys’ was not declared in this scope
+   26 |                         local_keys[key] = 1;
+      |                         ^~~~~~~~~~
+/workspace/llm_outputs/multi_step_benchmarks_minibenchV2_no_hint_V1_attemp_1/gpt-4o-mini/benchmark_1277/step_1.cpp:34:17: error: ‘local_keys’ was not declared in this scope
+   34 |             if (local_keys[i]) {
+      |                 ^~~~~~~~~~
+
+LLM analysis: The optimized code reduces the usage of critical sections. In the 'check_size_only' branch, a local array is used to mark found keys, minimizing contention by allowing individual threads to operate locally on their own data. The results are then aggregated post the parallel region. For the case when not checking size, the code directly updates the integrals map without critical sections, capitalizing on OpenMP's capabilities for thread safety with individual writes to a map. This should significantly improve performance by reducing overhead from synchronization and restricting write contention.
+Diff from original code:
+--- original
++++ step_2
+@@ -1,44 +1,62 @@
+-// original.cpp
+ #include <cmath>
+ #include <unordered_map>
+ #include <set>
++#include <vector>
+ #ifdef _OPENMP
+ #include <omp.h>
+ #endif
+ 
+-// Mimic the expensive two-electron integral loops from Ambit.
+-// The original version always launches an OpenMP parallel region
+-// even when only checking integral sizes.
+-
++// Optimized version of the two-electron integral calculation
+ unsigned int CalculateTwoElectronIntegrals(bool check_size_only, int size) {
+     std::set<int> found_keys;
+-    std::unordered_map<int,double> integrals;
++    std::unordered_map<int, double> integrals;
+ 
+-#pragma omp parallel
+-    {
+-#pragma omp for schedule(static)
+-        for (int i1 = 0; i1 < size; ++i1) {
+-            for (int i2 = 0; i2 < size; ++i2) {
+-                for (int i3 = 0; i3 < size; ++i3) {
+-                    for (int i4 = 0; i4 < size; ++i4) {
+-                        int key = (((i1 * size + i2) * size + i3) * size + i4);
+-                        if (check_size_only) {
+-#ifdef _OPENMP
+-#pragma omp critical(TWO_ELECTRON_SLATER)
+-#endif
+-                            found_keys.insert(key);
+-                        } else {
+-                            double radial = std::sin(i1 * i2 + i3 * i4) *
+-                                             std::sqrt(i1 + i2 + i3 + i4 + 1.0);
+-#ifdef _OPENMP
+-#pragma omp critical(TWO_ELECTRON_SLATER)
+-#endif
+-                            integrals[key] = radial;
++    if (check_size_only) {
++        // Use a thread-safe way to count unique keys
++        std::vector<int> local_keys(size * size * size * size, 0);
++
++        #pragma omp parallel
++        {
++            #pragma omp for schedule(static)
++            for (int i1 = 0; i1 < size; ++i1) {
++                for (int i2 = 0; i2 < size; ++i2) {
++                    for (int i3 = 0; i3 < size; ++i3) {
++                        for (int i4 = 0; i4 < size; ++i4) {
++                            int key = (((i1 * size + i2) * size + i3) * size + i4);
++                            local_keys[key] = 1;
+                         }
+                     }
+                 }
+             }
+         }
++
++        for (int i = 0; i < size * size * size * size; ++i) {
++            if (local_keys[i]) {
++                found_keys.insert(i);
++            }
++        }
++        return found_keys.size();
++    } else {
++        // Avoid critical sections by storing results directly into the map in a thread-safe manner
++        #pragma omp parallel
++        {
++            #pragma omp for schedule(static)
++            for (int i1 = 0; i1 < size; ++i1) {
++                for (int i2 = 0; i2 < size; ++i2) {
++                    for (int i3 = 0; i3 < size; ++i3) {
++                        for (int i4 = 0; i4 < size; ++i4) {
++                            int key = (((i1 * size + i2) * size + i3) * size + i4);
++                            double radial = std::sin(i1 * i2 + i3 * i4) *
++                                            std::sqrt(i1 + i2 + i3 + i4 + 1.0);
++                            integrals[key] = radial; // No critical section needed here
++                        }
++                    }
++                }
++            }
++        }
++        return integrals.size();
+     }
+-    return check_size_only ? found_keys.size() : integrals.size();
+ }
++
++// Explicit template instantiations
++// <insert necessary explicit template instantiations here>
+Runtime error: Command '['benchmarks/benchmark_1277/bench_llm_step_2', '--mode=correct']' died with <Signals.SIGSEGV: 11>.
+LLM analysis: The optimized code enhances performance by using a vector for local key counts to eliminate critical sections when checking sizes, reducing contention. The parallel execution for size calculations avoids critical sections completely, allowing threads to safely write to the integrals map without needing synchronization. This approach is expected to improve performance significantly by minimizing overhead from synchronization mechanisms.
+Diff from original code:
+--- original
++++ step_3
+@@ -2,43 +2,62 @@
+ #include <cmath>
+ #include <unordered_map>
+ #include <set>
++#include <vector>
+ #ifdef _OPENMP
+ #include <omp.h>
+ #endif
+ 
+-// Mimic the expensive two-electron integral loops from Ambit.
+-// The original version always launches an OpenMP parallel region
+-// even when only checking integral sizes.
+-
++// Optimized version of the two-electron integral calculation
+ unsigned int CalculateTwoElectronIntegrals(bool check_size_only, int size) {
+     std::set<int> found_keys;
+-    std::unordered_map<int,double> integrals;
++    std::unordered_map<int, double> integrals;
+ 
+-#pragma omp parallel
+-    {
+-#pragma omp for schedule(static)
+-        for (int i1 = 0; i1 < size; ++i1) {
+-            for (int i2 = 0; i2 < size; ++i2) {
+-                for (int i3 = 0; i3 < size; ++i3) {
+-                    for (int i4 = 0; i4 < size; ++i4) {
+-                        int key = (((i1 * size + i2) * size + i3) * size + i4);
+-                        if (check_size_only) {
+-#ifdef _OPENMP
+-#pragma omp critical(TWO_ELECTRON_SLATER)
+-#endif
+-                            found_keys.insert(key);
+-                        } else {
+-                            double radial = std::sin(i1 * i2 + i3 * i4) *
+-                                             std::sqrt(i1 + i2 + i3 + i4 + 1.0);
+-#ifdef _OPENMP
+-#pragma omp critical(TWO_ELECTRON_SLATER)
+-#endif
+-                            integrals[key] = radial;
++    if (check_size_only) {
++        // Use a thread-safe way to count unique keys
++        std::vector<int> local_keys(size * size * size * size, 0);
++
++        #pragma omp parallel
++        {
++            #pragma omp for schedule(static)
++            for (int i1 = 0; i1 < size; ++i1) {
++                for (int i2 = 0; i2 < size; ++i2) {
++                    for (int i3 = 0; i3 < size; ++i3) {
++                        for (int i4 = 0; i4 < size; ++i4) {
++                            int key = (((i1 * size + i2) * size + i3) * size + i4);
++                            local_keys[key] = 1;
+                         }
+                     }
+                 }
+             }
+         }
++
++        for (int i = 0; i < size * size * size * size; ++i) {
++            if (local_keys[i]) {
++                found_keys.insert(i);
++            }
++        }
++        return found_keys.size();
++    } else {
++        // Calculate integrals without critical sections
++        #pragma omp parallel
++        {
++            #pragma omp for schedule(static)
++            for (int i1 = 0; i1 < size; ++i1) {
++                for (int i2 = 0; i2 < size; ++i2) {
++                    for (int i3 = 0; i3 < size; ++i3) {
++                        for (int i4 = 0; i4 < size; ++i4) {
++                            int key = (((i1 * size + i2) * size + i3) * size + i4);
++                            double radial = std::sin(i1 * i2 + i3 * i4) *
++                                            std::sqrt(i1 + i2 + i3 + i4 + 1.0);
++                            integrals[key] = radial; // No critical section needed here
++                        }
++                    }
++                }
++            }
++        }
++        return integrals.size();
+     }
+-    return check_size_only ? found_keys.size() : integrals.size();
+ }
++
++// Explicit template instantiations
++// <insert necessary explicit template instantiations here>
+Runtime error: Command '['benchmarks/benchmark_1277/bench_llm_step_3', '--mode=correct']' died with <Signals.SIGSEGV: 11>.
+LLM analysis: The optimization focuses on minimizing contention and enhancing the use of parallelism. A local vector is used to count unique keys in the size-checking case, which avoids critical sections. In the case of calculating integrals, direct writes to the `integrals` map minimize the overhead associated with synchronization. This should result in improved performance by allowing more efficient parallel execution.
+Diff from original code:
+--- original
++++ step_4
+@@ -1,44 +1,62 @@
+-// original.cpp
+ #include <cmath>
+ #include <unordered_map>
+ #include <set>
++#include <vector>
+ #ifdef _OPENMP
+ #include <omp.h>
+ #endif
+ 
+-// Mimic the expensive two-electron integral loops from Ambit.
+-// The original version always launches an OpenMP parallel region
+-// even when only checking integral sizes.
+-
++// Optimized version of the two-electron integral calculation
+ unsigned int CalculateTwoElectronIntegrals(bool check_size_only, int size) {
+     std::set<int> found_keys;
+-    std::unordered_map<int,double> integrals;
++    std::unordered_map<int, double> integrals;
+ 
+-#pragma omp parallel
+-    {
+-#pragma omp for schedule(static)
+-        for (int i1 = 0; i1 < size; ++i1) {
+-            for (int i2 = 0; i2 < size; ++i2) {
+-                for (int i3 = 0; i3 < size; ++i3) {
+-                    for (int i4 = 0; i4 < size; ++i4) {
+-                        int key = (((i1 * size + i2) * size + i3) * size + i4);
+-                        if (check_size_only) {
+-#ifdef _OPENMP
+-#pragma omp critical(TWO_ELECTRON_SLATER)
+-#endif
+-                            found_keys.insert(key);
+-                        } else {
+-                            double radial = std::sin(i1 * i2 + i3 * i4) *
+-                                             std::sqrt(i1 + i2 + i3 + i4 + 1.0);
+-#ifdef _OPENMP
+-#pragma omp critical(TWO_ELECTRON_SLATER)
+-#endif
+-                            integrals[key] = radial;
++    if (check_size_only) {
++        // Use a thread-safe way to count unique keys
++        std::vector<bool> local_keys(size * size * size * size, false);
++
++        #pragma omp parallel
++        {
++            #pragma omp for schedule(static)
++            for (int i1 = 0; i1 < size; ++i1) {
++                for (int i2 = 0; i2 < size; ++i2) {
++                    for (int i3 = 0; i3 < size; ++i3) {
++                        for (int i4 = 0; i4 < size; ++i4) {
++                            int key = (((i1 * size + i2) * size + i3) * size + i4);
++                            local_keys[key] = true;
+                         }
+                     }
+                 }
+             }
+         }
++
++        for (int i = 0; i < local_keys.size(); ++i) {
++            if (local_keys[i]) {
++                found_keys.insert(i);
++            }
++        }
++        return found_keys.size();
++    } else {
++        // Calculate integrals without critical sections
++        #pragma omp parallel
++        {
++            #pragma omp for schedule(static)
++            for (int i1 = 0; i1 < size; ++i1) {
++                for (int i2 = 0; i2 < size; ++i2) {
++                    for (int i3 = 0; i3 < size; ++i3) {
++                        for (int i4 = 0; i4 < size; ++i4) {
++                            int key = (((i1 * size + i2) * size + i3) * size + i4);
++                            double radial = std::sin(i1 * i2 + i3 * i4) *
++                                            std::sqrt(i1 + i2 + i3 + i4 + 1.0);
++                            integrals[key] = radial; // No critical section needed here
++                        }
++                    }
++                }
++            }
++        }
++        return integrals.size();
+     }
+-    return check_size_only ? found_keys.size() : integrals.size();
+ }
++
++// Explicit template instantiations
++// <insert necessary explicit template instantiations here>
+Runtime error: Command '['benchmarks/benchmark_1277/bench_llm_step_4', '--mode=correct']' died with <Signals.SIGSEGV: 11>.
+LLM analysis: The optimized code improves performance by using a thread-safe `std::vector<bool>` instead of `std::vector<int>` for local key storage, which reduces memory usage and improves cache efficiency. The critical sections have been fully eliminated, allowing threads to operate independently and simultaneously without risking data races. This should lead to a significant increase in computational performance, especially for larger sizes.
+Diff from original code:
+--- original
++++ step_5
+@@ -1,44 +1,62 @@
+-// original.cpp
+ #include <cmath>
+ #include <unordered_map>
+ #include <set>
++#include <vector>
+ #ifdef _OPENMP
+ #include <omp.h>
+ #endif
+ 
+-// Mimic the expensive two-electron integral loops from Ambit.
+-// The original version always launches an OpenMP parallel region
+-// even when only checking integral sizes.
+-
++// Optimized version of the two-electron integral calculation
+ unsigned int CalculateTwoElectronIntegrals(bool check_size_only, int size) {
+     std::set<int> found_keys;
+-    std::unordered_map<int,double> integrals;
++    std::unordered_map<int, double> integrals;
+ 
+-#pragma omp parallel
+-    {
+-#pragma omp for schedule(static)
+-        for (int i1 = 0; i1 < size; ++i1) {
+-            for (int i2 = 0; i2 < size; ++i2) {
+-                for (int i3 = 0; i3 < size; ++i3) {
+-                    for (int i4 = 0; i4 < size; ++i4) {
+-                        int key = (((i1 * size + i2) * size + i3) * size + i4);
+-                        if (check_size_only) {
+-#ifdef _OPENMP
+-#pragma omp critical(TWO_ELECTRON_SLATER)
+-#endif
+-                            found_keys.insert(key);
+-                        } else {
+-                            double radial = std::sin(i1 * i2 + i3 * i4) *
+-                                             std::sqrt(i1 + i2 + i3 + i4 + 1.0);
+-#ifdef _OPENMP
+-#pragma omp critical(TWO_ELECTRON_SLATER)
+-#endif
+-                            integrals[key] = radial;
++    if (check_size_only) {
++        // Use a thread-safe way to count unique keys
++        std::vector<bool> local_keys(size * size * size * size, false);
++
++        #pragma omp parallel
++        {
++            #pragma omp for schedule(static)
++            for (int i1 = 0; i1 < size; ++i1) {
++                for (int i2 = 0; i2 < size; ++i2) {
++                    for (int i3 = 0; i3 < size; ++i3) {
++                        for (int i4 = 0; i4 < size; ++i4) {
++                            int key = (((i1 * size + i2) * size + i3) * size + i4);
++                            local_keys[key] = true;
+                         }
+                     }
+                 }
+             }
+         }
++
++        for (int i = 0; i < local_keys.size(); ++i) {
++            if (local_keys[i]) {
++                found_keys.insert(i);
++            }
++        }
++        return found_keys.size();
++    } else {
++        // Calculate integrals without critical sections
++        #pragma omp parallel
++        {
++            #pragma omp for schedule(static)
++            for (int i1 = 0; i1 < size; ++i1) {
++                for (int i2 = 0; i2 < size; ++i2) {
++                    for (int i3 = 0; i3 < size; ++i3) {
++                        for (int i4 = 0; i4 < size; ++i4) {
++                            int key = (((i1 * size + i2) * size + i3) * size + i4);
++                            double radial = std::sin(i1 * i2 + i3 * i4) *
++                                            std::sqrt(i1 + i2 + i3 + i4 + 1.0);
++                            integrals[key] = radial; // No critical section needed here
++                        }
++                    }
++                }
++            }
++        }
++        return integrals.size();
+     }
+-    return check_size_only ? found_keys.size() : integrals.size();
+ }
++
++// Explicit template instantiations
++// <insert necessary explicit template instantiations here>
+Runtime error: Command '['benchmarks/benchmark_1277/bench_llm_step_5', '--mode=correct']' died with <Signals.SIGSEGV: 11>.
+LLM analysis: The optimized code utilizes a thread-safe `std::vector<bool>` for local key counting, which decreases memory usage and potentially improves cache efficiency. By leveraging OpenMP for parallel computation while avoiding critical sections, we enhance the performance through increased thread independence, resulting in significant speedup, especially as `size` grows. The changes ensure that each thread safely manages its own data without contention.
+Diff from original code:
+--- original
++++ step_6
+@@ -2,43 +2,62 @@
+ #include <cmath>
+ #include <unordered_map>
+ #include <set>
++#include <vector>
+ #ifdef _OPENMP
+ #include <omp.h>
+ #endif
+ 
+-// Mimic the expensive two-electron integral loops from Ambit.
+-// The original version always launches an OpenMP parallel region
+-// even when only checking integral sizes.
+-
++// Optimized version of the two-electron integral calculation
+ unsigned int CalculateTwoElectronIntegrals(bool check_size_only, int size) {
+     std::set<int> found_keys;
+-    std::unordered_map<int,double> integrals;
++    std::unordered_map<int, double> integrals;
+ 
+-#pragma omp parallel
+-    {
+-#pragma omp for schedule(static)
+-        for (int i1 = 0; i1 < size; ++i1) {
+-            for (int i2 = 0; i2 < size; ++i2) {
+-                for (int i3 = 0; i3 < size; ++i3) {
+-                    for (int i4 = 0; i4 < size; ++i4) {
+-                        int key = (((i1 * size + i2) * size + i3) * size + i4);
+-                        if (check_size_only) {
+-#ifdef _OPENMP
+-#pragma omp critical(TWO_ELECTRON_SLATER)
+-#endif
+-                            found_keys.insert(key);
+-                        } else {
+-                            double radial = std::sin(i1 * i2 + i3 * i4) *
+-                                             std::sqrt(i1 + i2 + i3 + i4 + 1.0);
+-#ifdef _OPENMP
+-#pragma omp critical(TWO_ELECTRON_SLATER)
+-#endif
+-                            integrals[key] = radial;
++    if (check_size_only) {
++        // Use a thread-safe way to count unique keys
++        std::vector<bool> local_keys(size * size * size * size, false);
++
++        #pragma omp parallel
++        {
++            #pragma omp for schedule(static)
++            for (int i1 = 0; i1 < size; ++i1) {
++                for (int i2 = 0; i2 < size; ++i2) {
++                    for (int i3 = 0; i3 < size; ++i3) {
++                        for (int i4 = 0; i4 < size; ++i4) {
++                            int key = (((i1 * size + i2) * size + i3) * size + i4);
++                            local_keys[key] = true;
+                         }
+                     }
+                 }
+             }
+         }
++
++        for (int i = 0; i < local_keys.size(); ++i) {
++            if (local_keys[i]) {
++                found_keys.insert(i);
++            }
++        }
++        return found_keys.size();
++    } else {
++        // Calculate integrals without critical sections
++        #pragma omp parallel
++        {
++            #pragma omp for schedule(static)
++            for (int i1 = 0; i1 < size; ++i1) {
++                for (int i2 = 0; i2 < size; ++i2) {
++                    for (int i3 = 0; i3 < size; ++i3) {
++                        for (int i4 = 0; i4 < size; ++i4) {
++                            int key = (((i1 * size + i2) * size + i3) * size + i4);
++                            double radial = std::sin(i1 * i2 + i3 * i4) *
++                                            std::sqrt(i1 + i2 + i3 + i4 + 1.0);
++                            integrals[key] = radial; // No critical section needed here
++                        }
++                    }
++                }
++            }
++        }
++        return integrals.size();
+     }
+-    return check_size_only ? found_keys.size() : integrals.size();
+ }
++
++// Explicit template instantiations
++// <insert necessary explicit template instantiations here>
+Runtime error: Command '['benchmarks/benchmark_1277/bench_llm_step_6', '--mode=correct']' died with <Signals.SIGABRT: 6>.
+LLM analysis: The optimized code enhances performance by employing a thread-safe std::vector<bool> to manage unique key counting, which minimizes memory usage. By avoiding critical sections, we allow threads to operate independently, thereby reducing synchronization overhead and improving overall computational throughput. This design should effectively speed up the integral calculation process, particularly as the problem size increases.
+Diff from original code:
+--- original
++++ step_7
+@@ -1,44 +1,62 @@
+-// original.cpp
+ #include <cmath>
+ #include <unordered_map>
+ #include <set>
++#include <vector>
+ #ifdef _OPENMP
+ #include <omp.h>
+ #endif
+ 
+-// Mimic the expensive two-electron integral loops from Ambit.
+-// The original version always launches an OpenMP parallel region
+-// even when only checking integral sizes.
+-
++// Optimized version of the two-electron integral calculation
+ unsigned int CalculateTwoElectronIntegrals(bool check_size_only, int size) {
+     std::set<int> found_keys;
+-    std::unordered_map<int,double> integrals;
++    std::unordered_map<int, double> integrals;
+ 
+-#pragma omp parallel
+-    {
+-#pragma omp for schedule(static)
+-        for (int i1 = 0; i1 < size; ++i1) {
+-            for (int i2 = 0; i2 < size; ++i2) {
+-                for (int i3 = 0; i3 < size; ++i3) {
+-                    for (int i4 = 0; i4 < size; ++i4) {
+-                        int key = (((i1 * size + i2) * size + i3) * size + i4);
+-                        if (check_size_only) {
+-#ifdef _OPENMP
+-#pragma omp critical(TWO_ELECTRON_SLATER)
+-#endif
+-                            found_keys.insert(key);
+-                        } else {
+-                            double radial = std::sin(i1 * i2 + i3 * i4) *
+-                                             std::sqrt(i1 + i2 + i3 + i4 + 1.0);
+-#ifdef _OPENMP
+-#pragma omp critical(TWO_ELECTRON_SLATER)
+-#endif
+-                            integrals[key] = radial;
++    if (check_size_only) {
++        // Use a thread-safe way to count unique keys
++        std::vector<bool> local_keys(size * size * size * size, false);
++
++        #pragma omp parallel
++        {
++            #pragma omp for schedule(static)
++            for (int i1 = 0; i1 < size; ++i1) {
++                for (int i2 = 0; i2 < size; ++i2) {
++                    for (int i3 = 0; i3 < size; ++i3) {
++                        for (int i4 = 0; i4 < size; ++i4) {
++                            int key = (((i1 * size + i2) * size + i3) * size + i4);
++                            local_keys[key] = true;
+                         }
+                     }
+                 }
+             }
+         }
++
++        for (int i = 0; i < local_keys.size(); ++i) {
++            if (local_keys[i]) {
++                found_keys.insert(i);
++            }
++        }
++        return found_keys.size();
++    } else {
++        // Calculate integrals without critical sections
++        #pragma omp parallel
++        {
++            #pragma omp for schedule(static)
++            for (int i1 = 0; i1 < size; ++i1) {
++                for (int i2 = 0; i2 < size; ++i2) {
++                    for (int i3 = 0; i3 < size; ++i3) {
++                        for (int i4 = 0; i4 < size; ++i4) {
++                            int key = (((i1 * size + i2) * size + i3) * size + i4);
++                            double radial = std::sin(i1 * i2 + i3 * i4) *
++                                            std::sqrt(i1 + i2 + i3 + i4 + 1.0);
++                            integrals[key] = radial; // No critical section needed here
++                        }
++                    }
++                }
++            }
++        }
++        return integrals.size();
+     }
+-    return check_size_only ? found_keys.size() : integrals.size();
+ }
++
++// Explicit template instantiations
++// <insert necessary explicit template instantiations here>
+Runtime error: Command '['benchmarks/benchmark_1277/bench_llm_step_7', '--mode=correct']' died with <Signals.SIGSEGV: 11>.
+LLM analysis: The optimized code enhances performance by using a `std::vector<bool>` for counting the unique keys, which improves memory efficiency. Additionally, the use of OpenMP allows the function to exploit multi-threading without critical sections, thus reducing synchronization overhead. Each thread maintains its local state for either the keys or the integrals, leading to superior parallel performance, especially for larger sizes.
+Diff from original code:
+--- original
++++ step_8
+@@ -2,43 +2,59 @@
+ #include <cmath>
+ #include <unordered_map>
+ #include <set>
++#include <vector>
+ #ifdef _OPENMP
+ #include <omp.h>
+ #endif
+ 
+-// Mimic the expensive two-electron integral loops from Ambit.
+-// The original version always launches an OpenMP parallel region
+-// even when only checking integral sizes.
+-
+ unsigned int CalculateTwoElectronIntegrals(bool check_size_only, int size) {
+     std::set<int> found_keys;
+-    std::unordered_map<int,double> integrals;
++    std::unordered_map<int, double> integrals;
+ 
+-#pragma omp parallel
+-    {
+-#pragma omp for schedule(static)
+-        for (int i1 = 0; i1 < size; ++i1) {
+-            for (int i2 = 0; i2 < size; ++i2) {
+-                for (int i3 = 0; i3 < size; ++i3) {
+-                    for (int i4 = 0; i4 < size; ++i4) {
+-                        int key = (((i1 * size + i2) * size + i3) * size + i4);
+-                        if (check_size_only) {
+-#ifdef _OPENMP
+-#pragma omp critical(TWO_ELECTRON_SLATER)
+-#endif
+-                            found_keys.insert(key);
+-                        } else {
+-                            double radial = std::sin(i1 * i2 + i3 * i4) *
+-                                             std::sqrt(i1 + i2 + i3 + i4 + 1.0);
+-#ifdef _OPENMP
+-#pragma omp critical(TWO_ELECTRON_SLATER)
+-#endif
++    if (check_size_only) {
++        std::vector<bool> local_keys(size * size * size * size, false);
++
++        #pragma omp parallel
++        {
++            #pragma omp for schedule(static)
++            for (int i1 = 0; i1 < size; ++i1) {
++                for (int i2 = 0; i2 < size; ++i2) {
++                    for (int i3 = 0; i3 < size; ++i3) {
++                        for (int i4 = 0; i4 < size; ++i4) {
++                            int key = (((i1 * size + i2) * size + i3) * size + i4);
++                            local_keys[key] = true;
++                        }
++                    }
++                }
++            }
++        }
++
++        for (int i = 0; i < local_keys.size(); ++i) {
++            if (local_keys[i]) {
++                found_keys.insert(i);
++            }
++        }
++        return found_keys.size();
++    } else {
++        #pragma omp parallel
++        {
++            #pragma omp for schedule(static)
++            for (int i1 = 0; i1 < size; ++i1) {
++                for (int i2 = 0; i2 < size; ++i2) {
++                    for (int i3 = 0; i3 < size; ++i3) {
++                        for (int i4 = 0; i4 < size; ++i4) {
++                            int key = (((i1 * size + i2) * size + i3) * size + i4);
++                            double radial = std::sin(i1 * i2 + i3 * i4) * 
++                                            std::sqrt(i1 + i2 + i3 + i4 + 1.0);
+                             integrals[key] = radial;
+                         }
+                     }
+                 }
+             }
+         }
++        return integrals.size();
+     }
+-    return check_size_only ? found_keys.size() : integrals.size();
+ }
++
++// Explicit template instantiations
++// <insert necessary explicit template instantiations here>
+Runtime error: Command '['benchmarks/benchmark_1277/bench_llm_step_8', '--mode=correct']' died with <Signals.SIGSEGV: 11>.
+LLM analysis: The optimized code enhances memory efficiency by employing a `std::vector<bool>` for tracking unique keys in the case of checking size, rather than using critical sections to manage concurrent access. The optics of OpenMP facilitate parallel computations while eliminating contention dynamics through local buffering, ensuring that each thread works independently. For computing integrals, the approach employs straightforward writes to the map without critical sections, potentially accelerating performance by minimizing synchronous overhead.
